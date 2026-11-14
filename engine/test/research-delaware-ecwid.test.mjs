@@ -5,6 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { buildShadowEvidence } from '../src/run-expansion-shadow.mjs';
+import { collectResearchStateReport } from '../src/research-state-registry.mjs';
+import { cityHiveResearchSourceForState } from '../src/research-cityhive-runtime.mjs';
 import { collectDelawareEcwidResearch, delawareEcwidResearchSource, isDelawareEcwidShadowPickup } from '../src/research-delaware-ecwid.mjs';
 import { parseEcwidPickupOffer, verifyEcwidPickupPremise } from '../src/collectors/ecwid-pickup-surfaces.mjs';
 import sourceData from '../data/de-ecwid-research-source.json' with { type: 'json' };
@@ -84,4 +86,20 @@ test('Delaware Ecwid collector remains shadow-only and reports binary orderabili
     env:{BOURBON_SIGNAL_SHADOW_MODE:'0'},clocksFile:path.join(directory,'guard.json'),
     fetchText:async()=>{throw Error('guard must run before any request');},
   }),/isolated shadow source/);
+});
+
+test('Delaware registry composes Banks without requesting sibling CityHive when explicitly disabled',async t=>{
+  const directory=await mkdtemp(path.join(os.tmpdir(),'de-ecwid-registry-'));
+  t.after(()=>rm(directory,{recursive:true,force:true}));
+  const calls=[];
+  const report=await collectResearchStateReport(cityHiveResearchSourceForState('DE'),bible,{
+    includeCityHiveResearch:false,env:{BOURBON_SIGNAL_SHADOW_MODE:'1'},clocksFile:path.join(directory,'clock.json'),
+    fetchText:async (url,options)=>{calls.push(url);assert.equal(options.maxBytes,2*1024*1024);return{status:200,url,text:url===sourceData.source.homeUrl?home:productPage};},
+  });
+  assert.deepEqual(calls,[sourceData.source.homeUrl,sourceData.product.url]);
+  assert.equal(report.state,'DE');
+  assert.equal(report.metadata.complete,true);
+  assert.equal(report.metadata.allDeliveryDisabled,true);
+  assert.equal(report.signals.length,1);
+  assert.equal(report.signals[0].storeId,'ecwid:de:130511528');
 });
