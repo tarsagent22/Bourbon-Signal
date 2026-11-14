@@ -3,14 +3,22 @@ import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { stableId } from '../core/text.mjs';
 import { librarySourceSearchTerms } from '../library-search-runtime.mjs';
 import texasExpansion from '../../data/texas-cityhive-expansion-sources.json' with {type:'json'};
-import { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES, MARYLAND_CITYHIVE_RESEARCH_SOURCES, RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
+import { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES, MARYLAND_CITYHIVE_RESEARCH_SOURCES, RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES, WYOMING_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
 export { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES } from './central-cityhive-research-premises.mjs';
 import {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 export {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 import {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export const TEXAS_CITYHIVE_EXPANSION_SOURCES=Object.freeze(texasExpansion.stores.map(Object.freeze));
-const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES,...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,...MIDWEST_CITYHIVE_EXPANSION_SOURCES,...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES,...MARYLAND_CITYHIVE_RESEARCH_SOURCES,...RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES]);
+const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES,...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,...MIDWEST_CITYHIVE_EXPANSION_SOURCES,...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES,...MARYLAND_CITYHIVE_RESEARCH_SOURCES,...RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES,...WYOMING_CITYHIVE_RESEARCH_SOURCES]);
+
+const WYOMING_WELLER = Object.freeze({
+  merchantId: '5dd3011bbc3e38663aadcb3c',
+  productId: '5d6ee338e548d71ac6cb7b48',
+  optionId: '2358e78ce51684fe9dce7e08158be31c0d9eaa34d34679df05deb40d56aa580e',
+  rawName: 'Weller Full Proof 114 Proof Wheated Bourbon',
+  canonicalName: 'Weller Full Proof',
+});
 
 export function centralCityHiveLibraryTier(signal,bible) {
  const source=ALL_SOURCES.find(s=>s.state===signal.state&&s.merchantId===signal.merchantId&&s.storeId===signal.storeId);
@@ -38,7 +46,10 @@ export function centralCityHiveLibraryTier(signal,bible) {
     ||(signal.merchantId==='6060f6496aaeeb555664ca4f'&&signal.productId==='665932752999236a66c861b6'
       &&signal.rawName==='WELLER MILLENIUM'&&identity==='Weller Millennium')
     ||(signal.merchantId==='64f6226b7537422b95e04824'&&signal.productId==='56c28cb0756275139def0100'
-      &&signal.rawName==='Stagg Jr. Kentucky Straight Bourbon Whiskey'&&identity==='Stagg');
+      &&signal.rawName==='Stagg Jr. Kentucky Straight Bourbon Whiskey'&&identity==='Stagg')
+    || (source.state === 'WY' && signal.merchantId === WYOMING_WELLER.merchantId
+      && signal.productId === WYOMING_WELLER.productId && variant === WYOMING_WELLER.optionId
+      && signal.rawName === WYOMING_WELLER.rawName && identity === WYOMING_WELLER.canonicalName);
   if(!reviewed)return null;
  }
  if(match.record?.id!==record.id||match.match?.confidence!==1)return null;
@@ -78,6 +89,10 @@ export function reviewedCentralCityHiveIdentity(option, product) {
     && String(product.additional_properties?.brands)==='Stagg Bourbon'
     && categories.includes('bourbon')&&!categories.includes('rye')
     && Number.parseFloat(product.additional_properties?.content)>=50&&Number.parseFloat(product.additional_properties?.content)<=75)return 'Stagg';
+  if (option.merchant_id === WYOMING_WELLER.merchantId && id === WYOMING_WELLER.productId
+    && option.option_id === WYOMING_WELLER.optionId && product.name === WYOMING_WELLER.rawName
+    && data.basic_category?.includes('bourbon') && !data.basic_category?.includes('rye')
+    && props.state === 'Kentucky' && props.content === '57%') return WYOMING_WELLER.canonicalName;
   return null;
 }
 
@@ -128,7 +143,7 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
   sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now(),sourceIds}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
   const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts},verifiedPremises=new Set();
-  const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA','CT','DE','HI','MD','KS','RI'].includes(config.id);
+  const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA','CT','DE','HI','MD','KS','RI','WY'].includes(config.id);
   const allowed=sourceIds===undefined?ALL_SOURCES.filter(s=>s.state===config.id):sourceIds.map(id=>ALL_SOURCES.find(s=>s.state===config.id&&s.id===id)).filter(Boolean);
   if(sourceIds!==undefined&&(allowed.length!==sourceIds.length||new Set(sourceIds).size!==sourceIds.length))throw new Error('CityHive source filter must contain unique reviewed premises for this state');
   const groups=Map.groupBy(allowed,s=>perStore?s.id:s.chainId||s.id);

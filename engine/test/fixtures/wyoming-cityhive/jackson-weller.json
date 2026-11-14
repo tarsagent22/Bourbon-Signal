@@ -1,0 +1,74 @@
+{
+  "capture": {
+    "url": "https://theliquorstorejacksonhole.com/shop/?ch-query=weller&merchant-id=5dd3011bbc3e38663aadcb3c",
+    "observedAt": "2026-11-14T10:37:11.340Z",
+    "sha256": "fb75e3074e4ab32fbbc041b2c8433a4188be1e2aec407aea4478d55c136825f5"
+  },
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "5dd3011bbc3e38663aadcb3c",
+        "address": {
+          "full_address": "115 Buffalo Way, Jackson, WY 83001, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -110.7891991,
+              43.4725841
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "5d6ee338e548d71ac6cb7b48",
+      "name": "Weller Full Proof 114 Proof Wheated Bourbon",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "merchants": [
+        {
+          "merchant_id": "5dd3011bbc3e38663aadcb3c",
+          "full_address": "115 Buffalo Way, Jackson, WY 83001, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "address": {},
+          "product_options": [
+            {
+              "option_id": "2358e78ce51684fe9dce7e08158be31c0d9eaa34d34679df05deb40d56aa580e",
+              "product_id": "5d6ee338e548d71ac6cb7b48",
+              "merchant_id": "5dd3011bbc3e38663aadcb3c",
+              "full_address": "115 Buffalo Way, Jackson, WY 83001, USA",
+              "quantity": 1,
+              "price": 86.99,
+              "product_url": "https://theliquorstorejacksonhole.com/shop/product/weller-full-proof-114-proof-wheated-bourbon/5d6ee338e548d71ac6cb7b48?option-id=2358e78ce51684fe9dce7e08158be31c0d9eaa34d34679df05deb40d56aa580e",
+              "address": {},
+              "option_display_data": {
+                "name": "Weller Full Proof 114 Proof Wheated Bourbon",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750",
+                  "unit": "bottle"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "state": "Kentucky",
+                  "content": "57%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
