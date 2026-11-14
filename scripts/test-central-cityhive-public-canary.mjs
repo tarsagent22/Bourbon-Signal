@@ -76,7 +76,8 @@ const locationRoute=loadWithMocks('src/app/api/locations/route.ts',{
 for(const location of candidateLocations){
   const searched=await coverageRoute.POST(new Request('https://fixture.test/api/coverage',{method:'POST',body:JSON.stringify({state,query:location.name})}));
   assert.equal(searched.status,200);const search=await searched.json();
-  assert.ok(search.results.some(row=>row.kind==='store'&&row.storeId===location.id&&row.status==='actively-monitored'));
+  const expectedFinderStatus=accepted.some(row=>row.storeId===location.id)?'actively-monitored':'known-expansion-candidate';
+  assert.ok(search.results.some(row=>row.kind==='store'&&row.storeId===location.id&&row.status===expectedFinderStatus),location.id);
   assert.ok(directory.some(row=>row.state===state&&row.id===location.id));
   for(const route of [storeRoute,locationRoute]){
     const response=await route.GET(new Request('https://fixture.test/api/stores?state='+state+'&limit=1000'));

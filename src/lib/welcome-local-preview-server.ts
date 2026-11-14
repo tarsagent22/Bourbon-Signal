@@ -8,7 +8,7 @@ import {
 } from "@/lib/drop-classification";
 import { dropFreshnessTime } from "@/lib/drop-feed-policy";
 import { selectDropFeedHistory } from "@/lib/drop-feed-history";
-import { isFreshPublicDrop, isPublicDropFeedEligible, publicDropDegradedStateReasons, publicEvidenceStateCode } from "@/lib/public-drop-evidence";
+import { isFreshPublicDrop, isPublicDropFeedEligible, publicDropDegradedStateReasons, publicEvidenceHealthStateCode } from "@/lib/public-drop-evidence";
 import { readCachedPublicRetailerSubmissions } from "@/lib/retailer-public-submissions";
 import { isVerifiedRetailerDrop, retailerSubmissionToFeedCard } from "@/lib/retailer-signal-feed";
 import { normalizeDropForSite, readSiteExportResults } from "@/lib/site-engine-contract";
@@ -23,7 +23,7 @@ function degradedEngineStates(statsPayload: Record<string, unknown> | null | und
     : [];
   return new Set(states
     .filter((state) => !String(state.status || "").toLowerCase().startsWith("stale_useful"))
-    .map((state) => publicEvidenceStateCode(state.state))
+    .map((state) => publicEvidenceHealthStateCode(state.state))
     .filter(Boolean));
 }
 

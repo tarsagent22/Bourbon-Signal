@@ -17,6 +17,7 @@ export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
 ]);
 
 export type UserFacingDropSignal = {
+  engineStateCode?: unknown;
   type?: string;
   event_type?: string;
   state?: string;
@@ -162,7 +163,8 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
   if (isLaakCanaryPreview || isLaakProductionOnSite) return true;
   if (isGroceryExpansionOnSiteSignal(drop)) return true;
   if (['NJ','MI'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isNjMiOnSiteSignal(drop);
-  if (['MD','DC'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) {
+  if (['MD','DC'].includes(state) && drop.engineStateCode !== 'MD-MONTGOMERY'
+    && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) {
     return drop.previewOnly === true && isCentralCityHiveCanaryOnSiteSignal(drop);
   }
   if (['WI','OK','RI'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isCentralCityHiveOnSiteSignal(drop);

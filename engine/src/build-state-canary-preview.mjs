@@ -129,7 +129,15 @@ export async function buildStateCanaryPreview({ state, candidateDrops, candidate
       ...lifecyclePreview.states[preview.stateDrops.state],
       publicStatus: 'active',
       promotionStage: 'canary',
-      ...(['OR','MD','DC'].includes(preview.stateDrops.state) ? { coverageTier: 'live_store_inventory', inventoryAlertable: false, watchAlertable: false } : {}),
+      ...(['OR','DC'].includes(preview.stateDrops.state) ? { coverageTier: 'live_store_inventory', inventoryAlertable: false, watchAlertable: false } : {}),
+      ...(preview.stateDrops.state === 'MD' ? {
+        coverageTier: 'sparse_live_store_inventory',
+        inventoryAlertable: false,
+        watchAlertable: false,
+        sourceLabel: 'Maryland retailer pickup and Montgomery County ABS',
+        areaOptions: ['Frederick', 'Greenbelt', 'Montgomery County'],
+        customerSummary: 'Selected Greenbelt and Frederick retailers publish pickup availability. Montgomery County ABS publishes county-level inventory updates.',
+      } : {}),
     };
     // The isolated app reads the same lifecycle/public-status pair as production.
     // Without this row, a valid candidate partition appears unavailable in Coverage.

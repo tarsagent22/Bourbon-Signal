@@ -27,7 +27,7 @@ export interface PublicDropEligibilityOptions {
 export function publicDropDegradedStateReasons(entries: readonly Record<string, unknown>[]) {
   const reasons = new Map<string, string[]>();
   for (const entry of entries) {
-    const state = publicEvidenceStateCode(entry.state);
+    const state = publicEvidenceHealthStateCode(entry.state);
     if (!state) continue;
     const values = Array.isArray(entry.reasons) ? entry.reasons.map(value => String(value)) : [];
     if (typeof entry.staleReason === "string" && entry.staleReason) values.push(entry.staleReason);
@@ -192,6 +192,11 @@ export function publicEvidenceStateCode(value: unknown) {
   return match?.[1] || "";
 }
 
+export function publicEvidenceHealthStateCode(value: unknown) {
+  const code = text(value, 64).toUpperCase();
+  return code === "MD-MONTGOMERY" ? code : publicEvidenceStateCode(code);
+}
+
 export function publicEvidenceSourceStoreIdKey(stateValue: unknown, sourceValue: unknown, storeIdValue: unknown) {
   const state = publicEvidenceStateCode(stateValue);
   const source = usableIdentityToken(sourceValue, 56);
@@ -213,7 +218,9 @@ export function publicEvidenceAddressKey(stateValue: unknown, addressValue: unkn
  * default Feed eligibility gate must agree on this smaller factual shape.
  */
 export function normalizePublicDropEvidenceInput(input: PublicDropEvidenceInput): PublicDropEvidenceInput {
-  const state = publicEvidenceStateCode(input.state ?? input.state_code ?? input.stateCode);
+  const rawState = input.state ?? input.state_code ?? input.stateCode;
+  const state = publicEvidenceStateCode(rawState);
+  const healthState = publicEvidenceHealthStateCode(input.engineStateCode ?? rawState);
   const type = text(input.type ?? input.event_type, 160);
   const source = text(input.source ?? input.sourceName ?? input.source_name, 180);
   const locationPrecision = text(input.locationPrecision ?? input.location_precision, 120);
@@ -246,6 +253,7 @@ export function normalizePublicDropEvidenceInput(input: PublicDropEvidenceInput)
     state,
     stateCode: state,
     state_code: state,
+    ...(healthState === "MD-MONTGOMERY" ? { engineStateCode: healthState } : {}),
     type,
     event_type: type,
     source,
@@ -364,7 +372,8 @@ export function isPublicDropFeedEligible(
 ) {
   const drop = normalizePublicDropEvidenceInput(input);
   const state = stateCode(drop);
-  if (!state || options.degradedStateCodes?.has(state)
+  const healthState = publicEvidenceHealthStateCode(drop.engineStateCode ?? state);
+  if (!state || options.degradedStateCodes?.has(healthState)
     && !independentlyAcceptedSource(drop) && !reviewedCaliforniaOverdueSiblingEvidence(drop, options)) return false;
   if (['AK','LA'].includes(state) && drop.previewOnly === true && !isLouisianaAlaskaGroceryCanaryPreview(drop)) return false;
   if (['AK','LA'].includes(state) && isLouisianaAlaskaGroceryOnSiteSignal(drop)) return true;

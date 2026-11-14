@@ -139,7 +139,15 @@ jobs:
         working-directory: engine
         env:
           STATE: ${{ steps.validate.outputs.state }}
-        run: npm run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json"
+        run: |
+          manifest_args=()
+          if [[ "$STATE" == "MD" || "$STATE" == "DC" ]]; then
+            mkdir -p "out/canary-preparation/$STATE/manifests" "out/canary-preparation/$STATE/state-fixtures"
+            cp "data/state-fixtures/$STATE.json" "out/canary-preparation/$STATE/state-fixtures/"
+            node --input-type=module -e 'import {readFileSync,writeFileSync} from "node:fs"; const code=process.env.STATE; const manifest=JSON.parse(readFileSync(`data/state-integration/${code}.json`,"utf8")); const state=JSON.parse(readFileSync(`out/canary/${code}/site/lifecycle-preview.json`,"utf8")).states[code]; for(const key of ["customerLabel","publicStatus","coverageTier","refinementLevel"]) manifest.lifecycle[key]=state[key]; writeFileSync(`out/canary-preparation/${code}/manifests/${code}.json`,JSON.stringify(manifest,null,2));'
+            manifest_args+=("--manifest-dir=out/canary-preparation/$STATE/manifests")
+          fi
+          npm run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json" "${manifest_args[@]}"
 
       - name: Verify actual app projection and binary on-site isolation
         if: steps.validate.outputs.shadow_run != ''

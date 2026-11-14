@@ -14,7 +14,7 @@ import { normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { compareDropFeedNewestFirst, dropDisplayTime, dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
 import { sortDropsByCanonicalSignalOrder } from "@/lib/signals/signal-contract";
-import { isFreshPublicDrop, publicDropFreshnessWindow, isPublicDropFeedEligible, publicDropDegradedStateReasons, publicDropRarityTier, publicEvidenceStateCode, projectInventoryEvidenceFreshness } from "@/lib/public-drop-evidence";
+import { isFreshPublicDrop, publicDropFreshnessWindow, isPublicDropFeedEligible, publicDropDegradedStateReasons, publicDropRarityTier, publicEvidenceHealthStateCode, publicEvidenceStateCode, projectInventoryEvidenceFreshness } from "@/lib/public-drop-evidence";
 import { ACTIVE_ENGINE_STATE_NAMES } from "@/lib/activeStates";
 import { buildWeeklyMarketSummaries } from "@/lib/signals/signal-market-summary";
 import { historicalDropFeedEnabled, scopedDropFeedHistoryEnabled, selectDropFeedHistory } from "@/lib/drop-feed-history";
@@ -128,7 +128,7 @@ function degradedEngineStates(statsPayload: Record<string, unknown> | null | und
         // individual drop-age gates below still prevent old signals from looking fresh.
         return !status.startsWith("stale_useful") && !status.startsWith("partial_useful");
       })
-      .map((state) => publicEvidenceStateCode(state.state))
+      .map((state) => publicEvidenceHealthStateCode(state.state))
       .filter(Boolean),
   );
 }
@@ -240,7 +240,8 @@ export async function GET(request: Request) {
     );
   }
   // Free previews remain global. Paid state selection filters before pagination.
-  const state = normalizeStateCodeParam(url.searchParams.get("state"));
+  const requestedState = url.searchParams.get("state")?.trim().toUpperCase();
+  const state = requestedState === "MD" ? requestedState : normalizeStateCodeParam(requestedState);
   const search = !entitlements.canUseBottleSearch ? undefined : url.searchParams.get("search")?.replace(/\s+/g, " ").trim();
   if (search && (search.length > 100 || /[\u0000-\u001F\u007F]/.test(search))) return NextResponse.json({ error: "Invalid feed search" }, { status: 400 });
   const bottle = !entitlements.canUseBottleSearch ? undefined : url.searchParams.get("bottle")?.toLowerCase().trim();
@@ -426,7 +427,10 @@ export async function GET(request: Request) {
     }
 
     if (state) {
-      drops = drops.filter((drop) => String(drop.state ?? drop.state_code ?? "").toUpperCase() === state);
+      drops = drops.filter((drop) => {
+        const dropState = String(drop.state ?? drop.state_code ?? "").toUpperCase();
+        return state === "MD" ? publicEvidenceStateCode(dropState) === state : dropState === state;
+      });
     }
     if (Number.isFinite(since)) {
       drops = drops.filter((drop) => Date.parse(dropDisplayTime(drop)) >= since);
