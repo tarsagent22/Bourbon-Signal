@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "state": "MN",
+  "lifecycle": {
+    "customerLabel": "Minnesota",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "research:mn:top-ten-liquors:64640aa531cdfc289042efc4",
+      "research:mn:top-ten-liquors:64640ae4a9a1022c2d6eba51",
+      "research:mn:top-ten-liquors:64640b1fa9a1022c2d6ebed5",
+      "research:mn:top-ten-liquors:64640bb3ab707428bfb7d172",
+      "research:mn:top-ten-liquors:64640c112da7432b03e46d19",
+      "research:mn:top-ten-liquors:64640c442da7432b03e475bc",
+      "research:mn:top-ten-liquors:64640c75583d9b272406359d",
+      "research:mn:top-ten-liquors:64640cb1a9a1022cdf6ed2ed",
+      "research:mn:top-ten-liquors:64640cf05ba3db28c7066ead",
+      "research:mn:top-ten-liquors:64640d22d8fe86271ddb7202",
+      "research:mn:top-ten-liquors:64640d575c383246e20571d1",
+      "research:mn:top-ten-liquors:64640d883bbb48246c34a096",
+      "research:mn:top-ten-liquors:64640df95c383247e10587bd",
+      "research:mn:top-ten-liquors:654960df2da85b2c5f548cd2",
+      "research:mn:top-ten-liquors:6658a8b57ac5f329289858e4",
+      "research:mn:top-ten-liquors:69f0ec5ea531740066e01e31"
+    ],
+    "registration": "Research-only, per-merchant CityHive shadow cohort. The preview preparer reparses workflow-issued raw receipts; authoritative lifecycle remains inactive and this source is not production registered."
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 16,
+    "proof": "Merchant-scoped request and product options must bind to the exact registered merchant ID, full address, source host, product and pickup option."
+  },
+  "sourceSemantics": {
+    "availability": "Binary retailer-published pickup availability. Positive options never create an exact shelf count; verify before driving.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "verified",
+      "runs": 1,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813",
+      "originalSourceClocksPreserved": true
+    },
+    "canary": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Historical shadow evidence is outside the two-hour canary freshness window; run a fresh shadow before canary preparation."
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "No production source registration or customer publication is enabled.",
+      "reason": "Research-only cohort; authoritative lifecycle remains inactive."
+    }
+  },
+  "rollback": {
+    "disableSource": "Keep authoritative lifecycle inactive; remove this research canary path if its exact source binding fails."
+  }
+}

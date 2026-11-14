@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "state": "MO",
+  "lifecycle": {
+    "customerLabel": "Missouri",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "research:mo:barrel-blends:6226405682c4ff6dfe6d578a",
+      "research:mo:barrel-blends:65e3a2aa392dc12bf9e2969a",
+      "research:mo:barrel-blends:65e3a3add98c982bad17d305",
+      "research:mo:barrel-blends:66e1fb4f01034f2962f28403",
+      "research:mo:randalls:5e7abd775c462e6bb92453ec",
+      "research:mo:randalls:5e7abcdaf6e97c7f51638b96",
+      "research:mo:randalls:5e6d8e2a90ed122417f9338a",
+      "research:mo:randalls:615fa307ff6375479c112c44",
+      "research:mo:brown-derby:5d8cd7bfdaea8420a917658d",
+      "research:mo:brown-derby:5e7b0ae35c462e765a9bd2b0"
+    ],
+    "registration": "Research-only, per-merchant CityHive shadow cohort. The preview preparer reparses workflow-issued raw receipts; authoritative lifecycle remains inactive and this source is not production registered."
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 10,
+    "proof": "Merchant-scoped request and product options must bind to the exact registered merchant ID, full address, source host, product and pickup option."
+  },
+  "sourceSemantics": {
+    "availability": "Binary retailer-published pickup availability. Positive options never create an exact shelf count; verify before driving.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Executable isolated canary checks the state partition and suppresses all delivery. This is preparation evidence only; no live preview or production acceptance is claimed."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "verified",
+      "runs": 1,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813",
+      "originalSourceClocksPreserved": true
+    },
+    "canary": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Historical shadow evidence is outside the two-hour canary freshness window; run a fresh shadow before canary preparation."
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "No production source registration or customer publication is enabled.",
+      "reason": "Research-only cohort; authoritative lifecycle remains inactive."
+    }
+  },
+  "rollback": {
+    "disableSource": "Keep authoritative lifecycle inactive; remove this research canary path if its exact source binding fails."
+  }
+}
