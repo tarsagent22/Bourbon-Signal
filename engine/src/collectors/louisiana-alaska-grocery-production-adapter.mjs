@@ -3,7 +3,7 @@ import akManifest from '../../data/state-integration/AK.json' with {type:'json'}
 import laManifest from '../../data/state-integration/LA.json' with {type:'json'};
 import { mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { collectLouisianaAlaskaGrocery } from './louisiana-alaska-grocery-expansion.mjs';
+import { collectLouisianaAlaskaGrocery, hasLouisianaAlaskaPositiveEvidenceOnly } from './louisiana-alaska-grocery-expansion.mjs';
 import { LOUISIANA_ALASKA_GROCERY_SOURCES, LOUISIANA_ALASKA_RESOLVER_ZIPS } from './louisiana-alaska-grocery-premises.mjs';
 import {
   LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES,
@@ -75,9 +75,11 @@ export function validateLouisianaAlaskaProductionResult(state, bible, result) {
   const budget = LOUISIANA_ALASKA_GROCERY_BUDGETS[state];
   const metadata = result?.metadata;
   if (!sources.length || !budget || !Array.isArray(result?.signals) || !Array.isArray(result?.roadblocks) || !metadata) fail('malformed collector result');
-  if (metadata.complete !== true || metadata.requestProfileComplete !== true || metadata.negativeComplete !== true
-    || metadata.profileScope !== 'COMPLETE_REVIEWED_PROFILE' || metadata.unconfirmedNegativeQueryCount !== 0
-    || !Array.isArray(metadata.unconfirmedNegativeQueries) || metadata.unconfirmedNegativeQueries.length !== 0) {
+  const closedProfile = metadata.complete === true && metadata.requestProfileComplete === true && metadata.negativeComplete === true
+    && metadata.profileScope === 'COMPLETE_REVIEWED_PROFILE' && metadata.unconfirmedNegativeQueryCount === 0
+    && Array.isArray(metadata.unconfirmedNegativeQueries) && metadata.unconfirmedNegativeQueries.length === 0;
+  const positiveEvidenceOnly = !closedProfile && hasLouisianaAlaskaPositiveEvidenceOnly(metadata, result.signals, state);
+  if (!closedProfile && !positiveEvidenceOnly) {
     fail('the complete closed positive and negative query profile is required');
   }
   if (metadata.maxRequestCount !== budget.maxRequests || !Array.isArray(metadata.requests)
@@ -106,24 +108,31 @@ export function validateLouisianaAlaskaProductionResult(state, bible, result) {
   const queryEvidence = metadata.queryEvidence;
   if (!Array.isArray(queryEvidence) || queryEvidence.length !== inventoryRequests.length) fail('query evidence does not cover every merchant search');
   const queryKeys = new Set();
+  const positiveSearchStores = new Set();
   for (const request of inventoryRequests) {
     if (louisianaAlaskaRequestIdentity(request.url) !== 'inventory') fail('unreviewed product-search request');
     const source = sources.find(candidate => candidate.id === request.sourceId && candidate.merchantId === request.merchantId);
     if (!source || !request.term || request.term !== new URL(request.url).searchParams.get('q')) fail('merchant search escaped its reviewed premise');
     const evidence = queryEvidence.find(item => item.url === request.url && item.sourceId === source.id && item.term === request.term);
     if (!evidence || !/^[a-f0-9]{64}$/i.test(evidence.bodySha256 || '')
-      || !['BOUND_PRODUCTS', 'CONFIRMED_EMPTY'].includes(evidence.disposition)) fail('merchant search is missing valid raw response classification');
+      || !(['BOUND_PRODUCTS', 'CONFIRMED_EMPTY'].includes(evidence.disposition)
+        || (positiveEvidenceOnly && evidence.disposition === 'UNCONFIRMED_EMPTY_QUERY'))) {
+      fail('merchant search is missing valid raw response classification');
+    }
+    if (evidence.disposition === 'BOUND_PRODUCTS') positiveSearchStores.add(source.storeId);
     queryKeys.add(`${source.id}|${request.term}`);
   }
   for (const source of sources) {
     if (!queryKeys.has(`${source.id}|bourbon`) || !queryKeys.has(`${source.id}|whiskey`)) fail(`base searches missing for ${source.storeId}`);
     const attempt = metadata.sourceAttempts?.[source.id];
-    if (attempt?.status !== 'success' || attempt.inspected !== true) fail(`source attempt is incomplete for ${source.storeId}`);
+    const expectedStatus = positiveEvidenceOnly && metadata.unconfirmedNegativeQueries.some(query => query.storeId === source.storeId)
+      ? 'positive_evidence_only' : 'success';
+    if (attempt?.status !== expectedStatus || attempt.inspected !== true) fail(`source attempt is incomplete for ${source.storeId}`);
   }
 
   const rowStoreIds = [];
   for (const row of result.signals) {
-    if (!isLouisianaAlaskaGroceryInventory(row) || row.state !== state
+    if (!isLouisianaAlaskaGroceryInventory(row) || row.state !== state || !positiveSearchStores.has(row.storeId)
       || row.raw?.shadowOnly === true || row.sourceProductBinding?.shadowOnly === true
       || row.previewOnly === true || row.researchOnly === true) fail('a candidate row failed current exact-store inventory proof');
     if (!['limited', 'allocated', 'unicorn'].includes(louisianaAlaskaGroceryLibraryTier(row, bible))) fail('a candidate row is outside the current tracked inventory tiers');
@@ -133,7 +142,8 @@ export function validateLouisianaAlaskaProductionResult(state, bible, result) {
   if (!Array.isArray(metadata.positiveStores)
     || JSON.stringify(sorted(metadata.positiveStores)) !== JSON.stringify(sorted(positiveStores))) fail('positive store summary contradicts admitted rows');
 
-  return Object.freeze({ state, status: 'closed_profile_verified', requestCount: metadata.requests.length,
+  return Object.freeze({ state, status: closedProfile ? 'closed_profile_verified' : 'positive_evidence_only',
+    negativeComplete: closedProfile, requestCount: metadata.requests.length,
     resolverRequestCount: resolverRequests.length, inventoryRequestCount: inventoryRequests.length,
     reviewedStoreCount: expectedStores.length, positiveStoreCount: positiveStores.length,
     positiveStores: Object.freeze(sorted(positiveStores)) });
@@ -244,8 +254,8 @@ export async function collectLouisianaAlaskaGroceryProductionState(config,bible,
   const adapter=createSourceAdapter({id:sourceRuntimeId,label:config.label,url,metadata:{stateId:state,lane:'promoted_grocery_onsite'},
     execute:(_context,{signal})=>collectLouisianaAlaskaGroceryProductionSource(config,bible,{...options,
       signal:collectionSignal(options.signal?AbortSignal.any([options.signal,signal]):signal),timeoutMs:budget.sourceMs}),
-    validate:value=>value?.metadata?.productionAdmission?.status==='closed_profile_verified'&&Array.isArray(value.signals)
-      ?true:'AK/LA production source did not complete its admitted closed profile',recordCount:value=>value.signals.length});
+    validate:value=>['closed_profile_verified','positive_evidence_only'].includes(value?.metadata?.productionAdmission?.status)
+      &&Array.isArray(value.signals)?true:'AK/LA production source did not verify its reviewed request profile',recordCount:value=>value.signals.length});
   const isolated=await runSourceAdapters([adapter],{}, {...options.sourceRunnerOptions,
     previousResults:options.previousSourceResults,circuitBreaker:options.sourceCircuitBreaker,
     concurrency:1,perDomain:1,schedule:false,timeoutMs:Math.min(Number(options.sourceRunnerOptions?.timeoutMs)||budget.stateMs,budget.stateMs),maxAttempts:1});
@@ -253,7 +263,11 @@ export async function collectLouisianaAlaskaGroceryProductionState(config,bible,
   const source={sourceRuntimeId,label:config.label,url:result.sourceUrl||url,ok:result.ok,status:result.error?.status||(result.ok?200:result.status),
     contentType:'application/json',signalType:'retailer_store_inventory_result',matchedBottleCount:value?.signals.length||0,locationPrecision:'store_level',error:result.error?.message||null};
   const sourceObservedAt=value?.metadata?.sourceObservedAt||null;
-  return{...base,finishedAt,lastGoodAt:sourceObservedAt,status:result.ok?(value.signals.length?'useful':'monitored_no_current_inventory'):'blocked',
+  const positiveEvidenceOnly=value?.metadata?.productionAdmission?.status==='positive_evidence_only';
+  const status=!result.ok?'blocked':positiveEvidenceOnly?'partial_useful_positive_evidence_only'
+    :value.signals.length?'useful':'monitored_no_current_inventory';
+  return{...base,finishedAt,lastGoodAt:sourceObservedAt,status,
+    ...(positiveEvidenceOnly ? { partial: true, partialReason: 'The retailer returned unconfirmed empty responses for some searches.' } : {}),
     signals:value?.signals||[],sources:[source],sourceResults:[{...summarizeSourceResult(result),lastGoodAt:sourceObservedAt,alertable:false}],
     roadblocks:result.ok?[]:[{state,source:config.label,sourceRuntimeId,url:source.url,status:source.status,
       error:source.error||'AK/LA source failed',nextRoute:'Review the preserved source denial journal and retry only after its cooldown or source-policy gate allows it.'}],
