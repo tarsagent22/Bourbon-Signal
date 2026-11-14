@@ -23,7 +23,7 @@ import * as directoryCoreModule from '../src/lib/sighting-store-directory-core.t
 const interop=<T>(value:T):T=>(value as {default?:T}).default||value;
 const {normalizeDropForSite,normalizeStoreForSite,listStates}=interop(siteModule);
 const {classifyPublicDrop,getDropClassificationIndex}=interop(classModule);
-const {normalizePublicDropEvidenceInput,isPublicDropFeedEligible,isCurrentInventoryEvidence}=interop(evidenceModule);
+const {normalizePublicDropEvidenceInput,isPublicDropFeedEligible,isCurrentInventoryEvidence,publicDropDegradedStateReasons}=interop(evidenceModule);
 const {buildCoverageContract,searchCoverageTargets,findCoverageStoreTarget}=interop(coverageModule);
 const {loadWithMocks}=interop(harness),{createSignalFeedHandler}=interop(feedModule);
 const {candidateMatchesMonitoringScopes}=interop(matcherModule),{monitoringScopesFromPreferences}=interop(scopesModule);
@@ -59,6 +59,24 @@ for(const state of ['WI','OK']){
     const coverage=buildCoverageContract(args).states.find(row=>row.code===state)!;
     assert.equal(coverage.capabilities.currentBottleAvailability,true);assert.equal(coverage.capabilities.restockAlerts,false);
     assert.equal(coverage.scope.inventoryMonitoredStores,stores.length);
+    const overdueSibling = { state, status: 'degraded', reasons: ['inventory_confirmation_overdue'] };
+    const healthOptions = {
+      asOf: new Date(Date.now() + 60_000),
+      degradedStateCodes: new Set([state]),
+      degradedStateReasons: publicDropDegradedStateReasons([overdueSibling]),
+    };
+    assert.ok(accepted.every(row => isPublicDropFeedEligible(row, healthOptions)));
+    assert.ok(accepted.every(row => !isPublicDropFeedEligible({ ...row, sourceStale: true }, healthOptions)));
+    assert.ok(accepted.every(row => !isPublicDropFeedEligible(row, {
+      ...healthOptions, asOf: Date.now() + 121 * 60_000,
+    })));
+    const coverageAsOf = healthOptions.asOf.toISOString();
+    const degradedCoverage = buildCoverageContract({ ...args, asOf: coverageAsOf, degradedStates: [overdueSibling] }).states.find(row => row.code === state)!;
+    assert.equal(degradedCoverage.freshness.currentInventoryStores, stores.length);
+    assert.equal(degradedCoverage.freshness.alertEligibleStores, 0);
+    const collapsedState = { ...overdueSibling, reasons: [...overdueSibling.reasons, 'significant_drop_count_collapse'] };
+    const collapsedCoverage = buildCoverageContract({ ...args, asOf: coverageAsOf, degradedStates: [collapsedState] }).states.find(row => row.code === state)!;
+    assert.equal(collapsedCoverage.freshness.currentInventoryStores, 0);
     for(const store of stores){
       assert.ok(searchCoverageTargets({...args,stateCode:state,query:store.name as string}).some(row=>row.storeId===store.id));
       assert.ok(findCoverageStoreTarget({...args,stateCode:state,storeId:store.id as string}));
