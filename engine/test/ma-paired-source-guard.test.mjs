@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { beginMassachusettsPairedSourceAttempt, finishMassachusettsPairedSourceAttempt } from '../src/ma-paired-source-guard.mjs';
+import { beginMassachusettsPairedSourceAttempt, finishMassachusettsPairedSourceAttempt, recordMassachusettsHostResponse } from '../src/ma-paired-source-guard.mjs';
 import { researchSourceForState, collectResearchStateReport } from '../src/research-state-registry.mjs';
 import { BourbonBible } from '../src/core/bible.mjs';
 
@@ -33,24 +33,36 @@ test('MA paired source guard honors the last held observation when the research 
   assert.equal(due.lastAttemptAt, '2026-11-15T18:40:29.363Z');
 });
 
-test('MA paired source guard fails closed on malformed, future-dated, or denied ledgers', async t => {
+test('MA paired source guard fails closed on malformed or future-dated ledgers', async t => {
   const file = await isolated(t);
   await writeFile(file, '{invalid');
   await assert.rejects(beginMassachusettsPairedSourceAttempt({ file, now: '2026-11-14T18:00:00Z' }), /JSON|Malformed/);
   await writeFile(file, JSON.stringify({ schemaVersion: 1, lastAttemptAt: '2026-11-14T19:00:00Z', blockedHosts: [] }));
   await assert.rejects(beginMassachusettsPairedSourceAttempt({ file, now: '2026-11-14T18:00:00Z' }), /future/);
   await writeFile(file, JSON.stringify({ schemaVersion: 1, lastAttemptAt: '2026-11-13T18:00:00Z', blockedHosts: ['www.wildduckliquors.com'] }));
-  await assert.rejects(beginMassachusettsPairedSourceAttempt({ file, now: '2026-11-14T18:00:00Z' }), /blocked after prior host denial/);
+  const cooled = await beginMassachusettsPairedSourceAttempt({ file, now: '2026-11-15T17:00:00Z' });
+  assert.equal(cooled.cooldownHosts['www.wildduckliquors.com'], undefined);
 });
 
-test('MA paired source guard retains 403 and 429 host blocks after a run', async t => {
+test('MA paired source guard cools only denied hosts, honors Retry-After, and preserves sibling source lanes', async t => {
   const file = await isolated(t);
   const attempt = await beginMassachusettsPairedSourceAttempt({ file, now: '2026-11-14T18:00:00Z' });
-  await finishMassachusettsPairedSourceAttempt({ file, attemptAt: attempt.lastAttemptAt, report: {
-    finishedAt: '2026-11-14T18:01:00Z', metadata: { complete: false },
-    sources: [{ url: 'https://www.cbcliquors.com/p', status: 403 }, { url: 'https://juliosliquors.com/shop', status: 429 }],
-  }, reportSha256: 'a'.repeat(64) });
-  await assert.rejects(beginMassachusettsPairedSourceAttempt({ file, now: '2026-11-16T18:00:00Z' }), /blocked after prior host denial/);
+  await recordMassachusettsHostResponse({ file, attemptAt: attempt.lastAttemptAt, hostname: 'www.cbcliquors.com', status: 403,
+    observedAt: '2026-11-14T18:00:20Z', retryAfterSeconds: 0 });
+  await recordMassachusettsHostResponse({ file, attemptAt: attempt.lastAttemptAt, hostname: 'juliosliquors.com', status: 429,
+    observedAt: '2026-11-14T18:00:30Z', retryAfterSeconds: 3 * 86400 });
+  await finishMassachusettsPairedSourceAttempt({ file, attemptAt: attempt.lastAttemptAt,
+    report: { finishedAt: '2026-11-14T18:01:00Z', metadata: { complete: false }, sources: [] }, reportSha256: 'a'.repeat(64) });
+  const later = await beginMassachusettsPairedSourceAttempt({ file, now: '2026-11-15T18:01:00Z' });
+  assert.deepEqual(Object.keys(later.cooldownHosts), ['juliosliquors.com']);
+  assert.equal(Date.parse(later.cooldownHosts['juliosliquors.com'].nextAllowedAt), Date.parse('2026-11-17T18:00:30.000Z'));
+  await recordMassachusettsHostResponse({ file, attemptAt: later.lastAttemptAt, hostname: 'www.cbcliquors.com', status: 200,
+    observedAt: '2026-11-15T18:01:10Z' });
+  await finishMassachusettsPairedSourceAttempt({ file, attemptAt: later.lastAttemptAt,
+    report: { finishedAt: '2026-11-15T18:01:00Z', metadata: { complete: false }, sources: [] } });
+  const state = JSON.parse(await readFile(file, 'utf8'));
+  assert.equal(state.hosts['www.cbcliquors.com'], undefined);
+  assert.ok(state.hosts['juliosliquors.com']);
 });
 
 test('MA paired research mode stops before any fetch when its retained 24 hour ledger is not due', async t => {

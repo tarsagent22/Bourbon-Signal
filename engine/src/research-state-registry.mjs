@@ -1,12 +1,13 @@
 import { oregonResearchSourceForState, collectOregonResearchReport } from './research-oregon-runtime.mjs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { beginMassachusettsPairedSourceAttempt, finishMassachusettsPairedSourceAttempt } from './ma-paired-source-guard.mjs';
+import { beginMassachusettsPairedSourceAttempt, finishMassachusettsPairedSourceAttempt, recordMassachusettsHostResponse } from './ma-paired-source-guard.mjs';
 import { groceryResearchSourceForState, groceryResearchLifecycleEntries, collectGroceryResearchReport } from './research-grocery-runtime.mjs';
 import { MA_JULIOS_PROBE_URLS } from './collectors/massachusetts-retailer-surfaces.mjs';
 import { collectMassachusettsJulios } from './collectors/massachusetts-retailer-collector.mjs';
 import { MA_ESPLANDA_PRODUCTS, collectMassachusettsEsplanda } from './collectors/massachusetts-esplanda.mjs';
 import { cityHiveResearchSourceForState, cityHiveResearchLifecycleEntries, collectCityHiveResearchReport } from './research-cityhive-runtime.mjs';
+import { fetchReviewedCityHiveText } from './collectors/central-cityhive-transport.mjs';
 
 import {njMiResearchSourceForState,njMiResearchLifecycleEntries,collectNjMiResearchReport} from './nj-mi-research-runtime.mjs';
 import {michiganLiquorsResearchSourceForState,michiganLiquorsResearchLifecycleEntries,collectMichiganLiquorsResearchReport} from './research-michigan-liquors-runtime.mjs';
@@ -18,6 +19,13 @@ function shadowWorkflowOrigin(env = process.env) {
     ? { kind: 'github_actions', repository: env.GITHUB_REPOSITORY, workflowRunId: env.GITHUB_RUN_ID,
       commitSha: env.GITHUB_SHA, runAttempt: env.GITHUB_RUN_ATTEMPT || '1' }
     : { kind: 'local_research_not_workflow_issued' };
+}
+
+function retryAfterSeconds(response) {
+  const value = response?.headers?.get?.('retry-after') || '';
+  const seconds = /^\d+(?:\.\d+)?$/.test(value) ? Number(value)
+    : Math.max(0, (Date.parse(value) - Date.now()) / 1000);
+  return Math.max(0, Number(response?.retryAfterSeconds) || 0, Number.isFinite(seconds) ? seconds : 0);
 }
 
 // Research registrations never rewrite production lifecycle/source files or
@@ -99,13 +107,50 @@ export async function collectResearchStateReport(config, bible, options = {}) {
   const attempt = pairedSources ? await beginMassachusettsPairedSourceAttempt({
     file: process.env.BOURBON_SIGNAL_MA_PAIRED_ATTEMPT_FILE || undefined,
   }) : null;
+  let networkRequests = 0;
+  let writes = Promise.resolve();
+  const fetchImpl = pairedSources ? async (url, requestOptions) => {
+    const hostname = new URL(url).hostname.toLowerCase();
+    if (attempt.cooldownHosts[hostname]) {
+      throw Object.assign(new Error(`MA research host remains in cooldown until ${attempt.cooldownHosts[hostname].nextAllowedAt}`),
+        { code: 'MA_HOST_COOLDOWN', status: attempt.cooldownHosts[hostname].httpStatus });
+    }
+    networkRequests++;
+    const response = await (options.fetchImpl || fetch)(url, requestOptions);
+    const status = Number(response.status) || 0;
+    if ([403, 429].includes(status) || status >= 200 && status < 300) {
+      writes = writes.then(() => recordMassachusettsHostResponse({
+        file: process.env.BOURBON_SIGNAL_MA_PAIRED_ATTEMPT_FILE || undefined,
+        attemptAt: attempt.lastAttemptAt, hostname, status, retryAfterSeconds: retryAfterSeconds(response),
+      }));
+      await writes;
+    }
+    return response;
+  } : options.fetchImpl;
+  const fetchText = pairedSources ? async (url, requestOptions) => {
+    const hostname = new URL(url).hostname.toLowerCase();
+    if (attempt.cooldownHosts[hostname]) return { ok: false, status: attempt.cooldownHosts[hostname].httpStatus,
+      url, text: '', retryAfterSeconds: attempt.cooldownHosts[hostname].retryAfterSeconds || 0 };
+    networkRequests++;
+    const response = await (options.fetchText || fetchReviewedCityHiveText)(url, requestOptions);
+    const status = Number(response.status) || 0;
+    if ([403, 429].includes(status) || status >= 200 && status < 300) {
+      writes = writes.then(() => recordMassachusettsHostResponse({
+        file: process.env.BOURBON_SIGNAL_MA_PAIRED_ATTEMPT_FILE || undefined,
+        attemptAt: attempt.lastAttemptAt, hostname, status, retryAfterSeconds: retryAfterSeconds(response),
+      }));
+      await writes;
+    }
+    return response;
+  } : options.fetchText;
   const reportDirectory = options.reportDirectory || (process.env.BOURBON_SIGNAL_STATE_OUT_FILE
     ? path.dirname(process.env.BOURBON_SIGNAL_STATE_OUT_FILE) : undefined);
   const [result, cityHive, esplanda] = await Promise.all([
-    collectMassachusettsJulios(config, bible, options),
-    options.includeCityHiveResearch === false && !pairedSources ? null : collectCityHiveResearchReport(cityHiveResearchSourceForState('MA'), bible, options),
+    collectMassachusettsJulios(config, bible, { ...options, ...(pairedSources ? { fetchImpl } : {}) }),
+    options.includeCityHiveResearch === false && !pairedSources ? null : collectCityHiveResearchReport(cityHiveResearchSourceForState('MA'), bible,
+      { ...options, ...(pairedSources ? { fetchText } : {}) }),
     options.includeEsplandaResearch === true || pairedSources
-      ? collectMassachusettsEsplanda(config, bible, { ...options, reportDirectory, shadowMode: true }) : null,
+      ? collectMassachusettsEsplanda(config, bible, { ...options, ...(pairedSources ? { fetchImpl } : {}), reportDirectory, shadowMode: true }) : null,
   ]);
   const finishedAt = new Date().toISOString();
   const healthyJulios = result.sourceReports.length > 0 && result.sourceReports.every(source => source.ok);
@@ -123,7 +168,7 @@ export async function collectResearchStateReport(config, bible, options = {}) {
     metadata: { ...cityHive?.metadata, complete: healthy, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false,
     ...(pairedSources ? { sourceSet: 'massachusetts-paired-sources', pairedSourceMode: true,
       pairedSourceAttemptAt: attempt.lastAttemptAt, requestBudget: { maxSourceRequests: pairedRequestBudget,
-        actualSourceRequests: [...result.sourceReports, ...(cityHive?.sources ?? []), ...(esplanda?.sourceReports ?? [])].length } } : {}) },
+      actualSourceRequests: networkRequests } } : {}) },
   };
   if (attempt) {
     const reportSha256 = createHash('sha256').update(JSON.stringify(report)).digest('hex');
