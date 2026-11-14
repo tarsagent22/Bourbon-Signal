@@ -9,7 +9,6 @@ import { STATE_LIFECYCLE_CONFIG } from '../src/state-lifecycle.mjs';
 import { buildShadowEvidence } from '../src/run-expansion-shadow.mjs';
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES, centralCityHiveLibraryTier, parseCentralCityHiveInventory } from '../src/collectors/central-cityhive-expansion.mjs';
 import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from '../src/collectors/central-cityhive-research-premises.mjs';
-import { parseCentralCityHiveInventory } from '../src/collectors/central-cityhive-expansion.mjs';
 import { CENTRAL_CITYHIVE_STATE_IDS } from '../src/central-cityhive-policy.mjs';
 import {cityHiveResearchSourceForState,collectCityHiveResearchReport} from '../src/research-cityhive-runtime.mjs';
 import {persistCityHiveIncidentJournal} from '../src/collectors/central-cityhive-transport.mjs';
@@ -28,6 +27,7 @@ test('scheduled shadow registers exact retailer candidates while production coho
     assert.equal(config.id,state);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
     assert.ok(config.sources.length>0);
   }
+  assert.equal(researchSourceForState('DC',{shadowMode:true}),cityHiveResearchSourceForState('DC'));
   const ct=cityHiveResearchSourceForState('CT');
   assert.equal(ct.sources.length,2);assert.ok(ct.sources.every(source=>source.precisionOnly&&source.label.includes('CT first-party pickup inventory')));
   assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('CT'),false);
