@@ -10,7 +10,6 @@ import { controlRoomNavVisibleForUser } from "@/lib/control-room-nav-access";
 const navLinks = [
   { label: "Feed", href: "/#drops" },
   { label: "Coverage", href: "/coverage" },
-  { label: "Web tools", href: "/web-home" },
 ];
 
 export default function Navigation() {
