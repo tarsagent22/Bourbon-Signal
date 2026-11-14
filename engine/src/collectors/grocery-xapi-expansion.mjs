@@ -15,7 +15,7 @@ export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({IL:2700,WA:127,CA
 const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({IL:182,WA:58,CA:568,NM:16});
 export const ILLINOIS_GROCERY_PRIORITY_TERMS=Object.freeze(['weller','eagle rare','e.h. taylor',"blanton's",'stagg',"michter's","booker's",'old fitzgerald']);
 const publicStoreKey = '7bad9afbb87043b28519c4443106db06';
-const publicSearchKey = 'e914eec9448c4d5eb672debf5011cf8f';
+export const publicSearchKey = 'e914eec9448c4d5eb672debf5011cf8f';
 
 export const CALIFORNIA_CONFIRMED_EMPTY_RESOLVER_ZIPS=Object.freeze(['96101']);
 export function isGroceryExpansionEmptyResolver(payload,stateCode,zip){
