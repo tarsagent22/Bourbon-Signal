@@ -232,7 +232,7 @@ export default function SignalFeedScreen() {
   const load = useCallback(async (refresh = false) => {
     const mode = refresh ? "refresh" : "page";
     const inFlight = requestInFlightRef.current;
-    if (inFlight === "refresh" || (inFlight === "page" && !refresh) || (!refresh && !hasMore)) return;
+    if (inFlight === "refresh" || (inFlight === "page" && !refresh) || (!refresh && (!hasMore || !cursor))) return;
     if (refresh) {
       backgroundRequestSequence.current += 1;
       setQueuedSignals([]);
@@ -662,15 +662,22 @@ export default function SignalFeedScreen() {
     </View>
   );
 
-  const feedFooter = loaded && loading
-        ? <View style={styles.footer}><Text style={styles.loadingText}>Loading…</Text></View>
-        : error && signals.length
-          ? <View style={styles.footer}><Text accessibilityRole="alert" style={styles.footerError}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(feedRetryAction(hasMore).refresh)} style={styles.retryTarget}><Text style={styles.retry}>{feedRetryAction(hasMore).label}</Text></Pressable></View>
-          : loaded && hasMore
-            ? <View style={styles.footer}><Pressable accessibilityRole="button" onPress={() => load(false)} style={styles.retryTarget}><Text style={styles.retry}>Load more matching Signals</Text></Pressable></View>
-            : loaded && !hasMore && visibleSignals.length
-              ? view === "market" && tier === "free" ? <View style={styles.footer}><Text style={styles.end}>You’ve reached the end of your Intel preview.</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>Get the full feed and bottle alerts →</Text></Pressable></View> : <Text style={styles.end}>You’re caught up.</Text>
-              : null;
+  const canPage = loaded && hasMore && Boolean(cursor) && !marketLocked;
+  const retry = feedRetryAction(canPage);
+  const feedFooter = loaded && loading && (canPage || visibleSignals.length > 0)
+    ? <View style={styles.footer}><Text accessibilityLiveRegion="polite" style={styles.loadingText}>Loading signals…</Text></View>
+    : error && visibleSignals.length
+      ? <View style={styles.footer}><Text accessibilityRole="alert" style={styles.footerError}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(retry.refresh)} style={styles.retryTarget}><Text style={styles.retry}>{retry.label}</Text></Pressable></View>
+      : canPage && !error
+        ? <View style={styles.footer}>
+          <Pressable accessibilityRole="button" onPress={() => load(false)} style={({ pressed }) => [styles.moreSignalsButton, pressed && styles.segmentPressed]}>
+            <Text style={styles.retry}>See more signals</Text>
+            <MaterialCommunityIcons accessible={false} color={colors.accent} name="chevron-down" size={18} />
+          </Pressable>
+        </View>
+        : loaded && visibleSignals.length
+          ? view === "market" && tier === "free" ? <View style={styles.footer}><Text style={styles.end}>You’ve reached the end of your Intel preview.</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>Get the full feed and bottle alerts →</Text></Pressable></View> : <Text style={styles.end}>You’re caught up.</Text>
+          : null;
 
   return (
     <View style={styles.screen}>
@@ -704,11 +711,9 @@ export default function SignalFeedScreen() {
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.id}
-      renderItem={({ item, index }) => index === visibleSignals.length - 1 ? <View><FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} personalNote={personalTasteNote(item.bottle, tastePreferences)} />{feedFooter}</View> : <FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} personalNote={personalTasteNote(item.bottle, tastePreferences)} />}
+      renderItem={({ item }) => <FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} personalNote={personalTasteNote(item.bottle, tastePreferences)} />}
       ItemSeparatorComponent={() => <View style={[styles.separator, view === "community" && styles.communitySeparator]} />}
       refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); void Promise.all([load(true), loadProfile(true)]).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} colors={[colors.accent]} />}
-      onEndReached={() => { if (loaded && signals.length) void load(false); }}
-      onEndReachedThreshold={0.5}
       ListHeaderComponent={<>{header}<MemberContinuity key={userId || 'signed-out'} paid={Boolean(profile?.membership.paid)} onPreferences={setTastePreferences} /></>}
       ListEmptyComponent={!loaded && !error
         ? <FeedSkeleton community={view === "community"} />
@@ -727,6 +732,7 @@ export default function SignalFeedScreen() {
                 <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>View memberships →</Text></Pressable>
                 <Pressable accessibilityRole="button" onPress={() => selectView("community")} style={styles.retryTarget}><Text style={styles.retry}>Browse Community →</Text></Pressable>
               </View>
+            : canPage ? <Text style={styles.end}>No matching signals on this page.</Text>
             : <View style={{gap:12}}><EmptyState title={emptyFeed.title} detail={emptyFeed.detail} actionLabel={emptyFeed.actionLabel}
               onAction={() => {
                 switch (emptyFeed.action) {
@@ -740,7 +746,7 @@ export default function SignalFeedScreen() {
                 }
               }} />
               {view!=="community"?<Pressable accessibilityRole="button" onPress={()=>router.push({pathname:'/(app)/account/coverage',params:coverageContext({state:filters.state || profile?.homeState,area:selectedAreaLabel})})} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.accent,fontWeight:'700'}}>Request coverage here →</Text></Pressable>:null}</View>}
-      ListFooterComponent={!visibleSignals.length ? feedFooter : null}
+      ListFooterComponent={feedFooter}
     />
       </View>
       {queuedSignals.length ? <Pressable
@@ -805,6 +811,7 @@ const styles = StyleSheet.create({
   retryTarget: { minWidth: 80, minHeight: 44, alignItems: "center", justifyContent: "center" },
   empty: { color: colors.muted, textAlign: "center", padding: 32, lineHeight: 20 },
   footer: { paddingTop: 12, paddingBottom: 8, alignItems: "center", gap: 8 },
+  moreSignalsButton: { alignSelf: "stretch", minHeight: 48, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 24, borderColor: colors.accentPressed, borderWidth: StyleSheet.hairlineWidth, backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   loadingText: { color: colors.muted, fontSize: typeScale.small },
   footerError: { color: colors.danger, textAlign: "center" },
   end: { color: colors.muted, textAlign: "center", padding: 24, fontSize: typeScale.small },
