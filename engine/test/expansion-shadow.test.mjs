@@ -30,6 +30,20 @@ test('shadow collection only selects explicitly eligible non-active candidates a
   assert.equal(evidence.complete, true);
 });
 
+test('scheduled shadow selection reaches every eligible state without changing manual selections', () => {
+  const states = ['AK', 'CT', 'DC', 'LA', 'MA', 'MI', 'MN', 'MO', 'NJ', 'OR', 'RI'];
+  const lifecycle = {
+    activeStates: ['WI'],
+    states: Object.fromEntries([...states, 'WI'].map(state => [state, { shadowEligible: true }])),
+  };
+  const scheduledAt = Date.parse('2026-11-14T05:15:00Z');
+  const window = 4 * 60 * 60_000;
+  const batches = Array.from({ length: 3 }, (_, index) => selectShadowCandidates(lifecycle, { limit: 5, scheduledAt: scheduledAt + index * window }));
+  assert.deepEqual(batches.flat().sort(), states);
+  assert.ok(batches.every(batch => batch.length > 0 && batch.length <= 5));
+  assert.deepEqual(selectShadowCandidates(lifecycle, { states: ['OR', 'RI'], limit: 2, scheduledAt }), ['OR', 'RI']);
+});
+
 test('shadow inventory trust requires a fresh nonfuture signal with concrete store identity', () => {
   const now = '2026-09-08T23:00:00.000Z';
   const base = {
