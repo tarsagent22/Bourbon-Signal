@@ -11,18 +11,18 @@
       "productionLifecycleActive": false,
       "deliveryEnabled": false,
       "requiredDistinctShadowRuns": 3,
-      "observedDistinctShadowRuns": 2,
+      "observedDistinctShadowRuns": 3,
       "requiredCanaryRuns": 2,
-      "observedCanaryRuns": 2,
-      "reason": "One distinct scheduled shadow observation and the reviewed immutable admission evidence are still required; the current private preview does not change production."
+      "observedCanaryRuns": 3,
+      "reason": "Three distinct scheduled shadow observations and three source-free canaries support the reviewed three-store cohort; production remains inactive and no promotion was performed."
     },
     "canary": {
-      "runs": 2,
+      "runs": 3,
       "status": "verified",
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43633116314",
-      "artifactId": "14128917768",
-      "artifactDigest": "sha256:13ac4c125b0b6f8925d022382973a1f92014d538c30169977ef2e4e6235dc3b8",
-      "reason": "Two source-free canaries passed on immutable DC shadow captures; the latest exact-head replay verified all three stores through Coverage and Finder, with delivery disabled.",
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43635689254",
+      "artifactId": "14129613948",
+      "artifactDigest": "sha256:cc431e8493fb21c8d9fa67f21e641898db360aa674abd7952ee693ca4d35bf54",
+      "reason": "Three source-free canaries passed on immutable DC shadow captures; the latest exact-head replay verified all three stores through projection, with delivery disabled. Customer route checks remain separately evidenced by the private preview.",
       "observations": [
         {
           "runId": "43628703889",
@@ -42,16 +42,28 @@
           "positiveStores": 3,
           "positiveCities": 1,
           "deliveryDisabled": true
+        },
+        {
+          "runId": "43635689254",
+          "artifactId": "14129613948",
+          "artifactDigest": "sha256:cc431e8493fb21c8d9fa67f21e641898db360aa674abd7952ee693ca4d35bf54",
+          "publicProjectionSha256": "2b3a6218a72cbeffd7962cce8f1337ebe2c5a0791d8e468ef9a22056e3ab1df43",
+          "partitionSha256": "f858e32e0c37790331af8a78ef4938de4f4edfb3e66978488328bf808cf493ee",
+          "positiveRows": 3,
+          "positiveStores": 3,
+          "positiveCities": 1,
+          "hasAllocatedOrUnicorn": true,
+          "deliveryDisabled": true
         }
       ]
     },
     "shadow": {
-      "runs": 2,
+      "runs": 3,
       "status": "verified",
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43632730214",
-      "artifactId": "14128198912",
-      "artifactDigest": "sha256:70f83c912ed4c7fb6b223305788da80dfad3e6f39868eb9346f171ee7089b6ad",
-      "reportSha256": "32e1f64994f5d207ea563808906cc1081cdfad96cc232f06c5465dfe7fef466f",
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43635470779",
+      "artifactId": "14129278237",
+      "artifactDigest": "sha256:6779f0e5d9181df4b58a913e74598cd3908268a32f68101be3d32453876e36c6",
+      "reportSha256": "5fda959afdfeb1b12b464af851e0ee570ff49905fa3f0422d976ef76906760701",
       "originalSourceClocksPreserved": true,
       "verifiedCityHivePremises": 2,
       "cityHiveRequests": 4,
@@ -70,7 +82,7 @@
         {
           "runId": "43632730214",
           "artifactId": "14128198912",
-          "artifactDigest": "sha256:70f83c912ed4c7fb6b223305788da80dfad3e6f39868eb9346f171ee7089b6ad",
+          "artifactDigest": "sha256:6779f0e5d9181df4b58a913e74598cd3908268a32f68101be3d32453876e36c6",
           "reportSha256": "32e1f64994f5d207ea563808906cc1081cdfad96cc232f06c5465dfe7fef466f",
           "sourceClockStart": "2026-11-14T19:33:43.929Z",
           "sourceClockEnd": "2026-11-14T19:33:49.719Z",
@@ -79,6 +91,22 @@
           "allHttp200": true,
           "positiveRows": 3,
           "positiveStores": 3,
+          "deliveryDisabled": true
+        },
+        {
+          "runId": "43635470779",
+          "artifactId": "14129278237",
+          "artifactDigest": "sha256:70f83c912ed4c7fb6b223305788da80dfad3e6f39868eb9346f171ee7089b6ad",
+          "reportSha256": "5fda959afdfeb1b12b464af851e0ee570ff49905fa3f0422d976ef76906760701",
+          "sourceClockStart": "2026-11-14T20:04:29.331Z",
+          "sourceClockEnd": "2026-11-14T20:04:35.377Z",
+          "cityHiveRequests": 4,
+          "pearsonsRequests": 1,
+          "allHttp200": true,
+          "positiveRows": 3,
+          "positiveStores": 3,
+          "positiveCities": 1,
+          "hasAllocatedOrUnicorn": true,
           "deliveryDisabled": true
         }
       ]
