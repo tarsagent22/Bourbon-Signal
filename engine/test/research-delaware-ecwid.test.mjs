@@ -7,7 +7,7 @@ import { BourbonBible } from '../src/core/bible.mjs';
 import { buildShadowEvidence } from '../src/run-expansion-shadow.mjs';
 import { collectResearchStateReport } from '../src/research-state-registry.mjs';
 import { cityHiveResearchSourceForState } from '../src/research-cityhive-runtime.mjs';
-import { collectDelawareEcwidResearch, delawareEcwidResearchSource, isDelawareEcwidShadowPickup } from '../src/research-delaware-ecwid.mjs';
+import { collectDelawareEcwidResearch, delawareEcwidResearchSource, isDelawareEcwidShadowPickup, parseDelawareEcwidCapture } from '../src/research-delaware-ecwid.mjs';
 import { parseEcwidPickupOffer, verifyEcwidPickupPremise } from '../src/collectors/ecwid-pickup-surfaces.mjs';
 import sourceData from '../data/de-ecwid-research-source.json' with { type: 'json' };
 
@@ -41,6 +41,13 @@ test('held Banks captures bind one exact Millville premise and orderable 750 mL 
   assert.equal(match.method,'exact-library-identity');
   assert.equal(match.record.id,sourceData.product.canonicalId);
   assert.equal(match.record.tier,'allocated');
+  const replayed=parseDelawareEcwidCapture(home,productPage,bible,'2026-11-14T20:23:14.456Z');
+  assert.equal(replayed.storeId,'ecwid:de:130511528');
+  assert.equal(replayed.canonicalBottleId,sourceData.product.canonicalId);
+  assert.equal(replayed.tier,'allocated');
+  assert.equal(replayed.quantity,0);
+  assert.equal(replayed.quantityIsExact,false);
+  assert.equal(replayed.observedAt,'2026-11-14T20:23:14.456Z');
   assert.throws(()=>verifyEcwidPickupPremise(home.replace('38014 Town Center Drive','1 Other Street'),merchant),/physical premise/);
   assert.throws(()=>parseEcwidPickupOffer(productPage.replace('081128002664','081128002665'),merchant,product),/exact product/);
   assert.throws(()=>parseEcwidPickupOffer(productPage.replace('813956453/5564781103.jpg','853683296/5564781103.jpg'),merchant,product),/exact product/);
