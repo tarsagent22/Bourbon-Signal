@@ -7,6 +7,7 @@ test('Oregon replay permits only exact source-independent preparation changes', 
     'engine/src/collectors/oregon-daily-production.mjs',
     'engine/src/export-site-contract.mjs',
     'engine/src/verify-oregon-first-publication.mjs',
+    'engine/data/canary-inputs/OR.json',
   ].map(filename => ({ filename }));
   assert.deepEqual(validateOregonShadowChanges('a'.repeat(40), 'b'.repeat(40), { status: 'ahead', files }), files.map(file => file.filename));
   assert.deepEqual(validateOregonShadowChanges('a'.repeat(40), 'b'.repeat(40), {

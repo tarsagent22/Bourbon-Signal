@@ -30,6 +30,7 @@ const preparationOnly=file=>[
   'engine/src/verify-state-fixtures.mjs','engine/test/oregon-canary.test.mjs','engine/test/oregon-daily-production.test.mjs',
   'engine/test/oregon-first-publication.test.mjs','engine/test/or-daily-inventory.test.mjs','engine/test/oregon-shadow-provenance.test.mjs',
   'engine/data/state-fixtures/OR.json','engine/data/state-integration/OR.json',
+  'engine/data/canary-inputs/OR.json',
 ].includes(file);
 
 export function validateOregonShadowChanges(runHead,currentHead,comparison){
