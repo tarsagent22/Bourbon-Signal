@@ -245,6 +245,15 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
+    id: 'WY', label: 'Wyoming Liquor Division', tier: 'C', strategy: 'wholesale_listing_watch', cadence: 'monthly-weekly',
+    value: 'Weak consumer signal; useful as product/listing intelligence only unless retailer-facing data becomes available.',
+    sources: [
+      { kind: 'html', url: 'https://liquor365.wyo.gov/', label: 'Wyoming Liquor Division' },
+      { kind: 'html', url: 'https://liquor365.wyo.gov/questions', label: 'Wyoming FAQ' }
+    ],
+    apiCandidates: []
+  },
+  {
     id: 'MS', label: 'Mississippi sparse exact-store retailer inventory', tier: 'B', strategy: 'hybrid_official_intelligence_private_retailer', cadence: 'inventory-60m_directory-weekly',
     value: 'Complete official Package Retailer premises directory plus ten isolated exact inventory adapters and one bounded retailer release-watch adapter. Three public Tupelo2Go merchant pages require exact permit-premise and immutable restaurant-ID binding and prove only current binary menu orderability. Fresh exact-store rows may publish on-site; release-watch rows and all outbound alerts remain disabled. Official catalog, pricing, SPA, bailment, wholesale, and policy evidence remains noninventory; runtime health determines current storefront usability.',
     active: true,
@@ -461,7 +470,6 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   ...WESTERN_GROCERY_PRODUCTION_CONFIGS,
-  WYOMING_GROCERY_CONFIG,
   ...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id!=='MO'),
   {
     id: 'GA', label: 'Georgia retailer inventory + Costco warehouse watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
@@ -496,6 +504,7 @@ const BASE_STATE_SOURCES = [
 
 export const ALL_STATE_SOURCES = [...BASE_STATE_SOURCES.filter(source=>!NJ_MI_PRODUCTION_STATES.includes(source.id)&&!LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id)),...NJ_MI_PRODUCTION_CONFIGS,...LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS].map((source) => {
   if(NJ_MI_PRODUCTION_STATES.includes(source.id)||LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id))return source;
+  if (source.id === 'WY') return WYOMING_GROCERY_CONFIG;
   if (source.id === 'MN' && CONFIG_CUSTOMER_ACTIVE_STATE_IDS.has('MN')) return MINNESOTA_CITYHIVE_PRODUCTION_CONFIG;
   const costcoSource = WESTERN_GROCERY_PRODUCTION_STATES.includes(source.id) ? null : costcoSourceForState(source.id);
   return costcoSource ? { ...source, sources: [...source.sources, costcoSource] } : source;
