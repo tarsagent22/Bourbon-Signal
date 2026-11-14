@@ -21,7 +21,7 @@ async function collect(fetchText,options={}){
   finally{await rm(cursorDir,{recursive:true,force:true});}
 }
 
-test('one captured Vons2111 transport failure can complete all568 premises without losing the original clock',async()=>{
+test('one captured Vons2111 transport failure can complete all reviewed premises without losing the original clock',async()=>{
   let attempts=0;
   const result=await collect(async url=>{
     const parsed=new URL(url);
@@ -30,7 +30,7 @@ test('one captured Vons2111 transport failure can complete all568 premises witho
     return success(url);
   });
   assert.equal(attempts,2);assert.equal(result.metadata.complete,true);
-  assert.equal(result.metadata.verifiedPremises.length,568);assert.equal(result.metadata.transientRetries,1);
+  assert.equal(result.metadata.verifiedPremises.length,CALIFORNIA_GROCERY_SOURCES.length);assert.equal(result.metadata.transientRetries,1);
   assert.ok(result.metadata.requests.length<=1262);
   const failed=result.metadata.requests.filter(request=>!request.ok);
   assert.equal(failed.length,1);assert.equal(failed[0].merchantId,'2111');

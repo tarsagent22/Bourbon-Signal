@@ -10,9 +10,10 @@ const fixture=JSON.parse(await readFile(new URL('./fixtures/california-grocery-e
 const bible=new BourbonBible(fixture.records),source=CALIFORNIA_GROCERY_SOURCES.find(s=>s.merchantId==='2784');
 const parse=products=>parseGroceryExpansionInventory({response:{docs:products}},source,bible,{observedAt:fixture.capturedAt});
 
-test('California grocery cohort binds568 first-party premises and captured allocated bottle identities',()=>{
-  assert.equal(CALIFORNIA_GROCERY_SOURCES.length,568);
-  assert.equal(new Set(CALIFORNIA_GROCERY_SOURCES.map(s=>s.storeId)).size,568);
+test('California grocery cohort binds current first-party premises and captured allocated bottle identities',()=>{
+  assert.equal(CALIFORNIA_GROCERY_SOURCES.length,567);
+  assert.equal(new Set(CALIFORNIA_GROCERY_SOURCES.map(s=>s.storeId)).size,567);
+  assert.ok(CALIFORNIA_GROCERY_SOURCES.every(source=>source.storeId!=='safeway:767'));
   assert.equal(new Set(CALIFORNIA_GROCERY_SOURCES.map(s=>s.city)).size,314);
   assert.ok(CALIFORNIA_GROCERY_SOURCES.every(s=>s.lat>32&&s.lat<43&&s.lng< -114&&s.lng> -125));
   assert.ok(groceryExpansionPremiseMatches(source,fixture.store));
