@@ -1,0 +1,7 @@
+# Greenbelt Liquors research receipt
+
+One public first-party detail-page capture was retained outside the repository at `C:\Users\chand\AppData\Local\Temp\greenbelt-eagle-rare12-20261114.html` (SHA-256 `d2b7890311aca719bae6862bcb6220c0d6b71c7faf7ab0ee6b391b7aa81a7dd8`, 203,457 bytes). It was captured on 2026-11-14 from `https://delivery.greenbeltliquors.com/shop/product/eagle-rare-12-years-old-bourbon/682fc772b2b09825a9bfa4d9?option-id=8b2593031856f80d2e74abafdc940686302e1227092ce6bb69e52830f8768f42`.
+
+The capture identifies Greenbelt Liquors at 6000 Greenbelt Rd #168, Greenbelt, MD 20770; merchant `6060f47c27f7c71989f0749c`; pickup enabled; and a positive option for Eagle Rare 12 Years Old Bourbon, 750 ml, quantity field 1, $104.98. The merchant coordinates are `38.9995236, -76.9099301`. The compact JSON fixture preserves the parser-relevant product, option, address, pickup, and coordinate fields. It is a parser fixture, not a second live receipt.
+
+The current full Bible classifies the exact title as `Eagle Rare 12 Year` (unicorn tier). No source-specific identity override is used. The collector reports binary retailer orderability only (`quantity: 0`, `quantityIsExact: false`) and the research adapter disables all customer delivery and alert flags. This Greenbelt retailer source is isolated in the Maryland CityHive research registry; it is not the official Maryland/Montgomery source or an active production state.
