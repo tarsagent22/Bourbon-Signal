@@ -221,6 +221,7 @@ if (state === 'DC') files.push(
   'engine/data/state-fixtures/DC.json',
   'engine/src/collectors/pearsons-dc-research.mjs',
   'engine/src/collectors/pearsons-dc-production.mjs',
+  'engine/src/pearsons-dc-production-policy.mjs',
   'engine/src/dc-pearsons-fixtures.mjs',
   'engine/src/prepare-dc-pearsons-canary.mjs',
   'engine/src/verify-dc-first-publication.mjs',

@@ -12,7 +12,7 @@ const preparationOnly=(state,file)=>[
   'scripts/test-central-cityhive-public-canary.mjs','scripts/build-promotion-provenance.mjs','src/lib/drop-feed-visibility.ts',
   'engine/src/build-state-canary-preview.mjs','next.config.ts','src/lib/site-engine-contract.ts',
 ].includes(file)||/^engine\/data\/(?:state-fixtures|state-integration)\/(?:WI|OK|RI|KS|MO|DC)\.json$/.test(file)
-  ||(state==='DC'&&/^engine\/(?:data\/dc-cityhive-research-sources\.json|data\/state-fixtures\/DC\.json|data\/state-integration\/DC\.json|src\/(?:dc-pearsons-fixtures|prepare-dc-pearsons-canary)\.mjs|test\/(?:dc-first-publication|pearsons-dc-production|pearsons-dc-research)\.test\.mjs)$/.test(file))
+  ||(state==='DC'&&/^engine\/(?:data\/dc-cityhive-research-sources\.json|data\/state-fixtures\/DC\.json|data\/state-integration\/DC\.json|src\/(?:dc-pearsons-fixtures|prepare-dc-pearsons-canary)\.mjs|test\/(?:dc-first-publication|pearsons-dc-production|pearsons-dc-research)\.test\.mjs|pearsons-dc-production-policy\.mjs)$/.test(file))
   ||(state==='AR'&&/^engine\/data\/(?:state-fixtures|state-integration)\/AR(?:-canary)?\.json$/.test(file))
   ||(state==='MN'&&/^engine\/data\/(?:state-fixtures|state-integration)\/MN\.json$/.test(file))
   ||(state==='MO'&&file==='engine/test/fixtures/central-cityhive/barrel-blends-6226405682c4ff6dfe6d578a.json')

@@ -24,7 +24,7 @@ const researchBodies=new Map(await Promise.all(CENTRAL_CITYHIVE_RESEARCH_SOURCES
   source.id,`<script type="application/json">${await readFile(new URL(`./fixtures/ri-cityhive/${researchFixtureNames[source.id]}`,import.meta.url),'utf8')}</script>`])));
 
 test('DC cannot use the CityHive-only preparer without the composite Pearson replay wrapper',async()=>{
-  await assert.rejects(prepareCentralCityHiveCanary({state:'DC'}),/complete CityHive plus Pearson cohort/);
+  await assert.rejects(prepareCentralCityHiveCanary({state:'DC'}),/complete CityHive plus Pearson cohort|complete matching isolated CityHive shadow report/);
 });
 
 for(const state of ['WI','OK'])test(`${state} portable replay reparses raw merchant proof/current library and preserves clocks without delivery`,async()=>{

@@ -30,7 +30,7 @@ const sourceRegistryDigest=sources=>sha(Buffer.from(JSON.stringify([...sources].
 
 // Only workflow-issued portable raw bodies can produce isolated canary input.
 // Report signals, prices, tiers and mutable absolute file paths are never read.
-export async function prepareCentralCityHiveCanary({state,report,reportDirectory,bible,provenance,nowMs=Date.now()}={}){
+export async function prepareCentralCityHiveCanary({state,report,reportDirectory,bible,provenance,nowMs=Date.now(),allowDcCityHiveSlice=false}={}){
   const researchOnly=PER_STORE_QUERY_STATES.has(state);
   const sources=(researchOnly?CENTRAL_CITYHIVE_RESEARCH_SOURCES:CENTRAL_CITYHIVE_EXPANSION_SOURCES).filter(source=>source.state===state);
   const reportSources=report?.sources||[];
@@ -38,6 +38,7 @@ export async function prepareCentralCityHiveCanary({state,report,reportDirectory
   const matchingSourceRows=reportSources.filter(row=>sources.some(source=>row.sourceRuntimeId===cityHiveRuntimeId(source)));
   const extraMaRows=state==='MA'?reportSources.filter(row=>row.sourceRuntimeId?.startsWith('precision:ma:julios-westborough:')):[];
   const expectedMaJulios=state==='MA'?MA_JULIOS_PROBE_URLS.map((url,index)=>({sourceRuntimeId:`precision:ma:julios-westborough:${index}`,url})):[];
+  if(state==='DC'&&!allowDcCityHiveSlice)throw new Error('DC requires the complete CityHive plus Pearson cohort replay wrapper');
   if(!CANARY_STATES.has(state)||sources.length===0||report?.state!==state||report.metadata?.complete!==true
     ||report.metadata.shadowOnly!==true||report.metadata.productionActivationAllowed!==false
     ||report.metadata.customerDeliveryAllowed!==false||matchingSourceRows.length!==sources.length
