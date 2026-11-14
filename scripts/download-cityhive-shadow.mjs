@@ -8,7 +8,7 @@ export {decodeBoundedShadowArchive};
 const preparationOnly=(state,file)=>[
   '.github/workflows/state-expansion-canary.yml','.github/workflows/state-promotion-provenance.yml',
   'engine/src/prepare-central-cityhive-canary.mjs','engine/src/prepare-massachusetts-canary.mjs','engine/src/massachusetts-research-policy.mjs','engine/src/prepare-central-cityhive-canary-manifest.mjs','engine/src/central-cityhive-fixtures.mjs','engine/src/verify-state-fixtures.mjs','scripts/download-cityhive-shadow.mjs','scripts/download-ma-esplanda-shadow.mjs',
-  'engine/test/central-cityhive-canary.test.mjs','engine/test/prepare-central-cityhive-canary-manifest.test.mjs','engine/test/massachusetts-canary-provenance.test.mjs','scripts/test-cityhive-shadow-download.mjs',
+  'engine/test/central-cityhive-canary.test.mjs','engine/test/prepare-central-cityhive-canary-manifest.test.mjs','engine/test/massachusetts-canary-policy.test.mjs','engine/test/massachusetts-canary-provenance.test.mjs','scripts/test-cityhive-shadow-download.mjs',
   'scripts/test-central-cityhive-public-canary.mjs','scripts/test-massachusetts-public-canary.mjs','scripts/test-massachusetts-live-canary.mjs','scripts/build-promotion-provenance.mjs','src/lib/drop-feed-visibility.ts',
   'engine/src/build-state-canary-preview.mjs','next.config.ts','src/lib/site-engine-contract.ts',
 ].includes(file)||/^engine\/data\/(?:state-fixtures|state-integration)\/(?:WI|OK|RI|MA)\.json$/.test(file)

@@ -7,6 +7,7 @@ import { decodeBoundedShadowArchive } from './download-grocery-shadow.mjs';
 const allowedPreparationFiles = new Set([
   '.github/workflows/state-expansion-canary.yml', 'engine/src/prepare-massachusetts-canary.mjs',
   'engine/src/prepare-central-cityhive-canary.mjs', 'engine/src/massachusetts-research-policy.mjs', 'engine/src/verify-state-fixtures.mjs',
+  'engine/test/massachusetts-canary-policy.test.mjs',
   'engine/src/build-state-canary-preview.mjs', 'scripts/download-cityhive-shadow.mjs',
   'scripts/download-ma-esplanda-shadow.mjs', 'scripts/test-massachusetts-public-canary.mjs', 'scripts/test-massachusetts-live-canary.mjs', 'src/lib/drop-feed-visibility.ts',
   'engine/test/massachusetts-canary-provenance.test.mjs',
