@@ -15,7 +15,7 @@ const STATUS_LABELS: Record<CoverageSearchResult["status"], string> = {
   "partially-covered": "Coverage available",
   "known-not-active": "Store listed; no current availability check",
   "actively-monitored": "Current bottle availability",
-  "known-expansion-candidate": "Store listed; no current availability check",
+  "known-expansion-candidate": "No current bottle listing",
   "not-found": "Not listed yet",
 };
 
