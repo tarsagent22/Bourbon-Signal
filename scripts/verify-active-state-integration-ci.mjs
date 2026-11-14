@@ -2,6 +2,7 @@
 // CI-only artifact selection. Production continues to run the unchanged
 // engine/src/verify-state-integration.mjs against its actual refresh output.
 import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import path from 'node:path';
@@ -12,20 +13,22 @@ const execFileAsync=promisify(execFile);
 const DEFAULT_ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const REVIEWED_STATES=new Set(['WA','NM','WI','OK']);
 const REVIEWED_SITE='engine/data/canary-site/four-state-20261029';
+const RI_REVIEWED_SITE='engine/data/canary-site/rhode-island-20261114';
 const array=value=>Array.isArray(value)?value:[];
 const readJson=async(file,fallback)=>{try{return JSON.parse(await readFile(file,'utf8'));}catch{return fallback;}};
 async function readSource(root,file){try{return await readFile(path.join(root,file),'utf8');}catch{return null;}}
 
 // Same site shape and source-contract inputs as the production CLI. The shared
 // validator receives original manifests and requires immutable evidence.
-async function loadSite(siteDir,state){
+async function loadSite(siteDir,state,{partitionOnly=false}={}){
   const manifest=await readJson(path.join(siteDir,'manifest.json'),{});
   const stateIndex=await readJson(path.join(siteDir,manifest.files?.stateDrops||'states/index.json'),{});
   const partition=array(stateIndex.states).find(row=>row.state===state);
+  const stateDrops=partition?await readJson(path.join(siteDir,partition.file),null):null;
   return{manifest,stateIndex,stats:await readJson(path.join(siteDir,'stats.json'),{}),
-    drops:await readJson(path.join(siteDir,'drops.json'),{drops:[]}),alerts:await readJson(path.join(siteDir,'alerts.json'),{alerts:[]}),
+    drops:partitionOnly?{drops:array(stateDrops?.drops)}:await readJson(path.join(siteDir,'drops.json'),{drops:[]}),alerts:await readJson(path.join(siteDir,'alerts.json'),{alerts:[]}),
     locations:await readJson(path.join(siteDir,'locations.json'),{locations:[]}),previewPolicy:await readJson(path.join(siteDir,'canary-preview-policy.json'),null),
-    stateDrops:partition?{[state]:await readJson(path.join(siteDir,partition.file),null)}:{}};
+    stateDrops:partition?{[state]:stateDrops}:{}};
 }
 
 export async function verifyActiveStateIntegrationForCi({root=DEFAULT_ROOT,states=null,siteDir=path.join(root,'engine/out/site')}={}){
@@ -36,11 +39,23 @@ export async function verifyActiveStateIntegrationForCi({root=DEFAULT_ROOT,state
   for(const state of selected){
     if(!config.activeStates.includes(state))throw Error(`${state}: CI cannot select a non-active state`);
     const manifest=await readJson(path.join(root,`engine/data/state-integration/${state}.json`),null);
-    if(REVIEWED_STATES.has(state)&&manifest?.evidence?.production?.status==='pending_release')throw Error(`${state}: pending_release would redirect the production verifier; it is not permitted for this admission`);
-    if(REVIEWED_STATES.has(state)&&manifest?.evidence?.production?.status==='awaiting_first_publication'){
-      if(manifest.evidence.canary?.siteArtifact!==REVIEWED_SITE)throw Error(`${state}: CI artifact must be the exact reviewed four-state canary path`);
+    const reviewedSite=state==='RI'?RI_REVIEWED_SITE:REVIEWED_STATES.has(state)?REVIEWED_SITE:null;
+    if(reviewedSite&&manifest?.evidence?.production?.status==='pending_release')throw Error(`${state}: pending_release would redirect the production verifier; it is not permitted for this admission`);
+    if(reviewedSite&&manifest?.evidence?.production?.status==='awaiting_first_publication'){
+      if(manifest.evidence.canary?.siteArtifact!==reviewedSite)throw Error(`${state}: CI artifact must be the exact reviewed canary path`);
+      if(state==='RI'){
+        const proof=await readJson(path.join(root,reviewedSite,'source-proof.json'),null);
+        const source=proof?.runs?.find(entry=>entry.state===state);
+        const partition=await readFile(path.join(root,reviewedSite,'states/RI/drops.json'));
+        const contentHash=createHash('sha256').update(partition).digest('hex');
+        const immutableRuns=manifest.evidence?.immutablePromotionEvidence?.canaryRuns||[];
+        if(proof?.mode!=='reviewed_ci_only_canary_extract'||proof.originalPartitionBytesPreserved!==true
+          ||proof.productionSnapshotTouched!==false||source?.partitionSha256!==contentHash
+          ||!immutableRuns.some(run=>run.runId===source.canaryRunId&&run.status==='success'))
+          throw Error('RI: reviewed CI partition hash or workflow lineage mismatch');
+      }
       const fixtures=await readJson(path.join(root,`engine/data/state-fixtures/${state}.json`),null);
-      const result=verifyStateIntegration({state,config,manifest,fixtures,site:await loadSite(path.join(root,REVIEWED_SITE),state),sourceFiles,promotionEvidenceRequired:true});
+      const result=verifyStateIntegration({state,config,manifest,fixtures,site:await loadSite(path.join(root,reviewedSite),state,{partitionOnly:state==='RI'}),sourceFiles,promotionEvidenceRequired:true});
       if(!result.ok)throw Error(result.failures.join('\n'));
       results.push({state,mode:'explicit_ci_only_reviewed_canary',immutableEvidenceRequired:true});
     }else{

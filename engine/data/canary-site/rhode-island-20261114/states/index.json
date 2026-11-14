@@ -1,0 +1,9 @@
+{
+  "states": [
+    {
+      "state": "RI",
+      "file": "states/RI/drops.json",
+      "count": 10
+    }
+  ]
+}

@@ -26,19 +26,205 @@
     "watchAlertable": false
   },
   "customerPaths": {
-    "stateFilter": { "status": "verified", "assertion": "The isolated canary lifecycle and state partition are consumed by the existing lifecycle-backed state filter." },
-    "areaFilter": { "status": "verified", "assertion": "The isolated canary lifecycle and state partition are consumed by the existing lifecycle-backed area filter." },
-    "preferences": { "status": "verified", "assertion": "The existing preference normalization retains state selection through the nationwide geography resolver." },
-    "dashboard": { "status": "verified", "assertion": "The existing dashboard reads the isolated state selection and preview snapshot." },
-    "dropFeedApi": { "status": "verified", "assertion": "The current Drop Feed API projection filters by the isolated state partition." },
-    "finder": { "status": "verified", "assertion": "Finder exposes only the three reviewed RI premises from the canary input." },
-    "alerts": { "status": "verified", "assertion": "Canary observations remain non-alertable with every delivery channel disabled." },
-    "monitoring": { "status": "verified", "assertion": "The isolated canary snapshot records RI coverage without changing production monitoring." },
-    "export": { "status": "verified", "assertion": "Executable source fixtures enforce exact merchant, address, variant, freshness, pickup and binary-quantity semantics." }
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "The isolated canary lifecycle and state partition are consumed by the existing lifecycle-backed state filter."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "The isolated canary lifecycle and state partition are consumed by the existing lifecycle-backed area filter."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "The existing preference normalization retains state selection through the nationwide geography resolver."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "The existing dashboard reads the isolated state selection and preview snapshot."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "The current Drop Feed API projection filters by the isolated state partition."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Finder exposes only the three reviewed RI premises from the canary input."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Canary observations remain non-alertable with every delivery channel disabled."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "The isolated canary snapshot records RI coverage without changing production monitoring."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Executable source fixtures enforce exact merchant, address, variant, freshness, pickup and binary-quantity semantics."
+    }
   },
   "evidence": {
-    "shadow": { "status": "not_run", "runs": 0, "artifact": null, "reason": "Research-only shadow evidence is held in its own workflow artifact; this manifest is not promotion evidence." },
-    "canary": { "status": "not_run", "runs": 0, "artifact": null, "reason": "Preview-only replay; no deployment or release admission is claimed." },
-    "production": { "status": "not_deployed", "url": null, "assertion": "No production lifecycle or source configuration was changed.", "reason": "RI remains research-only and inactive in the authoritative lifecycle." }
+    "shadow": {
+      "status": "verified",
+      "runs": 4,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43581735173",
+      "observations": [
+        {
+          "runId": "43576589345",
+          "status": "success",
+          "artifactHash": "5f3dcf56cdd5b0015c9682042e996c952068e10d9611da755eead2b14ba88a81",
+          "artifactId": "14106423783",
+          "commitSha": "ce41ac174e08733eebdadae4cddc4e8c7f550629",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43576589345",
+          "artifactName": "state-expansion-shadow-43576589345"
+        },
+        {
+          "runId": "43579052660",
+          "status": "success",
+          "artifactHash": "43c7115a6b7eacd6018a60519bb6a3852ebe5c3fd9db31aca09c5c597c6ceef1",
+          "artifactId": "14106898441",
+          "commitSha": "8cabbe4e6a446f577d54121f8e3d20d0ad63244f",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43579052660",
+          "artifactName": "state-expansion-shadow-43579052660"
+        },
+        {
+          "runId": "43580822799",
+          "status": "success",
+          "artifactHash": "947b7b20d7ba44979de3684a69d64832aa0b52bfaa388915c1aa69b809e06650",
+          "artifactId": "14107778902",
+          "commitSha": "cb04b7487b4781f0f953385b1843ed3641f41913",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43580822799",
+          "artifactName": "state-expansion-shadow-43580822799"
+        },
+        {
+          "runId": "43581735173",
+          "status": "success",
+          "artifactHash": "f07a4c785f2854aab3e56a100700268b43bde40bb7076961215e734c6eaa985d",
+          "artifactId": "14108508704",
+          "commitSha": "ff615a9a6c8f96762889cbd612f8a4804af2e914",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43581735173",
+          "artifactName": "state-expansion-shadow-43581735173"
+        }
+      ],
+      "originalSourceClocksPreserved": true
+    },
+    "canary": {
+      "status": "verified",
+      "runs": 2,
+      "artifact": "https://bourbonsignal-3vk8eswjm-tarsagent22s-projects.vercel.app/coverage",
+      "observations": [
+        {
+          "runId": "43579444059",
+          "status": "success",
+          "artifactHash": "04db9084147a16f6e9901ce61c49c902cd2b7d48400601c0d9529d2d621daff1",
+          "artifactId": "14107702662",
+          "commitSha": "cb04b7487b4781f0f953385b1843ed3641f41913",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43579444059",
+          "artifactName": "state-expansion-canary-RI-43579444059"
+        },
+        {
+          "runId": "43580904309",
+          "status": "success",
+          "artifactHash": "22970ce8a73d3e82793f9ce47efd20922eca839cc5f5dfc12b4dbc4f71f25943",
+          "artifactId": "14108067896",
+          "commitSha": "cb04b7487b4781f0f953385b1843ed3641f41913",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43580904309",
+          "artifactName": "state-expansion-canary-RI-43580904309"
+        }
+      ],
+      "siteArtifact": "engine/data/canary-site/rhode-island-20261114",
+      "allDeliveryChannelsDisabled": true
+    },
+    "production": {
+      "status": "awaiting_first_publication",
+      "url": "https://www.bourbonsignal.com/api/drops?state=RI",
+      "assertion": "Verify current closed-cohort inventory on canonical Coverage and Finder after immutable publication."
+    },
+    "actualPreviewVerification": {
+      "verifiedAt": "2026-11-14T09:27:27.514Z",
+      "currentPublicRows": 8,
+      "currentPublicStores": 3,
+      "currentCities": 2,
+      "coverageHttpStatus": 200,
+      "finderHttpStatus": 200,
+      "physicalDeviceExercised": false,
+      "allDeliveryChannelsDisabled": true
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "RI",
+      "generatedAt": "2026-11-14T09:43:59.660Z",
+      "sourceConfigHash": "45fb4d736c1a607c7aab6a7cebc91f8eb279caa191083ce19a817eee945696a2",
+      "previewUrl": "https://bourbonsignal-3vk8eswjm-tarsagent22s-projects.vercel.app/coverage",
+      "shadowRuns": [
+        {
+          "runId": "43576589345",
+          "status": "success",
+          "artifactHash": "5f3dcf56cdd5b0015c9682042e996c952068e10d9611da755eead2b14ba88a81",
+          "artifactId": "14106423783",
+          "commitSha": "ce41ac174e08733eebdadae4cddc4e8c7f550629",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43576589345",
+          "artifactName": "state-expansion-shadow-43576589345"
+        },
+        {
+          "runId": "43579052660",
+          "status": "success",
+          "artifactHash": "43c7115a6b7eacd6018a60519bb6a3852ebe5c3fd9db31aca09c5c597c6ceef1",
+          "artifactId": "14106898441",
+          "commitSha": "8cabbe4e6a446f577d54121f8e3d20d0ad63244f",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43579052660",
+          "artifactName": "state-expansion-shadow-43579052660"
+        },
+        {
+          "runId": "43580822799",
+          "status": "success",
+          "artifactHash": "947b7b20d7ba44979de3684a69d64832aa0b52bfaa388915c1aa69b809e06650",
+          "artifactId": "14107778902",
+          "commitSha": "cb04b7487b4781f0f953385b1843ed3641f41913",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43580822799",
+          "artifactName": "state-expansion-shadow-43580822799"
+        },
+        {
+          "runId": "43581735173",
+          "status": "success",
+          "artifactHash": "f07a4c785f2854aab3e56a100700268b43bde40bb7076961215e734c6eaa985d",
+          "artifactId": "14108508704",
+          "commitSha": "ff615a9a6c8f96762889cbd612f8a4804af2e914",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43581735173",
+          "artifactName": "state-expansion-shadow-43581735173"
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "43579444059",
+          "status": "success",
+          "artifactHash": "04db9084147a16f6e9901ce61c49c902cd2b7d48400601c0d9529d2d621daff1",
+          "artifactId": "14107702662",
+          "commitSha": "cb04b7487b4781f0f953385b1843ed3641f41913",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43579444059",
+          "artifactName": "state-expansion-canary-RI-43579444059"
+        },
+        {
+          "runId": "43580904309",
+          "status": "success",
+          "artifactHash": "22970ce8a73d3e82793f9ce47efd20922eca839cc5f5dfc12b4dbc4f71f25943",
+          "artifactId": "14108067896",
+          "commitSha": "cb04b7487b4781f0f953385b1843ed3641f41913",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43580904309",
+          "artifactName": "state-expansion-canary-RI-43580904309"
+        }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "43581795229",
+        "artifactId": "14108389171",
+        "commitSha": "ff615a9a6c8f96762889cbd612f8a4804af2e914",
+        "artifactDigest": "b5b61e8605f31a4b67a5992bd016007603317909ab627d128376363cbf58e557",
+        "bundleDigest": "ba1c2a191e3ad48dd08b074e8f5de2343db3995a8731d92b464a00c4a1d2c31b",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43581795229",
+        "artifactName": "state-promotion-provenance-RI-43581795229"
+      }
+    }
   }
 }
