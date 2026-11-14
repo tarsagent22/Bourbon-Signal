@@ -19,12 +19,12 @@ test('three recovered semantic failures finish every premise with exactly one va
  const attempts=new Map(),bad='{"unexpected":"not trusted inventory"}',hash=createHash('sha256').update(bad).digest('hex');
  const result=await collect(async url=>{
   const p=new URL(url),key=logical(url),n=(attempts.get(key)||0)+1;attempts.set(key,n);
-  const affected=p.searchParams.get('zipcode')==='92592'||p.searchParams.get('storeid')==='909'&&p.searchParams.get('q')==='bourbon'||p.searchParams.get('storeid')==='767'&&p.searchParams.get('q')==='whiskey';
+  const affected=p.searchParams.get('zipcode')==='92592'||p.searchParams.get('storeid')==='909'&&p.searchParams.get('q')==='bourbon'||p.searchParams.get('storeid')==='2784'&&p.searchParams.get('q')==='whiskey';
   if(affected&&n===1)return{ok:true,status:p.searchParams.has('zipcode')?206:200,text:bad};
   if(p.searchParams.get('storeid')==='2784')return{ok:true,status:200,text:JSON.stringify({response:{docs:fixture.products}})};
   return success(url);
  });
- assert.equal(result.metadata.complete,true);assert.equal(result.metadata.verifiedPremises.length,568);assert.equal(result.metadata.transientRetries,3);assert.ok(result.metadata.requests.length<=1262);
+ assert.equal(result.metadata.complete,true);assert.equal(result.metadata.verifiedPremises.length,CALIFORNIA_GROCERY_SOURCES.length);assert.equal(result.metadata.transientRetries,3);assert.ok(result.metadata.requests.length<=1262);
  const failed=result.metadata.requests.filter(r=>!r.ok);assert.equal(failed.length,3);assert.ok(failed.every(r=>r.httpOk===true&&r.semanticValidation==='invalid'&&r.responseSha256===hash&&r.responseBytes===Buffer.byteLength(bad)));
  for(const source of CALIFORNIA_GROCERY_SOURCES)for(const term of ['bourbon','whiskey'])assert.equal(result.metadata.requests.filter(r=>r.sourceId===source.id&&r.term===term&&r.ok).length,1);
  assert.equal(result.signals.length,5);assert.ok(result.signals.every(r=>r.observedAt===fixture.capturedAt&&r.sourceProductBinding.observedAt===fixture.capturedAt));
