@@ -38,7 +38,7 @@ const files = [
 ];
 // These files control production admission, actual HTTP, host-denial durability
 // and public projection. Missing inputs must fail issuance, never be skipped.
-if (['WA','NM','WI','OK','NJ','MI','MN'].includes(state)) files.push(
+if (['WA','NM','WI','OK','NJ','MI','MN','MD'].includes(state)) files.push(
   'engine/src/collectors/generic-state.mjs',
   'engine/src/collectors/north-carolina-intelligence.mjs',
   'engine/src/collectors/virginia-inventory-recovery.mjs',
@@ -191,7 +191,7 @@ if (state === 'MN') files.push(
   'engine/data/minnesota-cityhive-expansion-sources.json',
   'engine/data/midwest-cityhive-expansion-sources.json',
   'engine/data/additional-cityhive-expansion-sources.json',
-  'engine/data/md-cityhive-research-sources.json',
+  'engine/data/md-cityhive-reviewed-sources.json',
   'engine/data/ri-cityhive-research-sources.json',
   'engine/data/state-integration/MN.json',
   'engine/data/state-fixtures/MN.json',
@@ -331,6 +331,25 @@ if (state === 'KS') files.push(
   'engine/test/fixtures/ks-cityhive/hosted-search-receipt.json',
   'engine/test/fixtures/ks-cityhive/hosted-deployment-receipt.json',
   'engine/test/fixtures/ks-cityhive/hosted-public-protection-receipt.json',
+);
+if (state === 'MD') files.push(
+  'engine/data/md-cityhive-research-sources.json',
+  'engine/src/collectors/central-cityhive-premises.mjs',
+  'engine/src/collectors/central-cityhive-production.mjs',
+  'engine/src/collectors/central-cityhive-expansion.mjs',
+  'engine/src/collectors/central-cityhive-research-premises.mjs',
+  'engine/src/central-cityhive-production-config.mjs',
+  'engine/src/central-cityhive-state-config.mjs',
+  'engine/src/central-cityhive-policy.mjs',
+  'engine/src/central-cityhive-fixtures.mjs',
+  'engine/src/verify-md-first-publication.mjs',
+  'engine/test/md-first-publication.test.mjs',
+  'engine/test/fixtures/md-cityhive/README.md',
+  'engine/test/fixtures/md-cityhive/greenbelt-blantons-original.json',
+  'engine/test/fixtures/md-cityhive/frederick-eagle-rare-10.json',
+  'engine/test/fixtures/md-cityhive/ocean-city-elijah-craig-bp.json',
+  'engine/test/fixtures/md-cityhive/owings-mills-elijah-craig-bp.json',
+  'engine/out/canary/MD/site/states/MD-MONTGOMERY/drops.json',
 );
 for (const file of files) {
   const content = await readFile(path.join(root, file));

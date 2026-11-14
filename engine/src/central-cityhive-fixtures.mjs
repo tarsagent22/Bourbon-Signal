@@ -21,9 +21,14 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
       'kings-liquor-olathe:6060f76259a44e1d9f41522d':'kings-weller-special-reserve.json',
       'verns-liquor:61ae46168baad441363308b0':'verns-larceny-barrel-proof.json',
       'rj-liquor:6060f6496aaeeb555664ca4f':'rj-elijah-and-larceny-barrel-proof.json',
+    }[source.id]):source.state==='MD'?({
+      'greenbelt-liquors-md:6060f47c27f7c71989f0749c':'greenbelt-blantons-original.json',
+      'ye-old-spirit-shop:66b394ae65806d296ede036c':'frederick-eagle-rare-10.json',
+      'west-o-bottle-shop:60e51c65666bdc65c3bcda63':'ocean-city-elijah-craig-bp.json',
+      'euro-liquors-md:60456c4f88762f7bda9d7be0':'owings-mills-elijah-craig-bp.json',
     }[source.id]):null;
     const fixturePath=researchFixture
-      ? new URL(`../test/fixtures/${source.state==='RI'?'ri-cityhive':source.state==='KS'?'ks-cityhive':'central-cityhive'}/${researchFixture}`,import.meta.url)
+      ? new URL(`../test/fixtures/${source.state==='RI'?'ri-cityhive':source.state==='KS'?'ks-cityhive':source.state==='MD'?'md-cityhive':'central-cityhive'}/${researchFixture}`,import.meta.url)
       : new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url);
     const fixture=JSON.parse(await readFile(fixturePath,'utf8'));
     const products=fixture.products|| (fixture.product?[fixture.product]:[]);
