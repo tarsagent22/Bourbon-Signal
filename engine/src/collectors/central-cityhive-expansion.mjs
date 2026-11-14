@@ -33,9 +33,12 @@ export function centralCityHiveLibraryTier(signal,bible) {
    ||!Number.isFinite(Date.parse(signal.observedAt)))return null;
  if(source.lat!=null&&(signal.lat!==source.lat||signal.lng!==source.lng||p.coordinatesVerified!==true||p.latitude!==source.lat||p.longitude!==source.lng))return null;
  try{const url=new URL(signal.sourceUrl),segments=url.pathname.split('/').filter(Boolean);
+  const scope = source.scopeProductUrlToMerchant;
+  const query = url.searchParams;
   if(url.protocol!=='https:'||url.hostname!==source.hostname||url.username||url.password||url.hash
     ||segments.length!==4||segments[0]!=='shop'||segments[1]!=='product'||segments[3]!==signal.productId
-    ||[...url.searchParams].length!==1||url.searchParams.get('option-id')!==variant)return null;
+    ||[...query].length!==(scope?2:1)||query.get('option-id')!==variant
+    ||(scope&&query.get('merchant-id')!==source.merchantId))return null;
  }catch{return null;}
  const record=bible.records.find(r=>r.id===p.canonicalBottleId);if(!record)return null;
  const identity=p.identityName||signal.rawName;
@@ -127,8 +130,10 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
     if(batch && !new RegExp(`\\b${batch[1]||batch[2]}\\b`).test(record?.canonical||''))return [];
     const tier=centralCityHiveRecordMarketTier(record,source.state);
     if(!record || match?.confidence!==1 || !['allocated','limited','unicorn'].includes(tier) || !Number.isFinite(row.price) || row.price<=0)return [];
+    const productUrl = new URL(row.productUrl);
+    if (source.scopeProductUrlToMerchant) productUrl.searchParams.set('merchant-id', source.merchantId);
     return [{id:stableId([source.state,source.id,row.productId,row.variantId]),state:source.state,stateCode:source.state,
-      sourceLabel:source.sourceLabel,sourceUrl:row.productUrl,sourceChain:source.chainId||source.id,merchantId:source.merchantId,
+      sourceLabel:source.sourceLabel,sourceUrl:productUrl.href,sourceChain:source.chainId||source.id,merchantId:source.merchantId,
       productId:row.productId,optionId:row.variantId,variantId:row.variantId,rawName:row.title,canonicalBottleId:record.id,canonicalName:record.canonical,
       tier,confidence:Math.max(.85,match?.confidence || 0),eventType:'retailer_store_inventory_result',
       locationPrecision:'store_level',locationName:source.name,storeName:source.name,storeId:source.storeId,
@@ -153,7 +158,7 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
 export async function collectCentralCityHiveExpansion(config,bible,{fetchText,observedAt=new Date().toISOString(),signal,
   sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now(),sourceIds}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
-  const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts},verifiedPremises=new Set();
+  const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts},verifiedPremises=new Set(),requestedHosts=new Set();
   const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA','CT','DE','HI','MD','KS','RI','WY','DC','AR'].includes(config.id);
   const allowed=sourceIds===undefined?ALL_SOURCES.filter(s=>s.state===config.id):sourceIds.map(id=>ALL_SOURCES.find(s=>s.state===config.id&&s.id===id)).filter(Boolean);
   if(sourceIds!==undefined&&(allowed.length!==sourceIds.length||new Set(sourceIds).size!==sourceIds.length))throw new Error('CityHive source filter must contain unique reviewed premises for this state');
@@ -169,7 +174,8 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
     const urls=perStore?queryUrls:[source.categoryUrl,...queryUrls];
     const seen=new Set();let denied=false;
     for(const url of urls){
-      signal?.throwIfAborted();if(requests.some(r=>r.sourceId===groupId))await sleep(1000);
+      signal?.throwIfAborted();if(requestedHosts.has(source.hostname))await sleep(1000);
+      requestedHosts.add(source.hostname);
       const response=await fetchText(url,{signal,timeoutMs:10000,maxBytes:2*1024*1024,maxRedirects:0});
       requests.push({sourceId:groupId,url,status:response.status||0,ok:response.ok===true});
       if(!response.ok){

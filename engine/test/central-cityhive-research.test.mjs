@@ -29,7 +29,7 @@ test('scheduled shadow registers exact retailer candidates while production coho
   }
   assert.equal(researchSourceForState('DC',{shadowMode:true}),cityHiveResearchSourceForState('DC'));
   const ct=cityHiveResearchSourceForState('CT');
-  assert.equal(ct.sources.length,4);assert.ok(ct.sources.every(source=>source.precisionOnly&&source.label.includes('CT first-party pickup inventory')));
+  assert.equal(ct.sources.length,6);assert.ok(ct.sources.every(source=>source.precisionOnly&&source.label.includes('CT first-party pickup inventory')));
   assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('CT'),false);
 });
 
@@ -157,21 +157,38 @@ test('Connecticut product-page shadow stays isolated and disables customer deliv
       ['beveragekingct.com',await readFile(new URL('./fixtures/ct-cityhive-product-pages/beverage-king-product-page.html',import.meta.url),'utf8')],
       ['universalwineandliquorct.com', html(await readFile(new URL('./fixtures/ct-cityhive-product-pages/universal-barrel-proof.json', import.meta.url), 'utf8'))],
       ['bottlehousect.com', html(await readFile(new URL('./fixtures/ct-cityhive-product-pages/bottle-house-blanton.json', import.meta.url), 'utf8'))],
+      ['5d16b2c002a20e15787d923c', html(await readFile(new URL('./fixtures/ct-cityhive-product-pages/broad-st-barrel-proof.json', import.meta.url), 'utf8'))],
+      ['62fd4d7f483e882938c96fc1', html(await readFile(new URL('./fixtures/ct-cityhive-product-pages/new-london-barrel-proof.json', import.meta.url), 'utf8'))],
     ]);
     const report=await collectCityHiveResearchReport(cityHiveResearchSourceForState('CT'),bible,{reportDirectory:dir,captureRoot:null,
       incidentFile:path.join(dir,'incidents.json'),cursorDir:path.join(dir,'cursor'),sleep:async()=>{},readAttempts:async()=>({}),writeAttempts:async()=>{},
-      fetchText:async url=>({ok:true,status:200,url,text:pages.get(new URL(url).hostname)})});
+      fetchText: async url => {
+        const parsed = new URL(url);
+        return {ok:true,status:200,url,text:pages.get(parsed.searchParams.get('merchant-id')) ?? pages.get(parsed.hostname)};
+      }});
     assert.equal(report.status,'useful');assert.equal(report.metadata.complete,true);assert.equal(report.metadata.shadowOnly,true);
     assert.deepEqual(report.signals.map(row=>row.canonicalName).sort(),[
       "Blanton's Original Single Barrel", "Blanton's Original Single Barrel",
       "Blanton's Straight From The Barrel", 'Elijah Craig Barrel Proof', 'Larceny Barrel Proof',
+      '1792 Full Proof', 'Elijah Craig Barrel Proof', 'Larceny Barrel Proof',
+      '1792 Full Proof', 'Elijah Craig Barrel Proof', 'Larceny Barrel Proof',
       'Wild Turkey Rare Breed Straight Bourbon',
     ].sort());
     const straightFromTheBarrel = report.signals.find(row => row.canonicalName === "Blanton's Straight From The Barrel");
     assert.equal(straightFromTheBarrel.tier, 'unicorn');
     assert.equal(straightFromTheBarrel.storeAddress, '1261 Meriden Rd, Wolcott, CT 06716, USA');
     assert.equal(straightFromTheBarrel.sourceProductBinding.coordinatesVerified, true);
-    assert.equal(report.metadata.verifiedPremises.length, 4);
+    assert.equal(report.metadata.verifiedPremises.length, 6);
+    const easternStores = report.signals.filter(row => /New London|Gales Ferry/.test(row.storeAddress));
+    assert.equal(easternStores.length, 6);
+    assert.equal(new Set(easternStores.map(row => row.storeAddress)).size, 2);
+    for (const row of easternStores) {
+      const url = new URL(row.sourceUrl);
+      assert.equal(url.searchParams.get('merchant-id'), row.merchantId);
+      assert.equal(centralCityHiveLibraryTier(row, bible), row.tier);
+      url.searchParams.set('merchant-id', '5ff8d3a20831fc26a1ac15d1');
+      assert.equal(centralCityHiveLibraryTier({...row,sourceUrl:url.href}, bible), null);
+    }
     assert.equal(report.signals.find(row=>row.canonicalName==="Blanton's Original Single Barrel").tier,'allocated');
     for(const row of report.signals){
       assert.equal(row.state,'CT');assert.equal(row.raw.shadowOnly,true);assert.equal(row.sourceProductBinding.shadowOnly,true);
