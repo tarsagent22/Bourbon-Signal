@@ -800,6 +800,8 @@ jobs:
             engine/out/site/states/MO/drops.json
             engine/out/first-publication/MO.json
             engine/out/first-publication/MD.json
+            engine/out/site/states/MD/drops.json
+            engine/out/site/states/MD-MONTGOMERY/drops.json
             engine/out/az-expansion-verification.json
             engine/out/illinois-grocery-verification.json
             engine/out/pa-expansion-verification.json
