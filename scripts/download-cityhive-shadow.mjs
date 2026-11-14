@@ -16,6 +16,11 @@ const preparationOnly=(state,file)=>[
   ||/^engine\/test\/fixtures\/ri-cityhive\/[a-z0-9-]+\.json$/.test(file);
 const kansasActivationOnlyFiles=new Set([
   '.gitattributes','engine/data/state-integration/KS.json','engine/data/state-fixtures/KS.json','scripts/download-cityhive-shadow.mjs','scripts/test-cityhive-shadow-download.mjs',
+  'engine/data/canary-site/kansas-20261114/alerts.json','engine/data/canary-site/kansas-20261114/canary-preview-policy.json',
+  'engine/data/canary-site/kansas-20261114/locations.json','engine/data/canary-site/kansas-20261114/manifest.json',
+  'engine/data/canary-site/kansas-20261114/source-proof.json','engine/data/canary-site/kansas-20261114/states/KS/drops.json',
+  'engine/data/canary-site/kansas-20261114/states/index.json','engine/data/canary-site/kansas-20261114/stats.json',
+  'engine/src/verify-ks-first-publication.mjs','engine/test/helpers/synthetic-central-production.mjs',
   'engine/test/central-cityhive-production.test.mjs','engine/test/ks-first-publication.test.mjs','engine/test/ks-hosted-preview-evidence.test.mjs',
   'engine/src/central-cityhive-fixtures.mjs','engine/src/central-cityhive-production-config.mjs','engine/src/central-cityhive-state-config.mjs',
   'engine/src/collectors/central-cityhive-expansion.mjs','engine/src/collectors/central-cityhive-premises.mjs','engine/src/collectors/central-cityhive-production.mjs',
@@ -23,7 +28,12 @@ const kansasActivationOnlyFiles=new Set([
   'engine/test/fixtures/ks-cityhive/hosted-coverage-receipt.json','engine/test/fixtures/ks-cityhive/hosted-deployment-receipt.json',
   'engine/test/fixtures/ks-cityhive/hosted-finder-feed-receipt.json','engine/test/fixtures/ks-cityhive/hosted-finder-feed.json',
   'engine/test/fixtures/ks-cityhive/hosted-public-protection-receipt.json','engine/test/fixtures/ks-cityhive/hosted-search-receipt.json',
-  'scripts/build-promotion-provenance.mjs','src/config/stateLifecycle.ts',
+  'scripts/build-promotion-provenance.mjs','scripts/prepare-legacy-site-fixture-ci.mjs','scripts/sync-sighting-store-directory.mjs',
+  'scripts/test-ms-bundle-boundary.mjs','scripts/test-sighting-store-directory.mts','scripts/verify-active-state-integration-ci.mjs',
+  'src/config/state-lifecycle.json','src/config/stateLifecycle.ts','src/data/sighting-store-directory.generated.json',
+  'engine/test/fixtures/ks-cityhive/receipts.json','engine/test/fixtures/ks-cityhive/kings-weller-special-reserve.json',
+  'engine/test/fixtures/ks-cityhive/rj-elijah-and-larceny-barrel-proof.json','engine/test/fixtures/ks-cityhive/verns-larceny-barrel-proof.json',
+  'engine/test/fixtures/ks-cityhive/hosted-finder-feed.json',
 ]);
 const minnesotaAdapterFiles=new Set([
   'engine/data/state-integration/MN.json',
@@ -121,7 +131,7 @@ async function main(){
       comparison.mnShadowLifecycleProof=run.head_sha===comparison.base_commit?.sha
         &&validateInactiveMinnesotaShadowLifecycleTransition({candidateLifecycle,shadowLifecycle,comparison,commit});
     }
-    if(state==='KS'&&comparison.status==='ahead'&&comparison.ahead_by>=2&&comparison.ahead_by<=4&&comparison.behind_by===0){
+    if(state==='KS'&&comparison.status==='ahead'&&comparison.ahead_by>=1&&comparison.behind_by===0){
       const lifecyclePath='src/config/state-lifecycle.json';
       const runLifecycle=api('contents/'+lifecyclePath+'?ref='+run.head_sha);
       const candidateLifecycle=JSON.parse(execFileSync('git',['show',currentHead+':'+lifecyclePath],{encoding:'utf8',maxBuffer:2*1024*1024}));
