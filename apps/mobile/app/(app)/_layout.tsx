@@ -27,7 +27,7 @@ export default function AppLayout() {
       <Stack.Screen name="account/redeem" options={{ title: "Redeem reward", headerBackButtonDisplayMode: "minimal" }} />
       <Stack.Screen name="account/profile" options={{ title: "Edit profile", headerBackButtonDisplayMode: "minimal" }} />
       <Stack.Screen name="account/admin" options={{title:"Admin"}} />
-      <Stack.Screen name="account/coverage" options={{title:"Coverage requests"}} />
+      <Stack.Screen name="account/coverage" options={{title:"Coverage"}} />
       <Stack.Screen name="account/feedback" options={{title:"Feedback & Support"}} />
       <Stack.Screen name="account/support" options={{ title: "Support" }} />
       <Stack.Screen name="account/privacy" options={{ title: "Privacy" }} />

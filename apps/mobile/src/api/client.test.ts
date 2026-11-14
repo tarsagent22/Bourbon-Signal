@@ -67,6 +67,25 @@ test('coverage requests and review mutations use authenticated POST and PATCH', 
   assert.equal(writes[0].method,'POST');assert.match(writes[0].path,/\/api\/coverage\/requests$/);
   assert.equal(writes[1].method,'PATCH');assert.match(writes[1].path,/\/api\/admin\/coverage$/);
 });
+
+test('coverage summary refreshes the same inventory counts shown by the public map', async () => {
+  let stores = 12;
+  const api = createMobileApi({ baseUrl: 'https://coverage.example.test', getToken: async () => 'fixture-token', readCooldownMs: 30_000,
+    fetcher: async input => {
+      assert.equal(new URL((input as Request).url).pathname, '/api/coverage');
+      return Response.json({ contractVersion: 'bourbon-signal/coverage@3', states: [{
+        code: 'OR', coverageStrength: 'moderate', coverageStrengthLabel: 'Moderate coverage',
+        coverageStatus: 'available', health: 'current', healthLabel: 'Current', summary: 'Oregon inventory',
+        freshness: { observedInventoryStores: 18, currentInventoryStores: stores, currentInventoryCities: 3 },
+      }] });
+    },
+  });
+  assert.equal((await api.getCoverageSummary()).states[0].freshness.currentInventoryStores, 12);
+  stores = 18;
+  assert.equal((await api.getCoverageSummary()).states[0].freshness.currentInventoryStores, 18);
+  stores = -1;
+  await assert.rejects(api.getCoverageSummary(), error => error instanceof MobileApiError && error.code === 'INVALID_RESPONSE');
+});
 test("concurrent screen reads share token acquisition and pending requests even past the cooldown", async () => {
   let clock = 0; let tokens = 0; let fetches = 0; let complete!: () => void;
   const pending = new Promise<void>(resolve => { complete = resolve; });
