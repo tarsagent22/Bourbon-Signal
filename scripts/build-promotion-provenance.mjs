@@ -178,6 +178,12 @@ if (['WI', 'OK', 'RI', 'WY', 'DC'].includes(state)) files.push(
   `engine/out/cityhive-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
 );
+if (state === 'DC') files.push(
+  'engine/src/central-cityhive-state-config.mjs',
+  'engine/src/collectors/pearsons-dc-research.mjs',
+  'engine/src/collectors/pearsons-dc-production.mjs',
+  'engine/src/verify-dc-first-publication.mjs',
+);
 if (['OR', 'AK', 'LA'].includes(state)) files.push(
   'engine/src/research-state-registry.mjs',
   'engine/src/run-expansion-shadow.mjs',

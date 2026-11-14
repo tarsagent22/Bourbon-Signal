@@ -9,7 +9,7 @@ import { metroLibraryTier } from './collectors/arizona-metro-retailer-proof.mjs'
 import { groceryExpansionLibraryTier, isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
 import { centralCityHiveLibraryTier } from './collectors/central-cityhive-expansion.mjs';
 import { texasShopifyPickupLibraryTier } from './collectors/texas-shopify-pickup.mjs';
-import {isCentralCityHiveProductionOnSiteSignal} from './central-cityhive-policy.mjs';
+import {isCentralCityHiveProductionOnSiteSignal,isPearsonsDcProductionOnSiteSignal} from './central-cityhive-policy.mjs';
 import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from './confidence-policy.mjs';
 import { hasVerifiedGeorgiaRetailerInventory, suppressGeorgiaActivationBaseline } from './georgia-activation-policy.mjs';
 import {
@@ -201,6 +201,13 @@ export function canonicalizeSignal(signal, bible) {
       canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
       eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
       eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+    ...(isPearsonsDcProductionOnSiteSignal(signal)?{
+      quantity:null,storeQty:null,quantityIsExact:false,quantitySemantics:'no_exact_shelf_count',
+      inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
     }:{}),
     ...(isNjMiProductionOnSiteSignal(signal)?{
       canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,

@@ -7,16 +7,25 @@
       "url": null
     },
     "canary": {
-      "runs": 0,
-      "status": "not_run",
-      "artifact": null,
-      "reason": "Canary workflow pending."
+      "runs": 1,
+      "status": "verified",
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43628703889",
+      "artifactId": "14127049262",
+      "artifactDigest": "sha256:2d5a0772ca9eef9d1118d13ee93c0b1c6d41675fdef0d8e1b6bd3de3d0fc1a35",
+      "reason": "Source-free replay of the immutable DC shadow artifact passed the exact three-store Coverage and Finder canary; all delivery remained disabled."
     },
     "shadow": {
       "runs": 1,
       "status": "verified",
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43589028021",
-      "originalSourceClocksPreserved": true
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43625123885",
+      "artifactId": "14125618291",
+      "artifactDigest": "sha256:dcf9e94e122d10aedca46b097798d32a935d234c8e9a7b842a576214e07f0f3c",
+      "reportSha256": "dd6ba0ad03383912a9e8900271b5d09da3c4e3d8f9c3e2fbde2836042a87450f",
+      "originalSourceClocksPreserved": true,
+      "verifiedCityHivePremises": 2,
+      "cityHiveRequests": 4,
+      "cityHiveAllHttp200": true,
+      "pearsonsPickupOfferBound": true
     }
   },
   "lifecycle": {
@@ -77,10 +86,10 @@
   },
   "collector": {
     "sourceIds": [
-      "hop-cask-and-barrel:6054cf9d0168813b45dd1624",
-      "metro-wine-dc:5b8ede1211bc076567b49bd5",
-      "pearsons-wine-dc"
+      "dc:central-cityhive",
+      "dc:pearsons-shopify"
     ],
-    "registration": "Closed reviewed CityHive and Pearson's first-party premises; immutable replay requires exact merchant, address, variant, and pickup proof."
+    "cohortSha256": "a3348a6e502c76553a88d9b659dfca68808cfb8d29d3437afec97993a69c6080",
+    "registration": "One DC admission gate controls the closed two-premise CityHive cohort plus Pearson's separate one-page Shopify pickup source; each source has its own bounded transport and durable cooldown."
   }
 }

@@ -13,11 +13,12 @@ import {fetchReviewedCityHiveText as fetchProductionText,validateCityHiveInciden
 import {sourceErrorForHttp} from '../sources/source-error.mjs';
 import {createSourceAdapter} from '../sources/source-adapter.mjs';
 import {runSourceAdapters} from '../sources/source-runner.mjs';
-import {summarizeSourceResult} from '../sources/source-result.mjs';
+import {summarizeSourceResult,createSourceSkippedResult} from '../sources/source-result.mjs';
 import {collectCentralCityHiveExpansion,centralCityHiveLibraryTier} from './central-cityhive-expansion.mjs';
 import {CENTRAL_CITYHIVE_PRODUCTION_SOURCES,CENTRAL_CITYHIVE_PRODUCTION_COHORTS} from './central-cityhive-premises.mjs';
+import {collectPearsonsDcProductionSource,isPearsonsDcProductionOnSiteSignal} from './pearsons-dc-production.mjs';
 import {isCentralCityHiveProductionOnSiteSignal} from '../central-cityhive-policy.mjs';
-import {CENTRAL_CITYHIVE_PRODUCTION_STATES,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,centralCityHiveProductionCohortKey,centralCityHiveProductionRuntimeId} from '../central-cityhive-production-config.mjs';
+import {CENTRAL_CITYHIVE_PRODUCTION_STATES,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,centralCityHiveProductionCohortKey,centralCityHiveProductionRuntimeId,centralCityHiveProductionSourceIds} from '../central-cityhive-production-config.mjs';
 
 export const CENTRAL_CITYHIVE_CACHE_MAX_AGE_MS=30*60_000;
 const manifests={WI:wiManifest,OK:okManifest,RI:riManifest,WY:wyManifest,DC:dcManifest},DAY=86_400_000,DENIALS=new Set([401,403,429,435]);
@@ -35,7 +36,7 @@ export function centralCityHiveProductionAllowed(state,config=STATE_LIFECYCLE_CO
     &&manifest.sourceSemantics?.inventoryAlertable===false&&manifest.sourceSemantics.watchAlertable===false
     &&manifest.collector?.cohortSha256===centralCityHiveProductionCohortKey(state)
     &&manifest.collector.cohortSha256===CENTRAL_CITYHIVE_PRODUCTION_COHORTS[state]
-    &&JSON.stringify(manifest.collector.sourceIds)===JSON.stringify([centralCityHiveProductionRuntimeId(state)])
+    &&JSON.stringify(manifest.collector.sourceIds)===JSON.stringify(centralCityHiveProductionSourceIds(state))
     &&Number(evidence?.shadowRuns)>=policy.minShadowRuns&&Number(evidence?.canaryRuns)>=policy.minCanaryRuns
     &&Number.isFinite(Date.parse(evidence?.verifiedAt||''))
     &&evidence.verticalSliceManifest===`engine/data/state-integration/${state}.json`&&evidence.fixtureContract===`engine/data/state-fixtures/${state}.json`
@@ -71,8 +72,13 @@ function completeCohort(metadata,state){
 }
 const silent=row=>({...row,canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
   eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false});
-function currentRows(rows,bible,nowMs){return rows.filter(row=>isCentralCityHiveProductionOnSiteSignal(row,{nowMs})).flatMap(row=>{
-  const tier=centralCityHiveLibraryTier(row,bible);return['limited','allocated','unicorn'].includes(tier)?[silent({...row,tier})]:[];
+function currentRows(rows,bible,nowMs){return rows.filter(row=>isCentralCityHiveProductionOnSiteSignal(row,{nowMs})
+  ||isPearsonsDcProductionOnSiteSignal(row,{nowMs})).flatMap(row=>{
+  const match=row.sourceRuntimeId==='dc:pearsons-shopify'?bible?.match?.(row.canonicalName):null;
+  const tier=row.sourceRuntimeId==='dc:pearsons-shopify'
+    ?(match?.confidence===1&&match.record?.id===row.canonicalBottleId&&match.record?.canonical===row.canonicalName?match.record.tier:null)
+    :centralCityHiveLibraryTier(row,bible);
+  return['limited','allocated','unicorn'].includes(tier)?[silent({...row,tier})]:[];
 });}
 function cacheMatches(cache,state,nowMs){
   const age=nowMs-Date.parse(cache?.generatedAt||'');
@@ -152,19 +158,54 @@ export async function collectCentralCityHiveProductionState(config,bible,options
   if(!centralCityHiveProductionAllowed(state,options.lifecycleConfig||STATE_LIFECYCLE_CONFIG,{manifest:options.promotionManifest||manifests[state],env:options.env||process.env}))return{
     state,label:config.label,startedAt,finishedAt:new Date().toISOString(),lastGoodAt:null,status:'not_promoted',stale:false,
     signals:[],sources:[],sourceResults:[],roadblocks:[],metadata:{blockedByPromotion:true,requestCount:0}};
-  const budget=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].sourceMs;let requests=0;
-  const run=await runSourceAdapters([createSourceAdapter({id,label,url:CENTRAL_CITYHIVE_PRODUCTION_SOURCES.find(source=>source.state===state).baseUrl,
+  const budgets=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state],citySource=CENTRAL_CITYHIVE_PRODUCTION_SOURCES.find(source=>source.state===state);
+  let requests=0;const countRequest=()=>{if(requests>=Number(budgets.maxStateRequests||budgets.maxRequests))throw Error('DC reached its combined reviewed source request ceiling');requests++;};
+  const cityAdapter=createSourceAdapter({id,label,url:citySource.baseUrl,timeoutMs:budgets.sourceMs,
     metadata:{stateId:state,lane:'promoted_cityhive_onsite'},execute:(_context,{signal})=>collectCentralCityHiveProductionSource(config,bible,{...options,...options.cityHiveSourceOptions,
-      signal:collectionSignal(options.signal?AbortSignal.any([options.signal,signal]):signal),onRequest:()=>{requests++;}}),
-    validate:value=>value?.metadata?.complete===true&&Array.isArray(value.signals)?true:'Incomplete reviewed CityHive cohort',recordCount:value=>value.metadata.verifiedPremises.length,
-  })],{}, {...options.sourceRunnerOptions,previousResults:options.previousSourceResults,circuitBreaker:options.sourceCircuitBreaker,
-    concurrency:1,perDomain:1,schedule:false,timeoutMs:Math.min(Number(options.sourceRunnerOptions?.timeoutMs)||budget,budget),maxAttempts:1});
-  const source=run.results[0],value=source.ok?source.value:null,finishedAt=new Date().toISOString();
-  return{state,label:config.label,tier:config.tier,strategy:config.strategy,cadence:config.cadence,startedAt,finishedAt,lastGoodAt:value?.metadata.sourceObservedAt||null,
-    status:source.ok?(value.signals.length?'useful':'monitored_no_current_inventory'):'blocked',stale:false,signals:value?.signals||[],
-    sources:[{sourceRuntimeId:id,label,url:source.sourceUrl,ok:source.ok,status:source.error?.status||(source.ok?200:source.status),
-      signalType:'retailer_store_inventory_result',matchedBottleCount:value?.signals.length||0,error:source.error?.message||null}],
-    sourceResults:[{...summarizeSourceResult(source),lastGoodAt:value?.metadata.sourceObservedAt||null,alertable:false}],sourceCircuitState:run.circuitState,
-    roadblocks:source.ok?[]:[{state,source:label,sourceRuntimeId:id,url:source.sourceUrl,status:source.error?.status||source.status,error:source.error?.message||'CityHive observation failed'}],
-    metadata:{cityhive:value?.metadata||null,requestCount:value?.accounting?.requestCount??requests,allDeliveryDisabled:true}};
+      signal:collectionSignal(options.signal?AbortSignal.any([options.signal,signal]):signal),onRequest:countRequest}),
+    validate:value=>value?.metadata?.complete===true&&Array.isArray(value.signals)?true:'Incomplete reviewed CityHive cohort',
+    recordCount:value=>value.metadata.verifiedPremises.length,
+  });
+  const pearsonAdapter=createSourceAdapter({id:'dc:pearsons-shopify',label:"Pearson's DC reviewed Shopify pickup offer",
+    url:'https://pearsonswine.com/products/blantons-single-barrel-bourbon-750ml',timeoutMs:budgets.pearsonsSourceMs,
+    metadata:{stateId:state,lane:'promoted_pearsons_pickup_offer'},execute:(_context,{signal})=>collectPearsonsDcProductionSource({
+      cohortSha256:centralCityHiveProductionCohortKey(state),bible,admissionPassed:true,nowMs:options.nowMs||Date.now(),
+      signal:collectionSignal(options.signal?AbortSignal.any([options.signal,signal]):signal),onRequest:countRequest,
+      ...options.pearsonsSourceOptions,
+    }),validate:value=>value?.metadata?.complete===true&&Array.isArray(value.signals)&&value.signals.length===1
+      ?true:'Pearson DC did not verify its current exact pickup offer',recordCount:value=>value.signals.length,
+  });
+  const stateBudget=budgets.stateMs,runnerOptions={...options.sourceRunnerOptions,previousResults:options.previousSourceResults,
+    circuitBreaker:options.sourceCircuitBreaker,concurrency:1,perDomain:1,schedule:false,
+    timeoutMs:Math.min(Number(options.sourceRunnerOptions?.timeoutMs)||stateBudget,stateBudget),maxAttempts:1};
+  const cityRun=await runSourceAdapters([cityAdapter],{},runnerOptions),cityResult=cityRun.results[0];
+  // Do not start the independent retailer after any CityHive failure/denial.
+  // Both source results are required before this state emits any customer row.
+  const pearsonRun=state==='DC'&&cityResult?.ok
+    ?await runSourceAdapters([pearsonAdapter],{},runnerOptions):null;
+  const runResults=state==='DC'
+    ?[cityResult,...(pearsonRun?.results||[createSourceSkippedResult({adapter:pearsonAdapter,status:'skipped_after_cityhive_failure',
+      now:new Date().toISOString(),error:new Error('Pearson was not requested after CityHive failed.')})])]
+    :[cityResult];
+  const finishedAt=new Date().toISOString(),allOk=runResults.length===(state==='DC'?2:1)&&runResults.every(source=>source.ok);
+  const values=runResults.map(source=>source.ok?source.value:null),signals=allOk?values.flatMap(value=>value.signals||[]):[];
+  const getObserved=value=>value?.metadata?.sourceObservedAt||value?.metadata?.cityhive?.sourceObservedAt||null;
+  const sourceRows=runResults.map((source,index)=>{
+    const value=values[index],isPearsons=source.sourceId==='dc:pearsons-shopify',meta=value?.metadata||{};
+    const reportClock=isPearsons?meta.sourceObservedAt:(meta.sourceObservedAt||meta.cityhive?.sourceObservedAt||null);
+    return{sourceRuntimeId:source.sourceId,label:source.sourceLabel,url:source.sourceUrl,ok:source.ok,
+      status:source.error?.status||(source.ok?200:source.status),checkedAt:reportClock||source.checkedAt||finishedAt,lastGoodAt:reportClock,
+      signalType:'retailer_store_inventory_result',matchedBottleCount:value?.signals?.length||0,error:source.error?.message||null};
+  });
+  const timestamps=values.map(getObserved).filter(Boolean).map(Date.parse).filter(Number.isFinite);
+  const lastGoodAt=allOk&&timestamps.length?new Date(Math.min(...timestamps)).toISOString():null;
+  const sourceResults=runResults.map((source,index)=>({...summarizeSourceResult(source),lastGoodAt:getObserved(values[index]),alertable:false,
+    inventoryAlertable:false,watchAlertable:false}));
+  const roadblocks=runResults.filter(source=>!source.ok).map(source=>({state,source:source.sourceLabel||label,sourceRuntimeId:source.sourceId,
+    url:source.sourceUrl,status:source.error?.status||source.status,error:source.error?.message||'Reviewed DC source failed'}));
+  return{state,label:config.label,tier:config.tier,strategy:config.strategy,cadence:config.cadence,startedAt,finishedAt,lastGoodAt,
+    status:allOk?(signals.length?'useful':'monitored_no_current_inventory'):'blocked',stale:false,signals,
+    sources:sourceRows,sourceResults,sourceCircuitState:{...cityRun.circuitState,...(pearsonRun?.circuitState||{})},roadblocks,
+    metadata:{cityhive:values[0]?.metadata||null,pearsons:state==='DC'?values[1]?.metadata||null:null,requestCount:requests,
+      allDeliveryDisabled:true,complete:allOk,requestBudget:Number(budgets.maxStateRequests||budgets.maxRequests)}};
 }

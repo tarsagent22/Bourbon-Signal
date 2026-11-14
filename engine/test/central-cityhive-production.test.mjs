@@ -73,6 +73,7 @@ test('DC and WY production routes are exact and prepared but remain dormant with
     assert.equal(report.metadata.blockedByPromotion,true);
     await assert.rejects(()=>readFile(path.join(options.cacheDir,state,state+'.json')),{code:'ENOENT'});
     await assert.rejects(()=>readFile(path.join(options.incidentDir,state,state+'.json')),{code:'ENOENT'});
+    if(state==='DC')await assert.rejects(()=>readFile(path.join(options.incidentDir,'pearsons-dc','DC.json')),{code:'ENOENT'});
   }
   assert.equal(requests,0);
 });
@@ -172,6 +173,8 @@ test('complete negative observations remain healthy, while source failures retai
 
 test('source deadlines fit parent watchdogs and denial cache saves independently after publication failure',async()=>{
   for(const state of ['WI','OK','WY','DC']){const b=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state];assert.ok(b.sourceMs<stateTimeoutMs({id:state}));assert.ok(b.stateMs<=stateTimeoutMs({id:state}));if(['WI','OK'].includes(state))assert.equal(b.stateMs,stateTimeoutMs({id:state}));assert.ok(b.maxRequests*10_000+b.maxRequests*1000<=b.sourceMs);}
+  const dc=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.DC;assert.equal(dc.maxStateRequests,5);assert.equal(dc.pearsonsMaxRequests,1);
+  assert.ok(dc.sourceMs+dc.pearsonsSourceMs<=dc.stateMs);assert.ok(dc.pearsonsMaxRequests*12_000<=dc.pearsonsSourceMs);
   const workflow=await readFile(new URL('../../.github/workflows/refresh-feed.yml',import.meta.url),'utf8');
   const steps=workflow.split(/\r?\n {6}- name:/),file='engine/out/source-incidents/central-cityhive';
   const restore=steps.find(step=>step.includes('actions/cache/restore@v4')&&step.includes(file));

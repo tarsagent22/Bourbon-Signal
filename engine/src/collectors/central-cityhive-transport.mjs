@@ -19,6 +19,7 @@ export async function fetchReviewedFirstPartyText(value,{signal,timeoutMs=10_000
     accept:'text/html,application/json,text/plain,*/*','accept-language':'en-US,en;q=0.9',...headers}});
   const retryAfter=response.headers.get('retry-after')||'';
   const metadata={ok:response.ok,status:response.status,url:response.url||'',
+    date:response.headers.get('date')||null,
     retryAfterSeconds:Math.max(0,Number(retryAfter)||(Date.parse(retryAfter)-Date.now())/1000||0)};
   try{await onResponse?.(metadata);}catch(error){await response.body?.cancel?.().catch(()=>{});throw error;}
   if(!response.ok){await response.body?.cancel?.().catch(()=>{});return{...metadata,text:''};}

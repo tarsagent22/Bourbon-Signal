@@ -37,5 +37,5 @@ export const CENTRAL_CITYHIVE_PRODUCTION_COHORTS=Object.freeze({
   RI:'09e296469e2067fcb39ecd501b2b2e43eecd41e54f400590d7cb4245e7539219',
   // Dormant routes; activation remains blocked by lifecycle, cohort and immutable promotion gates.
   WY:'793eea0ddd03784050e948570c314a080cca94bd441d3e83f08daa319c4a0349',
-  DC:'a77104e97d3ff8e1c3d89a7ffaed16944a3c679d01b4db283bcca67103e95579',
+  DC:'a3348a6e502c76553a88d9b659dfca68808cfb8d29d3437afec97993a69c6080',
 });
