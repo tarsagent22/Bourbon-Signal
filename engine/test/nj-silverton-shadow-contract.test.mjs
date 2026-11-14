@@ -7,6 +7,8 @@ import path from 'node:path';
 import { researchSourceForState } from '../src/research-state-registry.mjs';
 import { cityHiveResearchSourceForState } from '../src/research-cityhive-runtime.mjs';
 import { collectCentralCityHiveExpansion } from '../src/collectors/central-cityhive-expansion.mjs';
+import { BourbonBible } from '../src/core/bible.mjs';
+import { librarySearchPool } from '../src/library-query-plan.mjs';
 
 test('NJ Silverton CityHive research is an explicit opt-in with a two-query ceiling', async () => {
   const prior = process.env.BOURBON_SIGNAL_NJ_SILVERTON_SHADOW;
@@ -25,20 +27,26 @@ test('NJ Silverton CityHive research is an explicit opt-in with a two-query ceil
     assert.equal(config.stores.length, 1);
     assert.equal(config.stores[0].city, 'Toms River');
     assert.equal(config.stores[0].merchantId, '5aafc248f4a661684fb284e9');
-    assert.deepEqual(config.stores[0].prioritySearchTerms, ["Blanton's Gold", 'E.H. Taylor Single Barrel']);
+    assert.deepEqual(config.stores[0].prioritySearchTerms, ["Blanton's Gold"]);
     assert.equal(config.stores[0].maxQueries, 2);
     assert.equal(selected.active, false);
 
     const cursorDir = await mkdtemp(path.join(os.tmpdir(), 'bs-nj-silverton-plan-'));
     try {
       const requests = [];
-      await collectCentralCityHiveExpansion({ id: 'NJ' }, { records: [] }, {
+      const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
+      const rotatingPool = librarySearchPool(bible);
+      assert.ok(rotatingPool.length > 0);
+      await collectCentralCityHiveExpansion({ id: 'NJ' }, bible, {
         sourceIds: [config.stores[0].id], cursorDir,
         fetchText: async url => { requests.push(url); return { ok: true, status: 200, url, text: '<html></html>' }; },
       });
       assert.equal(requests.length, 2);
       assert.ok(requests.every(url => url.includes('merchant-id=5aafc248f4a661684fb284e9')));
-      assert.deepEqual(requests.map(url => new URL(url).searchParams.get('ch-query')), config.stores[0].prioritySearchTerms);
+      const terms = requests.map(url => new URL(url).searchParams.get('ch-query'));
+      assert.equal(terms[0], "Blanton's Gold");
+      assert.ok(rotatingPool.includes(terms[1]));
+      assert.notEqual(terms[1], terms[0]);
     } finally {
       await rm(cursorDir, { recursive: true, force: true });
     }
