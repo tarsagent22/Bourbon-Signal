@@ -3,6 +3,7 @@ import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-po
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { isCentralCityHiveCanaryOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { isDelawareEcwidCanaryPreview } from '../../engine/src/delaware-ecwid-canary-preview-policy.mjs';
+import { isDelawareEcwidProductionOnSiteSignal } from '../../engine/src/delaware-ecwid-production-policy.mjs';
 import { isLouisianaAlaskaGroceryCanaryPreview } from '../../engine/src/laak-canary-preview-policy.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal } from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
 export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
@@ -161,7 +162,7 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
     && !canAlert;
 
   if(state==='DE'&&/^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type))
-    return isCentralCityHiveCanaryOnSiteSignal(drop)||isDelawareEcwidCanaryPreview(drop);
+    return isCentralCityHiveCanaryOnSiteSignal(drop)||isCentralCityHiveProductionOnSiteSignal(drop)||isDelawareEcwidCanaryPreview(drop);
   if (isLaakGroceryInventory) return isLaakCanaryPreview || isLaakProductionOnSite;
   if (isLaakCanaryPreview || isLaakProductionOnSite) return true;
   if (isGroceryExpansionOnSiteSignal(drop)) return true;

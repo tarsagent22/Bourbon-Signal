@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "state": "DE",
+  "lifecycle": {
+    "customerLabel": "Delaware",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "de:central-cityhive",
+      "de:ecwid-pickup"
+    ],
+    "registration": "Closed three-premise Delaware first-party pickup scope: two Kreston CityHive stores with one required rotating library query per store, plus one exact Banks Ecwid product. Six requests maximum; customer availability is binary, with alerts disabled.",
+    "cohortSha256": "2ff60687569747c6aa829f62cc371a894591b1fba53b4ff76e426650eed98e21"
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 3,
+    "stores": [
+      {"storeId":"kreston-wines:618406f81a9efe0452444e07","address":"904 Concord Ave, Wilmington, DE 19802, USA"},
+      {"storeId":"kreston-wines:6054cfaae7d3073507c4ee0b","address":"448 E Main St, Middletown, DE 19709, USA"},
+      {"storeId":"ecwid:de:130511528","address":"38014 Town Center Drive, Millville, DE 19967"}
+    ],
+    "proof": "Current first-party responses must reparse the exact merchant and physical premise; a source row must bind the reviewed product identity and pickup offer. Shelf count is never inferred from retailer-reported stock."
+  },
+  "sourceSemantics": {
+    "availability": "Binary first-party pickup availability. Positive offers do not establish an exact shelf count; verify before driving.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {"status":"verified_preview","assertion":"Protected preview Coverage reported three searchable and current Delaware pickup premises."},
+    "areaFilter": {"status":"verified_preview","assertion":"Protected preview Finder returned the three reviewed Delaware premises by name and city."},
+    "dropFeedApi": {"status":"awaiting_production","assertion":"Membership-gated Feed API is not verified by this preview."},
+    "finder": {"status":"verified_preview","assertion":"Protected Finder results matched Wilmington, Middletown and Millville addresses."},
+    "alerts": {"status":"disabled","assertion":"Inventory, Watch, email, SMS and delivery eligibility remain false."},
+    "monitoring": {"status":"verified_preview","assertion":"The protected preview reported three current stores across three cities."},
+    "export": {"status":"verified_preview","assertion":"Five exact rows replayed from the retained successful shadow artifact with original source clocks."}
+  },
+  "evidence": {
+    "production": {
+      "status": "awaiting_immutable_admission",
+      "assertion": "No Delaware production lifecycle entry, immutable promotion evidence, or first-publication receipt exists yet."
+    }
+  }
+}

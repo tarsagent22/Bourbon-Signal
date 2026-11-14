@@ -71,17 +71,19 @@ function inventoryRow(offer,bible,observedAt){
     ...shadowFlags,
     sourceProductBinding:{schemaVersion:1,source:'ecwid-first-party-pickup',merchantId:merchant.merchantId,
       storeId:merchant.storeId,storeAddress:merchant.address,productId:product.productId,sku:product.sku,
-      rawName:product.name,canonicalId:record.id,canonicalName:record.canonical,observedAt,
+      rawName:product.name,canonicalId:record.id,canonicalName:record.canonical,observedAt,reportedQuantity:offer.reportedQuantity,price:offer.price,
       premisesVerified:true,pickupOfferVerified:true,quantitySemantics},
   };
 }
 
 export async function collectDelawareEcwidResearch(incoming,bible,{
   signal,env=process.env,fetchText=fetchReviewedFirstPartyText,
+  allowPromotedProduction=false,
   clocksFile=path.resolve('out/research-source-attempts/delaware-ecwid.json'),
+  cacheFile=path.resolve('out/research-source-cache/delaware-ecwid.json'),
   reportDirectory=env.BOURBON_SIGNAL_STATE_OUT_FILE?path.dirname(env.BOURBON_SIGNAL_STATE_OUT_FILE):null,
 }={}){
-  if(env.BOURBON_SIGNAL_SHADOW_MODE!=='1'||incoming!==config)throw Error('Delaware Ecwid collection requires its registered isolated shadow source.');
+  if((env.BOURBON_SIGNAL_SHADOW_MODE!=='1'&&!allowPromotedProduction)||incoming!==config)throw Error('Delaware Ecwid collection requires its registered isolated shadow source.');
   const startedAt=new Date().toISOString(),requests=[],roadblocks=[],signals=[];
   const prior=await readFile(clocksFile,'utf8').then(JSON.parse).catch(error=>{if(error.code!=='ENOENT')throw error;return null;});
   if(prior&&(prior.schemaVersion!==1||prior.hostname!==new URL(merchant.origin).hostname||!Number.isFinite(Date.parse(prior.nextAllowedAt))))
@@ -89,13 +91,26 @@ export async function collectDelawareEcwidResearch(incoming,bible,{
   const recordClock=async(time,delay)=>atomicWriteJson(clocksFile,{schemaVersion:1,hostname:new URL(merchant.origin).hostname,
     lastAttemptAt:new Date(time).toISOString(),nextAllowedAt:new Date(time+delay).toISOString()});
   const due=!prior||Date.parse(prior.nextAllowedAt)<=Date.parse(startedAt);
+  const libraryRecordsSha256=sha(JSON.stringify(bible.records));
+  if(!due){
+    const cached=await readFile(cacheFile,'utf8').then(JSON.parse).catch(error=>{if(error.code!=='ENOENT')throw error;return null;});
+    const age=Date.parse(startedAt)-Date.parse(cached?.observedAt||'');
+    if(cached?.schemaVersion===1&&cached.sourceRuntimeId===sourceRuntimeId&&cached.libraryRecordsSha256===libraryRecordsSha256
+      &&Number.isFinite(age)&&age>=0&&age<=2*60*60_000&&isDelawareEcwidShadowPickup(cached.row,{nowMs:Date.parse(startedAt)})){
+      const sourceObservedAt=cached.observedAt;
+      return{state,label:sourceLabel,tier:config.tier,strategy:config.strategy,cadence:config.cadence,startedAt,finishedAt:new Date().toISOString(),
+        lastGoodAt:sourceObservedAt,status:'useful',stale:false,signals:[cached.row],sources:cached.sources||[],sourceResults:cached.sources||[],roadblocks:[],
+        metadata:{...cached.metadata,complete:true,cacheReused:true,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false,
+          requests:[],cachedReceipts:cached.receipts,sourceObservedAt,libraryRecordsSha256,requestCount:0,allDeliveryDisabled:true}};
+    }
+  }
   let complete=false,offer=null;
   if(due){
     await recordClock(Date.now(),cadenceMs);
     for(const [index,url] of urls.entries()){
       signal?.throwIfAborted();const receipt={url};requests.push(receipt);
       try{
-        const response=await fetchText(url,{signal,maxBytes:2*1024*1024,isAllowedUrl:candidate=>candidate.href===url,
+        const response=await fetchText(url,{signal,timeoutMs:4_000,maxTimeoutMs:4_000,maxBytes:2*1024*1024,isAllowedUrl:candidate=>candidate.href===url,
           onResponse:status=>{receipt.status=status.status;if(CITYHIVE_DENIAL_STATUSES.has(status.status)){
             return recordClock(Date.now(),Math.min(30*denialMs,Math.max(denialMs,(status.retryAfterSeconds||0)*1000)));
           }}});
@@ -116,7 +131,11 @@ export async function collectDelawareEcwidResearch(incoming,bible,{
       }
     }
     complete=requests.length===urls.length&&requests.every(row=>row.ok===true);
-    if(complete){const row=inventoryRow(offer,bible,requests.at(-1).observedAt);if(row)signals.push(row);}
+  if(complete){const row=inventoryRow(offer,bible,requests.at(-1).observedAt);if(row){signals.push(row);
+    await atomicWriteJson(cacheFile,{schemaVersion:1,sourceRuntimeId,observedAt:row.observedAt,libraryRecordsSha256,row,receipts:requests.map(({url,status,ok,sha256,bytes,observedAt})=>({url,status,ok,sha256,bytes,observedAt})),
+      sources:requests.map(request=>({sourceRuntimeId,label:sourceLabel,url:request.url,status:request.status||0,ok:request.ok===true,alertable:false,inventoryAlertable:false,watchAlertable:false})),
+      metadata:{complete:true,selectedStores:[merchant.storeId],verifiedPremises:[merchant.storeId],sourceObservedAt:row.observedAt,libraryRecordsSha256,
+        allDeliveryDisabled:true,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false}});}}
   }
   const finishedAt=new Date().toISOString(),sourceObservedAt=requests.at(-1)?.observedAt||null;
   const sources=requests.map(request=>({sourceRuntimeId,label:sourceLabel,url:request.url,status:request.status||0,
@@ -125,5 +144,5 @@ export async function collectDelawareEcwidResearch(incoming,bible,{
     lastGoodAt:complete?sourceObservedAt:null,status:signals.length?'useful':due?'no_trusted_inventory':'not_due',stale:false,signals,sources,
     sourceResults:sources,roadblocks,metadata:{complete,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false,
       verifiedPremises:complete?[merchant.storeId]:[],selectedStores:[merchant.storeId],requests,sourceObservedAt,
-      libraryRecordsSha256:sha(JSON.stringify(bible.records)),allDeliveryDisabled:true}};
+      libraryRecordsSha256,allDeliveryDisabled:true,requestCount:requests.length}};
 }
