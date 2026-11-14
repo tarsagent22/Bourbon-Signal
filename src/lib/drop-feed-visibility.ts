@@ -3,7 +3,7 @@ import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-po
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { isLouisianaAlaskaGroceryCanaryPreview } from '../../engine/src/laak-canary-preview-policy.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal } from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
-import { isMassachusettsCanaryOnSiteSignal } from '../../engine/src/massachusetts-research-policy.mjs';
+import { isMassachusettsCanaryOnSiteSignal } from '../../engine/src/massachusetts-canary-preview-policy.mjs';
 export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
   ["retailer:ms:cityhive:68ba2980113a7a29c2076fc3", "029254"],
   ["retailer:ms:moonshine:323", "044411"],

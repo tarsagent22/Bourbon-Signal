@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from '../src/collectors/central-cityhive-research-premises.mjs';
 import { MA_ESPLANDA_PRODUCTS } from '../src/collectors/massachusetts-esplanda.mjs';
 import { MA_JULIOS_SOURCE } from '../src/collectors/massachusetts-retailer-surfaces.mjs';
-import { isMassachusettsCanaryOnSiteSignal } from '../src/massachusetts-research-policy.mjs';
+import { isMassachusettsCanaryOnSiteSignal } from '../src/massachusetts-canary-preview-policy.mjs';
 
 const nowMs = Date.parse('2026-11-14T19:15:00.000Z');
 const observedAt = '2026-11-14T18:40:25.000Z';
@@ -56,7 +56,7 @@ function esplandaRow() {
 
 function juliosRow() {
   const productId = '56553d8e69702d2923120000';
-  const optionId = 'exact-option-id';
+  const optionId = 'b56a6adeb1ad500184602447d60e35e0600270238ba5ee3cc53632f7a2ff4a3c';
   const sourceUrl = `${MA_JULIOS_SOURCE.baseUrl}/shop/product/wild-turkey-rare-breed/${productId}?option-id=${optionId}`;
   const rawName = 'WILD TURKEY RARE BREED';
   const canonicalBottleId = 'bb_22604f9ddde2b6ba';
@@ -80,7 +80,8 @@ test('Massachusetts isolated preview accepts exact reviewed sources while keepin
   for (const row of [cityHiveRow(), esplandaRow(), juliosRow()]) {
     assert.equal(isMassachusettsCanaryOnSiteSignal(row, { nowMs }), true, row.sourceProductBinding.source);
     for (const mutation of [{ storeAddress: '1 Other St, Boston, MA 02117' }, { canAlertAsInventory: true },
-      { eligibleForDelivery: true }, { quantityIsExact: true }, { sourceStale: true }]) {
+      { eligibleForDelivery: true }, { quantityIsExact: true }, { sourceStale: true },
+      { productId: 'wrong-product' }, { canonicalBottleId: 'wrong-bottle' }]) {
       assert.equal(isMassachusettsCanaryOnSiteSignal({ ...row, ...mutation }, { nowMs }), false,
         `${row.sourceProductBinding.source} accepted ${JSON.stringify(mutation)}`);
     }
