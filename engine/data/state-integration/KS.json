@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "state": "KS",
+  "lifecycle": {
+    "customerLabel": "Kansas",
+    "publicStatus": "research_only",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "ks:central-cityhive"
+    ],
+    "registration": "Dormant exact-premises CityHive adapter for three reviewed Kansas merchant IDs. Production admission remains blocked pending independent immutable evidence.",
+    "cohortSha256": "234805b62e662b95e0b4c9bbea79f01075349753b56865eef9b475558853ede5"
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 3,
+    "proof": "Each exact merchant-scoped result must reparse to the reviewed merchant ID, current exact address and coordinates, product option, positive pickup offer, and binary stock semantics."
+  },
+  "sourceSemantics": {
+    "availability": "Binary retailer-published pickup availability. Positive options do not create an exact shelf count; verify before driving.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "status": "not_admitted",
+    "assertion": "Kansas remains research_only and inactive. No production customer projection or alerts are enabled by this adapter."
+  }
+}

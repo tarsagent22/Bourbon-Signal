@@ -1,0 +1,465 @@
+{
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "6060f76259a44e1d9f41522d",
+        "name": "Kings Liquor",
+        "display_name": "Kings Liquor",
+        "address": {
+          "full_address": "18589 W 151st St, Olathe, KS 66062, USA",
+          "address_properties": {
+            "success": true,
+            "lat": 38.8535464,
+            "lng": -94.8018293,
+            "country_code": "US",
+            "city": "Olathe",
+            "state": "KS",
+            "zip": "66062",
+            "street_address": "18589 West 151st Street",
+            "province": "KS",
+            "district": "Johnson County",
+            "provider": "google",
+            "full_address": "18589 W 151st St, Olathe, KS 66062, USA",
+            "is_us?": true,
+            "ll": "38.8535464,-94.8018293",
+            "precision": "building",
+            "street_number": "18589",
+            "state_full_name": "Kansas"
+          },
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -94.8018293,
+              38.8535464
+            ]
+          },
+          "district": "Johnson County",
+          "province": "KS",
+          "street_address": "18589 West 151st Street",
+          "zipcode": "66062",
+          "state": "KS",
+          "city": "Olathe",
+          "country_code": "US",
+          "apt": null,
+          "id": "6060f76259a44e1d9f41522c",
+          "place_id": "ChIJo2QuaXu-wIcRReU53-BiH7w"
+        },
+        "email": "kingsliquor@gmail.com",
+        "display_email": "kingsliquor@gmail.com",
+        "phone_number": "+19133931900",
+        "accept_orders": true,
+        "onboarding_state": "active",
+        "delivery_area": {
+          "id": "6060f76959a44e1d9f41522f",
+          "type": "Polygon",
+          "delivery_fee_type": "fixed",
+          "minimum_delivery": 0,
+          "force_delivery_fee": false,
+          "min_to_leave_store": 0,
+          "delivery_fee": 0,
+          "base_fee": 0,
+          "max_delivery_time": 60,
+          "last_delivery_time_offset": 0,
+          "first_delivery_time_offset": 0,
+          "hour_step": 1,
+          "name": null,
+          "coordinates": [
+            [
+              [
+                -94.80682929999999,
+                38.8485464
+              ],
+              [
+                -94.80682929999999,
+                38.8585464
+              ],
+              [
+                -94.7968293,
+                38.8585464
+              ],
+              [
+                -94.7968293,
+                38.8485464
+              ],
+              [
+                -94.80682929999999,
+                38.8485464
+              ]
+            ]
+          ],
+          "delivery_hours": null
+        },
+        "merchant_type": "Beer, Wine, and Liquor Stores",
+        "premise_type": "Off Premise",
+        "inventory_owner": null,
+        "chain": null,
+        "aggregation_type": "single_store",
+        "max_delivery_time": 60,
+        "pickup": true,
+        "delivery": null,
+        "shipping": null,
+        "allow_delivery_tip": false,
+        "minimum_delivery": 0,
+        "work_hours": null,
+        "type": "Beer, Wine, and Liquor Stores",
+        "delivery_hours": {
+          "sun": {
+            "opening": null,
+            "closing": null
+          },
+          "mon": {
+            "opening": null,
+            "closing": null
+          },
+          "tue": {
+            "opening": null,
+            "closing": null
+          },
+          "wed": {
+            "opening": null,
+            "closing": null
+          },
+          "thu": {
+            "opening": null,
+            "closing": null
+          },
+          "fri": {
+            "opening": null,
+            "closing": null
+          },
+          "sat": {
+            "opening": null,
+            "closing": null
+          }
+        },
+        "business_hours": {
+          "sun": {
+            "opening": "10:00",
+            "closing": "20:00"
+          },
+          "mon": {
+            "opening": "09:00",
+            "closing": "22:00"
+          },
+          "tue": {
+            "opening": "09:00",
+            "closing": "22:00"
+          },
+          "wed": {
+            "opening": "09:00",
+            "closing": "22:00"
+          },
+          "thu": {
+            "opening": "09:00",
+            "closing": "22:00"
+          },
+          "fri": {
+            "opening": "09:00",
+            "closing": "23:00"
+          },
+          "sat": {
+            "opening": "09:00",
+            "closing": "23:00"
+          }
+        },
+        "app_info": null,
+        "assets": {
+          "email_logo": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/6060f76259a44e1d9f41522d/image/6773d1875a523f25b5f3a59a.png?1735643527",
+          "campaign_logo_on_light_background": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/6060f76259a44e1d9f41522d/image/6773d1885a523f25b5f3a59d.png?1735643528",
+          "campaign_logo_on_dark_background": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/6060f76259a44e1d9f41522d/image/6773d1885a523f25b5f3a59f.png?1735643528",
+          "raw_logo": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/6060f76259a44e1d9f41522d/image/67716a15f092d638dc77b556.png?1735485973",
+          "assets": []
+        },
+        "referral_program": {
+          "enabled": false,
+          "message": "Give your friends  off their first online order and get  in store credit!",
+          "title": "Like us? We like you!",
+          "amount": null,
+          "percentage": false
+        },
+        "last_inventory_upload": "2026-11-13T12:55:45.009-05:00",
+        "integrated": true,
+        "wine_club": {
+          "enabled": true,
+          "name": "KINGS LIQUOR Subscription Clubs!",
+          "image": null,
+          "information": "<p><strong>How It Works</strong></p><p>Join one of our monthly subscriptions to start the following month.By enrolling, you are authorizing a recurring monthly charge to your credit card.You may cancel by contacting the store at <a target=\"_blank\" href=\"mailto:kingsliquor@gmail.com\">kingsliquor@gmail.com</a>.Wines purchased through our subscription services are not refundable.</p>",
+          "is_live": false
+        },
+        "is_d2c_connected": null,
+        "store_credit": {
+          "allow_store_credit_use": true,
+          "allow_store_credit_use_with_discount": true,
+          "store_credit_points_mode": false,
+          "store_credit_points_factor": 1,
+          "minimum_store_credit_amount": 0,
+          "maximum_store_credit_amount": 0,
+          "max_store_credit_to_apply_on_orders": 0,
+          "user_defined_store_credit": true
+        },
+        "current_payment_gateway_name": "adyen",
+        "secondary_payment_gateway_name": null,
+        "account_manager": {
+          "node_id": "694062ce781c6422661422b3",
+          "node_type": "merchant_app_user"
+        },
+        "tip_config": {
+          "allow_delivery_tip": false,
+          "allow_pickup_tip": false,
+          "allow_shipping_tip": false,
+          "allow_custom_tip": true,
+          "allow_cash_tip": false,
+          "tip_levels": [
+            5,
+            10,
+            15
+          ],
+          "default_tip": "10",
+          "default_delivery_tip": "10",
+          "default_pickup_tip": "10",
+          "default_shipping_tip": "10",
+          "driver_tip_percentage": 1
+        },
+        "multi_store_parent": null,
+        "allow_future_orders": true,
+        "validate_date_of_birth_on_checkout": false,
+        "timezone": "America/Chicago",
+        "is_marketplace": null,
+        "reviews_services": {
+          "google_placeid": "",
+          "facebook_pagename": "",
+          "yelp_pagename": null,
+          "google_map_url": null
+        },
+        "node_type": "merchant",
+        "node_id": "6060f76259a44e1d9f41522d",
+        "allow_event_guest_checkout": false
+      },
+      "colors": {
+        "id": "677167e57b25e8259c0e8a1b",
+        "alt_back_color": "#A40000",
+        "alt_color": "#D10B0B",
+        "alt_header": "#F6F6F6",
+        "background_color": "#FFFFFF",
+        "discount_banner_alt": "#FFFFFF",
+        "main_color": "#000000",
+        "merch_name_color": "#777777"
+      },
+      "signup_message": ""
+    }
+  ],
+  "products": [
+    {
+      "id": "5521cef86561310003da0200",
+      "name": "Weller Special Reserve",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "description": "The Original Wheated Bourbon Whiskey features an exceptionally smooth taste, substituting wheat for rye grain. Bottled at 90 proof, this bourbon stands out with its burnt orange color. Its softer flavor notes make this bourbon great for sipping or making cocktails.\r\n\r\nA sweet nose with a presence of caramel. Tasting notes of honey, butterscotch, and a soft woodiness. It's smooth, delicate and calm. Features a smooth finish with a sweet honeysuckle flair.",
+      "images": {
+        "primary": {
+          "original": "https://cityhive-prod-cdn.cityhive.net/products/673facd68bedd628fc93edbd/original.png",
+          "large": "https://cityhive-production-cdn.cityhive.net/products/673facd68bedd628fc93edbd/large.png",
+          "medium": "https://cityhive-prod-cdn.cityhive.net/products/673facd68bedd628fc93edbd/medium.png",
+          "small": "https://cityhive-prod-cdn.cityhive.net/products/673facd68bedd628fc93edbd/small.png",
+          "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/673facd68bedd628fc93edbd/thumbnail.png"
+        },
+        "more_images": []
+      },
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "tags": [
+        "whiskey",
+        "american whiskey"
+      ],
+      "views": [
+        "alcohol",
+        "spirits"
+      ],
+      "customer_favorite": false,
+      "is_taxed": true,
+      "options": [],
+      "merchants": [
+        {
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5521cef86561310003da0200",
+              "option_id": "a8c4b4e271895c2d29d5307bac3caaaf7dd0b15e52fe36362cce9ad250d11108",
+              "option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "product_url": "https://kingsliquorolathe.com/shop/product/weller-special-reserve/5521cef86561310003da0200?option-id=a8c4b4e271895c2d29d5307bac3caaaf7dd0b15e52fe36362cce9ad250d11108",
+              "product_url_path": "/product/weller-special-reserve/5521cef86561310003da0200?option-id=a8c4b4e271895c2d29d5307bac3caaaf7dd0b15e52fe36362cce9ad250d11108",
+              "original_option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "stock_components": [],
+              "units_of_measure": [],
+              "badge": {},
+              "product_badge_icons": [
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c899ee99fdb2bbce716c7",
+                  "group_name": "Products From Kentucky",
+                  "group_label": "",
+                  "group_name_slug": "products-from-kentucky",
+                  "group_tooltip": null
+                },
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c812cb1c8472bdc199722",
+                  "group_name": "Products From USA",
+                  "group_label": "",
+                  "group_name_slug": "products-from-usa",
+                  "group_tooltip": null
+                }
+              ],
+              "product_badges": [],
+              "store_credit_price": 0,
+              "quantity": 3,
+              "max_purchase_quantity": null,
+              "min_purchase_quantity": null,
+              "staff_pick": false,
+              "pinned_as_default": false,
+              "staff_pick_description": null,
+              "store_specific_description": "",
+              "staff_pick_recommender": null,
+              "product_modifiers": [],
+              "preorder_details": null,
+              "store_specific_tags": [
+                "liquor",
+                "whiskey",
+                "allocated"
+              ],
+              "allowed_offer_types": null,
+              "product_tags": [
+                "whiskey",
+                "american whiskey"
+              ],
+              "product_lists_info": null,
+              "available_in_merchant_ids": null,
+              "past_purchase": false,
+              "rich_properties": [],
+              "cityhive_rank": 0,
+              "product_page_custom_content": [],
+              "product_stats": null,
+              "merchant_id": "6060f76259a44e1d9f41522d",
+              "merchant_name": "Kings Liquor",
+              "coordinates": [
+                -94.8018293,
+                38.8535464
+              ],
+              "full_address": "18589 W 151st St, Olathe, KS 66062, USA",
+              "price": 29.99,
+              "original_price": 0,
+              "discount_value": null,
+              "discount_style": {},
+              "description": "",
+              "option_display_data": {
+                "name": "Weller Special Reserve",
+                "description": "The Original Wheated Bourbon Whiskey features an exceptionally smooth taste, substituting wheat for rye grain. Bottled at 90 proof, this bourbon stands out with its burnt orange color. Its softer flavor notes make this bourbon great for sipping or making cocktails.\r\n\r\nA sweet nose with a presence of caramel. Tasting notes of honey, butterscotch, and a soft woodiness. It's smooth, delicate and calm. Features a smooth finish with a sweet honeysuckle flair.",
+                "images": {
+                  "primary": {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/673facd68bedd628fc93edbd/original.png",
+                    "large": "https://cityhive-production-cdn.cityhive.net/products/673facd68bedd628fc93edbd/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/673facd68bedd628fc93edbd/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/673facd68bedd628fc93edbd/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/673facd68bedd628fc93edbd/thumbnail.png"
+                  },
+                  "more_images": []
+                },
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "subtitle": null,
+                "views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Weller Bourbon"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "45%",
+                  "brand": "Weller Bourbon"
+                },
+                "product_group_product_subtitle": {
+                  "product_subtitle": null,
+                  "show_product_subtitle_on_app_and_website": null,
+                  "override_individual_product_subtitle": null
+                }
+              },
+              "additional_properties": {
+                "type": "spirits",
+                "subtype": "bourbon, whiskey",
+                "content": "45%",
+                "country": "United States",
+                "state": "Kentucky",
+                "brands": "Weller Bourbon"
+              },
+              "default_option": true
+            }
+          ],
+          "additional_properties": {},
+          "merchant_id": "6060f76259a44e1d9f41522d",
+          "merchant_name": "Kings Liquor",
+          "coordinates": [
+            -94.8018293,
+            38.8535464
+          ],
+          "full_address": "18589 W 151st St, Olathe, KS 66062, USA"
+        }
+      ],
+      "product_rating": 3.8,
+      "number_of_product_ratings": 24,
+      "variations": null,
+      "product_modifiers": null,
+      "additional_properties": {
+        "type": "spirits",
+        "subtype": "bourbon, whiskey",
+        "content": "45%",
+        "country": "United States",
+        "state": "Kentucky",
+        "brands": "Weller Bourbon"
+      },
+      "is_enriched": false,
+      "brand_action": null,
+      "rich_properties": null
+    }
+  ]
+}
