@@ -10,6 +10,8 @@ import { CENTRAL_CITYHIVE_PRODUCTION_SOURCES } from '../src/collectors/central-c
 // not assert that Missouri production has run or published these observations.
 const nowMs = Date.parse('2026-11-14T14:28:00.000Z');
 const stores = CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source => source.state === 'MO');
+const bible = {records: [{canonical: "Blanton's Gold", libraryIdentities: [{id: 'blantons-gold',
+  canonicalName: "Blanton's Gold", aliases: [], nationalTier: 'unicorn', stateOverrides: []}]}]};
 const requests = stores.flatMap(source => ['barrel proof', "Blanton's Gold"].map(term => ({
   sourceId: source.id,
   url: `${source.baseUrl}/shop/?ch-query=${encodeURIComponent(term)}&merchant-id=${source.merchantId}`,
@@ -76,11 +78,11 @@ test('Missouri first-publication gate accepts only the exact closed cohort and c
     report: value,
     partition: { state: 'MO', count: 9, drops: value.signals },
     workflowRunId: '43699999999',
-    nowMs,
+    bible, nowMs,
   });
   assert.deepEqual(result, {
     state: 'MO', currentRows: 9, positiveStores: 9, positiveCities: 6,
-    hasAllocatedOrUnicorn: true, allDeliveryDisabled: true,
+    hasAllocatedOrUnicorn: true, allocatedRows: 1, allocatedSearchStores: stores.length, allDeliveryDisabled: true,
   });
 });
 
@@ -89,7 +91,7 @@ test('Missouri receipt binds exact report and partition bytes and oldest source 
   const partition = { state: 'MO', count: 9, drops: value.signals };
   const reportBytes = Buffer.from(JSON.stringify(value));
   const partitionBytes = Buffer.from(JSON.stringify(partition));
-  const checked = verifyMoFirstPublication({ report: value, partition, reportBytes, partitionBytes, workflowRunId: '43699999999', nowMs });
+  const checked = verifyMoFirstPublication({ report: value, partition, reportBytes, partitionBytes, bible, workflowRunId: '43699999999', nowMs });
   assert.equal(checked.receipt.workflowRunId, '43699999999');
   assert.equal(checked.receipt.reportSha256, createHash('sha256').update(reportBytes).digest('hex'));
   assert.equal(checked.receipt.partitionSha256, createHash('sha256').update(partitionBytes).digest('hex'));
@@ -107,8 +109,27 @@ test('Missouri first-publication gate refuses shadow-only rows and incomplete re
     sourceRuntimeId: 'research:mo:central-cityhive:fixture',
     sourceProductBinding: { ...value.sourceProductBinding, shadowOnly: true, productionOnSiteOnly: false },
   }));
-  assert.throws(() => verifyMoFirstPublication({ report: report(), partition: { state: 'MO', drops: shadowRows }, nowMs }), /first publication requires at least nine current positive stores/);
+  assert.throws(() => verifyMoFirstPublication({ report: report(), partition: { state: 'MO', count:9, drops: shadowRows }, nowMs }), /first publication requires at least nine current positive stores/);
   const incomplete = report();
   incomplete.metadata.cityhive.requests = requests.slice(0, CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.MO.maxRequests - 1);
   assert.throws(() => verifyMoFirstPublication({ report: incomplete, partition: { state: 'MO', drops: stores.slice(0, 9).map(row) }, nowMs }), /20 unique successful bounded requests/);
+});
+
+
+test('verified allocated searches keep the nine-store publication useful when all observed bottles are limited', () => {
+  const value = report();
+  value.signals[0].tier = 'limited';
+  const partition = { state: 'MO', count: 9, drops: value.signals };
+  const inputs = {report: value, partition, bible, workflowRunId: '43699999999', nowMs};
+  const verified = verifyMoFirstPublication(inputs);
+  assert.equal(verified.allocatedSearchStores, stores.length);
+  assert.equal(verified.allocatedRows, 0);
+  assert.equal(verified.hasAllocatedOrUnicorn, false);
+  assert.throws(() => verifyMoFirstPublication({...inputs, bible: {records: []}}), /indexed allocated searches/);
+  const unreviewed = structuredClone(value);
+  unreviewed.metadata.cityhive.requests[1].url = unreviewed.metadata.cityhive.requests[1].url.replace("Blanton's%20Gold", 'Ordinary%20Bourbon');
+  assert.throws(() => verifyMoFirstPublication({...inputs, report: unreviewed}), /indexed allocated searches/);
+  const forged = structuredClone(partition);
+  forged.drops[0].tier = 'unicorn';
+  assert.throws(() => verifyMoFirstPublication({...inputs, partition: forged}), /absent from the current source report/);
 });
