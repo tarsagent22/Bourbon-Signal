@@ -80,3 +80,13 @@ test('first-publication verifier fails closed when current coverage falls below 
   assert.equal(result.ok, false);
   assert.ok(result.failures.some(reason => reason.includes('below the held-cohort minimums')));
 });
+
+test('first-publication verifier rejects missing normalized source rows and any Oregon alert record', () => {
+  const missing = candidate();
+  missing.stateReport.signals = [];
+  assert.ok(verifyOregonFirstPublication({ ...missing, nowMs }).failures.some(reason => reason.includes('normalized source signals')));
+
+  const alert = candidate();
+  alert.alerts.alerts = [{ state: 'OR', eligibleForDelivery: false }];
+  assert.ok(verifyOregonFirstPublication({ ...alert, nowMs }).failures.some(reason => reason.includes('alert record')));
+});

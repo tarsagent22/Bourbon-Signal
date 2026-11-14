@@ -36,6 +36,7 @@ export function verifyOregonFirstPublication({ stateReport, statePartition, aler
   if (sourceSignals.some(row => !isOregonDailyProductionEvidence(row)) || sourceRows.some(row => !isOregonDailyProductionEvidence(row))) {
     failures.push('Oregon source or public partition contains a row that fails the exact source, clock, or no-alert contract.');
   }
+  if (!sourceSignals.length) failures.push('Oregon state report must preserve its normalized source signals.');
   const current = rows.filter(row => row?.sourceRuntimeId === OREGON_DAILY_PRODUCTION_RUNTIME_ID
     && isOregonDailyProductionEvidence(row)
     && isWithinCustomerFreshnessWindow(row, nowMs, { currentInventory: true }));
@@ -63,7 +64,7 @@ export function verifyOregonFirstPublication({ stateReport, statePartition, aler
       break;
     }
   }
-  if (stateAlerts.some(row => row?.eligibleForDelivery === true)) failures.push('Oregon first publication emitted a delivery-eligible alert.');
+  if (stateAlerts.length) failures.push('Oregon first publication emitted an alert record despite disabled delivery.');
   if (current.length < OREGON_FIRST_PUBLICATION_MINIMUMS.rows || stores.size < OREGON_FIRST_PUBLICATION_MINIMUMS.stores
     || cities.size < OREGON_FIRST_PUBLICATION_MINIMUMS.cities || allocatedRows.length < OREGON_FIRST_PUBLICATION_MINIMUMS.allocatedRows) {
     failures.push(`Oregon first publication is below the held-cohort minimums (${current.length} rows, ${stores.size} stores, ${cities.size} cities, ${allocatedRows.length} allocated rows).`);
