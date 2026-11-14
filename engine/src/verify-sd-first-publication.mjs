@@ -3,8 +3,8 @@ import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {isWithinCustomerFreshnessWindow} from './customer-drop-freshness.mjs';
-import {fullAddress,sources,storeId,southDakotaRetailerRequest,southDakotaProductionRuntimeId} from './south-dakota-pickup-policy.mjs';
-import {SOUTH_DAKOTA_PRODUCTION_COHORT_SHA256} from './collectors/south-dakota-production.mjs';
+import {fullAddress,sources,storeId,southDakotaRetailerRequest} from './south-dakota-pickup-policy.mjs';
+import {SOUTH_DAKOTA_PRODUCTION_COHORT_SHA256,southDakotaProductionRuntimeId} from './collectors/south-dakota-production.mjs';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const identity=row=>JSON.stringify([row.storeId,row.productId,row.sourceProductBinding?.observedAt||row.observedAt,row.canonicalBottleId]);

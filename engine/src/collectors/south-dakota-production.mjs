@@ -7,11 +7,12 @@ import { isWithinCustomerFreshnessWindow } from '../customer-drop-freshness.mjs'
 import { fetchReviewedFirstPartyText } from './central-cityhive-transport.mjs';
 import sdManifest from '../../data/state-integration/SD.json' with {type:'json'};
 import { reviewSouthDakotaPickup } from '../research-south-dakota-retailer.mjs';
-import { fullAddress, origin, sources, southDakotaProductionRuntimeId, southDakotaRetailerRequest, storeId } from '../south-dakota-pickup-policy.mjs';
+import { fullAddress, origin, sources, southDakotaRetailerRequest, storeId } from '../south-dakota-pickup-policy.mjs';
 
 const DAY = 86_400_000;
 const DENIALS = new Set([401, 403, 429, 435]);
 const hash = value => createHash('sha256').update(value).digest('hex');
+export const southDakotaProductionRuntimeId = 'sd:mr-liquor-sante';
 export const SOUTH_DAKOTA_PRODUCTION_COHORT_SHA256 = hash(JSON.stringify(sources));
 export const SOUTH_DAKOTA_PRODUCTION_REQUEST_LIMIT = sources.reduce((sum, source) => sum + source.terms.length, 0);
 

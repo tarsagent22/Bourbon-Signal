@@ -7,11 +7,12 @@ import { unzipSync } from 'fflate';
 const [runId, output] = process.argv.slice(2);
 if (!/^\d+$/.test(runId) || !output) throw Error('Provide the successful South Dakota shadow run and a new output directory.');
 const repo = 'tarsagent22/Bourbon-Signal';
+const reviewedBranches = new Set(['research/south-dakota-sante-20261114','research/south-dakota-production-prep-20261114']);
 const gh = process.platform === 'win32' ? 'gh.exe' : 'gh';
 const api = route => JSON.parse(execFileSync(gh, ['api', `repos/${repo}/${route}`], {encoding:'utf8'}));
 const run = api(`actions/runs/${runId}`);
 if (run.conclusion !== 'success' || run.repository.full_name !== repo || run.path !== '.github/workflows/state-expansion-shadow.yml'
-  || run.head_branch !== 'research/south-dakota-sante-20261114' || !/^[a-f\d]{40}$/.test(run.head_sha)) {
+  || !reviewedBranches.has(run.head_branch) || !/^[a-f\d]{40}$/.test(run.head_sha)) {
   throw Error('South Dakota source did not come from the reviewed GitHub shadow workflow.');
 }
 if (spawnSync('git', ['cat-file', '-e', `${run.head_sha}^{commit}`]).status !== 0) {

@@ -8,9 +8,9 @@ import {fileURLToPath} from 'node:url';
 import {ALL_STATE_SOURCES,STATE_SOURCES} from '../src/state-sources.mjs';
 import {STATE_LIFECYCLE_CONFIG} from '../src/state-lifecycle.mjs';
 import {verifySouthDakotaFirstPublication} from '../src/verify-sd-first-publication.mjs';
-import {collectSouthDakotaProductionState,SOUTH_DAKOTA_PRODUCTION_COHORT_SHA256,southDakotaProductionConfigHash} from '../src/collectors/south-dakota-production.mjs';
+import {collectSouthDakotaProductionState,SOUTH_DAKOTA_PRODUCTION_COHORT_SHA256,southDakotaProductionConfigHash,southDakotaProductionRuntimeId} from '../src/collectors/south-dakota-production.mjs';
 import {reviewSouthDakotaPickup} from '../src/research-south-dakota-retailer.mjs';
-import {sources,storeId,southDakotaRetailerRequest,southDakotaProductionRuntimeId} from '../src/south-dakota-pickup-policy.mjs';
+import {sources,storeId,southDakotaRetailerRequest} from '../src/south-dakota-pickup-policy.mjs';
 
 const root=path.join(path.dirname(fileURLToPath(import.meta.url)),'fixtures','south-dakota-sante');
 const terms=new Map([['Wild Turkey','west.json'],['Heaven Hill','south-heaven-hill.json'],['Larceny','south-larceny.json']]);
