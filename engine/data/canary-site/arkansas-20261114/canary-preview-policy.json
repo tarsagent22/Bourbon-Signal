@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "state": "AR",
   "mode": "canary_preview",
-  "generatedAt": "2026-11-14T16:57:33.891Z",
+  "generatedAt": "2026-11-14T17:28:36.869Z",
   "alertDeliveryEnabled": false,
   "productionSnapshotPublicationEnabled": false,
   "productionDeploymentEnabled": false

@@ -153,7 +153,7 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     const arkansasEntry=/^    "AR": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
     if (arkansasEntry || text.includes('    "AR"\n  ],\n  "reliabilityPolicy"')) {
       assert.equal(createHash('sha256').update(arkansasEntry || '').digest('hex'),
-        '657a6daa15013c91b3e43a85b4b1783cfc384e3c8b66f20bf60425b307c32135', `${name}: exact attested AR lifecycle entry`);
+        '0f2fc1580aa2cf60ccf1f63b748fcb54d8274940c097a7a0046531b19e6998bf', `${name}: exact attested AR lifecycle entry`);
       text = replaceUnique(text, arkansasEntry, '', `${name}: exact attested AR lifecycle entry`);
       text = replaceUnique(text, ',\n    "AR"\n  ],\n  "reliabilityPolicy"',
         '\n  ],\n  "reliabilityPolicy"', `${name}: exact AR active list tail`);
