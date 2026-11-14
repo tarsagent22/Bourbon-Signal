@@ -7,6 +7,7 @@ import { cityHiveResearchSourceForState, cityHiveResearchLifecycleEntries, colle
 import {njMiResearchSourceForState,njMiResearchLifecycleEntries,collectNjMiResearchReport} from './nj-mi-research-runtime.mjs';
 import {michiganLiquorsResearchSourceForState,michiganLiquorsResearchLifecycleEntries,collectMichiganLiquorsResearchReport} from './research-michigan-liquors-runtime.mjs';
 import { louisianaAlaskaResearchSourceForState, louisianaAlaskaResearchLifecycleEntries, collectLouisianaAlaskaResearchReport } from './research-louisiana-alaska-grocery-runtime.mjs';
+import { southDakotaResearchSource, southDakotaResearchLifecycle, collectSouthDakotaResearch } from './research-south-dakota-retailer.mjs';
 
 // Research registrations never rewrite production lifecycle/source files or
 // historical promotion evidence. Activation requires a separate reviewed change.
@@ -26,6 +27,7 @@ export function researchSourceForState(state, { shadowMode = process.env.BOURBON
     || louisianaAlaskaResearchSourceForState(state)
     || njMiResearchSourceForState(state)
     || groceryResearchSourceForState(state)
+    || southDakotaResearchSource(state)
     || cityHiveResearchSourceForState(state);
 }
 
@@ -34,7 +36,7 @@ export function withResearchLifecycle(production) {
   if (production.activeStates.includes('MA') || production.states.MA) throw new Error('MA production/research registration requires reconciliation.');
   const additions = {
     ...cityHiveResearchLifecycleEntries(), ...groceryResearchLifecycleEntries(), ...njMiResearchLifecycleEntries(),
-    ...michiganLiquorsResearchLifecycleEntries(), ...louisianaAlaskaResearchLifecycleEntries(),
+    ...michiganLiquorsResearchLifecycleEntries(), ...louisianaAlaskaResearchLifecycleEntries(), ...southDakotaResearchLifecycle(),
   };
   for(const state of Object.keys(additions))if(production.activeStates.includes(state)||production.states[state]?.publicStatus==='active') {
     delete additions[state];
@@ -55,6 +57,7 @@ export async function collectResearchStateReport(config, bible, options = {}) {
   if(config&&config===michiganLiquorsResearchSourceForState(config.id))return collectMichiganLiquorsResearchReport(config,bible,options);
   if (config && config === louisianaAlaskaResearchSourceForState(config.id)) return collectLouisianaAlaskaResearchReport(config, bible, options);
   if(config&&config===groceryResearchSourceForState(config.id))return collectGroceryResearchReport(config,bible,options);
+  if(config&&config===southDakotaResearchSource(config.id))return collectSouthDakotaResearch(config,bible,options);
   if(config&&config===njMiResearchSourceForState(config.id))return collectNjMiResearchReport(config,bible,options);
   if (config && config === cityHiveResearchSourceForState(config.id)) return collectCityHiveResearchReport(config,bible,options);
   if (process.env.BOURBON_SIGNAL_SHADOW_MODE !== '1' || config !== MASSACHUSETTS) {
