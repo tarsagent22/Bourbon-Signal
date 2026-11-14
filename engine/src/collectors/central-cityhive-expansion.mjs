@@ -124,7 +124,7 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
   });
 }
 
-export async function collectCentralCityHiveExpansion(config,bible,{fetchText,observedAt=new Date().toISOString(),signal,
+export async function collectCentralCityHiveExpansion(config,bible,{fetchText,observedAt=new Date().toISOString(),signal,requestTimeoutMs=10_000,
   sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now(),sourceIds}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
   const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts},verifiedPremises=new Set();
@@ -144,7 +144,7 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
     const seen=new Set();let denied=false;
     for(const url of urls){
       signal?.throwIfAborted();if(requests.some(r=>r.sourceId===groupId))await sleep(1000);
-      const response=await fetchText(url,{signal,timeoutMs:10000,maxBytes:2*1024*1024,maxRedirects:0});
+      const response=await fetchText(url,{signal,timeoutMs:requestTimeoutMs,maxBytes:2*1024*1024,maxRedirects:0});
       requests.push({sourceId:groupId,url,status:response.status||0,ok:response.ok===true});
       if(!response.ok){
         roadblocks.push({state:config.id,source:source.sourceLabel,url,status:response.status||0,error:response.error||`HTTP ${response.status}`});
