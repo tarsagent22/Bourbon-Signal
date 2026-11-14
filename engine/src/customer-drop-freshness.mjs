@@ -83,4 +83,3 @@ export function isVerifiedRetailerDropCurrentlyUsable(drop = {}, now = Date.now(
   const expiry = Date.parse(String(drop.expiresAt ?? drop.expires_at ?? ''));
   return Number.isFinite(expiry) && Number(now) < expiry;
 }
-

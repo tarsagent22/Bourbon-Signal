@@ -113,4 +113,3 @@ test('complete stale fallback partitions are retained when they fit, but never c
   assert.equal(health.states[0].fallback.evidenceOmittedForBudget, true);
   assert.match(health.states[0].fallback.reason, /omitted from the customer drop payload/);
 });
-
