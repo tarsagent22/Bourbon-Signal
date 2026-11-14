@@ -13,6 +13,7 @@ interface CoverageStatePanelProps {
 
 export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
   const [requestOpen, setRequestOpen] = useState(false);
+  const { currentInventoryStores, observedInventoryStores } = state.freshness;
 
   const focusRequest = useCallback(() => {
     window.requestAnimationFrame(() => {
@@ -45,6 +46,11 @@ export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
         </div>
       </div>
       <CoverageSummary state={state} />
+      {observedInventoryStores > 0 || currentInventoryStores > 0 ? (
+        <p className={styles.currentInventory}>
+          <strong>{currentInventoryStores}</strong> {currentInventoryStores === 1 ? "store" : "stores"} with current bottle availability
+        </p>
+      ) : null}
 
       <section className={styles.coverageExplanation} aria-label={`${state.name} coverage explanation`}>
         <span>What we cover</span>
