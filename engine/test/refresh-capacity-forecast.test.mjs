@@ -27,7 +27,9 @@ test('four planning forecasts follow one observed-sample formula without changin
     assert.equal(config.states[state].inventoryAlertable,false);assert.equal(config.states[state].watchAlertable,false);
   }
   assert.deepEqual(WESTERN_GROCERY_BUDGETS,{WA:{sourceMs:600000,stateMs:720000},NM:{sourceMs:180000,stateMs:300000}});
-  assert.deepEqual(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,{WI:{sourceMs:90000,stateMs:150000,maxRequests:5},OK:{sourceMs:180000,stateMs:240000,maxRequests:10}});
+  assert.deepEqual(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.WI,{sourceMs:90000,stateMs:150000,maxRequests:5});
+  assert.deepEqual(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.OK,{sourceMs:180000,stateMs:240000,maxRequests:10});
+  assert.deepEqual(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.RI,{sourceMs:90000,stateMs:150000,maxRequests:7});
   // Keep the historical forecast tied to its recorded state set; current AK/LA admission belongs to later capacity reviews.
   const p=config.reliabilityPolicy,states=[...new Set(forecast.prospectiveStates)];
   assert.deepEqual(evaluateCapacityBudget({stateExpectedRunMs:states.map(state=>p.stateExpectedRunMs[state]||p.defaultExpectedStateRunMs),concurrency:p.workerConcurrency,intervalMs:p.refreshIntervalMs,safetyMarginMs:p.refreshSafetyMarginMs}),forecast.prospectiveCollectionModel);
