@@ -38,7 +38,7 @@ const files = [
 ];
 // These files control production admission, actual HTTP, host-denial durability
 // and public projection. Missing inputs must fail issuance, never be skipped.
-if (['WA','NM','WI','OK','NJ','MI'].includes(state)) files.push(
+if (['WA','NM','WI','OK','MO','NJ','MI'].includes(state)) files.push(
   'engine/src/collectors/generic-state.mjs',
   'engine/src/collectors/north-carolina-intelligence.mjs',
   'engine/src/collectors/virginia-inventory-recovery.mjs',
@@ -145,7 +145,7 @@ if (['NJ','MI'].includes(state)) files.push(
   `engine/out/njmi-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
 );
-if (['WI', 'OK', 'RI'].includes(state)) files.push(
+if (['WI', 'OK', 'RI', 'MO'].includes(state)) files.push(
   'engine/src/collectors/central-cityhive-production.mjs',
   'engine/src/collectors/central-cityhive-transport.mjs',
   'engine/src/central-cityhive-production-config.mjs',
@@ -177,6 +177,15 @@ if (['WI', 'OK', 'RI'].includes(state)) files.push(
   '.github/workflows/state-promotion-provenance.yml',
   `engine/out/cityhive-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
+);
+if (state === 'MO') files.push(
+  'engine/src/collectors/central-cityhive-production.mjs',
+  'engine/src/central-cityhive-production-config.mjs',
+  'engine/src/collectors/central-cityhive-research-premises.mjs',
+  'engine/src/collectors/central-cityhive-expansion.mjs',
+  'engine/data/midwest-cityhive-expansion-sources.json',
+  'engine/test/fixtures/central-cityhive/barrel-blends-6226405682c4ff6dfe6d578a.json',
+  'engine/src/verification/historical-implementation.mjs',
 );
 if (['OR', 'AK', 'LA'].includes(state)) files.push(
   'engine/src/research-state-registry.mjs',

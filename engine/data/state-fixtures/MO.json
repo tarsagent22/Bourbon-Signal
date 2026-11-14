@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "state": "MO",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "mo-reviewed-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "barrel-blends:6226405682c4ff6dfe6d578a"
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 1,
+        "canonicalNames": [
+          "Michter's 10 Year Rye"
+        ]
+      }
+    },
+    {
+      "id": "mo-unidentified",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "barrel-blends:6226405682c4ff6dfe6d578a",
+        "rawName": "Unidentified Straight Bourbon 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "mo-cream",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "barrel-blends:6226405682c4ff6dfe6d578a",
+        "rawName": "Bourbon Cream Liqueur 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "mo-miniature",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "barrel-blends:6226405682c4ff6dfe6d578a",
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "mo-binary-availability",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "barrel-blends:6226405682c4ff6dfe6d578a"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "semantics": "binary_retailer_orderable_no_exact_count"
+      }
+    },
+    {
+      "id": "mo-wrong-merchant",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "barrel-blends:6226405682c4ff6dfe6d578a",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "mo-stale",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "barrel-blends:6226405682c4ff6dfe6d578a",
+        "ageMinutes": 300
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 0,
+        "candidateCount": 0,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "mo-foreign-source",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceId": "barrel-blends:6226405682c4ff6dfe6d578a",
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "mo-shadow-never-public",
+      "kind": "shadow_isolation",
+      "input": {
+        "sourceId": "barrel-blends:6226405682c4ff6dfe6d578a",
+        "shadowOnly": true
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 0,
+        "deliveryEligible": false,
+        "confidenceInventoryAllowed": false
+      }
+    },
+    {
+      "id": "mo-shipping-only",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "barrel-blends:6226405682c4ff6dfe6d578a",
+        "shippingOnly": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    }
+  ]
+}

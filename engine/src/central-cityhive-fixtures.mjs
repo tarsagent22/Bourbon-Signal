@@ -18,7 +18,7 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
     }[source.id]):null;
     const fixturePath=researchFixture
       ? new URL(`../test/fixtures/ri-cityhive/${researchFixture}`,import.meta.url)
-      : new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url);
+      : new URL(`../test/fixtures/central-cityhive/${source.state==='MO'?'barrel-blends-6226405682c4ff6dfe6d578a':source.id}.json`,import.meta.url);
     const fixture=JSON.parse(await readFile(fixturePath,'utf8'));
     const products=fixture.products|| (fixture.product?[fixture.product]:[]);
     for(const product of products){
