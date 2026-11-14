@@ -311,6 +311,10 @@ if (state === 'RI') files.push(
 );
 if (state === 'KS') files.push(
   'engine/src/verify-ks-first-publication.mjs',
+  'scripts/download-cityhive-shadow.mjs',
+  'scripts/test-cityhive-shadow-download.mjs',
+  'engine/src/prepare-central-cityhive-canary.mjs',
+  'engine/src/central-cityhive-fixtures.mjs',
   'engine/test/ks-first-publication.test.mjs',
   'engine/test/ks-hosted-preview-evidence.test.mjs',
   'engine/test/fixtures/ks-cityhive/hosted-finder-feed.json',

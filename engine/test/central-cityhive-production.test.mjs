@@ -69,7 +69,7 @@ test('KS activation is exact, silent, and still blocks when disabled or lifecycl
   assert.equal(requests,0);
 });
 test('KS production parser uses six exact merchant-scoped requests and projects only silent binary pickup rows',async t=>{
-  const opts=await setup(t,'KS'),nowMs=Date.parse('2026-11-14T11:10:00.000Z'),fixtureRoot=new URL('./fixtures/ks-cityhive/',import.meta.url);
+  const opts=await setup(t,'KS'),nowMs=Date.now()-60_000,fixtureRoot=new URL('./fixtures/ks-cityhive/',import.meta.url);
   const fixtureInfo=JSON.parse(await readFile(new URL('receipts.json',fixtureRoot),'utf8'));
   const captures=new Map(await Promise.all(fixtureInfo.captures.map(async receipt=>[
     receipt.fixture,await readFile(new URL(receipt.fixture,fixtureRoot),'utf8'),

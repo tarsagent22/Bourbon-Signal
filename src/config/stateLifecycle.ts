@@ -2074,14 +2074,14 @@ export const STATE_LIFECYCLE_CONFIG = {
       "promotionEvidence": {
         "verticalSliceManifest": "engine/data/state-integration/KS.json",
         "fixtureContract": "engine/data/state-fixtures/KS.json",
-        "shadowRuns": 5,
+        "shadowRuns": 6,
         "canaryRuns": 2,
-        "verifiedAt": "2026-11-14T14:52:23.000Z",
+        "verifiedAt": "2026-11-14T15:10:36.000Z",
         "canaryPreviewUrl": "https://bourbonsignal-2h76vtz8l-tarsagent22s-projects.vercel.app/coverage",
         "immutableEvidence": {
           "schemaVersion": 1,
           "state": "KS",
-          "generatedAt": "2026-11-14T14:52:23.000Z",
+          "generatedAt": "2026-11-14T15:10:36.000Z",
           "sourceConfigHash": "733260504505b3023f3f408f6a9a00a1cac3c626ab73702ed3dbf05cde2b5268",
           "sourceRuntimeId": "ks:central-cityhive",
           "cohortSha256": "234805b62e662b95e0b4c9bbea79f01075349753b56865eef9b475558853ede5",
@@ -2131,6 +2131,18 @@ export const STATE_LIFECYCLE_CONFIG = {
               "commitSha": "98af9a1a1fb89a013cd44135283d1bc9aee2d02c",
               "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597377388",
               "artifactName": "state-expansion-shadow-43597377388"
+            },
+            {
+              "runId": "43607777117",
+              "status": "success",
+              "artifactHash": "55cf317da2513f1be8e69990742343ce1c9b591018dbfac20d80fd55c6bf9fca",
+              "artifactId": "14119385757",
+              "commitSha": "2b4d0687585ee09a7927e8bbe423eab621445667",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43607777117",
+              "artifactName": "state-expansion-shadow-43607777117",
+              "observedAt": "2026-11-14T15:00:55.852Z",
+              "observedStores": 3,
+              "positiveListings": 4
             }
           ],
           "canaryRuns": [
