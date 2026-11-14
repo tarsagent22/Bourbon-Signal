@@ -239,6 +239,9 @@ if (['AK', 'LA'].includes(state)) files.push(
 );
 if (state === 'RI') files.push(
   'engine/data/ri-cityhive-research-sources.json',
+  'engine/src/verify-ri-first-publication.mjs',
+  'engine/src/confidence-policy.mjs',
+  'engine/src/core/collection-http.mjs',
   'engine/src/collectors/central-cityhive-research-premises.mjs',
   'engine/src/central-cityhive-state-config.mjs',
   'engine/src/collectors/generic-state.mjs',
