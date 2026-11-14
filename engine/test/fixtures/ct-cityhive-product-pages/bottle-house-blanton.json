@@ -1,0 +1,196 @@
+{
+  "capture": {
+    "store": "bottle-house",
+    "merchant": "654ea77f27845d7ca6476608",
+    "url": "https://bottlehousect.com/shop/?ch-query=blanton&merchant-id=654ea77f27845d7ca6476608",
+    "finalUrl": "https://bottlehousect.com/shop/?ch-query=blanton&merchant-id=654ea77f27845d7ca6476608",
+    "status": 200,
+    "start": "2026-11-14T13:31:56.121Z",
+    "observedAt": "2026-11-14T13:31:56.900Z",
+    "bytes": 389783,
+    "sha256": "6408d4c97735425022c16444457316c5a78e6683233cd7a60302a9105289de10"
+  },
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "654ea77f27845d7ca6476608",
+        "address": {
+          "full_address": "1261 Meriden Rd, Wolcott, CT 06716, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -72.97785209999999,
+              41.5540785
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "5521ceef6561310003530000",
+      "name": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "654ea77f27845d7ca6476608",
+          "full_address": "1261 Meriden Rd, Wolcott, CT 06716, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "option_display_data": {
+                "name": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+                "description": "Experience the world's first single barrel bourbon. The taste profile is sweet with citrus and oak. A creamy vanilla nose features hints of nuts, caramel, orange and light chocolate. Blanton's Original set the standard for single barrel bourbons. Best served neat or on the rocks. 46.5% alcohol by volume.",
+                "images": {
+                  "primary": {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/original.png",
+                    "large": "https://cityhive-production-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/thumbnail.png"
+                  },
+                  "more_images": []
+                },
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "subtitle": null,
+                "views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Blanton's "
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "46.5%",
+                  "brand": "Blanton's "
+                },
+                "product_group_product_subtitle": {
+                  "product_subtitle": null,
+                  "show_product_subtitle_on_app_and_website": null,
+                  "override_individual_product_subtitle": null
+                }
+              },
+              "merchant_id": "654ea77f27845d7ca6476608",
+              "full_address": "1261 Meriden Rd, Wolcott, CT 06716, USA",
+              "quantity": 2,
+              "product_id": "5521ceef6561310003530000",
+              "option_id": "f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+              "product_url": "https://bottlehousect.com/shop/product/blantons-the-original-single-barrel-kentucky-straight-bourbon-whiskey/5521ceef6561310003530000?option-id=f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+              "price": 119.99
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5fc68bd5617ea3222fbb9ead",
+      "name": "Blanton's Straight From The Barrel Bourbon",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "654ea77f27845d7ca6476608",
+          "full_address": "1261 Meriden Rd, Wolcott, CT 06716, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "option_display_data": {
+                "name": "Blanton's Straight From The Barrel Bourbon",
+                "description": "Not only one of the world’s best bourbons, Blanton’s Straight from the Barrel is one of the world’s best whiskeys. Created for connoisseurs familiar with cask strength whiskeys, this enormous taste profile reaches depths of flavor found only in the rarest of spirits. On the nose we get notes of dark chocolate, caramel and butter with earthy undertones of walnut and hazelnut.  The palate delivers intrepid notes of warm vanilla, oak, toasted nuts and a rich spiciness with hints of butterscotch or honey.  The high alcohol by volume is intense and powerful yet inviting. The deep and resonate finish on this bourbon is nothing short of legendary. Straight from the barrel is best served neat or with a splash of water. Un-filtered, un-cut, unbelievable.",
+                "images": {
+                  "primary": {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/604e5a043a52205549d0af72/original.png",
+                    "large": "https://cityhive-production-cdn.cityhive.net/products/604e5a043a52205549d0af72/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/604e5a043a52205549d0af72/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/604e5a043a52205549d0af72/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/604e5a043a52205549d0af72/thumbnail.png"
+                  },
+                  "more_images": []
+                },
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "subtitle": null,
+                "views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Blanton's "
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky"
+                },
+                "product_group_product_subtitle": {
+                  "product_subtitle": null,
+                  "show_product_subtitle_on_app_and_website": null,
+                  "override_individual_product_subtitle": null
+                }
+              },
+              "merchant_id": "654ea77f27845d7ca6476608",
+              "full_address": "1261 Meriden Rd, Wolcott, CT 06716, USA",
+              "quantity": 1,
+              "product_id": "5fc68bd5617ea3222fbb9ead",
+              "option_id": "ec5b80c20641a7c71309046ffc54270fc6dd4509dcf9439ca99af1baeae22838",
+              "product_url": "https://bottlehousect.com/shop/product/blantons-straight-from-the-barrel-bourbon/5fc68bd5617ea3222fbb9ead?option-id=ec5b80c20641a7c71309046ffc54270fc6dd4509dcf9439ca99af1baeae22838",
+              "price": 299.99
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

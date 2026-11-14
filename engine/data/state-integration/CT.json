@@ -7,15 +7,15 @@
       "url": null
     },
     "canary": {
-      "runs": 0,
-      "status": "not_run",
-      "artifact": null,
-      "reason": "Canary workflow pending."
+      "status": "verified",
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43605576308",
+      "allDeliveryChannelsDisabled": true
     },
     "shadow": {
-      "runs": 0,
-      "status": "pending",
-      "artifact": null,
+      "status": "verified",
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43605205518",
       "originalSourceClocksPreserved": true
     }
   },

@@ -145,7 +145,7 @@ if (['NJ','MI'].includes(state)) files.push(
   `engine/out/njmi-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
 );
-if (['WI', 'OK', 'RI', 'MN'].includes(state)) files.push(
+if (['WI', 'OK', 'RI', 'MN', 'CT'].includes(state)) files.push(
   'engine/src/collectors/central-cityhive-production.mjs',
   'engine/src/collectors/central-cityhive-transport.mjs',
   'engine/src/central-cityhive-production-config.mjs',
@@ -186,6 +186,16 @@ if (['WI', 'OK', 'RI', 'MN'].includes(state)) files.push(
   `engine/out/canary/${state}/site/states/index.json`,
   `engine/out/canary/${state}/site/alerts.json`,
   `engine/out/canary/${state}/site/manifest.json`,
+);
+if (state === 'CT') files.push(
+  'engine/data/state-integration/CT-canary.json',
+  'engine/out/canary-preparation/CT/state-integration/CT.json',
+  'engine/out/canary-preparation/CT/state-fixtures/CT.json',
+  'engine/data/additional-cityhive-expansion-sources.json',
+  'engine/src/collectors/central-cityhive-research-premises.mjs',
+  'engine/src/central-cityhive-state-config.mjs',
+  'engine/src/location-bible.mjs',
+  'engine/test/fixtures/ct-cityhive-product-pages/bottle-house-blanton.json',
 );
 if (state === 'MN') files.push(
   'engine/data/minnesota-cityhive-expansion-sources.json',
