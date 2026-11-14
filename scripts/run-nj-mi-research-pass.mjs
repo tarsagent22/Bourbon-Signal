@@ -15,7 +15,8 @@ for(const state of states){
   const reportDirectory=path.join(root,state),config=silvertonShadow?cityHiveResearchSourceForState(state):njMiResearchSourceForState(state);
   await mkdir(reportDirectory,{recursive:true});
   const report=silvertonShadow
-    ?await collectCityHiveResearchReport(config,bible,{reportDirectory,env:process.env})
+    ?await collectCityHiveResearchReport(config,bible,{reportDirectory,env:process.env,
+      incidentFile:path.resolve('engine/out/research-source-attempts/nj-silverton-cityhive-incidents.json')})
     :await collectNjMiResearchReport(config,bible,{reportDirectory,
       journalFile:path.resolve('engine/out/research-source-attempts/nj-mi-incidents.json')});
   await writeFile(path.join(reportDirectory,'report.json'),JSON.stringify(report,null,2)+'\n');
