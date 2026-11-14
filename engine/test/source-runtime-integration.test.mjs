@@ -91,7 +91,7 @@ test('Costco-only strategy invokes its collector even without a synthetic config
 });
 
 test('fresh exact Costco zero-stock evidence is monitored negative inventory, not parser deficiency', async () => {
-  const researchState = 'MO';
+  const researchState = 'AL';
   const directory = await mkdtemp(path.join(tmpdir(), 'bs-costco-zero-integration-'));
   const watchlistPath = path.join(directory, 'watchlist.json');
   const observationsPath = path.join(directory, 'observations.json');

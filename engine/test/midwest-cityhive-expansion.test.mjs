@@ -4,7 +4,8 @@ import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {BourbonBible} from '../src/core/bible.mjs';
-import {MIDWEST_CITYHIVE_EXPANSION_SOURCES,parseCentralCityHiveInventory} from '../src/collectors/central-cityhive-expansion.mjs';
+import {MIDWEST_CITYHIVE_EXPANSION_SOURCES,collectCentralCityHiveExpansion,parseCentralCityHiveInventory} from '../src/collectors/central-cityhive-expansion.mjs';
+import {centralCityHiveAllocatedQueryFilter} from '../src/collectors/central-cityhive-market-policy.mjs';
 import {collectMidwestCityHiveExpansion,isMidwestCityHiveInventory} from '../src/collectors/midwest-cityhive-expansion.mjs';
 
 const bible=await BourbonBible.load(new URL('../out/bourbon-bible.json',import.meta.url));
@@ -47,4 +48,36 @@ test('Illinois retailer evidence is isolated and one host denial ends its whole 
     assert.equal(calls,1);assert.equal(result.signals.length,0);
     await collectMidwestCityHiveExpansion({id:'IL'},bible,options);assert.equal(calls,1);
   }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+
+test('Missouri rotates its indexed allocated searches within the existing two-request limit', async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'mo-allocated-rotation-'));
+  const queries = new Map();
+  const isAllocatedQuery = centralCityHiveAllocatedQueryFilter(bible, 'MO');
+  try {
+    const run = () => collectCentralCityHiveExpansion({ id: 'MO' }, bible, {
+      cursorDir: directory, observedAt: at, sleep: async () => {},
+      fetchText: async url => {
+        const params = new URL(url).searchParams;
+        const merchant = params.get('merchant-id');
+        const term = params.get('ch-query');
+        queries.set(merchant, [...(queries.get(merchant) || []), term]);
+        return { ok: true, status: 200, text: '<html></html>' };
+      },
+    });
+    await run();
+    await run();
+    assert.equal(queries.size, 10);
+    for (const terms of queries.values()) {
+      assert.equal(terms.length, 4);
+      assert.equal(terms[0], 'barrel proof');
+      assert.equal(terms[2], 'barrel proof');
+      assert(isAllocatedQuery(terms[1]));
+      assert(isAllocatedQuery(terms[3]));
+      assert.notEqual(terms[1], terms[3]);
+    }
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });

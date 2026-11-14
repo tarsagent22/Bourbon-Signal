@@ -452,13 +452,7 @@ const BASE_STATE_SOURCES = [
     sources: [],
     apiCandidates: []
   },
-  {
-    id: 'MO', label: 'Missouri Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
-    value: 'Costco-only expansion state. Missouri Costco warehouses are useful private-market bourbon signals where verified.',
-    rareSignalTarget: false,
-    sources: [],
-    apiCandidates: []
-  },
+  ...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id==='MO'),
   {
     id: 'NV', label: 'Nevada first-party retailer inventory and Costco watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
     value: 'Exact-store first-party pickup/orderability from Liquor World, Liquor Box, Albertsons, Vons, and Safeway across Las Vegas Valley and Reno–Sparks. Binary availability remains distinct from exact quantity; Costco stays a separate warehouse watch lane.',
@@ -475,7 +469,7 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   ...WESTERN_GROCERY_PRODUCTION_CONFIGS,
-  ...CENTRAL_CITYHIVE_STATE_CONFIGS,
+  ...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id!=='MO'),
   {
     id: 'GA', label: 'Georgia retailer inventory + Costco warehouse watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
     value: 'Exact-identity first-party Georgia retailer inventory plus Costco warehouse observations where verified. Binary Add to Cart/orderability is distinct from exact CityHive quantity, and every store signal carries a verify-before-driving caveat.',

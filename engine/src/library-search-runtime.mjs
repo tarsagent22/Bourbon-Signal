@@ -14,7 +14,8 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 // Advance on source invocation, not wall-clock parity. Adaptive scheduling and
 // cached passes otherwise permanently strand subsets of the bottle library.
 export async function librarySourceSearchPlan(bible, options) {
-  const poolDigest = hash(JSON.stringify(librarySearchPool(bible)));
+  const pool = librarySearchPool(bible).filter(term => !options.queryFilter || options.queryFilter(term));
+  const poolDigest = hash(JSON.stringify(pool));
   const dir = options.cursorDir || (process.env.NODE_TEST_CONTEXT ? path.join(tmpdir(), `bourbon-library-search-${process.pid}`) : path.resolve('out/cache/library-search'));
   const file = path.join(dir, `${hash(options.sourceKey).slice(0, 24)}.json`);
   let previous;
@@ -24,8 +25,8 @@ export async function librarySourceSearchPlan(bible, options) {
   let cursor = sameSource ? previous.nextCursor : 0;
   if (sameSource && previous.poolDigest !== poolDigest && previous.nextTermKey) {
     const fixed = new Set([...(options.broadTerms || []), ...(options.priorityTerms || [])].map(libraryIdentityKey));
-    const pool = librarySearchPool(bible).filter(term => !fixed.has(libraryIdentityKey(term)));
-    const next = pool.findIndex(term => libraryIdentityKey(term) === previous.nextTermKey);
+    const available = pool.filter(term => !fixed.has(libraryIdentityKey(term)));
+    const next = available.findIndex(term => libraryIdentityKey(term) === previous.nextTermKey);
     if (next >= 0) cursor = next;
   }
   const plan = buildLibrarySourceSearchPlan(bible, { ...options, cursor });
