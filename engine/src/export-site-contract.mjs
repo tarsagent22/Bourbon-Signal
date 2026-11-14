@@ -4,6 +4,7 @@ import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-tas
 import { selectFleetDropBudget, serializeCustomerDropPayload } from './fleet-drop-budget.mjs';
 import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
 import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
+import { isDelawareBanksStaticCanarySignal } from './delaware-banks-static-canary.mjs';
 import { isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { requiresStateAlertSuppression } from './state-failure-isolation.mjs';
@@ -436,7 +437,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const isMsSparseOnSiteInventory = isMississippiSparseOnSiteInventory(signal);
   const isGroceryOnSiteInventory = isReviewedResearchGrocery(signal);
   const isCentralOnSiteInventory=isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal);
-  const nonAlertingOnSiteInventory=isMsSparseOnSiteInventory||isCentralOnSiteInventory||isGroceryOnSiteInventory;
+  const nonAlertingOnSiteInventory=isMsSparseOnSiteInventory||isCentralOnSiteInventory||isGroceryOnSiteInventory||isDelawareBanksStaticCanarySignal(signal);
   const isMetroInventory = isMetroRetailerInventory(signal);
   const isInRetailerEvent = signal.state === 'IN'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
