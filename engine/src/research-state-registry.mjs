@@ -6,6 +6,7 @@ import { cityHiveResearchSourceForState, cityHiveResearchLifecycleEntries, colle
 
 import {njMiResearchSourceForState,njMiResearchLifecycleEntries,collectNjMiResearchReport} from './nj-mi-research-runtime.mjs';
 import {michiganLiquorsResearchSourceForState,michiganLiquorsResearchLifecycleEntries,collectMichiganLiquorsResearchReport} from './research-michigan-liquors-runtime.mjs';
+import { collectShowermansResearchReport, showermansResearchSourceForState } from './research-showermans-runtime.mjs';
 import { louisianaAlaskaResearchSourceForState, louisianaAlaskaResearchLifecycleEntries, collectLouisianaAlaskaResearchReport } from './research-louisiana-alaska-grocery-runtime.mjs';
 
 // Research registrations never rewrite production lifecycle/source files or
@@ -21,6 +22,7 @@ const MASSACHUSETTS = Object.freeze({
 export function researchSourceForState(state, { shadowMode = process.env.BOURBON_SIGNAL_SHADOW_MODE === '1' } = {}) {
   if (!shadowMode) return null;
   if (state === 'MA') return MASSACHUSETTS;
+  if (state === 'MI' && process.env.BOURBON_SIGNAL_MI_SHOWERMANS_RESEARCH === '1') return showermansResearchSourceForState(state);
   return oregonResearchSourceForState(state)
     || michiganLiquorsResearchSourceForState(state)
     || louisianaAlaskaResearchSourceForState(state)
@@ -51,6 +53,7 @@ export function withResearchLifecycle(production) {
 }
 
 export async function collectResearchStateReport(config, bible, options = {}) {
+  if (config && config === showermansResearchSourceForState(config.id)) return collectShowermansResearchReport(config, bible, options);
   if (config && config === oregonResearchSourceForState(config.id)) return collectOregonResearchReport(config, bible, options);
   if(config&&config===michiganLiquorsResearchSourceForState(config.id))return collectMichiganLiquorsResearchReport(config,bible,options);
   if (config && config === louisianaAlaskaResearchSourceForState(config.id)) return collectLouisianaAlaskaResearchReport(config, bible, options);

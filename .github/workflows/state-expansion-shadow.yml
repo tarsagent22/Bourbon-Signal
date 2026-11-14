@@ -24,11 +24,12 @@ permissions:
 
 jobs:
   collect-shadow-evidence:
-    if: ${{ inputs.states != 'NJ,MI' && inputs.states != 'NJ' && inputs.states != 'MI' }}
+    if: ${{ (inputs.states != 'NJ,MI' && inputs.states != 'NJ' && inputs.states != 'MI') || (inputs.states == 'MI' && github.ref_name == 'research/michigan-showermans-woocommerce-20261114') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
       BOURBON_SIGNAL_AUTO_DEPLOY: "0"
+      BOURBON_SIGNAL_MI_SHOWERMANS_RESEARCH: ${{ github.ref_name == 'research/michigan-showermans-woocommerce-20261114' && inputs.states == 'MI' && '1' || '0' }}
       BOURBON_SIGNAL_ALERT_QUEUE_MODE: shadow
       ALERT_DELIVERY_ENABLED: "0"
       ALERT_ONSITE_DELIVERY_ENABLED: "0"
@@ -177,7 +178,7 @@ jobs:
           path: engine/out/cache/oregon-daily-inventory/source.csv
 
   collect-nj-mi-research:
-    if: ${{ inputs.states == 'NJ,MI' || inputs.states == 'NJ' || inputs.states == 'MI' }}
+    if: ${{ inputs.states == 'NJ,MI' || inputs.states == 'NJ' || (inputs.states == 'MI' && github.ref_name != 'research/michigan-showermans-woocommerce-20261114') }}
     uses: ./.github/workflows/nj-mi-research-preflight.yml
     with:
       states: ${{ inputs.states }}
