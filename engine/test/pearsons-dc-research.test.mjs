@@ -7,6 +7,7 @@ import path from 'node:path';
 import { classifyShadowReadiness } from '../src/run-expansion-shadow.mjs';
 import { PEARSONS_DC_RESEARCH_CONFIG, PEARSONS_DC_SOURCE, collectPearsonsDcResearchReport,
   parsePearsonsDcCapture } from '../src/collectors/pearsons-dc-research.mjs';
+import { dedupeDcCityHiveReplayRows } from '../src/prepare-dc-pearsons-canary.mjs';
 import { collectResearchStateReport, researchSourceForState } from '../src/research-state-registry.mjs';
 
 const fixture = await readFile(new URL('./fixtures/pearsons-dc/product-page.html', import.meta.url));
@@ -14,6 +15,17 @@ const headers = 'HTTP/1.1 200 OK\r\nAge: 0\r\nDate: Sat, 14 Nov 2026 17:40:21 GM
 const expectedId = 'blantons-original';
 const bible = { match: name => name === PEARSONS_DC_SOURCE.canonicalName
   ? { confidence: 1, record: { id: expectedId, canonical: PEARSONS_DC_SOURCE.canonicalName, tier: 'allocated' } } : null };
+
+test('DC canary deduplicates repeated same-option receipts and retains the newest receipt clock',()=>{
+  const first={storeId:'store-1',merchantId:'merchant-1',productId:'product-1',optionId:'option-1',rawName:'Eagle Rare',
+    canonicalName:'Eagle Rare 10 Year',canonicalBottleId:'bb-eagle-rare',tier:'allocated',price:59.99,
+    sourceUrl:'https://example.test/eagle?option-id=1',observedAt:'2026-11-14T21:00:00.000Z'};
+  const duplicate={...first,observedAt:'2026-11-14T21:01:00.000Z'};
+  const distinct={...first,optionId:'option-2',sourceUrl:'https://example.test/eagle?option-id=2'};
+  const result=dedupeDcCityHiveReplayRows([first,duplicate,distinct]);
+  assert.equal(result.length,2);assert.equal(result.find(row=>row.optionId==='option-1').observedAt,duplicate.observedAt);
+  assert.equal(result.find(row=>row.optionId==='option-2').observedAt,first.observedAt);
+});
 const parse = (bytes = fixture, options = {}) => parsePearsonsDcCapture(bytes, {
   url: PEARSONS_DC_SOURCE.productUrl, headers, bible, ...options,
 });

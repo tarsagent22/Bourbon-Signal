@@ -17,6 +17,14 @@ const currentBibleHash=bible=>sha(Buffer.from(JSON.stringify(bible.records||[]))
 const canonical=value=>{const url=new URL(value);url.searchParams.sort();return url.href;};
 const semanticRow=row=>[row.storeId,row.merchantId,row.productId,row.optionId,row.rawName,row.canonicalName,
   row.canonicalBottleId,row.tier,row.price,row.sourceUrl];
+export function dedupeDcCityHiveReplayRows(rows){
+  const unique=new Map();
+  for(const row of rows){
+    const key=JSON.stringify(semanticRow(row)),prior=unique.get(key);
+    if(!prior||Date.parse(row.observedAt||'')>Date.parse(prior.observedAt||''))unique.set(key,row);
+  }
+  return [...unique.values()];
+}
 const arg=flag=>process.argv.find(value=>value.startsWith(flag+'='))?.slice(flag.length+1);
 async function findReports(directory){const result=[];for(const entry of await readdir(directory,{withFileTypes:true})){const file=path.join(directory,entry.name);if(entry.isDirectory())result.push(...await findReports(file));else if(entry.name==='report.json')result.push(file);}return result;}
 
@@ -64,7 +72,8 @@ export async function prepareDcPearsonsCanary({report,reportDirectory,bible,prov
   }
   const shadowCityRows=(report.signals||[]).filter(row=>row.sourceRuntimeId!==pearsonSourceId);
   const order=rows=>rows.map(semanticRow).map(row=>JSON.stringify(row)).sort();
-  if(JSON.stringify(order(replayed))!==JSON.stringify(order(shadowCityRows)))
+  const uniqueReplay=dedupeDcCityHiveReplayRows(replayed);
+  if(JSON.stringify(order(uniqueReplay))!==JSON.stringify(order(shadowCityRows)))
     throw new Error('Current Bottle Bible replay changed the exact CityHive candidate identity/option/name/tier/price/URL cohort');
   const shadowBibleRecordsSha256=report.metadata.bibleRecordsSha256,currentHash=currentBibleHash(bible);
   const cityReport={...report,sources:citySources,metadata:{...report.metadata,receipts:cityReceiptRows,requests:cityRequests,
