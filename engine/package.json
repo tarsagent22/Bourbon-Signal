@@ -13,6 +13,7 @@
     "bible": "node src/build-bible.mjs",
     "sync:library": "node src/sync-library-catalog.mjs",
     "report:library-coverage": "node src/library-coverage-audit.mjs",
+    "shadow:town-crier-la": "npm run bible && node src/run-town-crier-la-shadow.mjs",
     "rare": "node src/rare-report.mjs",
     "location": "node src/location-report.mjs",
     "location:bible": "node src/collect-location-bible.mjs",

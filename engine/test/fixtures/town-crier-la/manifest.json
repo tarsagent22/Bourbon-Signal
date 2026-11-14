@@ -1,0 +1,548 @@
+{
+  "schemaVersion": 1,
+  "fixtureKind": "retained_first_party_api_response_replay_only",
+  "source": "https://thetowncrier.net",
+  "retrievedAt": "2026-11-14T09:25:44.903Z",
+  "clientEvidence": {
+    "productClientBundle": "https://thetowncrier.net/_next/static/chunks/3006-ba463d7b48264666.js",
+    "productClientBundleSha256": "c652f8ecc329e4490aeefbd3e0bc18192123edd357751f0c2b306063e23c1457",
+    "productClientMethods": "getLocations() -> GET /api/locations; getProduct(upc, location) -> GET /api/products/{upc}?location={location}; location selector persists selected store_num",
+    "store2Page": "https://thetowncrier.net/locations/2",
+    "store2PageReceipt": {
+      "url": "https://thetowncrier.net/locations/2",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "text/html; charset=utf-8"
+      ],
+      "bytes": 43292,
+      "at": "2026-11-14T09:22:38.2559998Z"
+    },
+    "siteDisclaimer": "Inventory shown is updated periodically and may not reflect what is currently on the shelf. Call ahead to confirm availability.",
+    "apiResponseDoesNotEchoLocation": true,
+    "displaySemantics": "First-party UI displays In Stock when product quantity > 0; this is not an exact physical shelf count."
+  },
+  "locationReceipt": {
+    "url": "https://thetowncrier.net/api/locations",
+    "status": 200,
+    "finalUrl": null,
+    "contentType": [
+      "application/json"
+    ],
+    "bytes": 1065,
+    "at": "2026-11-14T09:25:24.9075044Z",
+    "sha256": "25658f6f5414afcaa177fab795c0bb2d204ee3244c846f3cae5bb1ad32617492",
+    "artifact": "locations.json"
+  },
+  "stores": [
+    {
+      "store_num": "1",
+      "name": "Town Crier #1 - Mandeville",
+      "address": "4350 Hwy 22, Suite D, Mandeville, LA 70471",
+      "phone": "(985) 674-1870"
+    },
+    {
+      "store_num": "2",
+      "name": "Town Crier #2 - Slidell",
+      "address": "3080 East Gause Blvd, Slidell, LA 70461",
+      "phone": "(985) 643-2303"
+    },
+    {
+      "store_num": "4",
+      "name": "Town Crier #4 - Ponchatoula",
+      "address": "825 West Pine Street, Ponchatoula, LA 70454",
+      "phone": "(985) 386-2568"
+    },
+    {
+      "store_num": "7",
+      "name": "Town Crier #7 - Franklinton",
+      "address": "1513 Washington Street, Franklinton, LA 70438",
+      "phone": "(985) 839-4004"
+    },
+    {
+      "store_num": "8",
+      "name": "Town Crier #8 - Amite",
+      "address": "802 West Oak Street, Amite, LA 70422",
+      "phone": "(985) 748-9268"
+    },
+    {
+      "store_num": "12",
+      "name": "Town Crier #12 - Franklinton",
+      "address": "715 Washington Street, Franklinton, LA 70438",
+      "phone": "(985) 795-1474"
+    },
+    {
+      "store_num": "17",
+      "name": "Town Crier #17 - Slidell",
+      "address": "604 Robert Blvd, Slidell, LA 70458",
+      "phone": "(985) 641-6920"
+    },
+    {
+      "store_num": "18",
+      "name": "Town Crier #18 - Abita Springs",
+      "address": "70117 Hwy 59 Unit A, Abita Springs, LA 70420",
+      "phone": "(985) 377-1868"
+    }
+  ],
+  "products": [
+    {
+      "upc": "088004021344",
+      "sourceName": "EAGLE RARE SINGLE BARREL 750ML",
+      "canonicalName": "Eagle Rare 10 Year",
+      "identityBasis": "exact UPC/name; API description says aged no less than ten years and 90 proof"
+    },
+    {
+      "upc": "088004005498",
+      "sourceName": "EH TAYLOR JR SMALL BATCH 750ML",
+      "canonicalName": "E.H. Taylor Small Batch",
+      "identityBasis": "exact UPC and first-party small-batch product name"
+    }
+  ],
+  "requestCount": 16,
+  "requests": [
+    {
+      "url": "https://thetowncrier.net/api/products/088004021344?location=1",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:24:32.0044899Z",
+      "receivedAt": "2026-11-14T09:24:32.0044899Z",
+      "bytes": 562,
+      "sha256": "e00c97d9d7969bf493b25548faee16a9313c235014ad03ccd7d469a6a4535b74",
+      "artifact": "product-088004021344-store-1.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004005498?location=1",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:00.2284113Z",
+      "receivedAt": "2026-11-14T09:25:00.5565490Z",
+      "bytes": 288,
+      "sha256": "5202d1185b7564a6bdb46edd5e1af3f10a0f41e47508ce51db6a056e029e5c7a",
+      "artifact": "product-088004005498-store-1.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004021344?location=2",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:01.0256836Z",
+      "receivedAt": "2026-11-14T09:25:01.1981121Z",
+      "bytes": 562,
+      "sha256": "0446974be3ba59a355b58e27d0ffc6f8fd829a6c8ec6c066592b6d2c918ac941",
+      "artifact": "product-088004021344-store-2.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004005498?location=2",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:01.6641309Z",
+      "receivedAt": "2026-11-14T09:25:01.7978705Z",
+      "bytes": 288,
+      "sha256": "d45a3dd19c1ca00413b1c38366242a35189bf82aa5015fca7bc890884f3f2d19",
+      "artifact": "product-088004005498-store-2.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004021344?location=4",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:02.2569100Z",
+      "receivedAt": "2026-11-14T09:25:02.4079676Z",
+      "bytes": 563,
+      "sha256": "aa95f222a0cca8fc01379f0d2b7e117bbbb306d953073452dd335a81a6d1175c",
+      "artifact": "product-088004021344-store-4.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004005498?location=4",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:02.8674074Z",
+      "receivedAt": "2026-11-14T09:25:02.9955605Z",
+      "bytes": 288,
+      "sha256": "336e843b2be3ce850d88324578a7ca9f5b19383311006520b5ef0216c336f841",
+      "artifact": "product-088004005498-store-4.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004021344?location=7",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:03.4591087Z",
+      "receivedAt": "2026-11-14T09:25:03.6368039Z",
+      "bytes": 562,
+      "sha256": "eab30cf1cf7b739bdd8f017c786049679ecec377d36d10daef73224f2ff83456",
+      "artifact": "product-088004021344-store-7.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004005498?location=7",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:04.0949541Z",
+      "receivedAt": "2026-11-14T09:25:04.2366002Z",
+      "bytes": 287,
+      "sha256": "3ad8af74b6baf90e1b1206bb9c2907cc88681bfdd9966e918d5ee8efdf5e1654",
+      "artifact": "product-088004005498-store-7.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004021344?location=8",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:04.6883365Z",
+      "receivedAt": "2026-11-14T09:25:04.8425365Z",
+      "bytes": 562,
+      "sha256": "e94b81f9bb17c43a005511e4791b53aec0dc78a8a3eee34893b9d09891271be1",
+      "artifact": "product-088004021344-store-8.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004005498?location=8",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:05.2973920Z",
+      "receivedAt": "2026-11-14T09:25:05.4655889Z",
+      "bytes": 288,
+      "sha256": "37e10565635db0002c1f7c0e7189a88f81c21f0c4a39526703e454fb44463638",
+      "artifact": "product-088004005498-store-8.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004021344?location=12",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:05.9208952Z",
+      "receivedAt": "2026-11-14T09:25:06.0649561Z",
+      "bytes": 562,
+      "sha256": "f00b91c2164625e11f618668eec2d2d54380b4296368c61f1daa7bbb4e7bafbd",
+      "artifact": "product-088004021344-store-12.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004005498?location=12",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:06.5250429Z",
+      "receivedAt": "2026-11-14T09:25:06.6665370Z",
+      "bytes": 288,
+      "sha256": "66d3441fc07a0e776281f26d04822cdbddb11292de9faa5b1f3e17ab2957fe57",
+      "artifact": "product-088004005498-store-12.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004021344?location=17",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:07.1210312Z",
+      "receivedAt": "2026-11-14T09:25:07.2662580Z",
+      "bytes": 562,
+      "sha256": "cde45bd77bb76ab4b811d8153809a0f88395cdb87937b9bb45a8b94eb764d473",
+      "artifact": "product-088004021344-store-17.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004005498?location=17",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:07.7163671Z",
+      "receivedAt": "2026-11-14T09:25:07.8433945Z",
+      "bytes": 287,
+      "sha256": "f2354eae07360a3fc2ca12364f8bfe820e93517d31e982bd4f707b2950030ad0",
+      "artifact": "product-088004005498-store-17.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004021344?location=18",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:08.2971494Z",
+      "receivedAt": "2026-11-14T09:25:08.4654469Z",
+      "bytes": 562,
+      "sha256": "337f74e44084035cb414714f5fd6ae5da55fa71d61cd075ebfe3cbf4aa83221c",
+      "artifact": "product-088004021344-store-18.json"
+    },
+    {
+      "url": "https://thetowncrier.net/api/products/088004005498?location=18",
+      "status": 200,
+      "finalUrl": null,
+      "contentType": [
+        "application/json"
+      ],
+      "requestedAt": "2026-11-14T09:25:08.9222874Z",
+      "receivedAt": "2026-11-14T09:25:09.0591072Z",
+      "bytes": 288,
+      "sha256": "2917779fb025946828e0a6507ac63414be2aef27b86d1e68714d1d1b0cc56850",
+      "artifact": "product-088004005498-store-18.json"
+    }
+  ],
+  "observedResults": [
+    {
+      "storeId": "1",
+      "store": "Town Crier #1 - Mandeville",
+      "address": "4350 Hwy 22, Suite D, Mandeville, LA 70471",
+      "upc": "088004021344",
+      "product": "EAGLE RARE SINGLE BARREL 750ML",
+      "price": 45.99,
+      "quantity": 9,
+      "available": true,
+      "observedAt": "2026-11-14T09:24:32.0044899Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004021344?location=1",
+      "sha256": "e00c97d9d7969bf493b25548faee16a9313c235014ad03ccd7d469a6a4535b74",
+      "artifact": "product-088004021344-store-1.json"
+    },
+    {
+      "storeId": "1",
+      "store": "Town Crier #1 - Mandeville",
+      "address": "4350 Hwy 22, Suite D, Mandeville, LA 70471",
+      "upc": "088004005498",
+      "product": "EH TAYLOR JR SMALL BATCH 750ML",
+      "price": 62.99,
+      "quantity": 23,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:00.5565490Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004005498?location=1",
+      "sha256": "5202d1185b7564a6bdb46edd5e1af3f10a0f41e47508ce51db6a056e029e5c7a",
+      "artifact": "product-088004005498-store-1.json"
+    },
+    {
+      "storeId": "2",
+      "store": "Town Crier #2 - Slidell",
+      "address": "3080 East Gause Blvd, Slidell, LA 70461",
+      "upc": "088004021344",
+      "product": "EAGLE RARE SINGLE BARREL 750ML",
+      "price": 45.99,
+      "quantity": 0,
+      "available": false,
+      "observedAt": "2026-11-14T09:25:01.1981121Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004021344?location=2",
+      "sha256": "0446974be3ba59a355b58e27d0ffc6f8fd829a6c8ec6c066592b6d2c918ac941",
+      "artifact": "product-088004021344-store-2.json"
+    },
+    {
+      "storeId": "2",
+      "store": "Town Crier #2 - Slidell",
+      "address": "3080 East Gause Blvd, Slidell, LA 70461",
+      "upc": "088004005498",
+      "product": "EH TAYLOR JR SMALL BATCH 750ML",
+      "price": 62.99,
+      "quantity": 10,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:01.7978705Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004005498?location=2",
+      "sha256": "d45a3dd19c1ca00413b1c38366242a35189bf82aa5015fca7bc890884f3f2d19",
+      "artifact": "product-088004005498-store-2.json"
+    },
+    {
+      "storeId": "4",
+      "store": "Town Crier #4 - Ponchatoula",
+      "address": "825 West Pine Street, Ponchatoula, LA 70454",
+      "upc": "088004021344",
+      "product": "EAGLE RARE SINGLE BARREL 750ML",
+      "price": 45.99,
+      "quantity": 55,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:02.4079676Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004021344?location=4",
+      "sha256": "aa95f222a0cca8fc01379f0d2b7e117bbbb306d953073452dd335a81a6d1175c",
+      "artifact": "product-088004021344-store-4.json"
+    },
+    {
+      "storeId": "4",
+      "store": "Town Crier #4 - Ponchatoula",
+      "address": "825 West Pine Street, Ponchatoula, LA 70454",
+      "upc": "088004005498",
+      "product": "EH TAYLOR JR SMALL BATCH 750ML",
+      "price": 62.99,
+      "quantity": 32,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:02.9955605Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004005498?location=4",
+      "sha256": "336e843b2be3ce850d88324578a7ca9f5b19383311006520b5ef0216c336f841",
+      "artifact": "product-088004005498-store-4.json"
+    },
+    {
+      "storeId": "7",
+      "store": "Town Crier #7 - Franklinton",
+      "address": "1513 Washington Street, Franklinton, LA 70438",
+      "upc": "088004021344",
+      "product": "EAGLE RARE SINGLE BARREL 750ML",
+      "price": 45.99,
+      "quantity": 1,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:03.6368039Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004021344?location=7",
+      "sha256": "eab30cf1cf7b739bdd8f017c786049679ecec377d36d10daef73224f2ff83456",
+      "artifact": "product-088004021344-store-7.json"
+    },
+    {
+      "storeId": "7",
+      "store": "Town Crier #7 - Franklinton",
+      "address": "1513 Washington Street, Franklinton, LA 70438",
+      "upc": "088004005498",
+      "product": "EH TAYLOR JR SMALL BATCH 750ML",
+      "price": 62.99,
+      "quantity": 7,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:04.2366002Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004005498?location=7",
+      "sha256": "3ad8af74b6baf90e1b1206bb9c2907cc88681bfdd9966e918d5ee8efdf5e1654",
+      "artifact": "product-088004005498-store-7.json"
+    },
+    {
+      "storeId": "8",
+      "store": "Town Crier #8 - Amite",
+      "address": "802 West Oak Street, Amite, LA 70422",
+      "upc": "088004021344",
+      "product": "EAGLE RARE SINGLE BARREL 750ML",
+      "price": 45.99,
+      "quantity": 4,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:04.8425365Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004021344?location=8",
+      "sha256": "e94b81f9bb17c43a005511e4791b53aec0dc78a8a3eee34893b9d09891271be1",
+      "artifact": "product-088004021344-store-8.json"
+    },
+    {
+      "storeId": "8",
+      "store": "Town Crier #8 - Amite",
+      "address": "802 West Oak Street, Amite, LA 70422",
+      "upc": "088004005498",
+      "product": "EH TAYLOR JR SMALL BATCH 750ML",
+      "price": 62.99,
+      "quantity": 34,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:05.4655889Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004005498?location=8",
+      "sha256": "37e10565635db0002c1f7c0e7189a88f81c21f0c4a39526703e454fb44463638",
+      "artifact": "product-088004005498-store-8.json"
+    },
+    {
+      "storeId": "12",
+      "store": "Town Crier #12 - Franklinton",
+      "address": "715 Washington Street, Franklinton, LA 70438",
+      "upc": "088004021344",
+      "product": "EAGLE RARE SINGLE BARREL 750ML",
+      "price": 45.99,
+      "quantity": 8,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:06.0649561Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004021344?location=12",
+      "sha256": "f00b91c2164625e11f618668eec2d2d54380b4296368c61f1daa7bbb4e7bafbd",
+      "artifact": "product-088004021344-store-12.json"
+    },
+    {
+      "storeId": "12",
+      "store": "Town Crier #12 - Franklinton",
+      "address": "715 Washington Street, Franklinton, LA 70438",
+      "upc": "088004005498",
+      "product": "EH TAYLOR JR SMALL BATCH 750ML",
+      "price": 62.99,
+      "quantity": 18,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:06.6665370Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004005498?location=12",
+      "sha256": "66d3441fc07a0e776281f26d04822cdbddb11292de9faa5b1f3e17ab2957fe57",
+      "artifact": "product-088004005498-store-12.json"
+    },
+    {
+      "storeId": "17",
+      "store": "Town Crier #17 - Slidell",
+      "address": "604 Robert Blvd, Slidell, LA 70458",
+      "upc": "088004021344",
+      "product": "EAGLE RARE SINGLE BARREL 750ML",
+      "price": 45.99,
+      "quantity": 3,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:07.2662580Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004021344?location=17",
+      "sha256": "cde45bd77bb76ab4b811d8153809a0f88395cdb87937b9bb45a8b94eb764d473",
+      "artifact": "product-088004021344-store-17.json"
+    },
+    {
+      "storeId": "17",
+      "store": "Town Crier #17 - Slidell",
+      "address": "604 Robert Blvd, Slidell, LA 70458",
+      "upc": "088004005498",
+      "product": "EH TAYLOR JR SMALL BATCH 750ML",
+      "price": 62.99,
+      "quantity": 4,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:07.8433945Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004005498?location=17",
+      "sha256": "f2354eae07360a3fc2ca12364f8bfe820e93517d31e982bd4f707b2950030ad0",
+      "artifact": "product-088004005498-store-17.json"
+    },
+    {
+      "storeId": "18",
+      "store": "Town Crier #18 - Abita Springs",
+      "address": "70117 Hwy 59 Unit A, Abita Springs, LA 70420",
+      "upc": "088004021344",
+      "product": "EAGLE RARE SINGLE BARREL 750ML",
+      "price": 45.99,
+      "quantity": 7,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:08.4654469Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004021344?location=18",
+      "sha256": "337f74e44084035cb414714f5fd6ae5da55fa71d61cd075ebfe3cbf4aa83221c",
+      "artifact": "product-088004021344-store-18.json"
+    },
+    {
+      "storeId": "18",
+      "store": "Town Crier #18 - Abita Springs",
+      "address": "70117 Hwy 59 Unit A, Abita Springs, LA 70420",
+      "upc": "088004005498",
+      "product": "EH TAYLOR JR SMALL BATCH 750ML",
+      "price": 62.99,
+      "quantity": 29,
+      "available": true,
+      "observedAt": "2026-11-14T09:25:09.0591072Z",
+      "requestUrl": "https://thetowncrier.net/api/products/088004005498?location=18",
+      "sha256": "2917779fb025946828e0a6507ac63414be2aef27b86d1e68714d1d1b0cc56850",
+      "artifact": "product-088004005498-store-18.json"
+    }
+  ],
+  "counts": {
+    "stores": 8,
+    "requestedProducts": 2,
+    "requests": 16,
+    "positiveRows": 15,
+    "availableStoresByUpc": {
+      "088004021344": 7,
+      "088004005498": 8
+    }
+  }
+}
