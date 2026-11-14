@@ -5,13 +5,13 @@ import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {BourbonBible} from '../src/core/bible.mjs';
 import {collectState} from '../src/collectors/generic-state.mjs';
-import {ALL_STATE_SOURCES} from '../src/state-sources.mjs';
+import {ALL_STATE_SOURCES,STATE_SOURCES,DISABLED_STATE_SOURCES} from '../src/state-sources.mjs';
 import {STATE_LIFECYCLE_CONFIG} from '../src/state-lifecycle.mjs';
 import {evaluateCapacityBudget} from '../src/reliability-policy.mjs';
 import {stateTimeoutMs} from '../src/run.mjs';
 import {collectCentralCityHiveProductionSource,centralCityHiveProductionAllowed} from '../src/collectors/central-cityhive-production.mjs';
-import {centralCityHiveProductionCohortKey,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS} from '../src/central-cityhive-production-config.mjs';
-import {CENTRAL_CITYHIVE_PRODUCTION_COHORTS} from '../src/collectors/central-cityhive-premises.mjs';
+import {centralCityHiveProductionCohortKey,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,CENTRAL_CITYHIVE_PRODUCTION_STATES} from '../src/central-cityhive-production-config.mjs';
+import {CENTRAL_CITYHIVE_PRODUCTION_COHORTS,CENTRAL_CITYHIVE_PRODUCTION_SOURCES} from '../src/collectors/central-cityhive-premises.mjs';
 import {isCentralCityHiveProductionOnSiteSignal} from '../src/central-cityhive-policy.mjs';
 import {canonicalizeSignal} from '../src/operational-report.mjs';
 import {bibleLookup,buildDrops} from '../src/export-site-contract.mjs';
@@ -43,6 +43,36 @@ test('inactive, quarantined and altered semantic/cohort/provenance authority blo
       assert.equal(result.metadata.blockedByPromotion,true);
     }
     for(const env of [{BOURBON_SIGNAL_DISABLED_STATES:state},{BOURBON_SIGNAL_QUARANTINED_STATES:state}])assert.equal(centralCityHiveProductionAllowed(state,opts.lifecycleConfig,{manifest:opts.promotionManifest,env}),false);
+  }
+  assert.equal(requests,0);
+});
+
+test('DC and WY production routes are exact and prepared but remain dormant without active immutable promotion authority',async t=>{
+  let requests=0;
+  for(const state of ['WY','DC']){
+    const sources=CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source=>source.state===state);
+    assert.ok(CENTRAL_CITYHIVE_PRODUCTION_STATES.includes(state));
+    assert.equal(CENTRAL_CITYHIVE_PRODUCTION_COHORTS[state],centralCityHiveProductionCohortKey(state));
+    assert.equal(sources.length,state==='WY'?3:2);
+    assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes(state),false);
+    assert.equal(STATE_SOURCES.some(source=>source.id===state),false,'dormant candidates must stay out of scheduled production collection');
+    assert.equal(DISABLED_STATE_SOURCES.some(source=>source.id===state),true);
+    assert.equal(centralCityHiveProductionAllowed(state,STATE_LIFECYCLE_CONFIG),false);
+    const options=await setup(t,'WI');
+    const report=await collectState(config(state),bible,{
+      lifecycleConfig:STATE_LIFECYCLE_CONFIG,
+      cityHiveSourceOptions:{
+        ...options,
+        cacheDir:path.join(options.cacheDir,state),
+        incidentDir:path.join(options.incidentDir,state),
+        fetchText:async()=>{requests++;throw Error('Dormant CityHive route must not issue HTTP');},
+      },
+    });
+    assert.equal(report.status,'not_promoted');
+    assert.equal(report.metadata.requestCount,0);
+    assert.equal(report.metadata.blockedByPromotion,true);
+    await assert.rejects(()=>readFile(path.join(options.cacheDir,state,state+'.json')),{code:'ENOENT'});
+    await assert.rejects(()=>readFile(path.join(options.incidentDir,state,state+'.json')),{code:'ENOENT'});
   }
   assert.equal(requests,0);
 });
@@ -141,7 +171,7 @@ test('complete negative observations remain healthy, while source failures retai
 });
 
 test('source deadlines fit parent watchdogs and denial cache saves independently after publication failure',async()=>{
-  for(const state of ['WI','OK']){const b=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state];assert.ok(b.sourceMs<stateTimeoutMs({id:state}));assert.equal(b.stateMs,stateTimeoutMs({id:state}));assert.ok(b.maxRequests*10_000+b.maxRequests*1000<=b.sourceMs);}
+  for(const state of ['WI','OK','WY','DC']){const b=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state];assert.ok(b.sourceMs<stateTimeoutMs({id:state}));assert.ok(b.stateMs<=stateTimeoutMs({id:state}));if(['WI','OK'].includes(state))assert.equal(b.stateMs,stateTimeoutMs({id:state}));assert.ok(b.maxRequests*10_000+b.maxRequests*1000<=b.sourceMs);}
   const workflow=await readFile(new URL('../../.github/workflows/refresh-feed.yml',import.meta.url),'utf8');
   const steps=workflow.split(/\r?\n {6}- name:/),file='engine/out/source-incidents/central-cityhive';
   const restore=steps.find(step=>step.includes('actions/cache/restore@v4')&&step.includes(file));
