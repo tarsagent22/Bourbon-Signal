@@ -1175,7 +1175,9 @@
         "public_platform_surface",
         "allocated_release"
       ],
-      "currentBlockers": [],
+      "currentBlockers": [
+        "Current exact pickup evidence covers only two Rapid City premises; no statewide retailer inventory source is verified."
+      ],
       "rankingInputs": {
         "demandSignals": [],
         "strategicSignals": []

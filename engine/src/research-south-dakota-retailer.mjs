@@ -81,36 +81,68 @@ export async function collectSouthDakotaResearch(incoming, bible, {
   attemptsFile = path.resolve('out/research-source-attempts/south-dakota-mr-liquor.json'),
   reportDirectory = env.BOURBON_SIGNAL_STATE_OUT_FILE ? path.dirname(env.BOURBON_SIGNAL_STATE_OUT_FILE) : null,
   sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
+  now = () => Date.now(),
 } = {}) {
   if (env.BOURBON_SIGNAL_SHADOW_MODE !== '1' || incoming !== config) throw Error('South Dakota requires its registered shadow mode.');
-  const startedAt = new Date().toISOString();
-  const previous = await readFile(attemptsFile, 'utf8').then(JSON.parse).catch(error => {
+  const startedAt = new Date(now()).toISOString();
+  let previous = null;
+  try {
+    previous = JSON.parse(await readFile(attemptsFile, 'utf8'));
+    if (!previous || typeof previous !== 'object' || Array.isArray(previous)) throw Error('South Dakota source attempt journal must be an object.');
+  } catch (error) {
     if (error.code !== 'ENOENT') throw error;
-    return null;
-  });
-  if (previous !== null && !Number.isFinite(Date.parse(previous?.nextAllowedAt ?? ''))) {
+  }
+  if (previous !== null && (!previous || ![1,2].includes(previous.schemaVersion || 1)
+    || !Number.isFinite(Date.parse(previous?.nextAllowedAt ?? ''))
+    || previous.schemaVersion === 2 && (!previous.hosts || typeof previous.hosts !== 'object' || Array.isArray(previous.hosts)
+      || Object.entries(previous.hosts).some(([host, entry]) => !/^[a-z0-9.-]{1,253}$/i.test(host)
+        || !entry || !CITYHIVE_DENIAL_STATUSES.has(Number(entry.httpStatus))
+        || !Number.isFinite(Date.parse(entry.lastAttemptAt || '')) || !Number.isFinite(Date.parse(entry.nextAllowedAt || ''))
+        || Date.parse(entry.nextAllowedAt) - Date.parse(entry.lastAttemptAt) < 86_400_000)))) {
     throw Error('Invalid South Dakota source attempt clock.');
   }
   const requests = [], selected = [], rows = new Map(), roadblocks = [];
-  const persist = async (startedMs, delay) => {
+  const host = new URL(origin).hostname;
+  const hosts = {...(previous?.schemaVersion === 2 ? previous.hosts : {})};
+  if (previous?.schemaVersion === 1 && previous.deniedHost === host
+    && Number.isFinite(Date.parse(previous.denialLastAttemptAt || ''))
+    && Number.isFinite(Date.parse(previous.nextAllowedAt || ''))) {
+    hosts[host] = {httpStatus: Number(previous.httpStatus) || 403, lastAttemptAt: previous.denialLastAttemptAt,
+      nextAllowedAt: previous.nextAllowedAt, retryAfterSeconds: Number(previous.retryAfterSeconds) || 0};
+  }
+  let ledger = previous?.schemaVersion === 2 ? {...previous, hosts} : {schemaVersion: 2, hosts};
+  const persist = async value => {
     await mkdir(path.dirname(attemptsFile), {recursive: true});
     const temporary = attemptsFile + '.' + randomUUID() + '.tmp';
     try {
-      await writeFile(temporary, JSON.stringify({
-        startedAt: new Date(startedMs).toISOString(), nextAllowedAt: new Date(startedMs + delay).toISOString(),
-      }));
+      await writeFile(temporary, JSON.stringify(value));
       await rename(temporary, attemptsFile);
     } finally {
       await rm(temporary, {force: true});
     }
   };
-  const now = Date.now();
+  const nowMs = now();
+  if (!Number.isFinite(nowMs)) throw Error('Invalid South Dakota collector clock.');
+  if (ledger.lastAttemptAt && nowMs < Date.parse(ledger.lastAttemptAt) - 5 * 60_000) {
+    throw Error('South Dakota source attempt clock is from the future.');
+  }
+  const pairDue = Date.parse(ledger.nextAllowedAt || '') <= nowMs || previous === null;
   let attempted = false;
-  if (Date.parse(previous?.nextAllowedAt || '') <= now || previous === null) {
-    await persist(now, 30 * 60_000);
+  if (pairDue) {
+    const attemptAt = new Date(nowMs).toISOString();
+    ledger = {...ledger, schemaVersion: 2, lastAttemptAt: attemptAt,
+      nextAllowedAt: new Date(nowMs + 30 * 60_000).toISOString(), hosts};
+    await persist(ledger);
     attempted = true;
     for (const source of sources) {
       let successful = true;
+      const cooldown = ledger.hosts[host];
+      if (Date.parse(cooldown?.nextAllowedAt || '') > now()) {
+        successful = false;
+        roadblocks.push({state: 'SD', source: source.name, status: cooldown.httpStatus,
+          error: 'source_host_cooldown', nextAllowedAt: cooldown.nextAllowedAt});
+        continue;
+      }
       for (const term of source.terms) {
         if (requests.length) await sleep(1000);
         signal?.throwIfAborted();
@@ -119,10 +151,27 @@ export async function collectSouthDakotaResearch(incoming, bible, {
           const response = await fetchText(url, {signal, timeoutMs: 9000, maxBytes: 2 * 1024 * 1024,
             headers: {accept: 'application/json', cookie: 'childStorePublicId=' + source.publicId},
             isAllowedUrl: target => target.href === url,
-            onResponse: value => CITYHIVE_DENIAL_STATUSES.has(value.status) ? persist(Date.now(),
-              Math.min(30 * 86_400_000, Math.max(86_400_000, (value.retryAfterSeconds || 0) * 1000))) : undefined,
+            onResponse: async value => {
+              const code = Number(value.status);
+              if (!CITYHIVE_DENIAL_STATUSES.has(code) && !(code >= 200 && code < 300)) return;
+              const nextHosts = {...ledger.hosts};
+              if (!CITYHIVE_DENIAL_STATUSES.has(code)) {
+                if (!nextHosts[host]) return;
+                delete nextHosts[host];
+                ledger = {...ledger, hosts: nextHosts};
+                await persist(ledger);
+                return;
+              }
+              const deniedAtMs = now();
+              const retryAfterSeconds = Math.max(0, Number(value.retryAfterSeconds) || 0);
+              const delay = Math.max(86_400_000, retryAfterSeconds * 1000);
+              ledger = {...ledger, hosts: {...ledger.hosts, [host]: {httpStatus: Number(value.status),
+                lastAttemptAt: new Date(deniedAtMs).toISOString(), retryAfterSeconds,
+                nextAllowedAt: new Date(Math.min(8_640_000_000_000_000, deniedAtMs + delay)).toISOString()}}};
+              await persist(ledger);
+            },
           });
-          const observedAt = new Date().toISOString();
+          const observedAt = new Date(now()).toISOString();
           const replay = response.status === 200 && response.url === url
             ? reviewSouthDakotaPickup(JSON.parse(response.text), source.id, bible, observedAt, url) : null;
           const sha256 = replay ? createHash('sha256').update(response.text).digest('hex') : null;
@@ -155,20 +204,22 @@ export async function collectSouthDakotaResearch(incoming, bible, {
         } catch (error) {
           signal?.throwIfAborted();
           successful = false;
-          roadblocks.push({state: 'SD', source: source.name, status: requests.at(-1)?.status ?? 0, error: error.message});
+          roadblocks.push({state: 'SD', source: source.name, status: requests.at(-1)?.status ?? error.status ?? 0,
+            error: error.message, ...(ledger.hosts[host] ? {nextAllowedAt: ledger.hosts[host].nextAllowedAt} : {})});
           break;
         }
       }
       if (successful) selected.push(source);
-      if (!successful) break;
     }
   }
   const checkedSources = selected.map(source => ({sourceRuntimeId: sourceId(source), label: source.name,
     url: origin, ok: true, status: 200, alertable: false, inventoryAlertable: false, watchAlertable: false}));
   const complete = selected.length === sources.length && requests.length === 3;
-  const signals = [...rows.values()], finishedAt = new Date().toISOString();
+  const signals = [...rows.values()], finishedAt = new Date(now()).toISOString();
   return {state: 'SD', label, tier: config.tier, strategy: config.strategy, cadence: config.cadence, startedAt, finishedAt,
-    lastGoodAt: complete ? finishedAt : null, status: complete && signals.length ? 'useful' : attempted ? 'no_trusted_inventory' : 'not_due',
+    lastGoodAt: complete ? finishedAt : signals.length ? finishedAt : null,
+    status: complete && signals.length ? 'useful' : signals.length ? 'partial_useful'
+      : roadblocks.length ? 'no_trusted_inventory' : attempted ? 'no_trusted_inventory' : 'not_due',
     stale: false, signals, sources: checkedSources, sourceResults: checkedSources, roadblocks,
     metadata: {complete, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false,
       origin: env.GITHUB_ACTIONS === 'true' ? {
