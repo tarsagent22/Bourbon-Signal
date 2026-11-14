@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFile, spawn } from 'node:child_process';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { withResearchLifecycle } from './research-state-registry.mjs';
@@ -270,8 +270,25 @@ function argValue(flag) {
 async function main() {
   const lifecycle = withResearchLifecycle(await readJson(path.resolve('..', 'src', 'config', 'state-lifecycle.json'), null));
   const states = String(argValue('--states') || '').split(',').map(stateId).filter(Boolean);
-  const scheduledAt = process.env.GITHUB_EVENT_NAME === 'schedule' ? Date.now() : undefined;
-  const summary = await runExpansionShadow({ lifecycle, states, limit: Number(argValue('--limit') || 5), scheduledAt });
+  const limit = Number(argValue('--limit') || 5);
+  const requestedAt = Number(argValue('--scheduled-at'));
+  const scheduledAt = Number.isFinite(requestedAt) && requestedAt > 0
+    ? requestedAt : process.env.GITHUB_EVENT_NAME === 'schedule' ? Date.now() : undefined;
+  if (process.argv.includes('--plan-only')) {
+    const candidates = selectShadowCandidates(lifecycle, { states, limit, scheduledAt });
+    validateShadowRunRequest(lifecycle, { requestedStates: states, candidates });
+    if (!process.env.GITHUB_OUTPUT) throw new Error('Shadow plan output requires the GitHub Actions output file.');
+    await appendFile(process.env.GITHUB_OUTPUT, [
+      `states=${candidates.join(',')}`,
+      `limit=${candidates.length}`,
+      `scheduled_at=${scheduledAt || ''}`,
+      `or_selected=${candidates.includes('OR')}`,
+      '',
+    ].join('\n'), 'utf8');
+    console.log(JSON.stringify({ candidates, scheduledAt: scheduledAt || null, productionSnapshotTouched: false }));
+    return;
+  }
+  const summary = await runExpansionShadow({ lifecycle, states, limit, scheduledAt });
   validateShadowRunRequest(lifecycle, { requestedStates: states, candidates: summary.candidates });
   console.log(JSON.stringify({ mode: summary.mode, candidates: summary.candidates, runId: summary.runId, productionSnapshotTouched: false, alertsDisabled: true }, null, 2));
   if (!summary.complete) {

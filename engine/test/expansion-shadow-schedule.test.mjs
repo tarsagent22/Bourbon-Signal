@@ -16,5 +16,14 @@ test('scheduled shadow can acquire bounded headless Oregon evidence without publ
  assert.match(workflow,/BOURBON_SIGNAL_OR_BROWSER_PREREQUISITE_TIMEOUT_MS:\s*"180000"/);
  assert.match(workflow,/BOURBON_SIGNAL_AUTO_DEPLOY:\s*"0"/);
  assert.match(workflow,/ALERT_DELIVERY_ENABLED:\s*"0"/);
+ assert.match(workflow,/OR_DAILY_CACHE_DIR:\s*out\/cache\/oregon-daily-inventory/);
+ assert.match(workflow,/id: plan/);
+ assert.match(workflow,/--plan-only/);
+ assert.match(workflow,/id: oregon-daily-cache/);
+ assert.match(workflow,/if: steps\.plan\.outputs\.or_selected == 'true'/);
+ assert.match(workflow,/oregon-daily-\$\{\{ runner\.os \}\}-\$\{\{ github\.ref_name \}\}-/);
+ assert.match(workflow,/steps\.collect-shadow\.outputs\.or_cache_updated == 'true'/);
+ assert.match(workflow,/steps\.collect-shadow\.outputs\.or_source_body_fetched == 'true'/);
+ assert.match(workflow,/OR-source-cache-receipt\.json/);
  assert.match(workflow,/if: always\(\)/);
 });
