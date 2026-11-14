@@ -7,6 +7,7 @@ import { cityHiveResearchSourceForState, cityHiveResearchLifecycleEntries, colle
 import {njMiResearchSourceForState,njMiResearchLifecycleEntries,collectNjMiResearchReport} from './nj-mi-research-runtime.mjs';
 import {michiganLiquorsResearchSourceForState,michiganLiquorsResearchLifecycleEntries,collectMichiganLiquorsResearchReport} from './research-michigan-liquors-runtime.mjs';
 import { louisianaAlaskaResearchSourceForState, louisianaAlaskaResearchLifecycleEntries, collectLouisianaAlaskaResearchReport } from './research-louisiana-alaska-grocery-runtime.mjs';
+import { wyomingGroceryResearchSourceForState, wyomingGroceryResearchLifecycle, collectWyomingGroceryResearchReport } from './research-wyoming-grocery-runtime.mjs';
 
 // Research registrations never rewrite production lifecycle/source files or
 // historical promotion evidence. Activation requires a separate reviewed change.
@@ -24,6 +25,7 @@ export function researchSourceForState(state, { shadowMode = process.env.BOURBON
   return oregonResearchSourceForState(state)
     || michiganLiquorsResearchSourceForState(state)
     || louisianaAlaskaResearchSourceForState(state)
+    || wyomingGroceryResearchSourceForState(state)
     || njMiResearchSourceForState(state)
     || groceryResearchSourceForState(state)
     || cityHiveResearchSourceForState(state);
@@ -35,6 +37,7 @@ export function withResearchLifecycle(production) {
   const additions = {
     ...cityHiveResearchLifecycleEntries(), ...groceryResearchLifecycleEntries(), ...njMiResearchLifecycleEntries(),
     ...michiganLiquorsResearchLifecycleEntries(), ...louisianaAlaskaResearchLifecycleEntries(),
+    ...wyomingGroceryResearchLifecycle,
   };
   for(const state of Object.keys(additions))if(production.activeStates.includes(state)||production.states[state]?.publicStatus==='active') {
     delete additions[state];
@@ -54,6 +57,7 @@ export async function collectResearchStateReport(config, bible, options = {}) {
   if (config && config === oregonResearchSourceForState(config.id)) return collectOregonResearchReport(config, bible, options);
   if(config&&config===michiganLiquorsResearchSourceForState(config.id))return collectMichiganLiquorsResearchReport(config,bible,options);
   if (config && config === louisianaAlaskaResearchSourceForState(config.id)) return collectLouisianaAlaskaResearchReport(config, bible, options);
+  if (config && config === wyomingGroceryResearchSourceForState(config.id)) return collectWyomingGroceryResearchReport(config, bible, options);
   if(config&&config===groceryResearchSourceForState(config.id))return collectGroceryResearchReport(config,bible,options);
   if(config&&config===njMiResearchSourceForState(config.id))return collectNjMiResearchReport(config,bible,options);
   if (config && config === cityHiveResearchSourceForState(config.id)) return collectCityHiveResearchReport(config,bible,options);
