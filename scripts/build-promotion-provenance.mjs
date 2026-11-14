@@ -409,6 +409,7 @@ if (state === 'MD') files.push(
   'engine/test/fixtures/md-cityhive/owings-mills-elijah-craig-bp.json',
   'engine/out/canary/MD/site/states/MD-MONTGOMERY/drops.json',
 );
+if (state === 'DE') files.push(
   'engine/src/collectors/central-cityhive-production.mjs',
   'engine/src/central-cityhive-production-config.mjs',
   'engine/src/collectors/central-cityhive-premises.mjs',
