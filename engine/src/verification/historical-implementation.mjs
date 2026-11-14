@@ -145,6 +145,29 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const releasedMinnesota = /^    "MN": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if (text.includes('    "MN"\n  ],\n  "reliabilityPolicy"') || releasedMinnesota?.includes('      "publicStatus": "active"')) {
+      assert.equal(createHash('sha256').update(releasedMinnesota || '').digest('hex'),
+        'c5fed12c9eb64ff14b8b8937abca5d255109c990c5bdceb46afa0e3cae1a3de2', `${name}: exact attested MN lifecycle entry`);
+      const inactiveMinnesota = `    "MN": {
+      "customerLabel": "Minnesota",
+      "sourceLabel": "Minnesota Costco warehouse bourbon watch",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_costco_inventory_research",
+      "coverageTier": "blocked",
+      "refinementLevel": "warehouse",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research-only: Minnesota has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
+    },
+`;
+      text = replaceUnique(text, releasedMinnesota, inactiveMinnesota, `${name}: exact attested MN lifecycle entry`);
+      text = replaceUnique(text, '    "RI",\n    "MN"\n  ],\n  "reliabilityPolicy"',
+        '    "RI"\n  ],\n  "reliabilityPolicy"', `${name}: exact MN active list tail`);
+      text = replaceUnique(text, '    "stateExpectedRunMs": {\n      "MN": 30000,\n',
+        '    "stateExpectedRunMs": {\n', `${name}: exact MN expected runtime`);
+    }
     const releasedRi = /^    \},\n    "RI": \{[\s\S]+?^  \}/mu.exec(text)?.[0];
     if (releasedRi && createHash('sha256').update(releasedRi).digest('hex') === '630ee689b046da0c7c418c9254b2babadb06898921b1fc875b1dd903a4c90fe2') {
       text=replaceUnique(text,releasedRi,'    }\n  }',`${name}: exact attested RI lifecycle entry`);

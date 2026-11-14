@@ -71,6 +71,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "MS"
     ],
     "stateExpectedRunMs": {
+      "MN": 30000,
       "TX": 90000,
       "VA": 1140000,
       "IN": 240000,
@@ -87,8 +88,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "NV": 240000,
       "ID": 180000,
       "AZ": 900000,
-      "FL": 180000,
-      "MN": 30000
+      "FL": 180000
     }
   },
   "states": {
