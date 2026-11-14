@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {FWGS_PUBLICATION_MAX_AGE_MS,FWGS_PUBLICATION_HEADROOM_MS,FWGS_REUSABLE_SOURCE_MAX_AGE_MS,FWGS_REUSABLE_CHUNK_MAX_AGE_MS,fwgsChunkReuseAgeLimit,fwgsReuseAgeLimit,fwgsPublicationFreshness,browserCollectorRefreshDecision,browserCollectorScripts,targetedPaPublicationAdmission} from '../src/fwgs-publication-freshness.mjs';
+import {FWGS_PUBLICATION_MAX_AGE_MS,FWGS_PUBLICATION_HEADROOM_MS,FWGS_REUSABLE_SOURCE_MAX_AGE_MS,FWGS_REUSABLE_CHUNK_MAX_AGE_MS,fwgsChunkReuseAgeLimit,fwgsReuseAgeLimit,fwgsPublicationFreshness,browserCollectorRefreshDecision,browserCollectorScripts,splitOverlappedBrowserScripts,targetedPaPublicationAdmission} from '../src/fwgs-publication-freshness.mjs';
 import {PENNSYLVANIA_EXPANSION_EXPECTATIONS} from '../src/verify-pa-expansion.mjs';
 const now=Date.parse('2026-10-29T16:36:11.189Z'),artifact=(minutes,{chunks}={})=>({generatedAt:new Date(now-minutes*60000).toISOString(),inventoryEndpoint:'/ccstorex/custom/v1/b2b/get-inventory',...(chunks?{chunks}: {})});
 
@@ -21,6 +21,16 @@ test('only original coherent source clocks with reserved headroom can be reused'
   {...artifact(10),chunks:[{generatedAt:artifact(20).generatedAt}]},{...artifact(10),chunks:[{generatedAt:'bad'}]},
   {...artifact(10),chunks:[{generatedAt:artifact(-1).generatedAt}]},{...artifact(10),chunks:{}}])assert.equal(fwgsPublicationFreshness(payload,{nowMs:now}).ok,false);
  const merged=artifact(20,{chunks:[{generatedAt:artifact(20).generatedAt},{generatedAt:artifact(10).generatedAt}]});assert.equal(fwgsPublicationFreshness(merged,{nowMs:now}).ok,true);
+});
+
+test('overlap delegates exactly one FWGS browser run while keeping preceding OHLQ work ordered',()=>{
+ const scripts=browserCollectorScripts({rawStates:'',browserStarted:false});
+ const plan=splitOverlappedBrowserScripts(scripts,{scheduledFleetRun:true});
+ assert.deepEqual(plan.immediate,['src/ohlq-browser-collector.mjs']);
+ assert.deepEqual(plan.delegatedFwgs,['src/fwgs-browser-full.mjs']);
+ const targeted=splitOverlappedBrowserScripts(scripts,{scheduledFleetRun:false});
+ assert.deepEqual(targeted.immediate,scripts,'targeted refresh keeps the established serial preflight and early admission');
+ assert.deepEqual(targeted.delegatedFwgs,[]);
 });
 
 test('chunk reuse has its own five-minute ceiling independent of whole-artifact admission',()=>{
