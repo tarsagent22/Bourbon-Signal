@@ -3,6 +3,7 @@ import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-po
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { isLouisianaAlaskaGroceryCanaryPreview } from '../../engine/src/laak-canary-preview-policy.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal } from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
+import { isPearsonsDcCanaryPreview, isPearsonsDcProductionOnSiteSignal } from '../../engine/src/pearsons-dc-production-policy.mjs';
 export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
   ["retailer:ms:cityhive:68ba2980113a7a29c2076fc3", "029254"],
   ["retailer:ms:moonshine:323", "044411"],
@@ -161,6 +162,8 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
   if (isLaakGroceryInventory) return isLaakCanaryPreview || isLaakProductionOnSite;
   if (isLaakCanaryPreview || isLaakProductionOnSite) return true;
   if (isGroceryExpansionOnSiteSignal(drop)) return true;
+  if (state === 'DC' && type === 'retailer_store_inventory_result'
+    && (isPearsonsDcCanaryPreview(drop) || isPearsonsDcProductionOnSiteSignal(drop))) return true;
   if (['NJ','MI'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isNjMiOnSiteSignal(drop);
   if (['WI','OK','RI','MN','KS','AR','MO','DC'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isCentralCityHiveOnSiteSignal(drop);
   if (!type) return false;

@@ -7,6 +7,7 @@ import {collectPearsonsDcProductionSource} from '../src/collectors/pearsons-dc-p
 import {PEARSONS_DC_SOURCE} from '../src/collectors/pearsons-dc-research.mjs';
 import {centralCityHiveProductionCohortKey} from '../src/central-cityhive-production-config.mjs';
 import {isPearsonsDcProductionOnSiteSignal} from '../src/central-cityhive-policy.mjs';
+import {isPearsonsDcCanaryPreview} from '../src/pearsons-dc-production-policy.mjs';
 
 const fixture=await readFile(new URL('./fixtures/pearsons-dc/product-page.html',import.meta.url),'utf8');
 const bible={match:name=>name===PEARSONS_DC_SOURCE.canonicalName
@@ -32,6 +33,13 @@ test('Pearson production source requires the shared gate, makes one exact reques
   assert.equal(row.canAlertAsInventory,false);assert.equal(row.canAlertAsWatch,false);assert.equal(row.eligibleForDelivery,false);
   assert.equal(row.sourceProductBinding.productionCohortSha256,cohortSha256);
   assert.equal(isPearsonsDcProductionOnSiteSignal(row,{nowMs}),true);
+  const preview={...row,sourceRuntimeId:'research:dc:pearsons-shopify',previewOnly:true,quantity:0,
+    quantitySemantics:'no_exact_shelf_count',sourceProductBinding:{...row.sourceProductBinding,productionOnSiteOnly:undefined,productionCohortSha256:undefined}};
+  assert.equal(isPearsonsDcCanaryPreview(preview,{nowMs}),true);
+  for(const change of [{storeAddress:'1 Other St'},{variantId:'other'},{canAlertAsInventory:true},{eligibleForDelivery:true},
+    {quantity:1},{observedAt:new Date(nowMs-3*60*60_000).toISOString()}])
+    assert.equal(isPearsonsDcCanaryPreview({...preview,...change},{nowMs}),false,JSON.stringify(change));
+  assert.equal(isPearsonsDcCanaryPreview({...preview,sourceProductBinding:{...preview.sourceProductBinding,productionOnSiteOnly:true}},{nowMs}),false);
   const journal=JSON.parse(await readFile(journalFile,'utf8'));assert.equal(journal.lastOutcome,'success');
   assert.equal(journal.lastGoodAt,row.observedAt);assert.equal(journal.lastSignal.variantId,PEARSONS_DC_SOURCE.variantId);
   const reused=await collectPearsonsDcProductionSource({admissionPassed:true,cohortSha256,bible,journalFile,nowMs:nowMs+60_000,

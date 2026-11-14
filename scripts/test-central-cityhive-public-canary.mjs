@@ -8,6 +8,7 @@ import * as knownStoresModule from '../src/lib/coverage-known-stores.ts';
 import * as receiptModule from '../src/lib/nationwide-pilot-receipt.ts';
 import * as harness from '../apps/mobile/src/astra-test-harness.ts';
 import {isCentralCityHiveInventory} from '../engine/src/central-cityhive-policy.mjs';
+import {isPearsonsDcCanaryPreview} from '../engine/src/pearsons-dc-production-policy.mjs';
 const {classifyPublicDrop,getDropClassificationIndex}=classificationModule.default||classificationModule;
 const {normalizePublicDropEvidenceInput,isPublicDropFeedEligible,isCurrentInventoryEvidence}=evidenceModule.default||evidenceModule;
 const {buildCoverageContract}=coverageModule.default||coverageModule;
@@ -23,9 +24,12 @@ const index=getDropClassificationIndex((await read('src/data/drop-feed-classific
 const classified=partition.drops.map(row=>normalizePublicDropEvidenceInput(classifyPublicDrop(normalizeDropForSite(row),index)));
 const accepted=classified.filter(row=>isPublicDropFeedEligible(row)&&isCurrentInventoryEvidence(row,clock));
 assert.ok(accepted.length>0,'Actual current app-eligible rows must survive the canary customer policy');
-assert.ok(accepted.every(row=>isCentralCityHiveInventory(row)&&row.previewOnly&&row.eligibleForOnSite
+assert.ok(accepted.every(row=>(isCentralCityHiveInventory(row)||state==='DC'&&isPearsonsDcCanaryPreview(row))&&row.previewOnly&&row.eligibleForOnSite
   &&row.canAlertAsInventory===false&&row.canAlertAsWatch===false&&row.eligibleForDelivery===false
-  &&row.eligibleForEmail===false&&row.eligibleForSms===false&&row.quantity===0&&row.quantityIsExact===false));
+  &&row.eligibleForEmail===false&&row.eligibleForSms===false
+  &&(state==='DC'&&row.sourceRuntimeId==='research:dc:pearsons-shopify'
+    ? row.quantity==null&&row.storeQty===0&&row.quantityIsExact===false
+    : row.quantity===0&&row.quantityIsExact===false)));
 const binary=accepted[0];
 for(const mutation of [{storeId:'unreviewed'},{productId:'unreviewed'},{quantity:1},{quantityIsExact:true},
   {storeAddress:'999 Other Street'},{sourceStale:true}])assert.equal(isCentralCityHiveInventory({...binary,...mutation}),false);
