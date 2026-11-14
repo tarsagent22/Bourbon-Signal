@@ -1,0 +1,378 @@
+{
+  "capture": {
+    "url": "https://warehouseliquorlr.com/shop/?ch-query=barrel+proof",
+    "capturedAt": "2026-11-14T12:48:33.543Z",
+    "inventoryUpdatedAt": "2026-11-13T13:00:29.935-05:00",
+    "sha256": "0459c47f879560799655b6c6273eec5d005bd4ae2c6d9757449684fe4cdd1088",
+    "httpStatus": 200
+  },
+  "storeConfigs": [
+    {
+      "id": "66b0f6cbfafb100f08637872",
+      "name": "Warehouse Liquor Market - Cantrell",
+      "pickup": true,
+      "last_inventory_upload": "2026-11-13T13:00:29.935-05:00",
+    "pickup": true,
+    "last_inventory_upload": "2026-11-13T13:00:29.935-05:00",
+      "address": {
+        "full_address": "19610 Cantrell Rd, Little Rock, AR 72223, USA",
+        "location": {
+          "type": "Point",
+          "coordinates": [
+            -92.4906888,
+            34.8123273
+          ]
+        }
+      }
+    },
+    {
+      "id": "68263ec02aaba94989284476",
+      "name": "Warehouse Liquor Market - Main St",
+      "pickup": false,
+      "last_inventory_upload": "2026-11-13T13:32:35.719-05:00",
+    "pickup": false,
+    "last_inventory_upload": "2026-11-13T13:32:35.719-05:00",
+      "address": {
+        "full_address": "1007 S Main St, Little Rock, AR 72202, USA",
+        "location": {
+          "type": "Point",
+          "coordinates": [
+            -92.2718661,
+            34.7386468
+          ]
+        }
+      }
+    }
+  ],
+  "payloads": [
+    {
+      "merchant_configs": [
+        {
+          "merchant": {
+            "id": "66b0f6cbfafb100f08637872",
+            "name": "Warehouse Liquor Market - Cantrell",
+            "address": {
+              "full_address": "19610 Cantrell Rd, Little Rock, AR 72223, USA",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  -92.4906888,
+                  34.8123273
+                ]
+              }
+            }
+          }
+        },
+        {
+          "merchant": {
+            "id": "68263ec02aaba94989284476",
+            "name": "Warehouse Liquor Market - Main St",
+            "address": {
+              "full_address": "1007 S Main St, Little Rock, AR 72202, USA",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  -92.2718661,
+                  34.7386468
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "products": [
+        {
+          "id": "56c29217756275139dc70300",
+          "name": "Elijah Craig Barrel Proof",
+          "basic_category": [
+            "bourbon",
+            "whiskey"
+          ],
+          "size": {
+            "measure": "ml",
+            "quantity": "750"
+          },
+          "merchants": [
+            {
+              "offer_types": [
+                "pick_up",
+                "delivery",
+                "shipping"
+              ],
+              "merchant_id": "66b0f6cbfafb100f08637872",
+              "merchant_name": "Warehouse Liquor Market - Cantrell",
+              "coordinates": [
+                -92.4906888,
+                34.8123273
+              ],
+              "full_address": "19610 Cantrell Rd, Little Rock, AR 72223, USA",
+              "product_options": [
+                {
+                  "product_id": "56c29217756275139dc70300",
+                  "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+                  "option_params": {
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    }
+                  },
+                  "product_url": "https://warehouseliquorlr.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+                  "quantity": 5,
+                  "merchant_id": "66b0f6cbfafb100f08637872",
+                  "merchant_name": "Warehouse Liquor Market - Cantrell",
+                  "coordinates": [
+                    -92.4906888,
+                    34.8123273
+                  ],
+                  "full_address": "19610 Cantrell Rd, Little Rock, AR 72223, USA",
+                  "price": 85.99,
+                  "option_display_data": {
+                    "name": "Elijah Craig Barrel Proof",
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    },
+                    "basic_category": [
+                      "bourbon",
+                      "whiskey"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "59653a92355d0935c14d7491",
+          "name": "1792 Bourbon Full Proof",
+          "basic_category": [
+            "bourbon",
+            "whiskey"
+          ],
+          "size": {
+            "measure": "ml",
+            "quantity": "750"
+          },
+          "merchants": [
+            {
+              "offer_types": [
+                "pick_up",
+                "delivery",
+                "shipping"
+              ],
+              "merchant_id": "66b0f6cbfafb100f08637872",
+              "merchant_name": "Warehouse Liquor Market - Cantrell",
+              "coordinates": [
+                -92.4906888,
+                34.8123273
+              ],
+              "full_address": "19610 Cantrell Rd, Little Rock, AR 72223, USA",
+              "product_options": [
+                {
+                  "product_id": "59653a92355d0935c14d7491",
+                  "option_id": "dd1e2a742de147bca497d8c273d0435ef77c126aca7a9d2ce21cdf50e2654a7a",
+                  "option_params": {
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    }
+                  },
+                  "product_url": "https://warehouseliquorlr.com/shop/product/1792-bourbon-full-proof/59653a92355d0935c14d7491?option-id=dd1e2a742de147bca497d8c273d0435ef77c126aca7a9d2ce21cdf50e2654a7a",
+                  "quantity": 21,
+                  "merchant_id": "66b0f6cbfafb100f08637872",
+                  "merchant_name": "Warehouse Liquor Market - Cantrell",
+                  "coordinates": [
+                    -92.4906888,
+                    34.8123273
+                  ],
+                  "full_address": "19610 Cantrell Rd, Little Rock, AR 72223, USA",
+                  "price": 64.99,
+                  "option_display_data": {
+                    "name": "1792 Bourbon Full Proof",
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    },
+                    "basic_category": [
+                      "bourbon",
+                      "whiskey"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "6144fc9d59f9ed58fcc1ca44",
+          "name": "Elijah Craig Barrel Proof Store Pick 2023",
+          "basic_category": [
+            "bourbon",
+            "whiskey"
+          ],
+          "size": {
+            "measure": "ml",
+            "quantity": "750"
+          },
+          "merchants": [
+            {
+              "offer_types": [
+                "pick_up",
+                "delivery",
+                "shipping"
+              ],
+              "merchant_id": "66b0f6cbfafb100f08637872",
+              "merchant_name": "Warehouse Liquor Market - Cantrell",
+              "coordinates": [
+                -92.4906888,
+                34.8123273
+              ],
+              "full_address": "19610 Cantrell Rd, Little Rock, AR 72223, USA",
+              "product_options": [
+                {
+                  "product_id": "6144fc9d59f9ed58fcc1ca44",
+                  "option_id": "d8667a8b9d912b27fed7c655eff027281c8202a889c12af4bae15f30d811b7e1",
+                  "option_params": {
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    }
+                  },
+                  "product_url": "https://warehouseliquorlr.com/shop/product/elijah-craig-barrel-proof-store-pick-2023/6144fc9d59f9ed58fcc1ca44?option-id=d8667a8b9d912b27fed7c655eff027281c8202a889c12af4bae15f30d811b7e1",
+                  "quantity": 78,
+                  "merchant_id": "66b0f6cbfafb100f08637872",
+                  "merchant_name": "Warehouse Liquor Market - Cantrell",
+                  "coordinates": [
+                    -92.4906888,
+                    34.8123273
+                  ],
+                  "full_address": "19610 Cantrell Rd, Little Rock, AR 72223, USA",
+                  "price": 84.99,
+                  "option_display_data": {
+                    "name": "Elijah Craig Barrel Proof Store Pick 2023",
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    },
+                    "basic_category": [
+                      "bourbon",
+                      "whiskey"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "5e21e94d0320ad0f80403af4",
+          "name": "Larceny Barrel Proof Brourbon",
+          "basic_category": [
+            "bourbon",
+            "whiskey"
+          ],
+          "size": {
+            "measure": "ml",
+            "quantity": "750"
+          },
+          "merchants": [
+            {
+              "offer_types": [
+                "pick_up",
+                "delivery",
+                "shipping"
+              ],
+              "merchant_id": "66b0f6cbfafb100f08637872",
+              "merchant_name": "Warehouse Liquor Market - Cantrell",
+              "coordinates": [
+                -92.4906888,
+                34.8123273
+              ],
+              "full_address": "19610 Cantrell Rd, Little Rock, AR 72223, USA",
+              "product_options": [
+                {
+                  "product_id": "5e21e94d0320ad0f80403af4",
+                  "option_id": "f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+                  "option_params": {
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    }
+                  },
+                  "product_url": "https://warehouseliquorlr.com/shop/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+                  "quantity": 9,
+                  "merchant_id": "66b0f6cbfafb100f08637872",
+                  "merchant_name": "Warehouse Liquor Market - Cantrell",
+                  "coordinates": [
+                    -92.4906888,
+                    34.8123273
+                  ],
+                  "full_address": "19610 Cantrell Rd, Little Rock, AR 72223, USA",
+                  "price": 79.99,
+                  "option_display_data": {
+                    "name": "Larceny Barrel Proof Brourbon",
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    },
+                    "basic_category": [
+                      "bourbon",
+                      "whiskey"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "libraryCatalog": {
+    "fetchedAt": "2026-11-14T08:01:57.414Z",
+    "digest": "d599a3b86a9e78c5706a16df17f578276297ec5b419ef4198d085048438d6734",
+    "recordCount": 1176,
+    "records": [
+      {
+        "id": "1792-full-proof",
+        "canonicalName": "1792 Full Proof",
+        "aliases": [
+          "1792 FP",
+          "1792 Full Proof",
+          "1792 fp",
+          "Barton 1792 Full Proof",
+          "full proof 1792"
+        ],
+        "nationalTier": "limited",
+        "stateOverrides": [
+          {
+            "jurisdiction": "AL",
+            "tier": "allocated"
+          }
+        ],
+        "isAlertEligible": true
+      },
+      {
+        "id": "elijah-craig-barrel-proof",
+        "canonicalName": "Elijah Craig Barrel Proof",
+        "aliases": [
+          "ECBP",
+          "Elijah Craig BP",
+          "Elijah Craig Barrel Proof",
+          "Elijah Craig Barrel Proof Small Batch",
+          "ecbp",
+          "elijah craig barrel proof",
+          "elijah craig bp"
+        ],
+        "nationalTier": "limited",
+        "stateOverrides": [
+          {
+            "jurisdiction": "AL",
+            "tier": "allocated"
+          }
+        ],
+        "isAlertEligible": true
+      }
+    ]
+  }
+}
