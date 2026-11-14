@@ -1,3 +1,11 @@
+import type { OnboardingCoverageState } from '../../../../shared/mobile-onboarding';
+
+export interface MobileCoverageState extends OnboardingCoverageState {
+  coverageStrengthLabel: string;
+  healthLabel: string;
+  freshness: { observedInventoryStores: number; currentInventoryStores: number; currentInventoryCities: number };
+}
+
 export interface Signal {
   contractVersion: "bourbon-signal/signal@1";
   id: string;

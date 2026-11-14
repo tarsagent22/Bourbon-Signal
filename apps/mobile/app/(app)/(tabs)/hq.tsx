@@ -203,8 +203,8 @@ export default function AccountScreen() {
       <Text style={s.label}>SUPPORT & PRIVACY</Text>
       <View style={accountStyles.openSection}>
         <AccountRow
-          label="Request coverage"
-          detail="Ask us to cover your area or store"
+          label="Coverage"
+          detail="View the map or request a store"
           onPress={() => router.push('/(app)/account/coverage')}
         />
         <AccountRow

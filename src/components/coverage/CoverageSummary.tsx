@@ -1,4 +1,4 @@
-import { Compass, Gauge } from "lucide-react";
+import { Compass, Gauge, Store } from "lucide-react";
 import type { CoverageState } from "@/lib/coverage-model";
 import { coverageMonitoringFootprint } from "@/lib/welcome-onboarding";
 import styles from "./CoverageSummary.module.css";
@@ -10,6 +10,7 @@ interface CoverageSummaryProps {
 export function CoverageSummary({ state }: CoverageSummaryProps) {
   const footprint = coverageMonitoringFootprint(state);
   const showShipmentCaveat = state.code === "NC" || state.scope.shipmentBoards > 0;
+  const { currentInventoryStores, observedInventoryStores } = state.freshness;
 
   return (
     <div className={styles.summary}>
@@ -24,6 +25,11 @@ export function CoverageSummary({ state }: CoverageSummaryProps) {
           <dt>{footprint.label}</dt>
           <dd>{footprint.count}</dd>
         </div>
+        {observedInventoryStores > 0 || currentInventoryStores > 0 ? <div>
+          <Store size={16} aria-hidden="true" />
+          <dt>Stores with current bottle availability</dt>
+          <dd>{currentInventoryStores}</dd>
+        </div> : null}
       </dl>
 
       {showShipmentCaveat ? (
