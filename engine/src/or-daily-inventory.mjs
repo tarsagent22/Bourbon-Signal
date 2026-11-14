@@ -573,8 +573,7 @@ export async function collectOregonDailyInventory({ fetchImpl = fetch, terms = [
       if (!cache?.valid || head.headers.get('etag') !== cache.manifest.etag) throw withCacheReceipt(new Error('OLCC returned 304 without a matching validated Oregon cache.'), { ...headReceipt, cacheStatus: 'invalid_304' });
       try { ensureReportStillFresh(cache.report, new Date(generatedAt)); }
       catch (error) { throw withCacheReceipt(error, { ...headReceipt, cacheStatus: 'stale_validated_cache' }); }
-      if (cache.manifest.bible.sourceFileSha256 !== bibleMetadata.sourceFileSha256
-        || cache.manifest.bible.recordsSha256 !== bibleMetadata.recordsSha256
+      if (cache.manifest.bible.recordsSha256 !== bibleMetadata.recordsSha256
         || JSON.stringify(cache.report.terms || []) !== JSON.stringify(requestedTerms)) {
         try { return await reparseCachedOregonBody(cache, { terms, bible: fullBible, bibleMetadata, checkedAt: generatedAt, checkStatus: 304 }); }
         catch (error) { throw withCacheReceipt(error, { ...headReceipt, cacheStatus: 'reparse_failed' }); }
@@ -584,7 +583,7 @@ export async function collectOregonDailyInventory({ fetchImpl = fetch, terms = [
         checkedAt: generatedAt, etag: cache.manifest.etag, lastModified: cache.manifest.lastModified,
         contentLength: cache.manifest.contentLength, sourceBytes: cache.manifest.sourceBytes,
         sourceSha256: cache.manifest.sourceSha256, sourceReportDate: cache.report.sourceReportDate,
-        sourceFetchedAt: cache.manifest.fetchedAt, reportSha256: cache.manifest.reportSha256, bible: cache.manifest.bible,
+        sourceFetchedAt: cache.manifest.fetchedAt, reportSha256: cache.manifest.reportSha256, bible: cache.manifest.bible, verifiedBible: bibleMetadata,
       });
     }
     if (head.status !== 200) throw withCacheReceipt(new Error(`Oregon OLCC conditional HEAD returned HTTP ${head.status}`), { ...headReceipt, cacheStatus: cache?.valid ? 'candidate_not_validated' : 'missing_or_invalid' });
@@ -595,8 +594,7 @@ export async function collectOregonDailyInventory({ fetchImpl = fetch, terms = [
       && (!headLength || headLength === cache.manifest.sourceBytes)) {
       try { ensureReportStillFresh(cache.report, new Date(generatedAt)); }
       catch (error) { throw withCacheReceipt(error, { ...headReceipt, cacheStatus: 'stale_validated_cache' }); }
-      if (cache.manifest.bible.sourceFileSha256 !== bibleMetadata.sourceFileSha256
-        || cache.manifest.bible.recordsSha256 !== bibleMetadata.recordsSha256
+      if (cache.manifest.bible.recordsSha256 !== bibleMetadata.recordsSha256
         || JSON.stringify(cache.report.terms || []) !== JSON.stringify(requestedTerms)) {
         try { return await reparseCachedOregonBody(cache, { terms, bible: fullBible, bibleMetadata, checkedAt: generatedAt, checkStatus: 200 }); }
         catch (error) { throw withCacheReceipt(error, { ...headReceipt, cacheStatus: 'reparse_failed' }); }
@@ -606,7 +604,7 @@ export async function collectOregonDailyInventory({ fetchImpl = fetch, terms = [
         checkedAt: generatedAt, etag: headEtag, lastModified: head.headers.get('last-modified'),
         contentLength: cache.manifest.contentLength, sourceBytes: cache.manifest.sourceBytes,
         sourceSha256: cache.manifest.sourceSha256, sourceReportDate: cache.report.sourceReportDate,
-        sourceFetchedAt: cache.manifest.fetchedAt, reportSha256: cache.manifest.reportSha256, bible: cache.manifest.bible,
+        sourceFetchedAt: cache.manifest.fetchedAt, reportSha256: cache.manifest.reportSha256, bible: cache.manifest.bible, verifiedBible: bibleMetadata,
       });
     }
     let response;
