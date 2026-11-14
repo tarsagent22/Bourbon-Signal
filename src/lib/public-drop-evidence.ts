@@ -1,7 +1,8 @@
 import { isGroceryExpansionInventory } from '../../engine/src/grocery-xapi-policy.mjs';
 import { isLouisianaAlaskaGroceryCanaryPreview } from '../../engine/src/laak-canary-preview-policy.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal } from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
-import { currentInventoryMaxAgeMs, customerDropTimestamp, inventoryConfirmationTimestamp, publicDropMaxAgeMs } from '../../engine/src/customer-drop-freshness.mjs';
+import { currentInventoryMaxAgeMs, inventoryConfirmationTimestamp, publicDropMaxAgeMs } from '../../engine/src/customer-drop-freshness.mjs';
+import { dropFreshnessTime } from "./drop-feed-policy.ts";
 import { isUserFacingDropSignal } from "./drop-feed-visibility.ts";
 import { resolveDropQuantitySemantics } from "./drop-quantity-semantics.ts";
 import { isArizonaRetailerInventory } from "../../engine/src/arizona-retailer-policy.mjs";
@@ -590,7 +591,7 @@ export function publicDropFreshnessWindow(input: PublicDropEvidenceInput) {
       : Date.parse(String(drop.expiresAt ?? ""));
     return { startsAt: Number.NEGATIVE_INFINITY, endsAt: end, inclusiveEnd: false };
   }
-  const timestamp = customerDropTimestamp(drop);
+  const timestamp = dropFreshnessTime(drop);
   return { startsAt: timestamp - FUTURE_CLOCK_SKEW_MS, endsAt: timestamp + maxAgeForPublicDrop(drop), inclusiveEnd: true };
 }
 

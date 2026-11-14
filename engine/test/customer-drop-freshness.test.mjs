@@ -23,6 +23,7 @@ test('shared current inventory ages retain TX and verified Oregon exceptions', (
     lastConfirmedAt: hoursAgo(24),
   };
   assert.equal(isWithinCustomerFreshnessWindow(ordinary, now, { currentInventory: true }), true);
+  assert.equal(isWithinCustomerFreshnessWindow({ ...ordinary, lastConfirmedAt: 'invalid', observedAt: hoursAgo(0.5) }, now, { currentInventory: true }), false);
   assert.equal(currentInventoryMaxAgeMs(texas), 60 * 60 * 1000);
   assert.equal(isWithinCustomerFreshnessWindow(texas, now, { currentInventory: true }), false);
   assert.equal(currentInventoryMaxAgeMs(oregon), 48 * 60 * 60 * 1000);
