@@ -69,7 +69,7 @@ test('Kansas and Delaware exact pickup receipts require the reviewed retailer, a
   assert.equal(rows[0].storeAddress, source.address);
   assert.equal(rows[0].sourceProductBinding.pickupOfferVerified, true);
   assert.equal(rows[0].quantityIsExact, false);
-  assert.equal(getStateLifecycle(entry.state)?.publicStatus === 'active', false);
+  assert.equal(getStateLifecycle(entry.state)?.publicStatus === 'active', entry.state === 'KS');
   fixture.products[0].merchants[0].offer_types = ['shipping'];
   assert.deepEqual(parseCentralCityHiveInventory(html(fixture), source, bible, { observedAt }), []);
  }
