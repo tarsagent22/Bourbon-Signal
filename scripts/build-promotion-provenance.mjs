@@ -215,6 +215,7 @@ if (['AK', 'LA'].includes(state)) files.push(
   'engine/src/collectors/louisiana-alaska-grocery-premises.mjs',
   'engine/src/collectors/generic-state.mjs',
   'engine/src/customer-drop-freshness.mjs',
+  'engine/src/operational-report.mjs',
   'engine/src/run.mjs',
   'engine/src/verification/historical-implementation.mjs',
   'engine/src/collectors/grocery-xapi-expansion.mjs',

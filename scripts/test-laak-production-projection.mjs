@@ -4,7 +4,8 @@ import { BourbonBible } from '../engine/src/core/bible.mjs';
 import { LOUISIANA_ALASKA_GROCERY_SOURCES } from '../engine/src/collectors/louisiana-alaska-grocery-premises.mjs';
 import { parseLouisianaAlaskaGroceryInventory } from '../engine/src/collectors/louisiana-alaska-grocery-expansion.mjs';
 import { toLouisianaAlaskaGroceryOnSiteSignal } from '../engine/src/louisiana-alaska-grocery-policy.mjs';
-import { isSafePublicSignal } from '../engine/src/export-site-contract.mjs';
+import { bibleLookup, buildDrops, isSafePublicSignal } from '../engine/src/export-site-contract.mjs';
+import { canonicalizeSignal } from '../engine/src/operational-report.mjs';
 import * as publicEvidenceModule from '../src/lib/public-drop-evidence.ts';
 import * as visibilityModule from '../src/lib/drop-feed-visibility.ts';
 import * as siteEngineModule from '../src/lib/site-engine-contract.ts';
@@ -34,10 +35,13 @@ for (const state of ['AK', 'LA']) {
   assert.equal(isSafePublicSignal(row), true);
   assert.equal(isUserFacingDropSignal(row), true);
   assert.equal(isPublicDropFeedEligible(row), true);
-  const normalized = normalizeDropForSite(row);
+  const canonical = canonicalizeSignal(row, bible);
+  assert.equal(isSafePublicSignal(canonical), true, `${state}: canonicalized production evidence must remain eligible`);
+  const drops = buildDrops([canonical], bibleLookup(bible.records), [canonical]);
+  assert.equal(drops.length, 1, `${state}: expected one mark-preserving customer drop`);
+  const normalized = normalizeDropForSite(drops[0]);
   assert.equal(normalized.quantity, 0);
   assert.equal(normalized.sourceProductBinding.productSnapshot.channelInventory.instoreItemQty, '4');
-  assert.equal(normalized.raw.product.channelInventory.instoreItemQty, '4');
   assert.equal(normalized.is_user_facing_drop, true);
   for (const mutation of [{ quantity: 1 }, { storeId: 'unreviewed:1' }, { canAlertAsInventory: true }, { previewOnly: true },
     { sourceRuntimeId: `research:${state.toLowerCase()}:grocery-xapi` },
