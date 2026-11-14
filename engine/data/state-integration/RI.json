@@ -4,7 +4,7 @@
   "lifecycle": {
     "customerLabel": "Rhode Island",
     "publicStatus": "active",
-    "coverageTier": "blocked",
+    "coverageTier": "sparse_live_store_inventory",
     "refinementLevel": "store"
   },
   "collector": {
