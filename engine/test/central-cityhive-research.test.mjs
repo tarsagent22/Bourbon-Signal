@@ -44,7 +44,7 @@ test('Rhode Island CityHive detail captures prove exact pickup variants and rema
     assert.equal(riSources.find(row=>row.name==='Fifth Ward Liquor').address,'695 Thames St, Newport, RI 02840, USA');
     assert.equal(riSources.find(row=>row.name==='California Liquors').address,'84 Union Ave, Providence, RI 02909, USA');
     assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
-    assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('RI'),false);
+    assert.equal(STATE_LIFECYCLE_CONFIG.states.RI.inventoryAlertable,false);
     const pageByTerm=new Map([
       ['eagle rare',await readFile(new URL('./fixtures/ri-cityhive/eagle-rare-10-year-kentucky-straight-bourbon.json',import.meta.url),'utf8')],
       ['stagg',await readFile(new URL('./fixtures/ri-cityhive/stagg-jr-kentucky-straight-bourbon-whiskey.json',import.meta.url),'utf8')],
