@@ -210,4 +210,3 @@ test('Billings persists a daily attempt before requesting, writes a bounded HTML
   await assert.rejects(() => collectPlainsRetailResearchReport(plainsRetailResearchSourceForState('MT'), bible, { ...options, fetchText: response }), /malformed/);
   assert.equal(calls, 1);
 });
-

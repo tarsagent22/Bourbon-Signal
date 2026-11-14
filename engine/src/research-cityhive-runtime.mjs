@@ -8,7 +8,7 @@ import {fetchReviewedCityHiveText,readCityHiveIncidentJournal,validateCityHiveIn
 import {sourceErrorForHttp} from './sources/source-error.mjs';
 import {centralCityHiveProductionAllowed,collectCentralCityHiveProductionSource} from './collectors/central-cityhive-production.mjs';
 
-const names = Object.freeze({ WI: 'Wisconsin', OK: 'Oklahoma', MN: 'Minnesota', MO: 'Missouri', MA: 'Massachusetts', CT: 'Connecticut', DE: 'Delaware', HI: 'Hawaii', MD: 'Maryland', KS: 'Kansas', RI: 'Rhode Island', WY: 'Wyoming', DC: 'District of Columbia' });
+const names = Object.freeze({ WI: 'Wisconsin', OK: 'Oklahoma', MN: 'Minnesota', MO: 'Missouri', MA: 'Massachusetts', CT: 'Connecticut', DE: 'Delaware', HI: 'Hawaii', MD: 'Maryland', KS: 'Kansas', RI: 'Rhode Island', WY: 'Wyoming', DC: 'District of Columbia', AR: 'Arkansas' });
 const sourcesByState = Map.groupBy([...CENTRAL_CITYHIVE_EXPANSION_SOURCES, ...CENTRAL_CITYHIVE_RESEARCH_SOURCES], source => source.state);
 const configurations = new Map(Object.entries(names).map(([state,name]) => [state,Object.freeze({
   id:state,label:`${name} first-party retailer research`,tier:'B',active:false,

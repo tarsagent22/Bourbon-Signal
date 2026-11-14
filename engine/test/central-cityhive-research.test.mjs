@@ -21,8 +21,8 @@ const frozen=JSON.stringify(STATE_LIFECYCLE_CONFIG);
 
 test('scheduled shadow registers exact retailer candidates while production cohort remains WI/OK',()=>{
   assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
-  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['CT','DC','DE','HI','KS','MA','MD','MN','MO','RI','WY']);
-  for(const state of ['CT','DC','DE','HI','KS','MD','MN','MO','MA','RI','WY']){
+  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['AR','CT','DC','DE','HI','KS','MA','MD','MN','MO','RI','WY']);
+  for(const state of ['AR','CT','DC','DE','HI','KS','MD','MN','MO','MA','RI','WY']){
     const config=cityHiveResearchSourceForState(state);
     assert.equal(config.id,state);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
     assert.ok(config.sources.length>0);
