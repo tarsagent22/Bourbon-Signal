@@ -1,0 +1,75 @@
+{
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "618406f81a9efe0452444e07",
+        "address": {
+          "full_address": "904 Concord Ave, Wilmington, DE 19802, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -75.54272710000001,
+              39.7628584
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "5e21e94d0320ad0f80403af4",
+      "name": "Larceny Barrel Proof Brourbon",
+      "merchants": [
+        {
+          "merchant_id": "618406f81a9efe0452444e07",
+          "full_address": "904 Concord Ave, Wilmington, DE 19802, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "merchant_id": "618406f81a9efe0452444e07",
+              "full_address": "904 Concord Ave, Wilmington, DE 19802, USA",
+              "product_id": "5e21e94d0320ad0f80403af4",
+              "option_id": "f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "product_url": "https://krestonwines.com/shop/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "quantity": 2,
+              "price": 68.99,
+              "option_display_data": {
+                "name": "Larceny Barrel Proof Brourbon",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Larceny"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "62.5%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
