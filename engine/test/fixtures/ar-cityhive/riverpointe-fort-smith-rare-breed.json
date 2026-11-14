@@ -1,0 +1,231 @@
+{
+  "capture": {
+    "url": "https://riverpointewineandspirits.com/shop/?ch-query=rare+breed&merchant-id=6009ef4967fa8c268106ede9",
+    "capturedAt": "2026-11-14T11:08:09.202Z",
+    "inventoryUpdatedAt": "2026-11-13T12:18:49.421-05:00",
+    "sha256": "3b73ba139397fb9c8ee08c3b34f935fce28cd63a2ba0d236d8902d51aa0a683b",
+    "httpStatus": 200
+  },
+  "storeConfigs": [
+    {
+      "id": "6009ef4967fa8c268106ede9",
+      "name": "Riverpointe Wine and Spirits",
+      "pickup": true,
+      "last_inventory_upload": "2026-11-13T12:18:49.421-05:00",
+      "address": {
+        "full_address": "6207 Grand Ave, Fort Smith, AR 72904, USA",
+        "location": {
+          "type": "Point",
+          "coordinates": [
+            -94.36221359999999,
+            35.3857303
+          ]
+        }
+      }
+    }
+  ],
+  "payloads": [
+    {
+      "merchant_configs": [
+        {
+          "merchant": {
+            "id": "6009ef4967fa8c268106ede9",
+            "name": "Riverpointe Wine and Spirits",
+            "pickup": true,
+            "last_inventory_upload": "2026-11-13T12:18:49.421-05:00",
+            "address": {
+              "full_address": "6207 Grand Ave, Fort Smith, AR 72904, USA",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  -94.36221359999999,
+                  35.3857303
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "products": [
+        {
+          "id": "56553d8e69702d2923120000",
+          "name": "Wild Turkey Rare Breed Bourbon",
+          "basic_category": [
+            "bourbon",
+            "whiskey"
+          ],
+          "size": {
+            "measure": "ml",
+            "quantity": "750"
+          },
+          "merchants": [
+            {
+              "offer_types": [
+                "pick_up",
+                "delivery",
+                "shipping"
+              ],
+              "merchant_id": "6009ef4967fa8c268106ede9",
+              "merchant_name": "Riverpointe Wine and Spirits",
+              "coordinates": [
+                -94.36221359999999,
+                35.3857303
+              ],
+              "full_address": "6207 Grand Ave, Fort Smith, AR 72904, USA",
+              "product_options": [
+                {
+                  "product_id": "56553d8e69702d2923120000",
+                  "option_id": "b56a6adeb1ad500184602447d60e35e0600270238ba5ee3cc53632f7a2ff4a3c",
+                  "option_params": {
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    }
+                  },
+                  "product_url": "https://riverpointewineandspirits.com/shop/product/wild-turkey-rare-breed-bourbon/56553d8e69702d2923120000?option-id=b56a6adeb1ad500184602447d60e35e0600270238ba5ee3cc53632f7a2ff4a3c",
+                  "quantity": 4,
+                  "merchant_id": "6009ef4967fa8c268106ede9",
+                  "merchant_name": "Riverpointe Wine and Spirits",
+                  "coordinates": [
+                    -94.36221359999999,
+                    35.3857303
+                  ],
+                  "full_address": "6207 Grand Ave, Fort Smith, AR 72904, USA",
+                  "price": 56.97,
+                  "option_display_data": {
+                    "name": "Wild Turkey Rare Breed Bourbon",
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    },
+                    "basic_category": [
+                      "bourbon",
+                      "whiskey"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "5eab153e01ace21269ea00f5",
+          "name": "Wild Turkey Rare Breed Rye",
+          "basic_category": [
+            "rye",
+            "whiskey"
+          ],
+          "size": {
+            "measure": "ml",
+            "quantity": "750"
+          },
+          "merchants": [
+            {
+              "offer_types": [
+                "pick_up",
+                "delivery",
+                "shipping"
+              ],
+              "merchant_id": "6009ef4967fa8c268106ede9",
+              "merchant_name": "Riverpointe Wine and Spirits",
+              "coordinates": [
+                -94.36221359999999,
+                35.3857303
+              ],
+              "full_address": "6207 Grand Ave, Fort Smith, AR 72904, USA",
+              "product_options": [
+                {
+                  "product_id": "5eab153e01ace21269ea00f5",
+                  "option_id": "ec20397c8801f927d0efe1649c32496cfb3d3eebeacf1223f9543c0a76df59c7",
+                  "option_params": {
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    }
+                  },
+                  "product_url": "https://riverpointewineandspirits.com/shop/product/wild-turkey-rare-breed-rye/5eab153e01ace21269ea00f5?option-id=ec20397c8801f927d0efe1649c32496cfb3d3eebeacf1223f9543c0a76df59c7",
+                  "quantity": 2,
+                  "merchant_id": "6009ef4967fa8c268106ede9",
+                  "merchant_name": "Riverpointe Wine and Spirits",
+                  "coordinates": [
+                    -94.36221359999999,
+                    35.3857303
+                  ],
+                  "full_address": "6207 Grand Ave, Fort Smith, AR 72904, USA",
+                  "price": 59.97,
+                  "option_display_data": {
+                    "name": "Wild Turkey Rare Breed Rye",
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    },
+                    "basic_category": [
+                      "rye",
+                      "whiskey"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "libraryCatalog": {
+    "fetchedAt": "2026-11-14T08:01:57.414Z",
+    "digest": "d599a3b86a9e78c5706a16df17f578276297ec5b419ef4198d085048438d6734",
+    "recordCount": 1176,
+    "records": [
+      {
+        "id": "bb_22604f9ddde2b6ba",
+        "canonicalName": "Wild Turkey Rare Breed Straight Bourbon",
+        "aliases": [
+          "Wild Turkey Rare Breed Bourbon",
+          "Wild Turkey Rare Breed Straight Bourbon"
+        ],
+        "nationalTier": "limited",
+        "stateOverrides": [],
+        "isAlertEligible": true
+      },
+      {
+        "id": "wild-turkey-rare-breed",
+        "canonicalName": "Wild Turkey Rare Breed",
+        "aliases": [
+          "Wild Turkey Rare Breed",
+          "rare breed",
+          "wild turkey barrel proof",
+          "wt rare breed"
+        ],
+        "nationalTier": "regular",
+        "stateOverrides": [],
+        "isAlertEligible": false
+      },
+      {
+        "id": "wild-turkey-rare-breed-rye",
+        "canonicalName": "Wild Turkey Rare Breed Rye",
+        "aliases": [
+          "Rare Breed Rye",
+          "Wild Turkey Rare Breed Barrel Proof Rye",
+          "Wild Turkey Rare Breed Rye"
+        ],
+        "nationalTier": "regular",
+        "stateOverrides": [],
+        "isAlertEligible": false
+      }
+    ]
+  },
+  "legacyRecords": [
+    {
+      "id": "bb_22604f9ddde2b6ba",
+      "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+      "normalizedKey": "wild turkey rare breed",
+      "aliases": [
+        "Wild Turkey Rare Breed Bourbon",
+        "Wild Turkey Rare Breed Straight Bourbon"
+      ],
+      "tier": "limited",
+      "libraryIdentities": []
+    }
+  ]
+}

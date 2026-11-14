@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "research_only",
-  "source": "Sodie's first-party CityHive product detail capture (2026-11-14T10:00:23.370Z; SHA-256 D9F7E66AC79E7CAB01BF0B16C61BAD3A1E494D866DBB9881043270B711879F29) and Warehouse Liquor Market Cantrell first-party CityHive category capture (2026-11-14T12:48:33.543Z; SHA-256 0459c47f879560799655b6c6273eec5d005bd4ae2c6d9757449684fe4cdd1088). Full captures remain outside Git.",
+  "source": "Sodie's first-party CityHive product detail capture (2026-11-14T10:00:23.370Z; SHA-256 D9F7E66AC79E7CAB01BF0B16C61BAD3A1E494D866DBB9881043270B711879F29), Warehouse Liquor Market Cantrell first-party CityHive category capture (2026-11-14T12:48:33.543Z; SHA-256 0459c47f879560799655b6c6273eec5d005bd4ae2c6d9757449684fe4cdd1088), and Riverpointe Wine and Spirits Fort Smith first-party CityHive category capture (2026-11-14T11:08:09.202Z; SHA-256 3b73ba139397fb9c8ee08c3b34f935fce28cd63a2ba0d236d8902d51aa0a683b). Full captures remain outside Git.",
   "stores": [
     {
       "id": "sodies-ar-fort-smith:594311b6c90f94622d026e1e",
@@ -52,6 +52,32 @@
       "evidenceCapturedAt": "2026-11-14T12:48:33.543Z",
       "evidenceCaptureSha256": "0459c47f879560799655b6c6273eec5d005bd4ae2c6d9757449684fe4cdd1088",
       "inventoryUpdatedAt": "2026-11-13T13:00:29.935-05:00"
+    },
+    {
+      "id": "riverpointe-ar-fort-smith:6009ef4967fa8c268106ede9",
+      "chainId": "riverpointe-ar-fort-smith",
+      "chainName": "Riverpointe Wine and Spirits",
+      "name": "Riverpointe Wine and Spirits",
+      "state": "AR",
+      "stateCode": "AR",
+      "platform": "cityhive",
+      "baseUrl": "https://riverpointewineandspirits.com",
+      "hostname": "riverpointewineandspirits.com",
+      "merchantId": "6009ef4967fa8c268106ede9",
+      "address": "6207 Grand Ave, Fort Smith, AR 72904, USA",
+      "city": "Fort Smith",
+      "zip": "72904",
+      "storeId": "riverpointe-ar-fort-smith:6009ef4967fa8c268106ede9",
+      "sourceLabel": "Riverpointe Wine and Spirits AR first-party pickup inventory",
+      "categoryUrl": "https://riverpointewineandspirits.com/shop/?merchant-id=6009ef4967fa8c268106ede9",
+      "lat": 35.3857303,
+      "lng": -94.36221359999999,
+      "prioritySearchTerm": "rare breed",
+      "evidenceDate": "2026-11-14",
+      "evidenceUrl": "https://riverpointewineandspirits.com/shop/product/wild-turkey-rare-breed-bourbon/56553d8e69702d2923120000?option-id=b56a6adeb1ad500184602447d60e35e0600270238ba5ee3cc53632f7a2ff4a3c",
+      "evidenceCapturedAt": "2026-11-14T11:08:09.202Z",
+      "evidenceCaptureSha256": "3b73ba139397fb9c8ee08c3b34f935fce28cd63a2ba0d236d8902d51aa0a683b",
+      "inventoryUpdatedAt": "2026-11-13T12:18:49.421-05:00"
     }
   ]
 }
