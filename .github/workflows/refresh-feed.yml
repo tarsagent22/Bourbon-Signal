@@ -553,6 +553,11 @@ jobs:
         working-directory: engine
         run: node src/verify-ri-first-publication.mjs
 
+      - name: Verify the first Minnesota production cohort before publication
+        if: ${{ startsWith(inputs.incident_key, 'minnesota-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-mn-first-publication.mjs
+
       - name: Audit every scarce library bottle across all states
         working-directory: engine
         run: node src/library-coverage-audit.mjs
@@ -766,6 +771,7 @@ jobs:
             engine/out/site/states/AZ/drops.json
             engine/out/site/states/CA/drops.json
             engine/out/site/states/IL/drops.json
+            engine/out/first-publication/MN.json
             engine/out/az-expansion-verification.json
             engine/out/illinois-grocery-verification.json
             engine/out/pa-expansion-verification.json

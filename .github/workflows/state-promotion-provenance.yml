@@ -93,8 +93,8 @@ jobs:
           case "$STATE" in
             OR) node scripts/download-oregon-shadow.mjs --run="$SHADOW_RUN" --out-dir="engine/out/oregon-shadow-input/OR" ;;
             AK|LA) node scripts/download-laak-shadow.mjs --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/laak-shadow-input/$STATE" ;;
-            NJ|MI|WI|OK|RI|WA|NM)
-              case "$STATE" in NJ|MI) family=njmi ;; WI|OK|RI) family=cityhive ;; WA|NM) family=grocery ;; esac
+            NJ|MI|WI|OK|RI|MN|WA|NM)
+              case "$STATE" in NJ|MI) family=njmi ;; WI|OK|RI|MN) family=cityhive ;; WA|NM) family=grocery ;; esac
               node "scripts/download-$family-shadow.mjs" --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/$family-shadow-input/$STATE" ;;
             *) exit 1 ;;
           esac

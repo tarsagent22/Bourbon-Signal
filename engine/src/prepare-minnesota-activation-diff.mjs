@@ -50,8 +50,9 @@ export function buildMinnesotaActivationDiff({lifecycle=lifecycleConfig,manifest
     lifecycle:'retailer_store_inventory',coverageTier:'sparse_live_store_inventory',refinementLevel:'store',inventoryAlertable:false,watchAlertable:false,
     promotionStage:'active',promotionEvidence:packageEvidence};
   const nextManifest={...targetManifest,evidence:{...manifest.evidence,immutablePromotionEvidence:immutable,
-    shadow:{status:'verified',runs:immutable.shadowRuns.length},canary:{status:'verified',runs:immutable.canaryRuns.length,allDeliveryChannelsDisabled:true},
-    production:{status:'prepared_not_published',url:manifest.evidence?.production?.url}}};
+    shadow:{status:'verified',runs:immutable.shadowRuns.length},canary:{status:'verified',runs:immutable.canaryRuns.length,
+      siteArtifact:'engine/data/canary-site/minnesota-20261114',observations:immutable.canaryRuns.map(({runId,status,artifactHash})=>({runId,status,artifactHash})),allDeliveryChannelsDisabled:true},
+    production:{status:'awaiting_first_publication',url:manifest.evidence?.production?.url}}};
   return{ready:true,blockers:[],targetSourceConfigHash:targetSourceHash,diff:{'src/config/state-lifecycle.json':{activeStates:nextLifecycle.activeStates,state:nextLifecycle.states.MN},
     'engine/data/state-integration/MN.json':nextManifest},authoritativeFilesWritten:false};
 }

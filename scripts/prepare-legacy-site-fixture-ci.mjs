@@ -10,7 +10,7 @@ import {buildStateQualityInputs,buildStateQualityScorecard} from '../engine/src/
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const ADDITIONS=['WA','NM','WI','OK'];
-const VERIFIED_LATER_ADDITIONS=['AK','LA','RI'];
+const VERIFIED_LATER_ADDITIONS=['AK','LA','RI','MN'];
 const LEGACY_RUN='a7401de0a51cca45';
 const readJson=async file=>JSON.parse(await readFile(file,'utf8'));
 const serialize=value=>JSON.stringify(value,null,2)+'\n';
