@@ -1,0 +1,34 @@
+{
+  "url": "https://bourbonsignal-2h76vtz8l-tarsagent22s-projects.vercel.app",
+  "state": "KS",
+  "query": "Wichita",
+  "startedAt": "2026-11-14T14:05:03.0205343Z",
+  "completedAt": "2026-11-14T14:05:04.6774217Z",
+  "response": {
+    "contractVersion": "bourbon-signal/coverage-search@1",
+    "state": "KS",
+    "results": [
+      {
+        "kind": "city",
+        "label": "Wichita",
+        "stateCode": "KS",
+        "status": "covered",
+        "canonicalTargetKey": "city:KS:wichita",
+        "detail": "Current bottle availability is available for this area.",
+        "city": "Wichita"
+      },
+      {
+        "kind": "store",
+        "label": "RJ Liquor",
+        "stateCode": "KS",
+        "status": "actively-monitored",
+        "canonicalTargetKey": "store:KS:rj-liquor-6060f6496aaeeb555664ca4f",
+        "detail": "We check this store for current bottle availability when information is available.",
+        "storeId": "rj-liquor:6060f6496aaeeb555664ca4f",
+        "city": "Wichita",
+        "address": "3015 E Douglas Ave, Wichita, KS 67211, USA"
+      }
+    ]
+  },
+  "sha256": "D7A7E368450825ECBAFB1ECF84DEDA8A556F22D795219F1006E1497D8B956FF6"
+}

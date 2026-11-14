@@ -1,0 +1,91 @@
+{
+  "url": "https://bourbonsignal-2h76vtz8l-tarsagent22s-projects.vercel.app",
+  "state": "KS",
+  "startedAt": "2026-11-14T14:05:00.3022993Z",
+  "completedAt": "2026-11-14T14:05:02.9916788Z",
+  "generatedAt": "2026-11-14T12:03:44.065Z",
+  "evaluatedAt": "2026-11-14T14:05:04.935Z",
+  "coverage": {
+    "code": "KS",
+    "name": "Kansas",
+    "capability": "intelligence",
+    "capabilityLabel": "Current bottle availability",
+    "coverageDepth": "sparse",
+    "coverageDepthLabel": "Sparse coverage",
+    "coverageStatus": "available",
+    "coverageStatusLabel": "Coverage available",
+    "coverageStrength": "sparse",
+    "coverageStrengthLabel": "Sparse coverage",
+    "capabilities": {
+      "storeInformation": true,
+      "publicUpdates": false,
+      "currentBottleAvailability": true,
+      "restockAlerts": false
+    },
+    "updateLabel": null,
+    "health": "current",
+    "healthLabel": "Information is current",
+    "summary": "Research-only exact-store pickup observations; production activation and alerts remain blocked.",
+    "sourceLabel": "Kansas first-party retailer research",
+    "precisions": [
+      "City",
+      "Exact store"
+    ],
+    "areas": [
+      "Olathe",
+      "Topeka",
+      "Wichita"
+    ],
+    "representedAreaCount": 3,
+    "monitoredStoreCount": 3,
+    "layers": {
+      "known": 3,
+      "probeable": 3,
+      "catalogWatch": 0,
+      "live": 3,
+      "alertGrade": 0
+    },
+    "scope": {
+      "knownBoards": 0,
+      "trackedShipmentBoards": 0,
+      "verifiedSourceTargets": 3,
+      "verifiedSourceAreas": 3,
+      "shipmentBoards": 0,
+      "searchableStores": 3,
+      "inventoryMonitoredStores": 3,
+      "singleStoreShipmentBoards": 0
+    },
+    "freshness": {
+      "observedInventoryStores": 3,
+      "currentInventoryStores": 3,
+      "currentInventoryCities": 3,
+      "alertEligibleStores": 0,
+      "staleInventoryStores": 0,
+      "freshPublicSignals": 4,
+      "freshPublicUpdates": 0,
+      "freshPublicUpdateBoards": 0,
+      "freshPublicUpdateStores": 0,
+      "freshPublicUpdateCities": 0,
+      "freshPublicUpdateAreas": 0,
+      "stalePublicSignals": 0
+    },
+    "canSee": [
+      "Current identity-bound orderability from a small reviewed set of exact retailer premises."
+    ],
+    "cannotSee": [
+      "Statewide coverage, exact shelf counts, holds, or outbound inventory alerts; verify directly with the store before driving."
+    ],
+    "coverageExplanation": "See current bottle availability at selected locations among 3 listed stores. Availability can change quickly, so confirm before driving.",
+    "customerSummary": "Current bottle availability is available at selected stores.",
+    "customerCanSee": [
+      "Find 3 listed stores.",
+      "See current bottle availability at 3 stores."
+    ],
+    "customerCannotSee": [
+      "Stock can change quickly, so verify before driving.",
+      "Restock alerts are not available here yet."
+    ],
+    "fingerprint": "coverage-v2|KS|intelligence|available|sparse|City,Exact store|3|3|0|3|0|0|0|3|3|0|3|3|0|0|0"
+  },
+  "sha256": "437E55B7F0654719885644E245180F97067274CC61890202B7697358D681B3B5"
+}

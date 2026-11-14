@@ -48,22 +48,26 @@ test('inactive, quarantined and altered semantic/cohort/provenance authority blo
   assert.equal(requests,0);
 });
 
-test('KS source is registered but cannot collect before lifecycle and immutable promotion admission',async t=>{
+test('KS activation is exact, silent, and still blocks when disabled or lifecycle is removed',async t=>{
   let requests=0;
   assert.ok(CENTRAL_CITYHIVE_PRODUCTION_STATES.includes('KS'));
   assert.equal(CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source=>source.state==='KS').length,3);
   assert.equal(centralCityHiveProductionCohortKey('KS'),CENTRAL_CITYHIVE_PRODUCTION_COHORTS.KS);
-  assert.equal(centralCityHiveProductionAllowed('KS',STATE_LIFECYCLE_CONFIG),false);
-  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('KS'),false);
-  assert.equal(STATE_LIFECYCLE_CONFIG.states.KS,undefined);
-  const held=await collectCentralCityHiveProductionSource(config('KS'),bible,{fetchText:async()=>{requests++;throw Error('Dormant Kansas source must not request HTTP.');}});
+  assert.equal(centralCityHiveProductionAllowed('KS',STATE_LIFECYCLE_CONFIG),true);
+  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.at(-1),'KS');
+  assert.equal(STATE_LIFECYCLE_CONFIG.reliabilityPolicy.stateExpectedRunMs.KS,15_000);
+  const inactive=structuredClone(STATE_LIFECYCLE_CONFIG);
+  inactive.activeStates=inactive.activeStates.filter(id=>id!=='KS');
+  inactive.states.KS.publicStatus='research_only';
+  const held=await collectCentralCityHiveProductionSource(config('KS'),bible,{
+    lifecycleConfig:inactive,
+    fetchText:async()=>{requests++;throw Error('Disabled Kansas lifecycle must not request HTTP.');},
+  });
   assert.equal(held.metadata.blockedByPromotion,true);
   assert.equal(held.accounting.requestCount,0);
-  const stateReport=await collectState(config('KS'),bible,{cityHiveSourceOptions:{fetchText:async()=>{requests++;throw Error('Dormant Kansas state must not request HTTP.');}}});
-  assert.equal(stateReport.status,'not_promoted');assert.equal(stateReport.metadata.requestCount,0);
+  assert.equal(centralCityHiveProductionAllowed('KS',{...STATE_LIFECYCLE_CONFIG,activeStates:STATE_LIFECYCLE_CONFIG.activeStates.filter(id=>id!=='KS')}),false);
   assert.equal(requests,0);
 });
-
 test('KS production parser uses six exact merchant-scoped requests and projects only silent binary pickup rows',async t=>{
   const opts=await setup(t,'KS'),nowMs=Date.parse('2026-11-14T11:10:00.000Z'),fixtureRoot=new URL('./fixtures/ks-cityhive/',import.meta.url);
   const fixtureInfo=JSON.parse(await readFile(new URL('receipts.json',fixtureRoot),'utf8'));
@@ -236,7 +240,7 @@ test('source deadlines fit parent watchdogs and denial cache saves independently
   assert.equal(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.KS.stateMs,30_000);
   assert.equal(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.KS.maxRequests,6);
   assert.equal(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.KS.requestTimeoutMs,3_000);
-  assert.equal(policy.stateExpectedRunMs.KS,30_000);
+  assert.equal(policy.stateExpectedRunMs.KS,15_000);
   assert.ok(capacity.projectedRunMs<=capacity.availableRunMs,'The 30 second Kansas allowance keeps the scheduler inside the current capacity.');
 });
 

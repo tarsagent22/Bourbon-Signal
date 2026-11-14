@@ -309,6 +309,17 @@ if (state === 'RI') files.push(
   '.github/workflows/state-expansion-shadow.yml',
   '.github/workflows/refresh-feed.yml',
 );
+if (state === 'KS') files.push(
+  'engine/src/verify-ks-first-publication.mjs',
+  'engine/test/ks-first-publication.test.mjs',
+  'engine/test/ks-hosted-preview-evidence.test.mjs',
+  'engine/test/fixtures/ks-cityhive/hosted-finder-feed.json',
+  'engine/test/fixtures/ks-cityhive/hosted-finder-feed-receipt.json',
+  'engine/test/fixtures/ks-cityhive/hosted-coverage-receipt.json',
+  'engine/test/fixtures/ks-cityhive/hosted-search-receipt.json',
+  'engine/test/fixtures/ks-cityhive/hosted-deployment-receipt.json',
+  'engine/test/fixtures/ks-cityhive/hosted-public-protection-receipt.json',
+);
 for (const file of files) {
   const content = await readFile(path.join(root, file));
   fileDigests[file] = createHash('sha256').update(content).digest('hex');
