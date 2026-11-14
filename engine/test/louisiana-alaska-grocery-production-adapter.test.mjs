@@ -14,6 +14,15 @@ import { syntheticLaakAdmission } from './helpers/synthetic-laak-admission.mjs';
 const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
 const identity = JSON.parse(await readFile(new URL('./fixtures/louisiana-alaska/identity.json', import.meta.url), 'utf8'));
 
+// CI builds the fallback catalog, which omits the live eligibility flag.
+// Exercise admission with the explicit permission production requires.
+const admissionBible = new BourbonBible(bible.records.map(record => ({
+  ...record,
+  libraryIdentities: record.libraryIdentities?.map(entry => entry.id === 'eagle-rare-10'
+    ? { ...entry, isAlertEligible: true }
+    : entry),
+})));
+
 function rowFor(state) {
   const source = LOUISIANA_ALASKA_GROCERY_SOURCES.find(item => item.stateCode === state);
   const product = structuredClone(identity.product);
@@ -66,7 +75,7 @@ test('closed production admission accepts only the full reviewed AK and LA profi
   for (const state of ['AK', 'LA']) {
     const row = rowFor(state);
     const result = fullProfile(state, row);
-    const proof = validateLouisianaAlaskaProductionResult(state, bible, result);
+    const proof = validateLouisianaAlaskaProductionResult(state, admissionBible, result);
     assert.equal(proof.status, 'closed_profile_verified');
     assert.equal(proof.requestCount, LOUISIANA_ALASKA_GROCERY_BUDGETS[state].maxRequests);
     assert.equal(proof.reviewedStoreCount, LOUISIANA_ALASKA_GROCERY_SOURCES.filter(source => source.stateCode === state).length);
@@ -87,7 +96,7 @@ test('production admission rejects incomplete, unconfirmed, altered-store, and m
   for (const mutate of mutations) {
     const changed = structuredClone(valid);
     mutate(changed);
-    assert.throws(() => validateLouisianaAlaskaProductionResult('AK', bible, changed), /production profile rejected/);
+    assert.throws(() => validateLouisianaAlaskaProductionResult('AK', admissionBible, changed), /production profile rejected/);
   }
 });
 
