@@ -146,7 +146,7 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
     const releasedRi = /^    \},\n    "RI": \{[\s\S]+?^  \}/mu.exec(text)?.[0];
-    if (releasedRi && createHash('sha256').update(releasedRi).digest('hex') === 'e58c67132e170a8b007e93cfe0a4b7b21727a748cdef23cf586a312318efb92a') {
+    if (releasedRi && createHash('sha256').update(releasedRi).digest('hex') === '630ee689b046da0c7c418c9254b2babadb06898921b1fc875b1dd903a4c90fe2') {
       text=replaceUnique(text,releasedRi,'    }\n  }',`${name}: exact attested RI lifecycle entry`);
       text=replaceUnique(text,'    "LA",\n    "RI"\n  ],\n  "reliabilityPolicy"','    "LA"\n  ],\n  "reliabilityPolicy"',`${name}: exact RI active list tail`);
     }

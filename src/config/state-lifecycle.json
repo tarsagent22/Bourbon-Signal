@@ -1864,7 +1864,7 @@
               "status": "success",
               "artifactHash": "f07a4c785f2854aab3e56a100700268b43bde40bb7076961215e734c6eaa985d",
               "artifactId": "14108508704",
-              "commitSha": "ff615a9a6c8f96762889cbd612f8a4804af2e914",
+              "commitSha": "5ed9f509d9b5db6c29146665966c88de23d5c2b1",
               "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43581735173",
               "artifactName": "state-expansion-shadow-43581735173"
             }
@@ -1892,13 +1892,13 @@
           "provenance": {
             "status": "success",
             "repository": "tarsagent22/Bourbon-Signal",
-            "workflowRunId": "43581795229",
-            "artifactId": "14108389171",
-            "commitSha": "ff615a9a6c8f96762889cbd612f8a4804af2e914",
-            "artifactDigest": "b5b61e8605f31a4b67a5992bd016007603317909ab627d128376363cbf58e557",
-            "bundleDigest": "ba1c2a191e3ad48dd08b074e8f5de2343db3995a8731d92b464a00c4a1d2c31b",
-            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43581795229",
-            "artifactName": "state-promotion-provenance-RI-43581795229"
+            "workflowRunId": "43587035036",
+            "artifactId": "14110389587",
+            "commitSha": "5ed9f509d9b5db6c29146665966c88de23d5c2b1",
+            "artifactDigest": "d1cde813f5b894616b821a4d494173ed66c676a53a9b45fe5e579dbfff52514c",
+            "bundleDigest": "408c576a3d3e3953877a3fcf8522c92314d040f4b5f65fd384da7092e2814825",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43587035036",
+            "artifactName": "state-promotion-provenance-RI-43587035036"
           }
         }
       }
