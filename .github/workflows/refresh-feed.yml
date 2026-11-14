@@ -194,6 +194,14 @@ jobs:
           restore-keys: |
             inventory-central-cityhive-incidents-${{ runner.os }}-
 
+      - name: Restore Minnesota CityHive rotation cursor independently
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/cache/minnesota-cityhive-production/MN.cursor.json
+          key: inventory-mn-cityhive-cursor-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-mn-cityhive-cursor-${{ runner.os }}-
+
       - name: Restore metro attempt cooldowns independently of published inventory
         uses: actions/cache/restore@v4
         with:
@@ -545,6 +553,11 @@ jobs:
         working-directory: engine
         run: node src/verify-ri-first-publication.mjs
 
+      - name: Verify the first Minnesota production cohort before publication
+        if: ${{ startsWith(inputs.incident_key, 'minnesota-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-mn-first-publication.mjs
+
       - name: Audit every scarce library bottle across all states
         working-directory: engine
         run: node src/library-coverage-audit.mjs
@@ -697,6 +710,13 @@ jobs:
           path: engine/out/source-incidents/central-cityhive
           key: inventory-central-cityhive-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
+      - name: Save Minnesota CityHive rotation cursor independently of publication
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/cache/minnesota-cityhive-production/MN.cursor.json
+          key: inventory-mn-cityhive-cursor-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
       - name: Save metro attempt cooldowns independently of publication
         if: always()
         uses: actions/cache/save@v4
@@ -751,6 +771,8 @@ jobs:
             engine/out/site/states/AZ/drops.json
             engine/out/site/states/CA/drops.json
             engine/out/site/states/IL/drops.json
+            engine/out/site/states/MN/drops.json
+            engine/out/first-publication/MN.json
             engine/out/az-expansion-verification.json
             engine/out/illinois-grocery-verification.json
             engine/out/pa-expansion-verification.json

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "mode": "reviewed_ci_only_canary_extract",
+  "originalPartitionBytesPreserved": true,
+  "productionSnapshotTouched": false,
+  "sourceRun": {
+    "state": "MN",
+    "canaryRunId": "43594988302",
+    "canaryRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43594988302",
+    "sourceShadowRunId": "43594853292",
+    "sourceShadowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43594853292",
+    "sourceHeadSha": "9d95a07284f2ff2f0ca764eaafa8d9ee2a573cd4",
+    "selectedStores": 7,
+    "searchableStores": 16,
+    "deliveryDisabled": true
+  },
+  "runs": [
+    {
+      "state": "MN",
+      "canaryRunId": "43594988302",
+      "status": "success",
+      "sourceShadowRunId": "43594853292",
+      "partitionSha256": "797e95a996f416c81fce1ff75d8f342ac8d3a602e0f8e4de543071a84b2dde2b"
+    }
+  ],
+  "originalArtifactFileSha256": {
+    "manifest.json": "98e7c6a901b815d0bbf8508000928bc4b3b329a9b64d6c005f6310d78b81a753",
+    "stats.json": "27fcce34f11592dca52e5cf4f74b52def10a1c27c49c632dbd60f192b5e8e5fa",
+    "locations.json": "92d1255639ad235fdf4aaa3048ec28d5e9f5fbe3720dbba967263d974662d732",
+    "states/index.json": "34d1857ac47e64bcf32d60bd31d0f89243ed8072c6d408c40e6025fc13f54a8b",
+    "states/MN/drops.json": "797e95a996f416c81fce1ff75d8f342ac8d3a602e0f8e4de543071a84b2dde2b"
+  },
+  "extractedFileSha256": {
+    "manifest.json": "e4c551a7b366d530cf987fda0846111f1fdd333a18f4f513e700d0adb4dfa9e6",
+    "stats.json": "6c66bf02ed28ba9477efa2311121309f7560465f4a1ff34713a14824079c8dc9",
+    "locations.json": "886d15e7648ab8e02590ebf44d045eb189938160392d1dc7c418bdcf70f1b678",
+    "states/index.json": "a42cd81d40e8bbe1eca6286b0aab97c5dbd80c489e556e279cfaef8668bd8557",
+    "states/MN/drops.json": "797e95a996f416c81fce1ff75d8f342ac8d3a602e0f8e4de543071a84b2dde2b"
+  }
+}

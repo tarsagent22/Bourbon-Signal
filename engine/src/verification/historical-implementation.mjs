@@ -138,6 +138,11 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
   if(name==='engine/src/state-sources.mjs'){
+    const minnesotaImport = "import { MINNESOTA_CITYHIVE_PRODUCTION_CONFIG } from './minnesota-cityhive-production-config.mjs';\n";
+    if (text.includes(minnesotaImport)) {
+      text = replaceUnique(text, minnesotaImport, '', `${name}: MN registry import`);
+      text = replaceUnique(text, "  if (source.id === 'MN' && CONFIG_CUSTOMER_ACTIVE_STATE_IDS.has('MN')) return MINNESOTA_CITYHIVE_PRODUCTION_CONFIG;\n", '', `${name}: MN registry overlay`);
+    }
     text=replaceUnique(text,"import {LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS,LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES} from './louisiana-alaska-grocery-production-config.mjs';\n",'',`${name}: AK/LA production config import`);
     text=replaceUnique(text,
       "export const ALL_STATE_SOURCES = [...BASE_STATE_SOURCES.filter(source=>!NJ_MI_PRODUCTION_STATES.includes(source.id)&&!LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id)),...NJ_MI_PRODUCTION_CONFIGS,...LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS].map((source) => {\n  if(NJ_MI_PRODUCTION_STATES.includes(source.id)||LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id))return source;",
@@ -145,6 +150,29 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const releasedMinnesota = /^    "MN": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if (text.includes('    "MN"\n  ],\n  "reliabilityPolicy"') || releasedMinnesota?.includes('      "publicStatus": "active"')) {
+      assert.equal(createHash('sha256').update(releasedMinnesota || '').digest('hex'),
+        '050087f01453792a57743042ce7fcb9cafba3c1e3eda372ac8f78e151e3b5f14', `${name}: exact attested MN lifecycle entry`);
+      const inactiveMinnesota = `    "MN": {
+      "customerLabel": "Minnesota",
+      "sourceLabel": "Minnesota Costco warehouse bourbon watch",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_costco_inventory_research",
+      "coverageTier": "blocked",
+      "refinementLevel": "warehouse",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research-only: Minnesota has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
+    },
+`;
+      text = replaceUnique(text, releasedMinnesota, inactiveMinnesota, `${name}: exact attested MN lifecycle entry`);
+      text = replaceUnique(text, '    "RI",\n    "MN"\n  ],\n  "reliabilityPolicy"',
+        '    "RI"\n  ],\n  "reliabilityPolicy"', `${name}: exact MN active list tail`);
+      text = replaceUnique(text, '    "stateExpectedRunMs": {\n      "MN": 30000,\n',
+        '    "stateExpectedRunMs": {\n', `${name}: exact MN expected runtime`);
+    }
     const releasedRi = /^    \},\n    "RI": \{[\s\S]+?^  \}/mu.exec(text)?.[0];
     if (releasedRi && createHash('sha256').update(releasedRi).digest('hex') === '630ee689b046da0c7c418c9254b2babadb06898921b1fc875b1dd903a4c90fe2') {
       text=replaceUnique(text,releasedRi,'    }\n  }',`${name}: exact attested RI lifecycle entry`);

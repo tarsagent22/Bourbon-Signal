@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "state": "MN",
+  "mode": "canary_preview",
+  "generatedAt": "2026-11-14T12:27:51.534Z",
+  "alertDeliveryEnabled": false,
+  "productionSnapshotPublicationEnabled": false,
+  "productionDeploymentEnabled": false
+}

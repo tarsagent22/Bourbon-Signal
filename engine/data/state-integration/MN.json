@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 1,
+  "state": "MN",
+  "lifecycle": {
+    "customerLabel": "Minnesota",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "mn:central-cityhive"
+    ],
+    "registration": "A rotating, exact-merchant Top Ten Liquors cohort. Each bounded observation covers seven of sixteen reviewed premises; three successful rotations cover the full library.",
+    "cohortSha256": "f8966ff41632ffe3d8f9dc06136bcaa453c7e0177cd3bc991dbd96baae197c74"
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 16,
+    "proof": "Each selected observation must reparse the exact reviewed merchant, address, product option, positive pickup offer, and source clock."
+  },
+  "sourceSemantics": {
+    "availability": "Binary retailer-published pickup availability. Positive options do not create an exact shelf count; verify before driving.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Hosted isolated run 43597461273 executed the authored Coverage path and the offline Drop Feed route returned only Minnesota fixture rows for state=MN."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "The existing store search mapped Blaine to its store selector. The authored route returned only Blaine rows and the matcher rejected Stillwater in the isolated cohort fixture."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "The authored preferences POST persisted the Minnesota state scope to in-memory member storage and GET read the same state scope back."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "The authored dashboard state selection and preference membership contract, with Minnesota active in an isolated lifecycle overlay, includes Minnesota and marks the Minnesota choice returned by the authored preferences route as selected."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "The authored Drop Feed GET returned all 13 Minnesota canary listings with state=MN, zero with state=WI, and the exact Minnesota store rows for Blaine under isolated fixture infrastructure."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Hosted isolated run 43597461273 exercised the authored Coverage Finder and exact store and location routes for all 16 reviewed premises."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Canaries 43594988302 and 43597461273 verified binary pickup rows with delivery eligibility false for inventory, Watch, email, SMS and on-site alert channels."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Hosted run 43597312582 verified all 16 exact premises in 32 successful first-party responses. The authored Coverage projection showed 10 current stores."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Hosted run 43597461273 verified original source clocks and the 13-row isolated customer partition. Workflow 43597417112 issued its provenance."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "verified",
+      "runs": 5,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43604258764",
+      "originalSourceClocksPreserved": true
+    },
+    "canary": {
+      "status": "verified",
+      "runs": 4,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43604576314",
+      "siteArtifact": "engine/data/canary-site/minnesota-20261114",
+      "observations": [
+        {
+          "runId": "43594988302",
+          "status": "success",
+          "artifactHash": "09585c0d3223fa64bb9ec0980dc04f763e14666faa1d63f15ae56a2be733f3bd"
+        },
+        {
+          "runId": "43597461273",
+          "status": "success",
+          "artifactHash": "b0537198456e122bfbc9c4ed68d9b13c88446e12543d768160adfaec50494531"
+        },
+        {
+          "runId": "43602243059",
+          "status": "success",
+          "artifactHash": "fa4f205c227f60466c6eebb4c3fd838de9f143b59435db51c91abf087519f2ad"
+        },
+        {
+          "runId": "43604576314",
+          "status": "success",
+          "artifactHash": "520fd6604cba4f7cb2bc1f3af509ea63707ebe65817c0fcf7ccb4b8f1aef71d6"
+        }
+      ],
+      "allDeliveryChannelsDisabled": true
+    },
+    "production": {
+      "status": "awaiting_first_publication",
+      "url": "https://www.bourbonsignal.com/api/drops?state=MN",
+      "assertion": "The first production publication verifies a fresh seven-store collection, its public partition, and disabled alerts before activating the snapshot."
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "MN",
+      "generatedAt": "2026-11-14T14:24:20.267Z",
+      "sourceConfigHash": "cb6abf8922de89eb540d7405b420e3f502e0df87ebab43ae215cbe8e2fe096b7",
+      "sourceRuntimeId": "mn:central-cityhive",
+      "cohortSha256": "f8966ff41632ffe3d8f9dc06136bcaa453c7e0177cd3bc991dbd96baae197c74",
+      "previewUrl": "https://bourbonsignal-fqwn21q4z-tarsagent22s-projects.vercel.app",
+      "shadowRuns": [
+        {
+          "runId": "43586205036",
+          "status": "success",
+          "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43586205036",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43586205036",
+          "artifactHash": "33812069d1e141b2f491f0f40ad075fca4aa0ed16253cc8d1ea4787f3a973c5f",
+          "artifactId": "14110308404",
+          "artifactName": "state-expansion-shadow-43586205036",
+          "commitSha": "f417fa44dfad17880935107a8eef8445d8f205c2",
+          "observedAt": "2026-11-14T10:39:05.091Z",
+          "observedStores": 16,
+          "positiveListings": 7
+        },
+        {
+          "runId": "43594853292",
+          "status": "success",
+          "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43594853292",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43594853292",
+          "artifactHash": "ac6821fe5eb7c336d854c963b16d352324491a1aee5ef124e2ce333bc06dd150",
+          "artifactId": "14114150202",
+          "artifactName": "state-expansion-shadow-43594853292",
+          "commitSha": "9d95a07284f2ff2f0ca764eaafa8d9ee2a573cd4",
+          "observedAt": "2026-11-14T12:27:51.534Z",
+          "observedStores": 16,
+          "positiveListings": 7
+        },
+        {
+          "runId": "43597312582",
+          "status": "success",
+          "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597312582",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597312582",
+          "artifactHash": "848509632c81d2683833b652c82547422325c13a03144a2fee7c85839c8d6f83",
+          "artifactId": "14114457678",
+          "artifactName": "state-expansion-shadow-43597312582",
+          "commitSha": "0439ca15a03f3c72ff55b9dbf812e524f4c23bdc",
+          "observedAt": "2026-11-14T12:58:21.627Z",
+          "observedStores": 16,
+          "positiveListings": 13
+        },
+        {
+          "runId": "43600990850",
+          "status": "success",
+          "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43600990850",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43600990850",
+          "artifactHash": "ba2ebe18d67e217470cfc8ec08b52e1f58a8c49fcb39eba9a2ef15ca78f4bc6d",
+          "artifactId": "14116022783",
+          "artifactName": "state-expansion-shadow-43600990850",
+          "commitSha": "dcd8afe7d56b6d69d0311a914835e32cb8d08115",
+          "observedAt": "2026-11-14T13:42:09.695Z",
+          "observedStores": 16,
+          "positiveListings": 7
+        },
+        {
+          "runId": "43604258764",
+          "status": "success",
+          "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43604258764",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43604258764",
+          "artifactHash": "7d39cc6ad1fea704c2897b4ef96adaee7dfdf90582104682ba2fb07ea6e9e730",
+          "artifactId": "14117925978",
+          "artifactName": "state-expansion-shadow-43604258764",
+          "commitSha": "05ac38e688b5d028f84f3c7d70210694a313a711",
+          "observedAt": "2026-11-14T14:20:04.613Z",
+          "observedStores": 16,
+          "positiveListings": 7
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "43594988302",
+          "status": "success",
+          "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43594988302",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43594988302",
+          "artifactHash": "09585c0d3223fa64bb9ec0980dc04f763e14666faa1d63f15ae56a2be733f3bd",
+          "artifactId": "14114345265",
+          "artifactName": "state-expansion-canary-MN-43594988302",
+          "commitSha": "9d95a07284f2ff2f0ca764eaafa8d9ee2a573cd4",
+          "generatedAt": "2026-11-14T12:29:18.703Z",
+          "currentStores": 7,
+          "currentListings": 7
+        },
+        {
+          "runId": "43597461273",
+          "status": "success",
+          "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597461273",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597461273",
+          "artifactHash": "b0537198456e122bfbc9c4ed68d9b13c88446e12543d768160adfaec50494531",
+          "artifactId": "14115330046",
+          "artifactName": "state-expansion-canary-MN-43597461273",
+          "commitSha": "0439ca15a03f3c72ff55b9dbf812e524f4c23bdc",
+          "generatedAt": "2026-11-14T13:00:02.005Z",
+          "currentStores": 10,
+          "currentListings": 13
+        },
+        {
+          "runId": "43602243059",
+          "status": "success",
+          "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43602243059",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43602243059",
+          "artifactHash": "fa4f205c227f60466c6eebb4c3fd838de9f143b59435db51c91abf087519f2ad",
+          "artifactId": "14116782211",
+          "artifactName": "state-expansion-canary-MN-43602243059",
+          "commitSha": "9a8a71d70b68c2a1142c5259bb0caf7f73d9ae01",
+          "generatedAt": "2026-11-14T13:57:05.799Z",
+          "currentStores": 7,
+          "currentListings": 7
+        },
+        {
+          "runId": "43604576314",
+          "status": "success",
+          "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43604576314",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43604576314",
+          "artifactHash": "520fd6604cba4f7cb2bc1f3af509ea63707ebe65817c0fcf7ccb4b8f1aef71d6",
+          "artifactId": "14117766328",
+          "artifactName": "state-expansion-canary-MN-43604576314",
+          "commitSha": "8a1ee367b9e32d645f872d46969caaf50e57fcb9",
+          "generatedAt": "2026-11-14T14:24:03.386Z",
+          "currentStores": 7,
+          "currentListings": 7
+        }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "43604574001",
+        "artifactId": "14118006345",
+        "commitSha": "8a1ee367b9e32d645f872d46969caaf50e57fcb9",
+        "artifactDigest": "e06f6c5b38f5fb3dc844844d07decdcb96ca6d90642c30408604c148e6647fe0",
+        "bundleDigest": "5e2d275abff3fb6eaf338e88b4689e223dd59ddf27425f697c7233cf3d0cc789",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43604574001",
+        "artifactName": "state-promotion-provenance-MN-43604574001"
+      }
+    }
+  }
+}

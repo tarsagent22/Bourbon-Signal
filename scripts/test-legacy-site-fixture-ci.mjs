@@ -23,7 +23,7 @@ test('CI preparation preserves every legacy inventory byte and clock and supplie
       await mkdir(path.dirname(path.join(root,dir)),{recursive:true});await cp(path.join(ROOT,dir),path.join(root,dir),{recursive:true});
     }
     const {activeStates}=await read(path.join(root,'src/config/state-lifecycle.json'));
-    const additions=[...STATES,...['AK','LA','RI'].filter(state=>activeStates.includes(state))];
+    const additions=[...STATES,...['AK','LA','RI','MN'].filter(state=>activeStates.includes(state))];
     const expectedStateCount=24+additions.length;
     const oldStats=await read(path.join(site,'stats.json')),oldQuality=await read(path.join(site,'state-quality.json')),oldManifest=await read(path.join(site,'manifest.json')),oldIndex=await read(path.join(site,'states/index.json'));
     const untouched=['drops.json','events.json','alerts.json','stores.json','locations.json','bottles.json','historical-trends.json','nc-intelligence.json',...oldIndex.states.filter(row=>!additions.includes(row.state)).map(row=>row.file)];

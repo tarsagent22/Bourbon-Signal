@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       shadow_run_id:
-        description: "OR/AK/LA/WA/NM/WI/OK/RI/NJ/MI: successful workflow-issued shadow run to replay with original clocks"
+        description: "OR/AK/LA/WA/NM/WI/OK/RI/MN/NJ/MI: successful workflow-issued shadow run to replay with original clocks"
         required: false
         type: string
       candidate_drops:
@@ -48,13 +48,13 @@ jobs:
           set -euo pipefail
           if [[ ! "$RAW_STATE" =~ ^[A-Z]{2}(-[A-Z0-9]+)?$ ]]; then exit 1; fi
           if [[ ! "$RAW_CANDIDATE_DROPS" =~ ^data/canary-inputs/[A-Za-z0-9._/-]+\.json$ ]] || [[ "$RAW_CANDIDATE_DROPS" == *".."* ]]; then exit 1; fi
-          if [[ "$RAW_STATE" == "OR" || "$RAW_STATE" == "AK" || "$RAW_STATE" == "LA" || "$RAW_STATE" == "WA" || "$RAW_STATE" == "NM" || "$RAW_STATE" == "WI" || "$RAW_STATE" == "OK" || "$RAW_STATE" == "RI" || "$RAW_STATE" == "NJ" || "$RAW_STATE" == "MI" ]]; then
+          if [[ "$RAW_STATE" == "OR" || "$RAW_STATE" == "AK" || "$RAW_STATE" == "LA" || "$RAW_STATE" == "WA" || "$RAW_STATE" == "NM" || "$RAW_STATE" == "WI" || "$RAW_STATE" == "OK" || "$RAW_STATE" == "RI" || "$RAW_STATE" == "NJ" || "$RAW_STATE" == "MI" || "$RAW_STATE" == "MN" ]]; then
             if [[ ! "$RAW_SHADOW_RUN" =~ ^[0-9]+$ ]] || [[ "$RAW_CANDIDATE_DROPS" != "data/canary-inputs/$RAW_STATE.json" ]]; then
               echo "Reviewed artifact replay requires an actual shadow run and the fixed state canary path" >&2
               exit 1
             fi
           elif [[ -n "$RAW_SHADOW_RUN" ]]; then
-            echo "Artifact replay is reviewed only for OR/AK/LA/WA/NM/WI/OK/RI/NJ/MI" >&2
+            echo "Artifact replay is reviewed only for OR/AK/LA/WA/NM/WI/OK/RI/NJ/MI/MN" >&2
             exit 1
           fi
           echo "shadow_run=$RAW_SHADOW_RUN" >> "$GITHUB_OUTPUT"
@@ -93,8 +93,8 @@ jobs:
           case "$STATE" in
             OR) node scripts/download-oregon-shadow.mjs --run="$SHADOW_RUN" --out-dir="engine/out/oregon-shadow-input/OR" ;;
             AK|LA) node scripts/download-laak-shadow.mjs --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/laak-shadow-input/$STATE" ;;
-            NJ|MI|WI|OK|RI|WA|NM)
-              case "$STATE" in NJ|MI) family=njmi ;; WI|OK|RI) family=cityhive ;; WA|NM) family=grocery ;; esac
+            NJ|MI|WI|OK|RI|MN|WA|NM)
+              case "$STATE" in NJ|MI) family=njmi ;; WI|OK|RI|MN) family=cityhive ;; WA|NM) family=grocery ;; esac
               node "scripts/download-$family-shadow.mjs" --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/$family-shadow-input/$STATE" ;;
             *) exit 1 ;;
           esac
@@ -109,7 +109,7 @@ jobs:
             OR) family=oregon; preparer=prepare-oregon-canary.mjs ;;
             AK|LA) family=laak; preparer=prepare-laak-canary.mjs ;;
             NJ|MI) family=njmi; preparer=prepare-nj-mi-canary.mjs ;;
-            WI|OK|RI) family=cityhive; preparer=prepare-central-cityhive-canary.mjs ;;
+            WI|OK|RI|MN) family=cityhive; preparer=prepare-central-cityhive-canary.mjs ;;
             WA|NM) family=grocery; preparer=prepare-grocery-canary.mjs ;;
             *) exit 1 ;;
           esac
@@ -127,14 +127,20 @@ jobs:
           config_args=()
           if [[ -n "$SHADOW_RUN" ]]; then config_args+=("--config=out/canary-preparation/$STATE/lifecycle-research.json"); fi
           npm --prefix engine run canary:state -- --state="$STATE" --candidate-drops="$CANDIDATE_DROPS" --out-dir="out/canary/$STATE/site" "${config_args[@]}"
-          npm --prefix engine run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json"
+          manifest_args=()
+          if [[ "$STATE" == "MN" ]]; then
+            CANARY_RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            node engine/src/prepare-central-cityhive-canary-manifest.mjs --state=MN --preview-config=out/canary/MN/site/lifecycle-preview.json --preview-policy=out/canary/MN/site/canary-preview-policy.json --source-provenance=out/cityhive-shadow-input/MN/provenance.json --canary-run-url="$CANARY_RUN_URL" --out-dir=out/canary-preparation/MN/state-integration
+            manifest_args+=("--manifest-dir=out/canary-preparation/MN/state-integration")
+          fi
+          npm --prefix engine run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json" "${manifest_args[@]}"
           npm --prefix engine run verify:reliability
       - name: Verify actual app projection and binary on-site isolation
         if: steps.validate.outputs.shadow_run != ''
         env:
           STATE: ${{ steps.validate.outputs.state }}
         run: |
-          case "$STATE" in OR) verifier=test-oregon-public-canary.mjs ;; AK|LA) verifier=test-laak-public-canary.mjs ;; NJ|MI) verifier=test-nj-mi-public-canary.mjs ;; WI|OK|RI) verifier=test-central-cityhive-public-canary.mjs ;; WA|NM) verifier=test-grocery-public-canary.mjs ;; *) exit 1 ;; esac
+          case "$STATE" in OR) verifier=test-oregon-public-canary.mjs ;; AK|LA) verifier=test-laak-public-canary.mjs ;; NJ|MI) verifier=test-nj-mi-public-canary.mjs ;; WI|OK|RI|MN) verifier=test-central-cityhive-public-canary.mjs ;; WA|NM) verifier=test-grocery-public-canary.mjs ;; *) exit 1 ;; esac
           node --import tsx "scripts/$verifier" --state="$STATE"
 
       - name: Build workflow-issued provenance bundle
@@ -154,20 +160,23 @@ jobs:
         if: steps.validate.outputs.shadow_run != ''
         uses: actions/upload-artifact@v4
         with:
-          name: grocery-promotion-replay-${{ steps.validate.outputs.state }}-${{ github.run_id }}
+          name: state-promotion-replay-${{ steps.validate.outputs.state }}-${{ github.run_id }}
           retention-days: 90
           if-no-files-found: error
           path: |
             engine/data/canary-inputs/${{ steps.validate.outputs.state }}.json
             engine/out/grocery-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
             engine/out/cityhive-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
+            engine/out/cityhive-shadow-input/${{ steps.validate.outputs.state }}/artifact.zip
             engine/out/njmi-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
             engine/out/oregon-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
             engine/out/laak-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
+            engine/out/canary-preparation/${{ steps.validate.outputs.state }}/lifecycle-research.json
             engine/out/canary/${{ steps.validate.outputs.state }}/public-projection.json
             engine/out/canary/${{ steps.validate.outputs.state }}/site/public-projection.json
             engine/out/canary/${{ steps.validate.outputs.state }}/site/states/${{ steps.validate.outputs.state }}/drops.json
             engine/out/canary/${{ steps.validate.outputs.state }}/site/lifecycle-preview.json
             engine/out/canary/${{ steps.validate.outputs.state }}/site/canary-preview-policy.json
+            engine/out/canary-preparation/${{ steps.validate.outputs.state }}
             engine/out/library-catalog.json
             engine/out/bourbon-bible.json
