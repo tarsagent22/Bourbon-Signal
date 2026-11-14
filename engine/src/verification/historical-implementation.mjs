@@ -150,6 +150,16 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const arkansasEntry=/^    "AR": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if (arkansasEntry || text.includes('    "AR"\n  ],\n  "reliabilityPolicy"')) {
+      assert.equal(createHash('sha256').update(arkansasEntry || '').digest('hex'),
+        '657a6daa15013c91b3e43a85b4b1783cfc384e3c8b66f20bf60425b307c32135', `${name}: exact attested AR lifecycle entry`);
+      text = replaceUnique(text, arkansasEntry, '', `${name}: exact attested AR lifecycle entry`);
+      text = replaceUnique(text, ',\n    "AR"\n  ],\n  "reliabilityPolicy"',
+        '\n  ],\n  "reliabilityPolicy"', `${name}: exact AR active list tail`);
+      text = replaceUnique(text, '    "stateExpectedRunMs": {\n      "AR": 30000,\n',
+        '    "stateExpectedRunMs": {\n', `${name}: exact AR expected runtime`);
+    }
     const releasedMinnesota = /^    "MN": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
     if (text.includes('    "MN"\n  ],\n  "reliabilityPolicy"') || releasedMinnesota?.includes('      "publicStatus": "active"')) {
       assert.equal(createHash('sha256').update(releasedMinnesota || '').digest('hex'),
