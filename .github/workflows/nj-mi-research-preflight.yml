@@ -30,7 +30,6 @@ jobs:
       ALERT_EMAIL_DELIVERY_ENABLED: "0"
       ALERT_SMS_DELIVERY_ENABLED: "0"
       NJ_MI_RESEARCH_STATES: ${{ inputs.states || 'NJ,MI' }}
-      BOURBON_SIGNAL_NJ_SILVERTON_SHADOW: ${{ github.ref == 'refs/heads/research/nj-silverton-shadow-20261114' && inputs.states == 'NJ' && '1' || '0' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,7 +47,7 @@ jobs:
           restore-keys: |
             nj-mi-research-incidents-${{ runner.os }}-
       - name: Restore Silverton research host incidents
-        if: env.BOURBON_SIGNAL_NJ_SILVERTON_SHADOW == '1'
+        if: ${{ github.ref == 'refs/heads/research/nj-silverton-shadow-20261114' && inputs.states == 'NJ' }}
         uses: actions/cache/restore@v4
         with:
           path: engine/out/research-source-attempts/nj-silverton-cityhive-incidents.json
@@ -60,6 +59,8 @@ jobs:
       - name: Run local strict research regressions before HTTP
         run: node --test engine/test/nj-mi-research.test.mjs && npx tsx scripts/test-nj-mi-public-research.mts
       - name: Capture bounded first-party source receipts without customer activation
+        env:
+          BOURBON_SIGNAL_NJ_SILVERTON_SHADOW: ${{ github.ref == 'refs/heads/research/nj-silverton-shadow-20261114' && inputs.states == 'NJ' && '1' || '0' }}
         run: node scripts/run-nj-mi-research-pass.mjs
       - name: Save host incidents even after cancellation or failed collection
         if: always()
@@ -81,7 +82,7 @@ jobs:
             engine/out/library-catalog.json
             engine/out/bourbon-bible.json
       - name: Save Silverton host incidents independently of evidence upload
-        if: always() && env.BOURBON_SIGNAL_NJ_SILVERTON_SHADOW == '1'
+        if: ${{ always() && github.ref == 'refs/heads/research/nj-silverton-shadow-20261114' && inputs.states == 'NJ' }}
         uses: actions/cache/save@v4
         with:
           path: engine/out/research-source-attempts/nj-silverton-cityhive-incidents.json
