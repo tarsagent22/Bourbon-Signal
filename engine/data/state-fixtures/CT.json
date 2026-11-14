@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "state": "CT",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "ct-reviewed-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "bottle-house-ct:654ea77f27845d7ca6476608"
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 1,
+        "canonicalNames": [
+          "Blanton's Original Single Barrel"
+        ]
+      }
+    },
+    {
+      "id": "ct-unidentified",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "bottle-house-ct:654ea77f27845d7ca6476608",
+        "rawName": "Unidentified Straight Bourbon 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ct-cream",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "bottle-house-ct:654ea77f27845d7ca6476608",
+        "rawName": "Bourbon Cream Liqueur 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ct-miniature",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "bottle-house-ct:654ea77f27845d7ca6476608",
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ct-binary-availability",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "bottle-house-ct:654ea77f27845d7ca6476608"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "semantics": "binary_retailer_orderable_no_exact_count"
+      }
+    },
+    {
+      "id": "ct-wrong-merchant",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "bottle-house-ct:654ea77f27845d7ca6476608",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ct-stale",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "bottle-house-ct:654ea77f27845d7ca6476608",
+        "ageMinutes": 300
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 0,
+        "candidateCount": 0,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "ct-foreign-source",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceId": "bottle-house-ct:654ea77f27845d7ca6476608",
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ct-shadow-never-public",
+      "kind": "shadow_isolation",
+      "input": {
+        "sourceId": "bottle-house-ct:654ea77f27845d7ca6476608",
+        "shadowOnly": true
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 0,
+        "deliveryEligible": false,
+        "confidenceInventoryAllowed": false
+      }
+    },
+    {
+      "id": "ct-shipping-only",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "bottle-house-ct:654ea77f27845d7ca6476608",
+        "shippingOnly": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "evidence": {
+    "production": {
+      "reason": "Research and canary only; no active lifecycle.",
+      "status": "not_deployed",
+      "assertion": "No production snapshot or delivery state was changed.",
+      "url": null
+    },
+    "canary": {
+      "status": "verified",
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43605576308",
+      "allDeliveryChannelsDisabled": true
+    },
+    "shadow": {
+      "status": "verified",
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43605205518",
+      "originalSourceClocksPreserved": true
+    }
+  },
+  "lifecycle": {
+    "refinementLevel": "store",
+    "publicStatus": "active",
+    "coverageTier": "live_store_inventory",
+    "customerLabel": "Connecticut"
+  },
+  "storeIdentity": {
+    "proof": "Current first-party merchant configuration, address, product option, same-host source URL and positive pickup offer must agree.",
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 7
+  },
+  "state": "CT",
+  "schemaVersion": 1,
+  "customerPaths": {
+    "preferences": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    }
+  },
+  "sourceSemantics": {
+    "watchAlertable": false,
+    "availability": "Binary retailer-published pickup availability; exact shelf quantity is not published.",
+    "inventoryAlertable": false
+  },
+  "collector": {
+    "sourceIds": [
+      "ct:central-cityhive"
+    ],
+    "cohortSha256": "9bd65e90aab05981ab376dfb46250b02d34ce976b63cccfdffb79b42624bdefb",
+    "registration": "Dormant first-party pickup, exact merchant and reviewed storefront per request."
+  },
+  "scope": "isolated_preview_no_activation"
+}
