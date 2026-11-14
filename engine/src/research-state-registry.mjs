@@ -7,6 +7,7 @@ import { cityHiveResearchSourceForState, cityHiveResearchLifecycleEntries, colle
 import {njMiResearchSourceForState,njMiResearchLifecycleEntries,collectNjMiResearchReport} from './nj-mi-research-runtime.mjs';
 import {michiganLiquorsResearchSourceForState,michiganLiquorsResearchLifecycleEntries,collectMichiganLiquorsResearchReport} from './research-michigan-liquors-runtime.mjs';
 import { louisianaAlaskaResearchSourceForState, louisianaAlaskaResearchLifecycleEntries, collectLouisianaAlaskaResearchReport } from './research-louisiana-alaska-grocery-runtime.mjs';
+import { plainsRetailResearchSourceForState, plainsRetailResearchLifecycleEntries, collectPlainsRetailResearchReport } from './research-plains-retail-runtime.mjs';
 
 // Research registrations never rewrite production lifecycle/source files or
 // historical promotion evidence. Activation requires a separate reviewed change.
@@ -27,6 +28,7 @@ export function researchSourceForState(state, { shadowMode = process.env.BOURBON
     || louisianaAlaskaResearchSourceForState(state)
     || njMiResearchSourceForState(state)
     || groceryResearchSourceForState(state)
+    || plainsRetailResearchSourceForState(state)
     || cityHiveResearchSourceForState(state);
 }
 
@@ -36,6 +38,7 @@ export function withResearchLifecycle(production) {
   const additions = {
     ...cityHiveResearchLifecycleEntries(), ...groceryResearchLifecycleEntries(), ...njMiResearchLifecycleEntries(),
     ...michiganLiquorsResearchLifecycleEntries(), ...louisianaAlaskaResearchLifecycleEntries(),
+    ...plainsRetailResearchLifecycleEntries(),
   };
   for(const state of Object.keys(additions))if(production.activeStates.includes(state)||production.states[state]?.publicStatus==='active') {
     delete additions[state];
@@ -57,6 +60,7 @@ export async function collectResearchStateReport(config, bible, options = {}) {
   if (config && config === louisianaAlaskaResearchSourceForState(config.id)) return collectLouisianaAlaskaResearchReport(config, bible, options);
   if(config&&config===groceryResearchSourceForState(config.id))return collectGroceryResearchReport(config,bible,options);
   if(config&&config===njMiResearchSourceForState(config.id))return collectNjMiResearchReport(config,bible,options);
+  if(config&&config===plainsRetailResearchSourceForState(config.id))return collectPlainsRetailResearchReport(config,bible,options);
   if (config && config === cityHiveResearchSourceForState(config.id)) return collectCityHiveResearchReport(config,bible,options);
   if (process.env.BOURBON_SIGNAL_SHADOW_MODE !== '1' || config !== MASSACHUSETTS) {
     throw new Error('Research reports require the registered isolated shadow source.');

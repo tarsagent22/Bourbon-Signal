@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "researchOnly": true,
+  "productionMutation": false,
+  "capturedAt": "2026-11-14T11:58:20.269Z",
+  "bibleRecords": [
+    { "id": "bb_ef203a18f5f98f23", "canonical": "Heaven Hill Bottled-in-Bond 7 Year", "tier": "limited", "normalizedKey": "heaven hill bottled in bond 7 year", "aliases": [], "libraryIdentities": [{ "id": "bb_ef203a18f5f98f23", "canonicalName": "Heaven Hill Bottled-in-Bond 7 Year", "aliases": [], "nationalTier": "limited", "stateOverrides": [], "isAlertEligible": true }] },
+    { "id": "bb_dec2c347ba378237", "canonical": "Larceny Barrel Proof", "tier": "standard", "normalizedKey": "larceny proof", "aliases": [], "libraryIdentities": [{ "id": "larceny-barrel-proof", "canonicalName": "Larceny Barrel Proof", "aliases": [], "nationalTier": "limited", "stateOverrides": [], "isAlertEligible": true }] },
+    { "id": "bb_9c8cf2d251d5db7e", "canonical": "Undammed Thief Creek Straight Bourbon", "tier": "limited", "normalizedKey": "undammed thief creek", "aliases": [], "libraryIdentities": [{ "id": "bb_9c8cf2d251d5db7e", "canonicalName": "Undammed Thief Creek Straight Bourbon", "aliases": [], "nationalTier": "limited", "stateOverrides": [], "isAlertEligible": true }] }
+  ],
+  "captures": {
+    "SD": {
+      "source": "https://www.mrliquor.com/",
+      "store": {
+        "id": "5220",
+        "name": "Mr. Liquor South",
+        "address": "5312 Black Hills Blvd",
+        "city": "Rapid City",
+        "state": "SD",
+        "zip": "57701"
+      },
+      "pickupEnabled": true,
+      "products": [
+        {
+          "title": "Heaven Hill - 7 Year Bourbon - 750ml",
+          "publicId": "58g3imjsu2bs7",
+          "upc": "096749002429",
+          "sizeMl": 750,
+          "priceCents": 5399,
+          "available": 3,
+          "reserved": 0,
+          "backorderEnabled": false,
+          "storeId": "5220",
+          "canonicalName": "Heaven Hill Bottled-in-Bond 7 Year",
+          "canonicalBottleId": "bb_ef203a18f5f98f23",
+          "tier": "limited",
+          "observedAt": "2026-11-14T11:50:26.105Z"
+        },
+        {
+          "title": "Larceny Bourbon - Barrel Proof (Allocated)",
+          "publicId": "6ydeimjsu2t72",
+          "upc": "096749002658",
+          "sizeMl": 750,
+          "priceCents": 7499,
+          "available": 12,
+          "reserved": 0,
+          "backorderEnabled": false,
+          "storeId": "5220",
+          "canonicalName": "Larceny Barrel Proof",
+          "canonicalBottleId": "bb_dec2c347ba378237",
+          "tier": "limited",
+          "observedAt": "2026-11-14T11:51:20.536Z"
+        }
+      ],
+      "receipts": [
+        { "url": "https://www.mrliquor.com/products?tags=e5rwimjstutnf-bourbon", "status": 200, "capturedAt": "2026-11-14T11:50:27.758Z", "bodySha256": "a9ad48e478ea4380321b2c5d4eba55e4598e56ebbd43ab95afde3b50c4846c75" },
+        { "url": "https://www.mrliquor.com/api/trpc/product.getAll (public storefront batch)", "status": 200, "capturedAt": "2026-11-14T11:50:26.105Z", "bodySha256": "e6e9753f7ebbee03428d26b283b4088393aa3e5bac4708c9474607bb145a936e" },
+        { "evidenceArtifact": "sante-barrel-proof.json", "origin": "https://www.mrliquor.com", "capturedAt": "2026-11-14T11:51:20.536Z", "artifactSha256": "3d3c200a4fbb5a226279a9d3e344a957547ea72e202563993c9175dec621c9d4" }
+      ],
+      "reviewedProofSha256": "91b9e523ae04e03d6c5ea9ef3c910486aeb8ed5e8718710706d172a012d460cd"
+    },
+    "MT": {
+      "source": "https://montanaliquor.com/products/undammed-thief-creek-straight-bourbon-750ml",
+      "store": {
+        "id": "montana-liquor-billings-1019",
+        "name": "Montana Liquor Inc",
+        "address": "1019 1st Ave North",
+        "city": "Billings",
+        "state": "MT",
+        "zip": "59101"
+      },
+      "pickupEnabled": true,
+      "pickupWindow": "today, 09:00 AM–07:00 PM",
+      "products": [
+        {
+          "title": "UNDAMMED THIEF CREEK STRAIGHT BOURBON 750ML",
+          "upc": "860006244521",
+          "sizeMl": 750,
+          "priceCents": 5100,
+          "available": 6,
+          "reserved": 0,
+          "backorderEnabled": false,
+          "storeId": "montana-liquor-billings-1019",
+          "canonicalName": "Undammed Thief Creek Straight Bourbon",
+          "canonicalBottleId": "bb_9c8cf2d251d5db7e",
+          "tier": "limited",
+          "observedAt": "2026-11-14T11:58:20.269Z"
+        }
+      ],
+      "receipts": [
+        { "url": "https://montanaliquor.com/", "status": 200, "capturedAt": "2026-11-14T11:58:19.781Z", "bodySha256": "163e3b546f2fb7ef44b13d428298d8f6237a4c37a452a21aba8d5b8cf9abf7e6" },
+        { "url": "https://montanaliquor.com/products/undammed-thief-creek-straight-bourbon-750ml", "status": 200, "capturedAt": "2026-11-14T11:58:20.269Z", "bodySha256": "80d58d8c5b747a1eeab0ba2436255d53ea98ef0668c6bc41122d3c3c75d1cd82" }
+      ],
+      "reviewedProofSha256": "9db4d0b976d7b83baabc1e699d6796c9bc13deb51e01a914cfd92bd49826afb6"
+    }
+  }
+}
