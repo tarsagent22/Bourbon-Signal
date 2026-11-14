@@ -33,7 +33,8 @@ export const STATE_LIFECYCLE_CONFIG = {
     "AK",
     "LA",
     "RI",
-    "MN"
+    "MN",
+    "KS"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -81,6 +82,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "MI": 60000,
       "WI": 30000,
       "OK": 30000,
+      "KS": 15000,
       "KY": 180000,
       "WA": 360000,
       "NM": 120000,
@@ -2053,6 +2055,114 @@ export const STATE_LIFECYCLE_CONFIG = {
             "bundleDigest": "408c576a3d3e3953877a3fcf8522c92314d040f4b5f65fd384da7092e2814825",
             "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43587035036",
             "artifactName": "state-promotion-provenance-RI-43587035036"
+          }
+        }
+      }
+    },
+    "KS": {
+      "customerLabel": "Kansas",
+      "sourceLabel": "Three reviewed Kansas CityHive retailers",
+      "publicStatus": "active",
+      "shadowEligible": true,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Binary pickup availability from three reviewed Kansas retailers. Verify with the store before driving.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "verticalSliceManifest": "engine/data/state-integration/KS.json",
+        "fixtureContract": "engine/data/state-fixtures/KS.json",
+        "shadowRuns": 5,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-11-14T14:52:23.000Z",
+        "canaryPreviewUrl": "https://bourbonsignal-2h76vtz8l-tarsagent22s-projects.vercel.app/coverage",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "KS",
+          "generatedAt": "2026-11-14T14:52:23.000Z",
+          "sourceConfigHash": "733260504505b3023f3f408f6a9a00a1cac3c626ab73702ed3dbf05cde2b5268",
+          "sourceRuntimeId": "ks:central-cityhive",
+          "cohortSha256": "234805b62e662b95e0b4c9bbea79f01075349753b56865eef9b475558853ede5",
+          "previewUrl": "https://bourbonsignal-2h76vtz8l-tarsagent22s-projects.vercel.app/coverage",
+          "shadowRuns": [
+            {
+              "runId": "43572716505",
+              "status": "success",
+              "artifactHash": "a9e543c7761d4020c2912cc23813ea0334b06b22ebc2d05ae2eee0e3f837c35b",
+              "artifactId": "14104359733",
+              "commitSha": "d4bd265fbf305e45e044a8864b8138e0bdabe10a",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43572716505",
+              "artifactName": "state-expansion-shadow-43572716505"
+            },
+            {
+              "runId": "43573194351",
+              "status": "success",
+              "artifactHash": "4e8794f5ccf0f34bbc3640f9a8347ddf5932bd1e26ebcd6b8f10d3bfee9b98b8",
+              "artifactId": "14105063250",
+              "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573194351",
+              "artifactName": "state-expansion-shadow-43573194351"
+            },
+            {
+              "runId": "43578059597",
+              "status": "success",
+              "artifactHash": "c6036fe85e07e67d8fad7a44c0fb3a994170544fe6c6ff75036ab56492f64a0a",
+              "artifactId": "14106827254",
+              "commitSha": "3b101f7238ba1b33622b0e104315aa337e13132c",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43578059597",
+              "artifactName": "state-expansion-shadow-43578059597"
+            },
+            {
+              "runId": "43587613750",
+              "status": "success",
+              "artifactHash": "561b86527e45b5350ccf426c087ea242c026a0947d3e72587469b310dc70a85d",
+              "artifactId": "14111061292",
+              "commitSha": "15fd4bd54eb43330a548067e3aba2bd533f78be7",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43587613750",
+              "artifactName": "state-expansion-shadow-43587613750"
+            },
+            {
+              "runId": "43597377388",
+              "status": "success",
+              "artifactHash": "3a3a286ad76ba153fa636f1e0af91901bbb6b858904c6b4e3d896c686467e153",
+              "artifactId": "14115012924",
+              "commitSha": "98af9a1a1fb89a013cd44135283d1bc9aee2d02c",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597377388",
+              "artifactName": "state-expansion-shadow-43597377388"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "43587936439",
+              "status": "success",
+              "artifactHash": "157efb75dfbfb99e16e06a369f4a35788c0faffef41cdcd8db0b1e62544e9052",
+              "artifactId": "14111310723",
+              "commitSha": "b18dfbffd687292d06b9f050885ebb6b45590d06",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43587936439",
+              "artifactName": "state-expansion-canary-KS-43587936439"
+            },
+            {
+              "runId": "43597645001",
+              "status": "success",
+              "artifactHash": "a434595439a8a82a2180f0c8ef315fa82c5979f2a3ebe8035a4df91362ec530b",
+              "artifactId": "14115158178",
+              "commitSha": "ba41ad9d3e8298b893ded9544ae06d5d3dedbc72",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597645001",
+              "artifactName": "state-expansion-canary-KS-43597645001"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "43605064255",
+            "artifactId": "14118381263",
+            "commitSha": "2a56e03688a2c8a17820622131993a6cd05799df",
+            "artifactDigest": "77b0f8627e2817e91289d10b2fd04cce32f8df3128705953e5570533fd955a1d",
+            "bundleDigest": "b07786ef52c3a2048c206cb5742be2135d929c9d9c50efe0b8e2ba05a760c442",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43605064255",
+            "artifactName": "state-promotion-provenance-KS-43605064255"
           }
         }
       }

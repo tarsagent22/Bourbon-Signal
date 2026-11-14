@@ -18,10 +18,12 @@ const bible = await BourbonBible.load(bibleFile);
 
 test('Kansas first-publication contract stays fail closed until a fresh production cohort exists', async () => {
   const manifest = JSON.parse(await readFile(new URL('../data/state-integration/KS.json', import.meta.url), 'utf8'));
-  assert.equal(manifest.lifecycle.publicStatus, 'research_only');
-  assert.equal(manifest.customerPaths.status, 'not_admitted');
-  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('KS'), false);
-  assert.equal(STATE_LIFECYCLE_CONFIG.states.KS, undefined);
+  assert.equal(manifest.lifecycle.publicStatus, 'active');
+  assert.equal(manifest.customerPaths.finder.status, 'verified');
+  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.at(-1), 'KS');
+  assert.equal(STATE_LIFECYCLE_CONFIG.states.KS.promotionStage, 'active');
+  assert.equal(STATE_LIFECYCLE_CONFIG.states.KS.inventoryAlertable, false);
+  assert.equal(STATE_LIFECYCLE_CONFIG.reliabilityPolicy.stateExpectedRunMs.KS, 15_000);
   assert.throws(() => verifyKansasFirstPublication({ status: 'not_promoted', stale: false }, { drops: [] }), /Kansas first publication/);
 });
 

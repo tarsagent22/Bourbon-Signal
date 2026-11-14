@@ -1,0 +1,22 @@
+{
+  "status": "ok",
+  "deployment": {
+    "id": "dpl_2KK9FVxMuLRPMba9mw2nQ3oCZgpY",
+    "url": "https://bourbonsignal-2h76vtz8l-tarsagent22s-projects.vercel.app",
+    "inspectorUrl": "https://vercel.com/tarsagent22s-projects/bourbonsignal/2KK9FVxMuLRPMba9mw2nQ3oCZgpY",
+    "readyState": "READY",
+    "target": null,
+    "deploymentApiUrl": "https://api.vercel.com/v13/deployments/dpl_2KK9FVxMuLRPMba9mw2nQ3oCZgpY"
+  },
+  "message": "Deployment bourbonsignal-2h76vtz8l-tarsagent22s-projects.vercel.app ready.",
+  "next": [
+    {
+      "command": "vercel inspect bourbonsignal-2h76vtz8l-tarsagent22s-projects.vercel.app --no-color",
+      "when": "Inspect deployment"
+    },
+    {
+      "command": "vercel deploy --prod --no-color",
+      "when": "Promote to production"
+    }
+  ]
+}
