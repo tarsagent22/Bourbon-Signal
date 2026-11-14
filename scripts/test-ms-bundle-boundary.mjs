@@ -156,6 +156,14 @@ function signalSort(a, b) {
     .replace(groceryExpansionTierImport, '').replace(centralCityHiveTierImport, '').replace(texasShopifyPickupTierImport, '')
     .replace("import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';\n", '').replace("    ...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n", '')
     .replace(centralProductionOnSiteImport, '').replace(centralProductionOnSiteBoundary, '')
+    .replace("import { isWyomingGroceryProductionInventory } from './wyoming-grocery-policy.mjs';\n", '')
+    .replace(`    ...(isWyomingGroceryProductionInventory(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`, '')
     .replace("import {isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';\n", '')
     .replace(`    ...(isLouisianaAlaskaGroceryOnSiteSignal(signal)?{
       tier:signal.tier,inventorySemantics:signal.inventorySemantics,

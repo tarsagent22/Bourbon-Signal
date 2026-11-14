@@ -1,5 +1,6 @@
 import {NJ_MI_PRODUCTION_CONFIGS,NJ_MI_PRODUCTION_STATES} from './nj-mi-production-config.mjs';
 import {WESTERN_GROCERY_PRODUCTION_CONFIGS,WESTERN_GROCERY_PRODUCTION_STATES} from './western-grocery-production-config.mjs';
+import { WYOMING_GROCERY_CONFIG } from './collectors/wyoming-grocery-production.mjs';
 import {LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS,LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES} from './louisiana-alaska-grocery-production-config.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS as CONFIG_CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
 import { costcoSourceForState } from './costco-eligibility.mjs';
@@ -469,6 +470,7 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   ...WESTERN_GROCERY_PRODUCTION_CONFIGS,
+  WYOMING_GROCERY_CONFIG,
   ...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id!=='MO'),
   {
     id: 'GA', label: 'Georgia retailer inventory + Costco warehouse watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',

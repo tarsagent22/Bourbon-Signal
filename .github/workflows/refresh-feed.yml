@@ -568,6 +568,11 @@ jobs:
         working-directory: engine
         run: node src/verify-mo-first-publication.mjs
 
+      - name: Require current Wyoming inventory at first publication
+        if: ${{ startsWith(inputs.incident_key, 'wyoming-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-wy-first-publication.mjs
+
       - name: Verify the first Kansas production cohort before publication
         if: ${{ startsWith(inputs.incident_key, 'kansas-first-publication-') }}
         working-directory: engine
@@ -802,6 +807,7 @@ jobs:
             engine/out/first-publication/MD.json
             engine/out/site/states/MD/drops.json
             engine/out/site/states/MD-MONTGOMERY/drops.json
+            engine/out/first-publication/WY.json
             engine/out/az-expansion-verification.json
             engine/out/illinois-grocery-verification.json
             engine/out/pa-expansion-verification.json

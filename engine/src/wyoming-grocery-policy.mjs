@@ -1,5 +1,6 @@
 export const WYOMING_GROCERY_HOST = 'www.albertsons.com';
 export const WYOMING_GROCERY_RESEARCH_RUNTIME = 'research:wy:albertsons-xapi';
+export const WYOMING_GROCERY_PRODUCTION_RUNTIME = 'wy:albertsons-xapi';
 export const WYOMING_GROCERY_LABEL = 'Wyoming Albertsons in-store bourbon research';
 export const WYOMING_GROCERY_STORES = Object.freeze([
   ['62', '2625 E 2nd St', 'Casper', '82609', 42.848022, -106.292475, '2625-e-2nd-st'],
@@ -12,12 +13,11 @@ export const WYOMING_GROCERY_STORES = Object.freeze([
   locator: `https://local.albertsons.com/wy/${city.toLowerCase()}/${slug}/Beer-Wine-Liquor.html`,
 })));
 
-export function isWyomingGroceryCanaryPreview(row) {
+function matchesReviewedWyomingInventory(row) {
   const store = WYOMING_GROCERY_STORES.find(store => store.storeId === row?.storeId);
   const proof = row?.sourceProductBinding;
   const product = proof?.productSnapshot;
   return Boolean(store && row.state === 'WY' && row.stateCode === 'WY'
-    && row.previewOnly === true && row.sourceRuntimeId === WYOMING_GROCERY_RESEARCH_RUNTIME
     && row.sourceLabel === WYOMING_GROCERY_LABEL && row.sourceChain === 'albertsons'
     && (row.type ?? row.eventType) === 'retailer_store_inventory_result'
     && row.locationPrecision === 'store_level' && row.storeAddress === store.address
@@ -32,7 +32,7 @@ export function isWyomingGroceryCanaryPreview(row) {
     && ['limited', 'allocated', 'unicorn'].includes(row.tier)
     && Number.isFinite(row.price) && row.price > 0 && Number.isFinite(Date.parse(row.observedAt))
     && (!row.lastConfirmedAt || row.lastConfirmedAt === row.observedAt)
-    && proof?.schemaVersion === 1 && proof.source === 'grocery-xapi' && proof.shadowOnly === true
+    && proof?.schemaVersion === 1 && proof.source === 'grocery-xapi'
     && proof.premisesVerified === true && proof.inStoreChannelVerified === true
     && proof.storeId === row.storeId && proof.storeAddress === row.storeAddress
     && proof.merchantId === row.merchantId && proof.productId === row.productId && proof.variantId === row.variantId
@@ -46,4 +46,17 @@ export function isWyomingGroceryCanaryPreview(row) {
     && row.can_alert_as_inventory !== true && row.can_alert_as_watch !== true && row.deliveryEligible !== true
     && row.eligibleForWatch === false && row.eligibleForDelivery === false
     && row.eligibleForEmail === false && row.eligibleForSms === false);
+}
+
+export function isWyomingGroceryCanaryPreview(row) {
+  return row?.previewOnly === true && row.sourceRuntimeId === WYOMING_GROCERY_RESEARCH_RUNTIME
+    && row.sourceProductBinding?.shadowOnly === true && matchesReviewedWyomingInventory(row);
+}
+
+export function isWyomingGroceryProductionInventory(row) {
+  return row?.sourceRuntimeId === WYOMING_GROCERY_PRODUCTION_RUNTIME
+    && row.previewOnly !== true && row.researchOnly !== true && row.quarantined !== true
+    && row.sourceProductBinding?.shadowOnly === false && row.sourceProductBinding?.productionOnSiteOnly === true
+    && row.raw?.shadowOnly !== true && row.raw?.staleFallback !== true && row.raw?.sourceRuntimeNonAlertable !== true
+    && matchesReviewedWyomingInventory(row);
 }

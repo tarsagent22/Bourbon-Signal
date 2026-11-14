@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "state": "WY",
+  "lifecycle": {
+    "customerLabel": "Wyoming",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "wy:albertsons-xapi"
+    ],
+    "cohortSha256": "c41623fd8a8c29de82ca18f83114d108ef794c5d039da5259f0b2cd6dc152f2d",
+    "registration": "Four reviewed Albertsons premises. Each recurring pass binds the exact independent store locator, broad bourbon inventory and one rotating indexed expression per store."
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_retailer_store",
+    "addressRequired": true,
+    "expectedKnownStores": 4,
+    "proof": "First-party locator merchant, address, coordinates and liquor department agree with the in-store result merchant, product identity and positive channel."
+  },
+  "sourceSemantics": {
+    "availability": "Retailer-reported in-store availability in Casper, Cody, Gillette and Powell. The retailer response does not establish an exact shelf count.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "The protected preview showed seven exact listings and all four searchable addresses from replayed first-party responses."
+    },
+    "areaFilter": {
+      "status": "not_applicable",
+      "reason": "The Wyoming retailer candidate covers exact-store Finder and public Coverage with delivery disabled."
+    },
+    "preferences": {
+      "status": "not_applicable",
+      "reason": "The Wyoming retailer candidate covers exact-store Finder and public Coverage with delivery disabled."
+    },
+    "dashboard": {
+      "status": "not_applicable",
+      "reason": "The Wyoming retailer candidate covers exact-store Finder and public Coverage with delivery disabled."
+    },
+    "dropFeedApi": {
+      "status": "not_applicable",
+      "reason": "The Wyoming retailer candidate covers exact-store Finder and public Coverage with delivery disabled."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "The protected preview showed seven exact listings and all four searchable addresses from replayed first-party responses."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Customer preview confirmed zero alert-eligible stores."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "The protected preview showed seven exact listings and all four searchable addresses from replayed first-party responses."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "The protected preview showed seven exact listings and all four searchable addresses from replayed first-party responses."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "verified",
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43638544195",
+      "originalSourceClocksPreserved": true
+    },
+    "canary": {
+      "status": "verified",
+      "runs": 1,
+      "artifact": "https://bourbonsignal-mqy9gji8r-tarsagent22s-projects.vercel.app",
+      "allDeliveryChannelsDisabled": true
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "Production requires verified source and customer routes after first publication.",
+      "reason": "Immutable promotion evidence has yet to be bound to the recurring production runtime."
+    }
+  }
+}
