@@ -45,7 +45,7 @@ test('noise cleanup keeps ages, proofs, editions, finishes and store picks disti
   for (const name of [
     'Eagle Rare 13yr Bourbon - 750ml',
     'E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 110 Proof - 750 Ml',
-    'Buffalo Trace Straight Rye Bourbon', 'Buffalo Trace Straight Bourbon Store Pick',
+    'Buffalo Trace Straight Rye Bourbon',
     'Old Fitzgerald Bourbon BiB 8 Year Whiskey',
     'Eagle Rare 12 Year Bourbon Port Finished',
     'Eagle Rare 12 Year Bourbon Limited Edition 2027',
@@ -62,6 +62,44 @@ test('noise cleanup keeps ages, proofs, editions, finishes and store picks disti
     { catalogId:'two', displayName:'Two',exactNames:['Same'],sha256:'b' },
   ]);
   assert.equal(conflict.get(retailerBottleIdentityKey('Same 700ml')), null);
+});
+
+test('numbered Binny’s toasted picks show the Toasted Barrel image and keep their original identities', () => {
+  const base = resolveLabeledBottleArtwork({bottleId:'elijah-craig-toasted-barrel'});
+  assert.ok(base);
+  for (const barrel of ['471088', '471170', '471228', '472001']) {
+    const bottleName = `Elijah Craig Barrel Proof Bourbon Single Toasted Barrel # ${barrel} Women of Binny’s Handpicked`;
+    const bottleId = `retailer-${barrel}`;
+    assert.equal(standardBottleIdentity(bottleName, bottleId), undefined);
+    assert.equal(standardBottleName(bottleName), bottleName);
+    assert.equal(resolveLabeledBottleArtwork({bottleId,bottleName}, catalog)?.sha256, base.sha256);
+    assert.equal(resolveLabeledBottleArtwork({bottleId:'elijah-craig-toasted-barrel-private-barrel',bottleName}, catalog)?.sha256, base.sha256);
+    assert.equal(resolveLabeledBottleArtwork({bottleId:'elijah-craig-barrel-proof-rye',bottleName}, catalog), undefined);
+  }
+});
+
+test('artwork-only pick fallback keeps the age, recipe and release intact', () => {
+  for (const [bottleName, catalogId] of [
+    ['Buffalo Trace Straight Bourbon Store Pick', 'buffalo-trace-bourbon'],
+    ['1792 Full Proof - Barrel Pick # 820 750ml', '1792-full-proof'],
+    ["Weller Full Proof Binny's Handpicked", 'weller-full-proof'],
+    ['Weller Full Proof (Store Pick)', 'weller-full-proof'],
+    ['Four Roses Single Barrel # AB-37 Handpicked', 'four-roses-single-barrel'],
+    ["Elijah Craig Barrel Proof Single Barrel # 8888999 Binny's Handpicked", 'elijah-craig-private-barrel-barrel-proof'],
+  ]) {
+    assert.equal(standardBottleIdentity(bottleName), undefined);
+    assert.equal(resolveLabeledBottleArtwork({bottleName}, catalog)?.catalogId, catalogId);
+  }
+  assert.equal(resolveLabeledBottleArtwork({bottleName:'Four Roses Single Barrel OBSK Barrel Pick'}, catalog)?.catalogId, 'four-roses-single-barrel-obsk');
+  for (const bottleName of [
+    'Eagle Rare 13 Year Store Pick',
+    'Weller Full Proof Rye Barrel Pick',
+    '1792 Full Proof Port Finished - Barrel Pick',
+    'Jack Daniels 10 Year Batch 4 Handpicked',
+    'Yellowstone Handpicked 113 Proof',
+  ]) {
+    assert.equal(resolveLabeledBottleArtwork({bottleName}, catalog), undefined, bottleName);
+  }
 });
 
 test('every captured inventory identity has one standard name and exact reviewed artwork', () => {

@@ -67,6 +67,15 @@ test("snapshot cursor expiry preserves reading position until explicit refresh",
   assert.doesNotMatch(block, /setSignals\(\[\]\)|setLoaded\(false\)/);
 });
 
+test("Home keeps the next-page action in the list footer and waits for an explicit tap", () => {
+  assert.match(feed, /const canPage = loaded && hasMore && Boolean\(cursor\) && !marketLocked/);
+  assert.match(feed, /ListFooterComponent=\{feedFooter\}/);
+  assert.match(feed, /onPress=\{\(\) => load\(false\)\}[\s\S]*?>See more signals<\/Text>/);
+  assert.match(feed, /cursor: refresh \? null : cursor/);
+  assert.match(feed, /refresh \? page\.signals : \[\.\.\.current, \.\.\.page\.signals\]/);
+  assert.doesNotMatch(feed, /onEndReached|renderItem=[^\n]*feedFooter/);
+});
+
 test("Home location controls say All states and expose one-tap location clearing", () => {
   assert.match(feed, /placeholder="All states"/);
   assert.match(feed, /clearLabel="All states"/);
