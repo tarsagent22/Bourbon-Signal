@@ -124,7 +124,7 @@ export async function buildStateCanaryPreview({ state, candidateDrops, candidate
       ...lifecyclePreview.states[preview.stateDrops.state],
       publicStatus: 'active',
       promotionStage: 'canary',
-      ...(preview.stateDrops.state==='OR'?{inventoryAlertable:false,watchAlertable:false}:{}),
+      ...(preview.stateDrops.state === 'OR' ? { coverageTier: 'live_store_inventory', inventoryAlertable: false, watchAlertable: false } : {}),
     };
     // The isolated app reads the same lifecycle/public-status pair as production.
     // Without this row, a valid candidate partition appears unavailable in Coverage.
