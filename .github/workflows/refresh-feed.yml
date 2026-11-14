@@ -558,6 +558,11 @@ jobs:
         working-directory: engine
         run: node src/verify-mn-first-publication.mjs
 
+      - name: Verify the first Connecticut production cohort before publication
+        if: ${{ startsWith(inputs.incident_key, 'connecticut-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-ct-first-publication.mjs
+
       - name: Audit every scarce library bottle across all states
         working-directory: engine
         run: node src/library-coverage-audit.mjs
