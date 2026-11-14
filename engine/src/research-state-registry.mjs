@@ -19,10 +19,14 @@ const MASSACHUSETTS = Object.freeze({
   apiCandidates: [],
 });
 
-export function researchSourceForState(state, { shadowMode = process.env.BOURBON_SIGNAL_SHADOW_MODE === '1' } = {}) {
+export function researchSourceForState(state, { shadowMode = process.env.BOURBON_SIGNAL_SHADOW_MODE === '1', sourceLane = process.env.BOURBON_SIGNAL_RESEARCH_SOURCE } = {}) {
   if (!shadowMode) return null;
   if (state === 'MA') return MASSACHUSETTS;
-  if (state === 'HI') return hiSafewayResearchSourceForState(state);
+  if (state === 'HI' && sourceLane && !['default', 'hi-cityhive', 'hi-safeway'].includes(sourceLane)) {
+    throw new Error(`Unknown Hawaii research source lane: ${sourceLane}`);
+  }
+  if (state === 'HI' && sourceLane === 'hi-safeway') return hiSafewayResearchSourceForState(state);
+  if (state === 'HI' && sourceLane === 'hi-cityhive') return cityHiveResearchSourceForState(state);
   return oregonResearchSourceForState(state)
     || michiganLiquorsResearchSourceForState(state)
     || louisianaAlaskaResearchSourceForState(state)
@@ -37,10 +41,6 @@ export function withResearchLifecycle(production) {
   const additions = {
     ...cityHiveResearchLifecycleEntries(), ...groceryResearchLifecycleEntries(), ...njMiResearchLifecycleEntries(),
     ...michiganLiquorsResearchLifecycleEntries(), ...louisianaAlaskaResearchLifecycleEntries(),
-    HI: { customerLabel: 'Hawaii', sourceLabel: 'Hawaii Safeway exact-store research',
-      publicStatus: 'research_only', shadowEligible: true, lifecycle: 'retailer_inventory_research',
-      coverageTier: 'sparse_live_store_inventory', refinementLevel: 'store', inventoryAlertable: false,
-      watchAlertable: false, customerSummary: 'Research-only first-party exact-store observations. Customer activation and delivery remain blocked.' },
   };
   for(const state of Object.keys(additions))if(production.activeStates.includes(state)||production.states[state]?.publicStatus==='active') {
     delete additions[state];
