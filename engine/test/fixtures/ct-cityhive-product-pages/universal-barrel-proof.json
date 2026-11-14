@@ -1,0 +1,226 @@
+{
+  "capture": {
+    "store": "universal",
+    "merchant": "69e9228fdcbd600066ee5aff",
+    "url": "https://universalwineandliquorct.com/shop/?ch-query=barrel+proof&merchant-id=69e9228fdcbd600066ee5aff",
+    "finalUrl": "https://universalwineandliquorct.com/shop/?ch-query=barrel+proof&merchant-id=69e9228fdcbd600066ee5aff",
+    "status": 200,
+    "start": "2026-11-14T13:31:56.096Z",
+    "observedAt": "2026-11-14T13:31:56.869Z",
+    "bytes": 421270,
+    "sha256": "ffce654eae8b5ceb82f6848bb09189730d60b3ad8343db5afb56fb1e6da99b41"
+  },
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "69e9228fdcbd600066ee5aff",
+        "address": {
+          "full_address": "1040 Barnum Ave, Stratford, CT 06614, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -73.1329782,
+              41.1995935
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "56c29217756275139dc70300",
+      "name": "Elijah Craig Barrel Proof",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "69e9228fdcbd600066ee5aff",
+          "full_address": "1040 Barnum Ave, Stratford, CT 06614, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof",
+                "description": "Experience the Bourbon that Whisky Advocate's international reviewers consistently ranked #1 in a blind taste test against hundreds of whiskies from around the world in 2017. To sip our Barrel Proof Bourbon is to experience Bourbon in its purest form—uncut, straight from the barrel, and without chill filtering. Each bottle is hand labeled with its unique proof and batch number but the nose, taste, and finish of every sip is pure Elijah Craig. With Barrel Proof, you can enjoy Elijah Craig much the same way our Master Distillers do when they sample straight from the barrel in our Kentucky rickhouses.\nElijah Craig Barrel Proof has won countless awards from some of the most accredited spirits competitions, including Whisky Advocate's Whisky of the Year, #2 Whiskey by Wine Enthusiast, Double Gold from San Francisco World Spirits Competition, Double Gold at the Ultimate Spirits Challenge, and Double Gold at the International World Spirits Competition, among many other distinctions.\nThe aroma is caramel with toasted oak, fruit notes of apple and orange. The taste is rich vanilla, caramel, and butterscotch along with spices of black pepper and cinnamon at the back of the palate. And its finish is nicely layered showcasing all flavors, with a slow linger as it cools",
+                "images": {
+                  "primary": {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/original.png",
+                    "large": "https://cityhive-production-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/thumbnail.png"
+                  },
+                  "more_images": [
+                    {
+                      "original": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/original.png",
+                      "large": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/large.png",
+                      "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/medium.png",
+                      "small": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/small.png",
+                      "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/thumbnail.png"
+                    },
+                    {
+                      "original": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/original.png",
+                      "large": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/large.png",
+                      "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/medium.png",
+                      "small": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/small.png",
+                      "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/thumbnail.png"
+                    },
+                    {
+                      "original": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/original.png",
+                      "large": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/large.png",
+                      "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/medium.png",
+                      "small": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/small.png",
+                      "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/thumbnail.png"
+                    }
+                  ]
+                },
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "subtitle": null,
+                "views": [
+                  "spirits"
+                ],
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "59.1%"
+                },
+                "product_group_product_subtitle": {
+                  "product_subtitle": null,
+                  "show_product_subtitle_on_app_and_website": null,
+                  "override_individual_product_subtitle": null
+                }
+              },
+              "merchant_id": "69e9228fdcbd600066ee5aff",
+              "full_address": "1040 Barnum Ave, Stratford, CT 06614, USA",
+              "quantity": 2,
+              "product_id": "56c29217756275139dc70300",
+              "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "product_url": "https://universalwineandliquorct.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "price": 78.74
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5e21e94d0320ad0f80403af4",
+      "name": "Larceny Barrel Proof Brourbon",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "69e9228fdcbd600066ee5aff",
+          "full_address": "1040 Barnum Ave, Stratford, CT 06614, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "option_display_data": {
+                "name": "Larceny Barrel Proof Brourbon",
+                "description": "Larceny Barrel Proof is the first line-extension of the Larceny Family and offers whiskey aficionados an opportunity to experience our Bourbon as our distillers do: straight out of the barrel. First released in January 2020, each release consists of f 6 to 8-year-old Bourbon bottled at barrel proof and non-chill filtered to showcase a deeper character, richness and depth of flavor. Like Small Batch, Larceny Barrel Proof is made with 25% more wheat than competitors for a smoother taste. It tastes of rich molasses that coats the tongue, with notes of fig and hazelnut. Its nuanced flavor fades into lingering warmth. Larceny Barrel Proof is the first Wheated Bourbon to ever be named Whisky Advocate's “Whisky of the Year” in 2020. In 2024, Larceny Barrel Proof was awarded Best of Class from the American Distilling Institute. Pick up a bottle today and unlock our wheated difference.",
+                "images": {
+                  "primary": {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/original.png",
+                    "large": "https://cityhive-production-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/thumbnail.png"
+                  },
+                  "more_images": [
+                    {
+                      "original": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/original.png",
+                      "large": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/large.png",
+                      "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/medium.png",
+                      "small": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/small.png",
+                      "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/thumbnail.png"
+                    }
+                  ]
+                },
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "subtitle": null,
+                "views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Larceny"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "62.5%"
+                },
+                "product_group_product_subtitle": {
+                  "product_subtitle": null,
+                  "show_product_subtitle_on_app_and_website": null,
+                  "override_individual_product_subtitle": null
+                }
+              },
+              "merchant_id": "69e9228fdcbd600066ee5aff",
+              "full_address": "1040 Barnum Ave, Stratford, CT 06614, USA",
+              "quantity": 2,
+              "product_id": "5e21e94d0320ad0f80403af4",
+              "option_id": "f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "product_url": "https://universalwineandliquorct.com/shop/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "price": 73.49
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

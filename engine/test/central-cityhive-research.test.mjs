@@ -29,7 +29,7 @@ test('scheduled shadow registers exact retailer candidates while production coho
   }
   assert.equal(researchSourceForState('DC',{shadowMode:true}),cityHiveResearchSourceForState('DC'));
   const ct=cityHiveResearchSourceForState('CT');
-  assert.equal(ct.sources.length,2);assert.ok(ct.sources.every(source=>source.precisionOnly&&source.label.includes('CT first-party pickup inventory')));
+  assert.equal(ct.sources.length,4);assert.ok(ct.sources.every(source=>source.precisionOnly&&source.label.includes('CT first-party pickup inventory')));
   assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('CT'),false);
 });
 
@@ -155,12 +155,23 @@ test('Connecticut product-page shadow stays isolated and disables customer deliv
     const pages=new Map([
       ['shopsunriseliquor.com',await readFile(new URL('./fixtures/ct-cityhive-product-pages/sunrise-product-page.html',import.meta.url),'utf8')],
       ['beveragekingct.com',await readFile(new URL('./fixtures/ct-cityhive-product-pages/beverage-king-product-page.html',import.meta.url),'utf8')],
+      ['universalwineandliquorct.com', html(await readFile(new URL('./fixtures/ct-cityhive-product-pages/universal-barrel-proof.json', import.meta.url), 'utf8'))],
+      ['bottlehousect.com', html(await readFile(new URL('./fixtures/ct-cityhive-product-pages/bottle-house-blanton.json', import.meta.url), 'utf8'))],
     ]);
     const report=await collectCityHiveResearchReport(cityHiveResearchSourceForState('CT'),bible,{reportDirectory:dir,captureRoot:null,
       incidentFile:path.join(dir,'incidents.json'),cursorDir:path.join(dir,'cursor'),sleep:async()=>{},readAttempts:async()=>({}),writeAttempts:async()=>{},
       fetchText:async url=>({ok:true,status:200,url,text:pages.get(new URL(url).hostname)})});
     assert.equal(report.status,'useful');assert.equal(report.metadata.complete,true);assert.equal(report.metadata.shadowOnly,true);
-    assert.deepEqual(report.signals.map(row=>row.canonicalName).sort(),["Blanton's Original Single Barrel",'Wild Turkey Rare Breed Straight Bourbon'].sort());
+    assert.deepEqual(report.signals.map(row=>row.canonicalName).sort(),[
+      "Blanton's Original Single Barrel", "Blanton's Original Single Barrel",
+      "Blanton's Straight From The Barrel", 'Elijah Craig Barrel Proof', 'Larceny Barrel Proof',
+      'Wild Turkey Rare Breed Straight Bourbon',
+    ].sort());
+    const straightFromTheBarrel = report.signals.find(row => row.canonicalName === "Blanton's Straight From The Barrel");
+    assert.equal(straightFromTheBarrel.tier, 'unicorn');
+    assert.equal(straightFromTheBarrel.storeAddress, '1261 Meriden Rd, Wolcott, CT 06716, USA');
+    assert.equal(straightFromTheBarrel.sourceProductBinding.coordinatesVerified, true);
+    assert.equal(report.metadata.verifiedPremises.length, 4);
     assert.equal(report.signals.find(row=>row.canonicalName==="Blanton's Original Single Barrel").tier,'allocated');
     for(const row of report.signals){
       assert.equal(row.state,'CT');assert.equal(row.raw.shadowOnly,true);assert.equal(row.sourceProductBinding.shadowOnly,true);
