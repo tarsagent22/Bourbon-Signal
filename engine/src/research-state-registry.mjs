@@ -1,4 +1,5 @@
 import { oregonResearchSourceForState, collectOregonResearchReport } from './research-oregon-runtime.mjs';
+import path from 'node:path';
 import { groceryResearchSourceForState, groceryResearchLifecycleEntries, collectGroceryResearchReport } from './research-grocery-runtime.mjs';
 import { MA_JULIOS_PROBE_URLS } from './collectors/massachusetts-retailer-surfaces.mjs';
 import { collectMassachusettsJulios } from './collectors/massachusetts-retailer-collector.mjs';
@@ -63,6 +64,21 @@ export async function collectResearchStateReport(config, bible, options = {}) {
     throw new Error('Research reports require the registered isolated shadow source.');
   }
   const startedAt = new Date().toISOString();
+  if (process.env.BOURBON_SIGNAL_MA_ESPLANDA_ONLY === '1') {
+    const reportDirectory = options.reportDirectory || (process.env.BOURBON_SIGNAL_STATE_OUT_FILE
+      ? path.dirname(process.env.BOURBON_SIGNAL_STATE_OUT_FILE) : undefined);
+    const result = await collectMassachusettsEsplanda(config, bible, { ...options, reportDirectory, shadowMode: true });
+    const healthy = result.sourceReports.length === MA_ESPLANDA_PRODUCTS.length && result.sourceReports.every(source => source.ok);
+    const finishedAt = new Date().toISOString();
+    return {
+      state: config.id, label: 'Massachusetts Esplanda pickup research', tier: config.tier, strategy: config.strategy,
+      cadence: config.cadence, startedAt, finishedAt, lastGoodAt: healthy ? finishedAt : null,
+      status: result.signals.length ? healthy ? 'useful' : 'partial_useful' : 'no_trusted_inventory',
+      stale: false, signals: result.signals, sources: result.sourceReports, sourceResults: result.sourceResults,
+      roadblocks: result.roadblocks, metadata: { complete: healthy, shadowOnly: true,
+        sourceSet: 'massachusetts-esplanda-only', productionActivationAllowed: false, customerDeliveryAllowed: false },
+    };
+  }
   const [result, cityHive, esplanda] = await Promise.all([
     collectMassachusettsJulios(config, bible, options),
     options.includeCityHiveResearch === false ? null : collectCityHiveResearchReport(cityHiveResearchSourceForState('MA'), bible, options),
