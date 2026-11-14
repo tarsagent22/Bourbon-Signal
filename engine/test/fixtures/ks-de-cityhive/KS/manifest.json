@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "state": "KS",
+  "finishedAt": "2026-11-14T08:56:01.529Z",
+  "origin": {
+    "kind": "github_actions",
+    "repository": "tarsagent22/Bourbon-Signal",
+    "workflowRunId": "43578059597",
+    "commitSha": "3b101f7238ba1b33622b0e104315aa337e13132c",
+    "runAttempt": "1"
+  },
+  "bibleRecordsSha256": "6f0da7f5271dc0663d9c0fae241628b1c252ae2fbf7626808df3aceecfb65bbe",
+  "shadowOnly": true,
+  "productionActivationAllowed": false,
+  "customerDeliveryAllowed": false,
+  "originalReportSha256": "47ea2883d40562528efaba0626cde2425942dd0858fc79433621bdfa709652d6",
+  "sources": [
+    {
+      "sourceRuntimeId": "research:ks:kings-liquor-olathe:6060f76259a44e1d9f41522d",
+      "label": "Kings Liquor KS first-party pickup inventory",
+      "url": "https://kingsliquorolathe.com/shop/?subtype=Bourbon&merchant-id=6060f76259a44e1d9f41522d",
+      "ok": true,
+      "status": 200,
+      "signalType": "retailer_store_inventory_result",
+      "matchedBottleCount": 1,
+      "error": null
+    },
+    {
+      "sourceRuntimeId": "research:ks:verns-liquor:61ae46168baad441363308b0",
+      "label": "Vern's Retail Liquor KS first-party pickup inventory",
+      "url": "https://vernsliquor.com/shop/?subtype=Bourbon&merchant-id=61ae46168baad441363308b0",
+      "ok": true,
+      "status": 200,
+      "signalType": "retailer_store_inventory_result",
+      "matchedBottleCount": 1,
+      "error": null
+    },
+    {
+      "sourceRuntimeId": "research:ks:rj-liquor:6060f6496aaeeb555664ca4f",
+      "label": "RJ Liquor KS first-party pickup inventory",
+      "url": "https://rjdiscountliquor.com/shop/?subtype=Bourbon&merchant-id=6060f6496aaeeb555664ca4f",
+      "ok": true,
+      "status": 200,
+      "signalType": "retailer_store_inventory_result",
+      "matchedBottleCount": 2,
+      "error": null
+    }
+  ],
+  "requests": [
+    {
+      "sourceId": "kings-liquor-olathe:6060f76259a44e1d9f41522d",
+      "url": "https://kingsliquorolathe.com/shop/?ch-query=weller&merchant-id=6060f76259a44e1d9f41522d",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "sourceId": "kings-liquor-olathe:6060f76259a44e1d9f41522d",
+      "url": "https://kingsliquorolathe.com/shop/?ch-query=Blanton's%20Gold&merchant-id=6060f76259a44e1d9f41522d",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "sourceId": "verns-liquor:61ae46168baad441363308b0",
+      "url": "https://vernsliquor.com/shop/?ch-query=barrel%20proof&merchant-id=61ae46168baad441363308b0",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "sourceId": "verns-liquor:61ae46168baad441363308b0",
+      "url": "https://vernsliquor.com/shop/?ch-query=Blanton's%20Gold&merchant-id=61ae46168baad441363308b0",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "sourceId": "rj-liquor:6060f6496aaeeb555664ca4f",
+      "url": "https://rjdiscountliquor.com/shop/?ch-query=barrel%20proof&merchant-id=6060f6496aaeeb555664ca4f",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "sourceId": "rj-liquor:6060f6496aaeeb555664ca4f",
+      "url": "https://rjdiscountliquor.com/shop/?ch-query=Blanton's%20Gold&merchant-id=6060f6496aaeeb555664ca4f",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "receipts": [
+    {
+      "url": "https://kingsliquorolathe.com/shop/?ch-query=weller&merchant-id=6060f76259a44e1d9f41522d",
+      "finalUrl": "https://kingsliquorolathe.com/shop/?ch-query=weller&merchant-id=6060f76259a44e1d9f41522d",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:55.684Z",
+      "sha256": "81cfe8cd6e9afd3d0a20f4490514dbdbc49db6c39b5f0bdc588feae4a2443c0d",
+      "bytes": 11790,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/KS/2026-11-14T08-55-42-168Z/source-captures/001-093375d83ab4.html",
+      "artifactPath": "source-captures/001.html"
+    },
+    {
+      "url": "https://kingsliquorolathe.com/shop/?ch-query=Blanton's%20Gold&merchant-id=6060f76259a44e1d9f41522d",
+      "finalUrl": "https://kingsliquorolathe.com/shop/?ch-query=Blanton%27s%20Gold&merchant-id=6060f76259a44e1d9f41522d",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:57.146Z",
+      "sha256": "f03694c3049b26095f2ae2d4320e0b0d4a919080da6d5e1f511db778550015d4",
+      "bytes": 5354,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/KS/2026-11-14T08-55-42-168Z/source-captures/002-f30f805ca76b.html",
+      "artifactPath": "source-captures/002.html"
+    },
+    {
+      "url": "https://vernsliquor.com/shop/?ch-query=barrel%20proof&merchant-id=61ae46168baad441363308b0",
+      "finalUrl": "https://vernsliquor.com/shop/?ch-query=barrel%20proof&merchant-id=61ae46168baad441363308b0",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:57.879Z",
+      "sha256": "ebd768d779b52f8810d7fb777ef209bc4ead045f01d51525dcd3e12c36f8f7cd",
+      "bytes": 14015,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/KS/2026-11-14T08-55-42-168Z/source-captures/003-834994d1e9a7.html",
+      "artifactPath": "source-captures/003.html"
+    },
+    {
+      "url": "https://vernsliquor.com/shop/?ch-query=Blanton's%20Gold&merchant-id=61ae46168baad441363308b0",
+      "finalUrl": "https://vernsliquor.com/shop/?ch-query=Blanton%27s%20Gold&merchant-id=61ae46168baad441363308b0",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:59.396Z",
+      "sha256": "67f42c3ddf6c4db71a17ef672eb7d612f8e908784f4c15bcdb5360dc330c6a69",
+      "bytes": 5537,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/KS/2026-11-14T08-55-42-168Z/source-captures/004-f1a0881a94cf.html",
+      "artifactPath": "source-captures/004.html"
+    },
+    {
+      "url": "https://rjdiscountliquor.com/shop/?ch-query=barrel%20proof&merchant-id=6060f6496aaeeb555664ca4f",
+      "finalUrl": "https://rjdiscountliquor.com/shop/?ch-query=barrel%20proof&merchant-id=6060f6496aaeeb555664ca4f",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:59.960Z",
+      "sha256": "ed93525ee8245978ef88899ebece341bb3b0bdc5e2036759d2e057494d9dc1d4",
+      "bytes": 25024,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/KS/2026-11-14T08-55-42-168Z/source-captures/005-1792ba94d772.html",
+      "artifactPath": "source-captures/005.html"
+    },
+    {
+      "url": "https://rjdiscountliquor.com/shop/?ch-query=Blanton's%20Gold&merchant-id=6060f6496aaeeb555664ca4f",
+      "finalUrl": "https://rjdiscountliquor.com/shop/?ch-query=Blanton%27s%20Gold&merchant-id=6060f6496aaeeb555664ca4f",
+      "status": 200,
+      "observedAt": "2026-11-14T08:56:01.517Z",
+      "sha256": "389b431025afa1afed8b15ac4c0489f54be0b6c2c65c1cb3e6c6b0219180eddb",
+      "bytes": 5427,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/KS/2026-11-14T08-55-42-168Z/source-captures/006-b291f7c763a3.html",
+      "artifactPath": "source-captures/006.html"
+    }
+  ],
+  "originalSourceReceipts": [
+    {
+      "url": "https://kingsliquorolathe.com/shop/?ch-query=weller&merchant-id=6060f76259a44e1d9f41522d",
+      "finalUrl": "https://kingsliquorolathe.com/shop/?ch-query=weller&merchant-id=6060f76259a44e1d9f41522d",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:55.684Z",
+      "sha256": "093375d83ab410515c5651751302e017adc700303cd24012f62d6b4cc6a3b33a",
+      "bytes": 447315,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/KS/2026-11-14T08-55-42-168Z/source-captures/001-093375d83ab4.html",
+      "artifactPath": "source-captures/001-093375d83ab4.html",
+      "verifiedLocalBytes": 447315,
+      "verifiedLocalSha256": "093375d83ab410515c5651751302e017adc700303cd24012f62d6b4cc6a3b33a"
+    },
+    {
+      "url": "https://kingsliquorolathe.com/shop/?ch-query=Blanton's%20Gold&merchant-id=6060f76259a44e1d9f41522d",
+      "finalUrl": "https://kingsliquorolathe.com/shop/?ch-query=Blanton%27s%20Gold&merchant-id=6060f76259a44e1d9f41522d",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:57.146Z",
+      "sha256": "f30f805ca76bb9d96ec17082166f7a7dea2536a15ecc8e6c4e2ab60c355d0ec8",
+      "bytes": 247167,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/KS/2026-11-14T08-55-42-168Z/source-captures/002-f30f805ca76b.html",
+      "artifactPath": "source-captures/002-f30f805ca76b.html",
+      "verifiedLocalBytes": 247167,
+      "verifiedLocalSha256": "f30f805ca76bb9d96ec17082166f7a7dea2536a15ecc8e6c4e2ab60c355d0ec8"
+    },
+    {
+      "url": "https://vernsliquor.com/shop/?ch-query=barrel%20proof&merchant-id=61ae46168baad441363308b0",
+      "finalUrl": "https://vernsliquor.com/shop/?ch-query=barrel%20proof&merchant-id=61ae46168baad441363308b0",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:57.879Z",
+      "sha256": "834994d1e9a701e136a7d6ff20ac819889b7786b979cadb2e240750390cf46e9",
+      "bytes": 447041,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/KS/2026-11-14T08-55-42-168Z/source-captures/003-834994d1e9a7.html",
+      "artifactPath": "source-captures/003-834994d1e9a7.html",
+      "verifiedLocalBytes": 447041,
+      "verifiedLocalSha256": "834994d1e9a701e136a7d6ff20ac819889b7786b979cadb2e240750390cf46e9"
+    },
+    {
+      "url": "https://vernsliquor.com/shop/?ch-query=Blanton's%20Gold&merchant-id=61ae46168baad441363308b0",
+      "finalUrl": "https://vernsliquor.com/shop/?ch-query=Blanton%27s%20Gold&merchant-id=61ae46168baad441363308b0",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:59.396Z",
+      "sha256": "f1a0881a94cfa68b6267e05136a943aab237419a6d78a635a40d26ab0965c1a4",
+      "bytes": 287836,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/KS/2026-11-14T08-55-42-168Z/source-captures/004-f1a0881a94cf.html",
+      "artifactPath": "source-captures/004-f1a0881a94cf.html",
+      "verifiedLocalBytes": 287836,
+      "verifiedLocalSha256": "f1a0881a94cfa68b6267e05136a943aab237419a6d78a635a40d26ab0965c1a4"
+    },
+    {
+      "url": "https://rjdiscountliquor.com/shop/?ch-query=barrel%20proof&merchant-id=6060f6496aaeeb555664ca4f",
+      "finalUrl": "https://rjdiscountliquor.com/shop/?ch-query=barrel%20proof&merchant-id=6060f6496aaeeb555664ca4f",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:59.960Z",
+      "sha256": "1792ba94d77217f8340bc0b414a6fdf13e6589e0096136819dabb6e9a69b4328",
+      "bytes": 397337,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/KS/2026-11-14T08-55-42-168Z/source-captures/005-1792ba94d772.html",
+      "artifactPath": "source-captures/005-1792ba94d772.html",
+      "verifiedLocalBytes": 397337,
+      "verifiedLocalSha256": "1792ba94d77217f8340bc0b414a6fdf13e6589e0096136819dabb6e9a69b4328"
+    },
+    {
+      "url": "https://rjdiscountliquor.com/shop/?ch-query=Blanton's%20Gold&merchant-id=6060f6496aaeeb555664ca4f",
+      "finalUrl": "https://rjdiscountliquor.com/shop/?ch-query=Blanton%27s%20Gold&merchant-id=6060f6496aaeeb555664ca4f",
+      "status": 200,
+      "observedAt": "2026-11-14T08:56:01.517Z",
+      "sha256": "b291f7c763a3b67b10f2b4ac20a97262bf16b0f80b516636af6c282232e0b1b8",
+      "bytes": 299717,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/KS/2026-11-14T08-55-42-168Z/source-captures/006-b291f7c763a3.html",
+      "artifactPath": "source-captures/006-b291f7c763a3.html",
+      "verifiedLocalBytes": 299717,
+      "verifiedLocalSha256": "b291f7c763a3b67b10f2b4ac20a97262bf16b0f80b516636af6c282232e0b1b8"
+    }
+  ]
+}

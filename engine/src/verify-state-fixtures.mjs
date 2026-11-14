@@ -494,7 +494,7 @@ export async function executeStateFixtures(payload, { bibleFile = path.resolve('
   if(['NJ','MI'].includes(payload.state))return executeNjMiResearchFixtures(payload,{bible});
   if (payload.state === 'MA') return executeMassachusettsResearchFixtures(payload, { bible });
   if(['WA','NM'].includes(payload.state))return executeGroceryResearchFixtures(payload,{bible});
-  if(CENTRAL_CITYHIVE_STATE_IDS.has(payload.state)||['MN','MO'].includes(payload.state)&&CENTRAL_CITYHIVE_RESEARCH_SOURCES.some(source=>source.state===payload.state))return executeCentralCityHiveFixtures(payload,{bible});
+  if(CENTRAL_CITYHIVE_STATE_IDS.has(payload.state)||['MN','MO','KS','DE'].includes(payload.state)&&CENTRAL_CITYHIVE_RESEARCH_SOURCES.some(source=>source.state===payload.state))return executeCentralCityHiveFixtures(payload,{bible});
   const registeredHosts = registeredHostsForState(payload.state);
   for (const item of payload.cases || []) {
     const actual = evaluateCase(item, { state: payload.state, bible, registeredHosts, candidateActive });

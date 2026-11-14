@@ -8,13 +8,13 @@ import {validateCityHiveShadowWorkflowOrigin,decodeBoundedShadowArchive} from '.
 const base={state:'WI',repository:'tarsagent22/Bourbon-Signal',currentHead:'a'.repeat(40),
   run:{id:123,status:'completed',conclusion:'success',head_sha:'a'.repeat(40),repository:{full_name:'tarsagent22/Bourbon-Signal'},path:'.github/workflows/state-expansion-shadow.yml'},
   artifact:{id:456,name:'state-expansion-shadow-123',digest:'sha256:'+'b'.repeat(64),size_in_bytes:100,expired:false}};
-test('MN/MO/WI/OK downloader requires actual successful source-equivalent shadow workflow provenance',()=>{
-  for(const state of ['MN','MO','WI','OK'])assert.equal(validateCityHiveShadowWorkflowOrigin({...base,state}).state,state);
+test('MN/MO/WI/OK/KS/DE downloader requires actual successful source-equivalent shadow workflow provenance',()=>{
+  for(const state of ['MN','MO','WI','OK','KS','DE'])assert.equal(validateCityHiveShadowWorkflowOrigin({...base,state}).state,state);
   for(const change of [{state:'TX'},{run:{...base.run,conclusion:'failure'}},{run:{...base.run,path:'.github/workflows/refresh-feed.yml'}},
     {artifact:{...base.artifact,expired:true}},{artifact:{...base.artifact,digest:null}},{repository:'foreign/repository'}]){
     assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...base,...change}));
   }
-  const ahead={...base,currentHead:'c'.repeat(40),comparison:{status:'ahead',files:[{filename:'engine/data/state-integration/MN.json'}]}};
+  const ahead={...base,currentHead:'c'.repeat(40),comparison:{status:'ahead',files:[{filename:'engine/data/state-integration/DE.json'}]}};
   assert.equal(validateCityHiveShadowWorkflowOrigin(ahead).sourceEquivalentPreparationChanges.length,1);
   for(const filename of ['engine/src/research-cityhive-runtime.mjs','engine/src/collectors/central-cityhive-expansion.mjs','engine/src/core/bible.mjs','src/config/state-lifecycle.json']){
     assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...ahead,comparison:{status:'ahead',files:[{filename}]}}),/source changed/);

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "state": "DE",
+  "scope": "canary_preview_only_no_production_activation",
+  "lifecycle": {
+    "customerLabel": "Delaware",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "research:de:kreston-wines:618406f81a9efe0452444e07",
+      "research:de:kreston-wines:6054cfaae7d3073507c4ee0b"
+    ],
+    "registration": "Research-only merchant-scoped CityHive cohort. Shared canary preparation reparses exact-premise workflow captures; authoritative production lifecycle remains inactive."
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 2,
+    "proof": "Each first-party product option is reparsed against its registered merchant ID, address, coordinates, same-host product URL, option ID and positive pickup offer."
+  },
+  "sourceSemantics": {
+    "availability": "Binary retailer-published pickup availability; exact shelf quantities are not established.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "The isolated canary checks this state partition and keeps every delivery channel disabled; it does not change the authoritative lifecycle or production publication."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "The isolated canary checks this state partition and keeps every delivery channel disabled; it does not change the authoritative lifecycle or production publication."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "The isolated canary checks this state partition and keeps every delivery channel disabled; it does not change the authoritative lifecycle or production publication."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "The isolated canary checks this state partition and keeps every delivery channel disabled; it does not change the authoritative lifecycle or production publication."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "The isolated canary checks this state partition and keeps every delivery channel disabled; it does not change the authoritative lifecycle or production publication."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "The isolated canary checks this state partition and keeps every delivery channel disabled; it does not change the authoritative lifecycle or production publication."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "The isolated canary checks this state partition and keeps every delivery channel disabled; it does not change the authoritative lifecycle or production publication."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "The isolated canary checks this state partition and keeps every delivery channel disabled; it does not change the authoritative lifecycle or production publication."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "The isolated canary checks this state partition and keeps every delivery channel disabled; it does not change the authoritative lifecycle or production publication."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "replayed",
+      "runs": 1,
+      "artifact": "Retained local extraction of shadow workflow run 43578059597; source report hash and raw receipt body hashes were checked; ZIP digest was not revalidated.",
+      "originalSourceClocksPreserved": true,
+      "reportSha256": "1b9eef261fcc50446863ef36b733dd4329c0e823f76cf528c74908b733b9a268"
+    },
+    "canary": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "No state-expansion canary workflow or preview deployment has been run for this cohort."
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "No production source registration or customer publication is enabled.",
+      "reason": "Research-only cohort; authoritative lifecycle remains inactive."
+    }
+  },
+  "rollback": {
+    "disableSource": "Keep authoritative lifecycle inactive and remove the research-only source cohort if the exact merchant or product bindings fail."
+  }
+}

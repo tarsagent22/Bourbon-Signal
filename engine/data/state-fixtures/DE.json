@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "state": "DE",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "de-wilmington-limited-pickup-options",
+      "kind": "positive_bottle_match",
+      "input": { "sourceId": "kreston-wines:618406f81a9efe0452444e07" },
+      "expected": {
+        "sourceRows": 2,
+        "inventoryProofRows": 2,
+        "candidateCount": 2,
+        "canonicalNames": ["Elijah Craig Barrel Proof", "Larceny Barrel Proof"],
+        "customerActive": false
+      }
+    },
+    {
+      "id": "de-middletown-limited-pickup-options",
+      "kind": "positive_bottle_match",
+      "input": { "sourceId": "kreston-wines:6054cfaae7d3073507c4ee0b" },
+      "expected": {
+        "sourceRows": 2,
+        "inventoryProofRows": 2,
+        "candidateCount": 2,
+        "canonicalNames": ["Elijah Craig Barrel Proof", "Larceny Barrel Proof"],
+        "customerActive": false
+      }
+    },
+    {
+      "id": "de-unidentified-bourbon-rejected",
+      "kind": "ordinary_vs_rare_negative",
+      "input": { "sourceId": "kreston-wines:618406f81a9efe0452444e07", "rawName": "Unidentified Straight Bourbon 750ml" },
+      "expected": { "sourceRows": 0, "candidateCount": 0 }
+    },
+    {
+      "id": "de-cream-liqueur-rejected",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": { "sourceId": "kreston-wines:618406f81a9efe0452444e07", "rawName": "Bourbon Cream Liqueur 750ml" },
+      "expected": { "sourceRows": 0, "candidateCount": 0 }
+    },
+    {
+      "id": "de-miniature-rejected",
+      "kind": "size_or_multipack_exclusion",
+      "input": { "sourceId": "kreston-wines:6054cfaae7d3073507c4ee0b", "size": 50 },
+      "expected": { "sourceRows": 0, "candidateCount": 0 }
+    },
+    {
+      "id": "de-pickup-is-binary",
+      "kind": "availability_semantics",
+      "input": { "sourceId": "kreston-wines:618406f81a9efe0452444e07" },
+      "expected": { "quantity": 0, "quantityIsExact": false, "semantics": "binary_retailer_orderable_no_exact_count" }
+    },
+    {
+      "id": "de-wrong-premise-merchant-rejected",
+      "kind": "store_identity",
+      "input": { "sourceId": "kreston-wines:618406f81a9efe0452444e07", "wrongMerchant": true },
+      "expected": { "sourceRows": 0, "candidateCount": 0 }
+    },
+    {
+      "id": "de-stale-observation-retained-but-excluded",
+      "kind": "timestamp_freshness",
+      "input": { "sourceId": "kreston-wines:618406f81a9efe0452444e07", "ageMinutes": 300 },
+      "expected": { "sourceRows": 2, "inventoryProofRows": 0, "candidateCount": 0, "preservesOriginalTimestamp": true }
+    },
+    {
+      "id": "de-foreign-host-rejected",
+      "kind": "source_specific_sentinel",
+      "input": { "sourceId": "kreston-wines:618406f81a9efe0452444e07", "wrongHost": true },
+      "expected": { "sourceRows": 0, "candidateCount": 0 }
+    },
+    {
+      "id": "de-shadow-never-delivers",
+      "kind": "shadow_isolation",
+      "input": { "sourceId": "kreston-wines:618406f81a9efe0452444e07", "shadowOnly": true },
+      "expected": { "sourceRows": 2, "inventoryProofRows": 2, "candidateCount": 0, "deliveryEligible": false, "confidenceInventoryAllowed": false }
+    },
+    {
+      "id": "de-shipping-is-not-pickup",
+      "kind": "availability_semantics",
+      "input": { "sourceId": "kreston-wines:6054cfaae7d3073507c4ee0b", "shippingOnly": true },
+      "expected": { "sourceRows": 0, "candidateCount": 0 }
+    }
+  ]
+}
