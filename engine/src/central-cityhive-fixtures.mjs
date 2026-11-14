@@ -16,10 +16,18 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
       'fifth-ward-liquor:546babb03932330002100300':'fifth-ward-eagle-rare-10.json',
       'california-liquors-ri:6114919961187149b8241cdd':'california-liquors-eagle-rare-10.json',
     }[source.id]):null;
+    const fixtureName=CENTRAL_CITYHIVE_EXPANSION_SOURCES.includes(source)?source.id:'liquorguys-wauwatosa';
     const fixturePath=researchFixture
       ? new URL(`../test/fixtures/ri-cityhive/${researchFixture}`,import.meta.url)
-      : new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url);
+      : new URL(`../test/fixtures/central-cityhive/${fixtureName}.json`,import.meta.url);
     const fixture=JSON.parse(await readFile(fixturePath,'utf8'));
+    if(!researchFixture&&!CENTRAL_CITYHIVE_EXPANSION_SOURCES.includes(source)){
+      const priorMerchant='634464e2ec82c44b45abf3ef',priorAddress='11728 W North Ave, Wauwatosa, WI 53226, USA',priorHost='https://liquorguys.com';
+      const serialized=JSON.stringify(fixture).replaceAll(priorMerchant,source.merchantId).replaceAll(priorAddress,source.address).replaceAll(priorHost,source.baseUrl);
+      Object.assign(fixture,JSON.parse(serialized));
+      for(const row of fixture.merchant_configs||[])if(row.merchant){row.merchant.name=source.name;row.merchant.display_name=source.name;
+        if(Number.isFinite(source.lat)&&Number.isFinite(source.lng))row.merchant.address.location={type:'Point',coordinates:[source.lng,source.lat]};}
+    }
     const products=fixture.products|| (fixture.product?[fixture.product]:[]);
     for(const product of products){
       if(input.rawName)product.name=input.rawName;

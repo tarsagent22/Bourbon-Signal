@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "state": "DC",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "dc-reviewed-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "hop-cask-and-barrel:6054cf9d0168813b45dd1624"
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 1,
+        "canonicalNames": [
+          "Michter's 10 Year Rye"
+        ]
+      }
+    },
+    {
+      "id": "dc-unidentified",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "hop-cask-and-barrel:6054cf9d0168813b45dd1624",
+        "rawName": "Unidentified Straight Bourbon 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "dc-cream",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "hop-cask-and-barrel:6054cf9d0168813b45dd1624",
+        "rawName": "Bourbon Cream Liqueur 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "dc-miniature",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "hop-cask-and-barrel:6054cf9d0168813b45dd1624",
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "dc-binary-availability",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "hop-cask-and-barrel:6054cf9d0168813b45dd1624"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "semantics": "binary_retailer_orderable_no_exact_count"
+      }
+    },
+    {
+      "id": "dc-wrong-merchant",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "hop-cask-and-barrel:6054cf9d0168813b45dd1624",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "dc-stale",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "hop-cask-and-barrel:6054cf9d0168813b45dd1624",
+        "ageMinutes": 300
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 0,
+        "candidateCount": 0,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "dc-foreign-source",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceId": "hop-cask-and-barrel:6054cf9d0168813b45dd1624",
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "dc-shadow-never-public",
+      "kind": "shadow_isolation",
+      "input": {
+        "sourceId": "hop-cask-and-barrel:6054cf9d0168813b45dd1624",
+        "shadowOnly": true
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 0,
+        "deliveryEligible": false,
+        "confidenceInventoryAllowed": false
+      }
+    },
+    {
+      "id": "dc-shipping-only",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "hop-cask-and-barrel:6054cf9d0168813b45dd1624",
+        "shippingOnly": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    }
+  ]
+}

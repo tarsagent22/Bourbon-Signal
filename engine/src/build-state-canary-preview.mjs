@@ -81,6 +81,11 @@ export function buildCanaryPreviewPayload({ base, state, candidateDrops, candida
     seenLocationIds.add(row.storeId);
     mergedLocations.push(row);
   }
+  if(['MD','DC'].includes(normalizedState)){
+    mergedLocations.push({id:`${normalizedState.toLowerCase()}:cityhive-canary-source`,state:normalizedState,
+      name:`${normalizedState} CityHive canary source`,source:'central-cityhive research',type:'source',locationType:'source',
+      collectorAttached:true,searchable:false,precision:'store_level',previewOnly:true});
+  }
   locations.locations = mergedLocations;
   locations.count = mergedLocations.length;
   return {
@@ -124,7 +129,7 @@ export async function buildStateCanaryPreview({ state, candidateDrops, candidate
       ...lifecyclePreview.states[preview.stateDrops.state],
       publicStatus: 'active',
       promotionStage: 'canary',
-      ...(preview.stateDrops.state === 'OR' ? { coverageTier: 'live_store_inventory', inventoryAlertable: false, watchAlertable: false } : {}),
+      ...(['OR','MD','DC'].includes(preview.stateDrops.state) ? { coverageTier: 'live_store_inventory', inventoryAlertable: false, watchAlertable: false } : {}),
     };
     // The isolated app reads the same lifecycle/public-status pair as production.
     // Without this row, a valid candidate partition appears unavailable in Coverage.
