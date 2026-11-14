@@ -13,7 +13,7 @@ const read=async file=>JSON.parse(await readFile(file,'utf8'));
 const digest=async file=>createHash('sha256').update(await readFile(file)).digest('hex');
 const run=(script,args=[],cwd=ROOT,env=process.env)=>spawnSync(process.execPath,[path.join(ROOT,script),...args],{cwd,env,encoding:'utf8',windowsHide:true});
 
-test('CI preparation preserves every legacy inventory byte/clock and passes the actual site validator with four honest empty states',async()=>{
+test('CI preparation preserves every legacy inventory byte and clock and supplies empty partitions for admitted states',async()=>{
   const root=await mkdtemp(path.join(tmpdir(),'legacy-site-ci-'));
   assert.ok(path.resolve(root).startsWith(path.resolve(tmpdir())+path.sep));
   try{
@@ -22,21 +22,24 @@ test('CI preparation preserves every legacy inventory byte/clock and passes the 
     for(const dir of ['src/config','engine/data/state-integration']){
       await mkdir(path.dirname(path.join(root,dir)),{recursive:true});await cp(path.join(ROOT,dir),path.join(root,dir),{recursive:true});
     }
+    const {activeStates}=await read(path.join(root,'src/config/state-lifecycle.json'));
+    const additions=[...STATES,...['AK','LA'].filter(state=>activeStates.includes(state))];
+    const expectedStateCount=24+additions.length;
     const oldStats=await read(path.join(site,'stats.json')),oldQuality=await read(path.join(site,'state-quality.json')),oldManifest=await read(path.join(site,'manifest.json')),oldIndex=await read(path.join(site,'states/index.json'));
-    const untouched=['drops.json','events.json','alerts.json','stores.json','locations.json','bottles.json','historical-trends.json','nc-intelligence.json',...oldIndex.states.filter(row=>!STATES.includes(row.state)).map(row=>row.file)];
+    const untouched=['drops.json','events.json','alerts.json','stores.json','locations.json','bottles.json','historical-trends.json','nc-intelligence.json',...oldIndex.states.filter(row=>!additions.includes(row.state)).map(row=>row.file)];
     const hashes=await Promise.all(untouched.map(file=>digest(path.join(site,file))));
     const result=await prepareLegacySiteFixtureForCi({root,ci:true,workflow:'CI'});assert.equal(result.inventoryRowsAdded,0);
     const stats=await read(path.join(site,'stats.json')),quality=await read(path.join(site,'state-quality.json')),manifest=await read(path.join(site,'manifest.json')),index=await read(path.join(site,'states/index.json'));
     assert.deepEqual(await Promise.all(untouched.map(file=>digest(path.join(site,file)))),hashes,'every old inventory/partition file stays byte-identical');
-    assert.deepEqual(stats.stateCoverage.states.filter(row=>!STATES.includes(row.state)),oldStats.stateCoverage.states.filter(row=>!STATES.includes(row.state)));
-    assert.deepEqual(quality.states.filter(row=>!STATES.includes(row.state)),oldQuality.states.filter(row=>!STATES.includes(row.state)));
-    assert.deepEqual(index.states.filter(row=>!STATES.includes(row.state)),oldIndex.states.filter(row=>!STATES.includes(row.state)));
+    assert.deepEqual(stats.stateCoverage.states.filter(row=>!additions.includes(row.state)),oldStats.stateCoverage.states.filter(row=>!additions.includes(row.state)));
+    assert.deepEqual(quality.states.filter(row=>!additions.includes(row.state)),oldQuality.states.filter(row=>!additions.includes(row.state)));
+    assert.deepEqual(index.states.filter(row=>!additions.includes(row.state)),oldIndex.states.filter(row=>!additions.includes(row.state)));
     for(const key of ['generatedAt','engineGeneratedAt','runId']){assert.equal(manifest[key],oldManifest[key]);assert.equal(stats[key],oldStats[key]);}
-    assert.equal(stats.stateCount,28);assert.equal(stats.stateCoverage.stateCount,28);assert.equal(quality.summary.stateCount,28);assert.equal(index.stateCount,28);
-    assert.equal(Object.values(stats.stateCoverage.counts).reduce((sum,value)=>sum+value,0),28);
-    assert.equal(quality.summary.releaseEligibleStates+quality.summary.releaseBlockedStates,28);
+    assert.equal(stats.stateCount,expectedStateCount);assert.equal(stats.stateCoverage.stateCount,expectedStateCount);assert.equal(quality.summary.stateCount,expectedStateCount);assert.equal(index.stateCount,expectedStateCount);
+    assert.equal(Object.values(stats.stateCoverage.counts).reduce((sum,value)=>sum+value,0),expectedStateCount);
+    assert.equal(quality.summary.releaseEligibleStates+quality.summary.releaseBlockedStates,expectedStateCount);
     assert.equal(index.totalCount,oldIndex.totalCount);assert.equal(stats.dropCount,oldStats.dropCount);
-    for(const state of STATES){
+    for(const state of additions){
       const entry=index.states.find(row=>row.state===state),partition=await read(path.join(site,entry.file)),coverage=stats.stateCoverage.states.find(row=>row.state===state),q=quality.states.find(row=>row.state===state);
       assert.equal(partition.count,0);assert.deepEqual(partition.drops,[]);assert.equal(entry.sha256,await digest(path.join(site,entry.file)));assert.equal(partition.generatedAt,oldManifest.generatedAt);
       assert.equal(coverage.signalCount,0);assert.equal(coverage.sourceCount,0);assert.equal(coverage.freshestObservedAt,null);assert.equal(coverage.status,'ci_not_collected');assert.equal(coverage.inventoryAlertable,false);assert.equal(coverage.watchAlertable,false);
