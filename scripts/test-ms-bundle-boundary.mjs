@@ -35,7 +35,8 @@ test('measured forecast reversal accepts only the complete reviewed map and pres
     const withKansas = map => map.replace('      "OK": 30000,\n', '      "OK": 30000,\n      "KS": 15000,\n');
     const marylandBudget = JSON.parse(name.endsWith('.json') ? current : current.slice(current.indexOf('{'), current.lastIndexOf('} as const') + 1))
       .reliabilityPolicy.stateExpectedRunMs.MD;
-    const recentBudgets = (marylandBudget ? '      "MD": 15000,\n' : '') + '      "AR": 30000,\n      "MN": 30000,\n';
+    const wyoming = '      "WY": 30000,\n';
+    const recentBudgets = (current.includes(wyoming) ? wyoming : '') + (marylandBudget ? '      "MD": 15000,\n' : '') + '      "AR": 30000,\n      "MN": 30000,\n';
     const withRecentStateBudgets = map => withKansas(map.replace('"stateExpectedRunMs": {\n', '"stateExpectedRunMs": {\n' + recentBudgets));
     const currentMap = withRecentStateBudgets(reviewed);
     assert.ok(current.includes(currentMap));
@@ -66,7 +67,7 @@ test('actual four-state admission reverses only the exact active list and issued
         : [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed];
       for (const mutation of mutations) {
         assert.notEqual(mutation, current);
-        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN|KS|AR) active list tail|exact MD active list head).*exact historical verification hook/);
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN|KS|AR) active list tail|exact (?:MD|WY) active list head).*exact historical verification hook/);
       }
       if (key !== 'activeStates') for (const changed of [
         reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),
@@ -156,6 +157,14 @@ function signalSort(a, b) {
     .replace(groceryExpansionTierImport, '').replace(centralCityHiveTierImport, '').replace(texasShopifyPickupTierImport, '')
     .replace("import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';\n", '').replace("    ...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n", '')
     .replace(centralProductionOnSiteImport, '').replace(centralProductionOnSiteBoundary, '')
+    .replace("import { isWyomingGroceryProductionInventory } from './wyoming-grocery-policy.mjs';\n", '')
+    .replace(`    ...(isWyomingGroceryProductionInventory(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`, '')
     .replace("import {isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';\n", '')
     .replace(`    ...(isLouisianaAlaskaGroceryOnSiteSignal(signal)?{
       tier:signal.tier,inventorySemantics:signal.inventorySemantics,

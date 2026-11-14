@@ -2,6 +2,7 @@
 
 export const STATE_LIFECYCLE_CONFIG = {
   "activeStates": [
+    "WY",
     "MD",
     "NC",
     "VA",
@@ -75,6 +76,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "MS"
     ],
     "stateExpectedRunMs": {
+      "WY": 30000,
       "MD": 15000,
       "AR": 30000,
       "MN": 30000,
@@ -99,6 +101,99 @@ export const STATE_LIFECYCLE_CONFIG = {
     }
   },
   "states": {
+    "WY": {
+      "customerLabel": "Wyoming",
+      "sourceLabel": "Wyoming Albertsons in-store bourbon research",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Retailer-reported in-store bourbon availability and rotating searches for indexed bottles at selected Wyoming stores.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 4,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-11-14T21:45:56.260Z",
+        "verticalSliceManifest": "engine/data/state-integration/WY.json",
+        "fixtureContract": "engine/data/state-fixtures/WY.json",
+        "canaryPreviewUrl": "https://bourbonsignal-mqy9gji8r-tarsagent22s-projects.vercel.app",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "WY",
+          "generatedAt": "2026-11-14T21:45:56.260Z",
+          "sourceConfigHash": "ee51e76cb503daae6f8f40679eb903e6357db84bc9fa0d304c8c99b5426e395b",
+          "sourceRuntimeId": "wy:albertsons-xapi",
+          "cohortSha256": "c41623fd8a8c29de82ca18f83114d108ef794c5d039da5259f0b2cd6dc152f2d",
+          "previewUrl": "https://bourbonsignal-mqy9gji8r-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "43635676518",
+              "status": "success",
+              "artifactId": "14129323532",
+              "artifactHash": "0200b9135c6efe03889fba6067c6c60d752b9a1f75b2460a5f1c6a7f4361f470",
+              "commitSha": "c00ac2c90a36879cea5c9e79595c358095e21501",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43635676518"
+            },
+            {
+              "runId": "43638544195",
+              "status": "success",
+              "artifactId": "14131436880",
+              "artifactHash": "6e61abf3252f3ca80ea3447d62e87459343c69a5dffa16777b301a031c3bf9d8",
+              "commitSha": "62ea1185e9537de20d0ce0a58c52e0a7e02336df",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43638544195"
+            },
+            {
+              "runId": "43641568265",
+              "status": "success",
+              "artifactId": "14132111986",
+              "artifactHash": "9ee8f2ccdc0f695f6ea7dcd647b47baff27f9bb4d87d5564e529102b0384b433",
+              "commitSha": "b95aee0b47fa0c4ce2bc9e8b610ec39fa5f6475f",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43641568265"
+            },
+            {
+              "runId": "43644378234",
+              "status": "success",
+              "artifactId": "14133123739",
+              "artifactHash": "96f557c26345daa5cda69842b2a4d2fae0c262c105079aa54f5bf0056f2cc2df",
+              "commitSha": "b95aee0b47fa0c4ce2bc9e8b610ec39fa5f6475f",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43644378234"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "43641668346",
+              "status": "success",
+              "artifactId": "14132138046",
+              "artifactHash": "1212ec29465d16592b02f2ddfeff676f855761a894cffe8afd2c2f3c1f43a219",
+              "commitSha": "b95aee0b47fa0c4ce2bc9e8b610ec39fa5f6475f",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43641668346"
+            },
+            {
+              "runId": "43644473191",
+              "status": "success",
+              "artifactId": "14133457887",
+              "artifactHash": "9400b5a52544c5e400c7293b10abb66100073b9fb5f011f2b749197a3d463299",
+              "commitSha": "b95aee0b47fa0c4ce2bc9e8b610ec39fa5f6475f",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43644473191"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "43644475684",
+            "artifactId": "14132619576",
+            "commitSha": "b95aee0b47fa0c4ce2bc9e8b610ec39fa5f6475f",
+            "artifactDigest": "4f8b416c1e969063ea01950cfe52f6453d244230b45a8e07d5becc29824ef311",
+            "bundleDigest": "3e5eaeae549799c621d55175258b3b8a58d3a6c64bd24a1f5da3014ab8e8a974",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43644475684",
+            "artifactName": "state-promotion-provenance-WY-43644475684"
+          }
+        }
+      }
+    },
     "MD": {
       "customerLabel": "Maryland",
       "sourceLabel": "Maryland reviewed CityHive pickup inventory",

@@ -6,6 +6,7 @@ import { isMassachusettsResearchInventory } from './massachusetts-research-polic
 import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
 import { isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
 import { isLouisianaAlaskaGroceryInventory, isLouisianaAlaskaGroceryOnSiteSignal } from './louisiana-alaska-grocery-policy.mjs';
+import { isWyomingGroceryProductionInventory } from './wyoming-grocery-policy.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { requiresStateAlertSuppression } from './state-failure-isolation.mjs';
 import { createReadStream, createWriteStream } from 'node:fs';
@@ -435,7 +436,8 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const isGaRetailerInventory = isGeorgiaRetailerInventory(signal);
   const isInRetailerInventory = signal.canAlertAsInventory === true && isIndianaRetailerInventory(signal);
   const isMsSparseOnSiteInventory = isMississippiSparseOnSiteInventory(signal);
-  const isGroceryOnSiteInventory = isReviewedResearchGrocery(signal) || isLouisianaAlaskaGroceryOnSiteSignal(signal);
+  const isWyomingOnSiteInventory = isWyomingGroceryProductionInventory(signal);
+  const isGroceryOnSiteInventory = isReviewedResearchGrocery(signal) || isLouisianaAlaskaGroceryOnSiteSignal(signal) || isWyomingOnSiteInventory;
   const isCentralOnSiteInventory=isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal);
   const nonAlertingOnSiteInventory=isMsSparseOnSiteInventory||isCentralOnSiteInventory||isGroceryOnSiteInventory;
   const isMetroInventory = isMetroRetailerInventory(signal);
@@ -449,7 +451,8 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
   const isMetroRetailerEvent = ['NY', 'CO'].includes(signal.state)
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
-  const inventorySemantics = isGroceryOnSiteInventory ? signal.sourceProductBinding.inventorySemantics : isNcBoardShipment
+  const inventorySemantics = isWyomingOnSiteInventory ? signal.inventorySemantics
+    : isGroceryOnSiteInventory ? signal.sourceProductBinding.inventorySemantics : isNcBoardShipment
     ? (signal.inventorySemantics || 'Official NC ABC board-level shipment units; this is a shipment to the local board, not exact store shelf inventory or current availability.')
     : isCostcoWarehouseInventory
     ? 'Costco warehouse/app availability is retailer-published availability, not a reservation or guaranteed shelf hold. Treat as a fast-moving warehouse signal and verify before driving.'
@@ -747,7 +750,8 @@ function isFastMovingStoreInventory(signal) {
   const source = String(signal.sourceLabel || signal.source || '').toLowerCase();
   if (signal.locationPrecision !== 'store_level') return false;
   if (!signalCanAlertAsInventory(signal) && !isMississippiSparseOnSiteInventory(signal)
-    && !isReviewedResearchGrocery(signal) && !isCentralCityHiveProductionOnSiteSignal(signal) && !isNjMiProductionOnSiteSignal(signal)) return false;
+    && !isReviewedResearchGrocery(signal) && !isCentralCityHiveProductionOnSiteSignal(signal) && !isNjMiProductionOnSiteSignal(signal)
+    && !isWyomingGroceryProductionInventory(signal)) return false;
   if (signal.state === 'NC' && source.includes('wake county abc store inventory search')) return true;
   return /store_inventory_result|cityhive_store_inventory_result|retailer_store_inventory_result|browser_assisted_store_inventory_(limited_supply|in_stock)/i.test(type);
 }
@@ -763,7 +767,7 @@ function isFreshCurrentInventorySignal(signal, currentKeys) {
       ? PA_STORE_INVENTORY_MAX_AGE_HOURS
       : signal.state === 'VA' && String(signal.eventType || signal.type || '') === 'store_inventory_result'
         ? VA_STORE_INVENTORY_MAX_AGE_HOURS
-        : FAST_STORE_INVENTORY_MAX_AGE_HOURS;
+        : signal.state === 'WY' ? 2 : FAST_STORE_INVENTORY_MAX_AGE_HOURS;
   const ageMs = Date.now() - observedAt;
   return ageMs >= -5 * 60_000 && ageMs <= maxAgeHours * 60 * 60 * 1000;
 }
@@ -1263,6 +1267,7 @@ function hasPositiveAvailabilityStatus(signal) {
 }
 
 function isUserFacingDropSignal(signal) {
+  if (signal.state === 'WY' && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isWyomingGroceryProductionInventory(signal);
   if (['WA', 'NM'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
   if(isNjMiRetailerEvent(signal))return isNjMiResearchInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if(isCentralCityHiveRetailerEvent(signal))return isCentralCityHiveInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
@@ -1375,7 +1380,8 @@ function aggregateLeadIdentity(signal) {
 }
 
 export function isSafePublicSignal(signal, shopifyPolicy) {
-  if (['AK', 'DC', 'LA', 'OR'].includes(signal.state) && (signal.raw?.shadowOnly === true || signal.sourceProductBinding?.shadowOnly === true)) return false;
+  if (['AK', 'DC', 'LA', 'OR', 'WY'].includes(signal.state) && (signal.raw?.shadowOnly === true || signal.sourceProductBinding?.shadowOnly === true)) return false;
+  if (signal.state === 'WY' && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isWyomingGroceryProductionInventory(signal);
   if (['AK', 'LA'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') {
     return isLouisianaAlaskaGroceryInventory(signal) || isLouisianaAlaskaGroceryOnSiteSignal(signal);
   }

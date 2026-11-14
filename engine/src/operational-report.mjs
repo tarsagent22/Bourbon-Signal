@@ -1,5 +1,6 @@
 import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import {isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';
+import { isWyomingGroceryProductionInventory } from './wyoming-grocery-policy.mjs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -208,6 +209,12 @@ export function canonicalizeSignal(signal, bible) {
       eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
     }:{}),
     ...(isLouisianaAlaskaGroceryOnSiteSignal(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+    ...(isWyomingGroceryProductionInventory(signal)?{
       tier:signal.tier,inventorySemantics:signal.inventorySemantics,
       canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
       eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
