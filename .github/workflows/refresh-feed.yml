@@ -558,6 +558,11 @@ jobs:
         working-directory: engine
         run: node src/verify-mn-first-publication.mjs
 
+      - name: Require current Maryland pickup inventory at first publication
+        if: ${{ startsWith(inputs.incident_key, 'maryland-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-md-first-publication.mjs
+
       - name: Require current Missouri pickup inventory at first publication
         if: ${{ startsWith(inputs.incident_key, 'missouri-first-publication-') }}
         working-directory: engine
@@ -794,6 +799,9 @@ jobs:
             engine/out/states/MO.json
             engine/out/site/states/MO/drops.json
             engine/out/first-publication/MO.json
+            engine/out/first-publication/MD.json
+            engine/out/site/states/MD/drops.json
+            engine/out/site/states/MD-MONTGOMERY/drops.json
             engine/out/az-expansion-verification.json
             engine/out/illinois-grocery-verification.json
             engine/out/pa-expansion-verification.json

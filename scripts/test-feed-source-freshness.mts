@@ -102,7 +102,8 @@ async function harness() {
     if (name.includes('classification.generated.json')) return { records: [] };
     if (name.includes('drop-classification')) return { DROP_FEED_CLASSIFICATION_TIERS: ['limited', 'allocated', 'unicorn'], getDropClassificationIndex: () => ({ version: 'classification-1' }),
       classifyPublicDrop: (row: Row) => { bump(counts.classified, row.id); return { ...row, rarity_tier: row.tier, classification_source: 'fixture', classification_state: row.state, classification_bottle_id: row.canonicalBottleId }; } };
-    if (name.includes('public-drop-evidence')) return { publicEvidenceStateCode: (value: string) => value, publicDropRarityTier: (row: Row) => row.tier,
+    if (name.includes('public-drop-evidence')) return { publicEvidenceStateCode: (value: string) => value,
+      publicEvidenceHealthStateCode: (value: string) => value, publicDropRarityTier: (row: Row) => row.tier,
       publicDropDegradedStateReasons: () => new Map(),
       publicDropFreshnessWindow: freshness, isFreshPublicDrop: (row: Row, now: number) => now <= freshness(row).endsAt,
       isPublicDropFeedEligible: (row: Row, options?: Row) => !row.stale && row.canAlertAsInventory === true && !options?.degradedStateCodes?.has(row.state),

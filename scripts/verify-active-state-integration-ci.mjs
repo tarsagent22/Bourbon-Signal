@@ -19,6 +19,7 @@ const MN_SITE='engine/data/canary-site/minnesota-20261114';
 const KS_SITE='engine/data/canary-site/kansas-20261114';
 const AR_SITE='engine/data/canary-site/arkansas-20261114';
 const MO_SITE='engine/data/canary-site/mo-active-candidate';
+const MD_SITE='engine/data/canary-site/md-active-candidate';
 const REVIEWED_SOURCE_SITES=new Map([
   ...[...REVIEWED_STATES].map(state=>[state,REVIEWED_SITE]),
   ['AK',LA_AK_SITE],
@@ -28,6 +29,7 @@ const REVIEWED_SOURCE_SITES=new Map([
   ['KS',KS_SITE],
   ['AR',AR_SITE],
   ['MO',MO_SITE],
+  ['MD',MD_SITE],
 ]);
 const array=value=>Array.isArray(value)?value:[];
 const readJson=async(file,fallback)=>{try{return JSON.parse(await readFile(file,'utf8'));}catch{return fallback;}};
@@ -58,7 +60,8 @@ export async function verifyActiveStateIntegrationForCi({root=DEFAULT_ROOT,state
     if(reviewedSite&&manifest?.evidence?.production?.status==='pending_release')throw Error(`${state}: pending_release would redirect the production verifier; it is not permitted for this admission`);
     if(reviewedSite&&manifest?.evidence?.production?.status==='awaiting_first_publication'){
       if(manifest.evidence.canary?.siteArtifact!==reviewedSite)throw Error(`${state}: CI artifact must be the exact reviewed canary path`);
-      const requiresPartitionProof=reviewedSite===LA_AK_SITE||reviewedSite===RI_SITE||reviewedSite===MN_SITE||reviewedSite===KS_SITE||reviewedSite===AR_SITE||reviewedSite===MO_SITE;
+      const requiresPartitionProof=reviewedSite===LA_AK_SITE||reviewedSite===RI_SITE||reviewedSite===MN_SITE
+        ||reviewedSite===KS_SITE||reviewedSite===AR_SITE||reviewedSite===MO_SITE||reviewedSite===MD_SITE;
       if(requiresPartitionProof){
         const proof=await readJson(path.join(root,reviewedSite,'source-proof.json'),null);
         const source=proof?.runs?.find(entry=>entry.state===state);
@@ -70,6 +73,15 @@ export async function verifyActiveStateIntegrationForCi({root=DEFAULT_ROOT,state
           ||!array(manifest.evidence.canary?.observations).some(run=>run.runId===source.canaryRunId&&run.status==='success')
           ||!immutableRuns.some(run=>run.runId===source.canaryRunId&&run.status==='success'))
           throw Error(`${state}: reviewed CI partition hash or workflow lineage mismatch`);
+        if(state==='MD'){
+          const countyBytes=await readFile(path.join(root,reviewedSite,'states/MD-MONTGOMERY/drops.json'));
+          const county=JSON.parse(countyBytes.toString('utf8'));
+          const countyDigest=createHash('sha256').update(countyBytes).digest('hex');
+          if(source.countyPartitionSha256!==countyDigest||county.state!=='MD-MONTGOMERY'||!array(county.drops).length
+            ||county.drops.some(row=>row.state!=='MD-MONTGOMERY'||row.locationPrecision!=='store_aggregate'||row.storeId||row.storeAddress)){
+            throw Error('MD: reviewed CI county partition hash or aggregate scope mismatch');
+          }
+        }
       }
       const fixtures=await readJson(path.join(root,`engine/data/state-fixtures/${state}.json`),null);
       const site=await loadSite(path.join(root,reviewedSite),state,{partitionOnly:requiresPartitionProof});

@@ -548,7 +548,7 @@
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
         "official_control_board",
         "retailer_storefront",
@@ -566,7 +566,7 @@
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": []
+      "promotionEvidenceRefs": ["engine/data/state-integration/MD.json"]
     },
     {
       "state": "MA",

@@ -1,5 +1,6 @@
 {
   "activeStates": [
+    "MD",
     "NC",
     "VA",
     "PA",
@@ -72,6 +73,7 @@
       "MS"
     ],
     "stateExpectedRunMs": {
+      "MD": 15000,
       "AR": 30000,
       "MN": 30000,
       "TX": 90000,
@@ -95,6 +97,91 @@
     }
   },
   "states": {
+    "MD": {
+      "customerLabel": "Maryland",
+      "sourceLabel": "Maryland reviewed CityHive pickup inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Retailer-reported pickup availability and scheduled allocated-bottle searches at selected Maryland stores. Montgomery County updates cover county-level inventory.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-11-14T20:45:38.672Z",
+        "verticalSliceManifest": "engine/data/state-integration/MD.json",
+        "fixtureContract": "engine/data/state-fixtures/MD.json",
+        "canaryPreviewUrl": "https://bourbonsignal-mhdm9qvqj-tarsagent22s-projects.vercel.app",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "MD",
+          "generatedAt": "2026-11-14T20:45:38.672Z",
+          "sourceConfigHash": "254a6aec1468543fa865e4b9c8cb56630edda04b1476c439b998c001cb1b39a5",
+          "sourceRuntimeId": "md:central-cityhive",
+          "cohortSha256": "b6c1273f7613d5a66d3c12f6856f7ae3542168fe1d3ca742296cdd2c6f1d86e2",
+          "previewUrl": "https://bourbonsignal-mhdm9qvqj-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "43626153633",
+              "status": "success",
+              "artifactId": "14126391054",
+              "artifactHash": "098c665f2e69d9975cb6af54be53687ea3c0eb3012e492bcacfd559e08c3c63f",
+              "commitSha": "e96d1180a33a9459e5b31bd688960dbaef9102e3",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43626153633"
+            },
+            {
+              "runId": "43636028937",
+              "status": "success",
+              "artifactId": "14129978110",
+              "artifactHash": "604db8aec936ce52d16862a5fe160ddac7dc7d2d2488ebc70ea9be5be7257320",
+              "commitSha": "caa38417716942dec295ea884e02c8ffbfcbc2dc",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43636028937"
+            },
+            {
+              "runId": "43638986891",
+              "status": "success",
+              "artifactId": "14131615949",
+              "artifactHash": "c2d94ee1acb6ed3d14d59db7f638e402ddbf41e06a29053a03d25d0a6a7d3ae7",
+              "commitSha": "dd20468c02ebcd490a88626b33d075503ae5df8c",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43638986891"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "43636224115",
+              "status": "success",
+              "artifactId": "14129633199",
+              "artifactHash": "e5ddea56c29874565e34d1fa919ec478defd8e2d26084ef0e633b7a5b62dee75",
+              "commitSha": "caa38417716942dec295ea884e02c8ffbfcbc2dc",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43636224115"
+            },
+            {
+              "runId": "43639058550",
+              "status": "success",
+              "artifactId": "14131437968",
+              "artifactHash": "994a8b095a7a352ec93a8b2f6a93beedadd650d7a3dcfd3e0cf498a82e7d7990",
+              "commitSha": "dd20468c02ebcd490a88626b33d075503ae5df8c",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43639058550"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "43639060734",
+            "artifactId": "14131187340",
+            "commitSha": "dd20468c02ebcd490a88626b33d075503ae5df8c",
+            "artifactDigest": "b1a24b5243e4f813c657b78ff1fb6bb2e820594f1821f27ac8180f935e698d79",
+            "bundleDigest": "d5dc907b111ead839e91c3d3f43b45c36da6299eb946ce052bd4b450b9f819c6",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43639060734",
+            "artifactName": "state-promotion-provenance-MD-43639060734"
+          }
+        }
+      }
+    },
     "NC": {
       "customerLabel": "North Carolina",
       "sourceLabel": "North Carolina ABC + county boards",

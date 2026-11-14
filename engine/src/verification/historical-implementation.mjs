@@ -153,6 +153,16 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const releasedMd = /^    "MD": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if (releasedMd || text.includes('  "activeStates": [\n    "MD",\n')) {
+      assert.equal(createHash('sha256').update(releasedMd || '').digest('hex'),
+        'a1672988a50f6ec7ae0fd91b8e5ccb28252238d506819f6fedeaf8d65ce34059', name + ': exact attested MD entry');
+      text = replaceUnique(text, releasedMd, '', name + ': Maryland pickup lifecycle entry');
+      text = replaceUnique(text, '  "activeStates": [\n    "MD",\n', '  "activeStates": [\n',
+        name + ': exact MD active list head');
+      text = replaceUnique(text, '    "stateExpectedRunMs": {\n      "MD": 15000,\n', '    "stateExpectedRunMs": {\n',
+        name + ': exact MD measured runtime forecast');
+    }
     const releasedMo = /^    "MO": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
     if (text.includes(',\n    "MO"\n  ],\n  "reliabilityPolicy"')) {
       assert.equal(createHash('sha256').update(releasedMo || '').digest('hex'), 'b3c0517b815c94279b4bc515258e09d3862042aae1c2783c64989da2e94e02a9', name + ': exact attested MO entry');

@@ -21,10 +21,15 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
       'kings-liquor-olathe:6060f76259a44e1d9f41522d':'kings-weller-special-reserve.json',
       'verns-liquor:61ae46168baad441363308b0':'verns-larceny-barrel-proof.json',
       'rj-liquor:6060f6496aaeeb555664ca4f':'rj-elijah-and-larceny-barrel-proof.json',
+    }[source.id]):source.state==='MD'?({
+      'greenbelt-liquors-md:6060f47c27f7c71989f0749c':'greenbelt-blantons-original.json',
+      'ye-old-spirit-shop:66b394ae65806d296ede036c':'frederick-eagle-rare-10.json',
+      'west-o-bottle-shop:60e51c65666bdc65c3bcda63':'ocean-city-elijah-craig-bp.json',
+      'euro-liquors-md:60456c4f88762f7bda9d7be0':'owings-mills-elijah-craig-bp.json',
     }[source.id]):null;
     const fixturePath=source.state==='AR'&&source.id==='crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0'
       ? new URL('../test/fixtures/ar-cityhive/crossover-fayetteville-elijah-craig.json',import.meta.url) : researchFixture
-      ? new URL(`../test/fixtures/${source.state==='RI'?'ri-cityhive':source.state==='KS'?'ks-cityhive':'central-cityhive'}/${researchFixture}`,import.meta.url)
+      ? new URL(`../test/fixtures/${source.state==='RI'?'ri-cityhive':source.state==='KS'?'ks-cityhive':source.state==='MD'?'md-cityhive':'central-cityhive'}/${researchFixture}`,import.meta.url)
       : new URL(`../test/fixtures/central-cityhive/${source.state==='MO'?'barrel-blends-6226405682c4ff6dfe6d578a':source.id}.json`,import.meta.url);
     const contents=JSON.parse(await readFile(fixturePath,'utf8'));
     const fixture=contents.payloads?.[0]??contents;

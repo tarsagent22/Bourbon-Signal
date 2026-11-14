@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "state": "MD",
+  "sourceSentinelRequired": true,
+  "cases": [
+    { "id": "md-greenbelt-blantons", "kind": "positive_bottle_match", "input": { "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c" }, "expected": { "sourceRows": 1, "inventoryProofRows": 1, "candidateCount": 1, "canonicalNames": ["Blanton's Original Single Barrel"] } },
+    { "id": "md-frederick-eagle-rare", "kind": "positive_bottle_match", "input": { "sourceId": "ye-old-spirit-shop:66b394ae65806d296ede036c" }, "expected": { "sourceRows": 1, "inventoryProofRows": 1, "candidateCount": 1, "canonicalNames": ["Eagle Rare 10 Year"] } },
+    { "id": "md-ocean-city-elijah-craig", "kind": "positive_bottle_match", "input": { "sourceId": "west-o-bottle-shop:60e51c65666bdc65c3bcda63" }, "expected": { "sourceRows": 1, "inventoryProofRows": 1, "candidateCount": 1, "canonicalNames": ["Elijah Craig Barrel Proof"] } },
+    { "id": "md-owings-mills-elijah-craig", "kind": "positive_bottle_match", "input": { "sourceId": "euro-liquors-md:60456c4f88762f7bda9d7be0" }, "expected": { "sourceRows": 1, "inventoryProofRows": 1, "candidateCount": 1, "canonicalNames": ["Elijah Craig Barrel Proof"] } },
+    { "id": "md-ordinary-rejected", "kind": "ordinary_vs_rare_negative", "input": { "sourceId": "ye-old-spirit-shop:66b394ae65806d296ede036c", "rawName": "Unknown Bourbon 750ml" }, "expected": { "sourceRows": 0, "candidateCount": 0 } },
+    { "id": "md-cream-rejected", "kind": "rye_cream_liqueur_rtd_exclusion", "input": { "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c", "rawName": "Bourbon Cream Liqueur 750ml" }, "expected": { "sourceRows": 0, "candidateCount": 0 } },
+    { "id": "md-mini-rejected", "kind": "size_or_multipack_exclusion", "input": { "sourceId": "west-o-bottle-shop:60e51c65666bdc65c3bcda63", "size": 50 }, "expected": { "sourceRows": 0, "candidateCount": 0 } },
+    { "id": "md-binary-pickup", "kind": "availability_semantics", "input": { "sourceId": "euro-liquors-md:60456c4f88762f7bda9d7be0" }, "expected": { "quantity": 0, "quantityIsExact": false, "semantics": "binary_retailer_orderable_no_exact_count" } },
+    { "id": "md-wrong-merchant", "kind": "store_identity", "input": { "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c", "wrongMerchant": true }, "expected": { "sourceRows": 0, "candidateCount": 0 } },
+    { "id": "md-stale-rejected", "kind": "timestamp_freshness", "input": { "sourceId": "ye-old-spirit-shop:66b394ae65806d296ede036c", "ageMinutes": 300 }, "expected": { "sourceRows": 1, "inventoryProofRows": 0, "candidateCount": 0, "preservesOriginalTimestamp": true } },
+    { "id": "md-foreign-host", "kind": "source_specific_sentinel", "input": { "sourceId": "west-o-bottle-shop:60e51c65666bdc65c3bcda63", "wrongHost": true }, "expected": { "sourceRows": 0, "candidateCount": 0 } }
+  ]
+}

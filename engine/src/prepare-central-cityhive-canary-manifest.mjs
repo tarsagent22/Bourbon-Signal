@@ -65,19 +65,36 @@ async function main(){
   const state=arg('--state'),previewConfigFile=arg('--preview-config'),previewPolicyFile=arg('--preview-policy');
   const provenanceFile=arg('--source-provenance'),runUrl=arg('--canary-run-url');
   const outDir=arg('--out-dir');
-  if(state!=='MN'||!previewConfigFile||!previewPolicyFile||!provenanceFile||!runUrl||outDir!=='out/canary-preparation/MN/state-integration')
-    throw new Error('Use MN with reviewed canary lifecycle, preview policy, verified source provenance and fixed isolated output directory.');
+  if(!['MN','MD'].includes(state)||!previewConfigFile||!previewPolicyFile||!provenanceFile||!runUrl||outDir!==`out/canary-preparation/${state}/state-integration`)
+    throw new Error('Use MN or MD with reviewed canary lifecycle, preview policy, verified source provenance and fixed isolated output directory.');
   const read=async file=>JSON.parse(await readFile(path.resolve(engineRoot,file),'utf8'));
-  const manifest=await read('data/state-integration/MN.json');
+  const manifest=await read(`data/state-integration/${state}.json`);
   const previewConfig=await read(previewConfigFile),previewPolicy=await read(previewPolicyFile),sourceProvenance=await read(provenanceFile);
   const authoritative=JSON.parse(await readFile(path.join(engineRoot,'..','src','config','state-lifecycle.json'),'utf8'));
-  const isolatedManifest=createIsolatedMinnesotaCanaryInput({manifest,authoritativeLifecycle:authoritative,sourceProvenance});
-  const result=buildMinnesotaCityHiveCanaryManifest({manifest:isolatedManifest,previewConfig,previewPolicy,sourceProvenance,canaryRunUrl:runUrl});
+  let result;
+  if(state==='MN'){
+    const isolatedManifest=createIsolatedMinnesotaCanaryInput({manifest,authoritativeLifecycle:authoritative,sourceProvenance});
+    result=buildMinnesotaCityHiveCanaryManifest({manifest:isolatedManifest,previewConfig,previewPolicy,sourceProvenance,canaryRunUrl:runUrl});
+  }else{
+    const preview=previewConfig?.states?.MD;
+    if(manifest.lifecycle.publicStatus!=='research_only'||authoritative.activeStates.includes('MD')
+      ||preview?.publicStatus!=='active'||preview.promotionStage!=='canary'||!previewConfig.activeStates.includes('MD')
+      ||preview?.inventoryAlertable!==false||preview?.watchAlertable!==false
+      ||previewPolicy?.state!=='MD'||previewPolicy?.mode!=='canary_preview'||previewPolicy.alertDeliveryEnabled!==false
+      ||previewPolicy.productionSnapshotPublicationEnabled!==false||previewPolicy.productionDeploymentEnabled!==false
+      ||sourceProvenance?.state!=='MD'||sourceProvenance?.status!=='verified_github_shadow_artifact'
+      ||!/^[a-f\d]{64}$/.test(sourceProvenance.artifactDigest||''))throw new Error('MD requires a dormant manifest and verified isolated source replay.');
+    result={...manifest,lifecycle:{...manifest.lifecycle,publicStatus:'active'},evidence:{
+      shadow:{status:'verified',runs:1,artifact:sourceProvenance.workflowRunUrl,originalSourceClocksPreserved:true},
+      canary:{status:'verified',runs:1,artifact:runUrl,allDeliveryChannelsDisabled:true},
+      production:{status:'not_deployed',url:null,assertion:'The candidate adds Maryland pickup in a private preview.',reason:'Production activation requires the verified release.'},
+    }};
+  }
   const out=path.resolve(engineRoot,outDir),fixtures=path.join(out,'..','state-fixtures');
   await mkdir(out,{recursive:true});await mkdir(fixtures,{recursive:true});
-  await writeFile(path.join(out,'MN.json'),JSON.stringify(result,null,2)+'\n');
-  await writeFile(path.join(fixtures,'MN.json'),await readFile(path.join(engineRoot,'data','state-fixtures','MN.json')));
-  console.log(JSON.stringify({state,manifest:'canary_only',isolatedResearchLifecycle:true,productionLifecycleModified:false,sourceRun:sourceProvenance.workflowRunId,out:path.join(out,'MN.json')}));
+  await writeFile(path.join(out,`${state}.json`),JSON.stringify(result,null,2)+'\n');
+  await writeFile(path.join(fixtures,`${state}.json`),await readFile(path.join(engineRoot,'data','state-fixtures',`${state}.json`)));
+  console.log(JSON.stringify({state,manifest:'canary_only',isolatedResearchLifecycle:true,productionLifecycleModified:false,sourceRun:sourceProvenance.workflowRunId,out:path.join(out,`${state}.json`)}));
 }
 
 if(import.meta.url===(process.argv[1]?pathToFileURL(path.resolve(process.argv[1])).href:''))main().catch(error=>{console.error(error.message);process.exit(1);});
