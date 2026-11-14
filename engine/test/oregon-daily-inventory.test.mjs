@@ -52,6 +52,20 @@ test('Oregon identity resolution requires exact canonical match and an approved 
   assert.equal(resolveOregonBourbonIdentity(product, { match: () => ({ record: { canonical: "Blanton's Gold" }, method: 'alias-containment' }) }).status, 'unresolved_or_ambiguous');
 });
 
+test('Oregon identity rejects generic labels that omit canonical modifiers', () => {
+  const ageBible = { match: () => ({ record: { canonical: 'Basil Hayden 10 Year' }, method: 'exact-key' }) };
+  const batchBible = { match: () => ({ record: { canonical: 'Four Roses Limited Edition Small Batch' }, method: 'exact-key' }) };
+  assert.equal(resolveOregonBourbonIdentity({ name: "BASIL HAYDEN'S BOURBON", size: '750 ML', proof: 80 }, ageBible).status, 'missing_age_modifier');
+  assert.equal(resolveOregonBourbonIdentity({ name: 'FOUR ROSES BOURBON', size: '750 ML', proof: 80 }, batchBible).status, 'missing_identity_modifier');
+});
+
+test('Oregon identity checks Weller Millennium against the producer-verified proof', () => {
+  const bible = { match: (name) => ({ record: { canonical: name }, method: 'exact-library-identity' }) };
+  const product = { name: 'Weller Millennium', size: '750 ML', proof: 99 };
+  assert.equal(resolveOregonBourbonIdentity(product, bible).status, 'verified_exact');
+  assert.equal(resolveOregonBourbonIdentity({ ...product, proof: 90 }, bible).status, 'proof_or_size_mismatch');
+});
+
 test('Oregon collector parses bounded streamed CSV across small transport chunks', async () => {
   const encoded = new TextEncoder().encode(csv);
   const body = new ReadableStream({
@@ -67,6 +81,8 @@ test('Oregon collector parses bounded streamed CSV across small transport chunks
   });
   assert.equal(payload.storeRowCount, 2);
   assert.equal(payload.sourceBytes, encoded.length);
+  assert.match(payload.sourceSha256, /^[0-9a-f]{64}$/u);
   assert.equal(payload.products[0].rarityTier, 'allocated');
-  assert.equal(payload.uniqueRecentPremiseCount, 2);
+  assert.equal(payload.positiveQuantityStoreRowCount, 1);
+  assert.equal(payload.uniqueRecentPremiseCount, 1);
 });
