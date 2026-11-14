@@ -29,24 +29,26 @@ export function CoverageMap({ states, selected, onSelect }: {
 }) {
   const byCode = new Map(states.map(state => [state.code, state]));
   return <View style={styles.map}>
-    {rows.map((row, index) => <View key={index} style={styles.row}>
-      {row.map((code, column) => {
-        const state = byCode.get(code);
-        if (!state) return <View key={column} style={styles.tile} />;
+    <View accessibilityRole="radiogroup" accessibilityLabel="United States coverage" style={styles.map}>
+      {rows.map((row, index) => <View key={index} style={styles.row}>
+        {row.map((code, column) => {
+          const state = byCode.get(code);
+          if (!state) return <View key={column} style={styles.tile} />;
 
-        const strength = legend.find(entry => entry.coverage === state.coverageStrength);
-        return <Pressable
-          key={code}
-          accessibilityRole="button"
-          accessibilityLabel={`${names.get(code)}, ${state.coverageStrengthLabel}`}
-          accessibilityState={{ selected: code === selected }}
-          onPress={() => onSelect(code)}
-          style={[styles.tile, { backgroundColor: strength?.backgroundColor }, code === selected && styles.selected]}
-        >
-          <Text allowFontScaling={false} style={[styles.code, state.coverageStrength === 'strong' && styles.darkCode]}>{code}</Text>
-        </Pressable>;
-      })}
-    </View>)}
+          const strength = legend.find(entry => entry.coverage === state.coverageStrength);
+          return <Pressable
+            key={code}
+            accessibilityRole="radio"
+            accessibilityLabel={`${names.get(code)}, ${state.coverageStrengthLabel}`}
+            aria-checked={code === selected}
+            onPress={() => onSelect(code)}
+            style={[styles.tile, { backgroundColor: strength?.backgroundColor }, code === selected && styles.selected]}
+          >
+            <Text allowFontScaling={false} style={[styles.code, state.coverageStrength === 'strong' && styles.darkCode]}>{code}</Text>
+          </Pressable>;
+        })}
+      </View>)}
+    </View>
     <View style={styles.legend}>
       {legend.map(entry => <View key={entry.coverage} style={styles.legendItem}>
         <View style={[styles.swatch, { backgroundColor: entry.backgroundColor }]} />
