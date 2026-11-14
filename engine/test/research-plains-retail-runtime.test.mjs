@@ -1,8 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS } from '../src/state-lifecycle.mjs';
+import { buildShadowEvidence } from '../src/run-expansion-shadow.mjs';
 import { withResearchLifecycle, researchSourceForState } from '../src/research-state-registry.mjs';
 import {
   collectPlainsRetailResearchReport,
@@ -21,6 +25,16 @@ function billingsPageResponse(text = mtHtml, overrides = {}) {
     text, observedAt: '2026-11-14T11:58:20.269Z', options, ...overrides });
 }
 
+async function collectMt(options = {}) {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'mt-billings-shadow-'));
+  try {
+    return await collectPlainsRetailResearchReport(plainsRetailResearchSourceForState('MT'), bible, {
+      env: { BOURBON_SIGNAL_SHADOW_MODE: '1' }, now, reportDirectory: path.join(directory, 'report'),
+      attemptFile: path.join(directory, 'out/research-source-attempts/MT.json'), ...options,
+    });
+  } finally { await rm(directory, { recursive: true, force: true }); }
+}
+
 test('SD and MT retained exact-store pickup evidence replays only in shadow research', async () => {
   assert.equal(CUSTOMER_ACTIVE_STATE_IDS.has('SD'), false);
   assert.equal(CUSTOMER_ACTIVE_STATE_IDS.has('MT'), false);
@@ -35,10 +49,8 @@ test('SD and MT retained exact-store pickup evidence replays only in shadow rese
     assert.equal(plainsRetailResearchLifecycleEntries()[state].coverageTier, 'single_store_inventory_research');
 
     const config = plainsRetailResearchSourceForState(state);
-    const report = await collectPlainsRetailResearchReport(config, bible, {
-      env: { BOURBON_SIGNAL_SHADOW_MODE: '1' }, now,
-      fetchText: state === 'MT' ? billingsPageResponse() : undefined,
-    });
+    const report = state === 'MT' ? await collectMt({ fetchText: billingsPageResponse() })
+      : await collectPlainsRetailResearchReport(config, bible, { env: { BOURBON_SIGNAL_SHADOW_MODE: '1' }, now });
     assert.equal(report.metadata.shadowOnly, true);
     assert.equal(report.metadata.productionActivationAllowed, false);
     assert.equal(report.metadata.customerDeliveryAllowed, false);
@@ -56,10 +68,7 @@ test('SD and MT retained exact-store pickup evidence replays only in shadow rese
     ['Larceny Barrel Proof', 12, 74.99],
   ].sort());
   const mtCalls = [];
-  const mt = await collectPlainsRetailResearchReport(plainsRetailResearchSourceForState('MT'), bible, {
-    env: { BOURBON_SIGNAL_SHADOW_MODE: '1' }, now,
-    fetchText: async (url, options) => { mtCalls.push({ url, options }); return billingsPageResponse()(url, options); },
-  });
+  const mt = await collectMt({ fetchText: async (url, options) => { mtCalls.push({ url, options }); return billingsPageResponse()(url, options); } });
   assert.equal(mtCalls.length, 1);
   assert.equal(mtCalls[0].url, plainsRetailResearchSourceForState('MT').sources[0].url);
   assert.equal(mtCalls[0].options.maxRedirects, 0);
@@ -120,26 +129,17 @@ test('captured source observation clocks are retained and become stale instead o
 test('Billings shadow pickup fails closed when the page loses stock proof or returns a blocked response', async () => {
   const config = plainsRetailResearchSourceForState('MT');
   const missingStockHtml = mtHtml.replace('In stock: 6 available', 'Out of stock');
-  const missing = await collectPlainsRetailResearchReport(config, bible, {
-    env: { BOURBON_SIGNAL_SHADOW_MODE: '1' }, now,
-    fetchText: billingsPageResponse(missingStockHtml),
-  });
+  const missing = await collectMt({ fetchText: billingsPageResponse(missingStockHtml) });
   assert.equal(missing.signals.length, 0);
   assert.equal(missing.status, 'no_trusted_inventory');
   assert.equal(missing.metadata.requests.length, 1);
 
   const malformedProduct = mtHtml.replace('860006244521', '000000000000');
-  const mismatched = await collectPlainsRetailResearchReport(config, bible, {
-    env: { BOURBON_SIGNAL_SHADOW_MODE: '1' }, now,
-    fetchText: billingsPageResponse(malformedProduct),
-  });
+  const mismatched = await collectMt({ fetchText: billingsPageResponse(malformedProduct) });
   assert.equal(mismatched.signals.length, 0);
 
   let calls = 0;
-  const denied = await collectPlainsRetailResearchReport(config, bible, {
-    env: { BOURBON_SIGNAL_SHADOW_MODE: '1' }, now,
-    fetchText: async url => { calls += 1; return { ok: false, status: 403, url, requestedUrl: url, contentType: 'text/html', text: 'blocked' }; },
-  });
+  const denied = await collectMt({ fetchText: async url => { calls += 1; return { ok: false, status: 403, url, requestedUrl: url, observedAt: '2026-11-14T11:58:20.269Z', contentType: 'text/html', text: 'blocked' }; } });
   assert.equal(calls, 1);
   assert.equal(denied.signals.length, 0);
   assert.equal(denied.status, 'source_blocked');
@@ -152,8 +152,7 @@ test('Billings rechecks one product URL and uses the new response clock instead 
   assert.equal(retained[0].stale, true);
 
   let calls = 0;
-  const report = await collectPlainsRetailResearchReport(config, bible, {
-    env: { BOURBON_SIGNAL_SHADOW_MODE: '1' }, now: later,
+  const report = await collectMt({ now: later,
     fetchText: async (url, options) => {
       calls += 1;
       assert.equal(url, config.sources[0].url);
@@ -166,5 +165,49 @@ test('Billings rechecks one product URL and uses the new response clock instead 
   assert.equal(report.signals[0].stale, false);
   assert.equal(report.signals[0].observedAt, '2026-11-14T14:00:00.000Z');
   assert.equal(report.metadata.requests.length, 1);
+});
+
+test('Billings persists a daily attempt before requesting, writes a bounded HTML receipt, and fails closed on a malformed ledger', async (t) => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'mt-billings-ledger-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const attemptFile = path.join(directory, 'out/research-source-attempts/MT.json');
+  const reportDirectory = path.join(directory, 'report');
+  const options = { env: { BOURBON_SIGNAL_SHADOW_MODE: '1' }, now, attemptFile, reportDirectory };
+  let calls = 0;
+  const response = async (url, requestOptions) => {
+    calls += 1;
+    const ledger = JSON.parse(await readFile(attemptFile, 'utf8'));
+    assert.equal(ledger.status, 'reserved');
+    assert.equal(ledger.inFlight, true);
+    assert.equal(requestOptions.maxBytes, 1_000_000);
+    return billingsPageResponse()(url, requestOptions);
+  };
+  const first = await collectPlainsRetailResearchReport(plainsRetailResearchSourceForState('MT'), bible, { ...options, fetchText: response });
+  assert.equal(first.signals.length, 1);
+  assert.equal(first.metadata.complete, true);
+  assert.equal(first.metadata.origin.kind, 'local_shadow_not_workflow_issued');
+  assert.equal(first.metadata.pickupEvidence, 'reviewed_single_store_binding; retained product page has no visible store selector');
+  assert.equal(first.metadata.receipts[0].artifactPath, 'source-captures/001-f4d9dc5ffda5.html');
+  assert.equal((await readFile(path.join(reportDirectory, first.metadata.receipts[0].artifactPath), 'utf8')), mtHtml);
+  assert.equal(buildShadowEvidence('MT', first, { now: first.finishedAt }).complete, true);
+  for (const mutation of [
+    { storeAddress: '99 Wrong Rd, Billings, MT 59101' },
+    { productId: '000000000000' },
+    { sourceProductBinding: { ...first.signals[0].sourceProductBinding, pickupVerified: false } },
+    { canAlertAsInventory: true },
+    { quantity: 0 },
+  ]) {
+    const changed = { ...first, signals: first.signals.map(row => ({ ...row, ...mutation })) };
+    assert.equal(buildShadowEvidence('MT', changed, { now: first.finishedAt }).complete, false, JSON.stringify(mutation));
+  }
+  const second = await collectPlainsRetailResearchReport(plainsRetailResearchSourceForState('MT'), bible, { ...options, fetchText: response });
+  assert.equal(second.sources[0].status, 'not_due');
+  assert.equal(second.metadata.complete, false);
+  assert.equal(calls, 1);
+
+  await rm(attemptFile);
+  await (await import('node:fs/promises')).writeFile(attemptFile, '{bad json');
+  await assert.rejects(() => collectPlainsRetailResearchReport(plainsRetailResearchSourceForState('MT'), bible, { ...options, fetchText: response }), /malformed/);
+  assert.equal(calls, 1);
 });
 

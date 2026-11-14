@@ -24,6 +24,9 @@ export async function fetchWithMeta(url, options = {}) {
       signal
     });
     const res = response = fetched.response;
+    // Capture the source observation clock when response headers arrive, before
+    // a potentially slower bounded body read completes.
+    const observedAt = new Date().toISOString();
     const contentType = res.headers.get('content-type') || '';
     const text = (await readBoundedCollectionBody(res, { maxBytes: options.maxBytes, signal })).toString('utf8');
     return {
@@ -33,6 +36,7 @@ export async function fetchWithMeta(url, options = {}) {
       statusText: res.statusText,
       url: fetched.url,
       requestedUrl: url,
+      observedAt,
       contentType,
       bytes: Buffer.byteLength(text),
       elapsedMs: Date.now() - startedAt,

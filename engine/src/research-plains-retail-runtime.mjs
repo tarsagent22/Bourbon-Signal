@@ -1,10 +1,14 @@
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { fetchWithMeta } from './core/fetcher.mjs';
 
 const CAPTURE_PATH = new URL('../data/research-captures/plains-retail-20261114.json', import.meta.url);
 const CAPTURE_SHA256 = '411175182d7a497b4dcf6e36410efcb015c278ac4e78c0d654d0436d03825a89';
 const FRESHNESS_MS = 2 * 60 * 60 * 1000;
+const MT_ATTEMPT_CADENCE_MS = 24 * 60 * 60 * 1000;
+const MT_MAX_BODY_BYTES = 1_000_000;
 
 const sourceConfigs = new Map([
   ['SD', Object.freeze({
@@ -223,43 +227,138 @@ export function parseMontanaBillingsProductPage(html, source, bible, { observedA
   }];
 }
 
-async function collectMontanaBillingsShadowReport(config, bible, { fetchText = fetchWithMeta, now, signal } = {}) {
+export function isMontanaBillingsShadowInventory(row) {
+  return row?.state === 'MT' && row?.sourceRuntimeId === 'research:mt:montana-liquor-billings-html'
+    && row?.storeId === 'mt:montana-liquor-billings-1019'
+    && row?.storeAddress === '1019 1st Ave North, Billings, MT 59101'
+    && row?.locationPrecision === 'store_level' && row?.canonicalBottleId === 'bb_9c8cf2d251d5db7e'
+    && row?.productId === '860006244521' && row?.sourceProductBinding?.host === 'montanaliquor.com'
+    && row?.sourceProductBinding?.storeId === 'montana-liquor-billings-1019'
+    && row?.sourceProductBinding?.upc === '860006244521' && row?.sourceProductBinding?.sizeMl === 750
+    && row?.sourceProductBinding?.pickupVerified === true && row?.sourceProductBinding?.shadowOnly === true
+    && row?.researchOnly === true && row?.canAlertAsInventory === false && row?.canAlertAsWatch === false
+    && row?.eligibleForDelivery === false && row?.eligibleForOnSite === false
+    && Number.isInteger(row?.quantity) && row.quantity > 0 && Number.isFinite(row?.price) && row.price > 0;
+}
+
+function validateMtAttemptLedger(value, nowMs) {
+  if (value === null) return { schemaVersion: 1, state: 'MT', sourceId: 'research:mt:montana-liquor-billings-html', inFlight: null, lastAttemptAt: null, nextAllowedAt: null, status: 'never' };
+  if (!value || typeof value !== 'object' || Array.isArray(value) || value.schemaVersion !== 1 || value.state !== 'MT'
+    || value.sourceId !== 'research:mt:montana-liquor-billings-html'
+    || !['never', 'reserved', 'success', 'no_trusted_inventory', 'source_blocked', 'request_failed'].includes(value.status)) {
+    throw new Error('Montana Billings research attempt ledger is malformed.');
+  }
+  if (value.status === 'never') {
+    if (value.lastAttemptAt !== null || value.nextAllowedAt !== null || value.inFlight !== null) throw new Error('Montana Billings empty attempt ledger is malformed.');
+    return value;
+  }
+  const last = Date.parse(value.lastAttemptAt || ''), next = Date.parse(value.nextAllowedAt || '');
+  if (!Number.isFinite(last) || !Number.isFinite(next) || new Date(last).toISOString() !== value.lastAttemptAt
+    || new Date(next).toISOString() !== value.nextAllowedAt || last > nowMs + 5 * 60_000
+    || next < last || next - last !== MT_ATTEMPT_CADENCE_MS
+    || (value.status === 'reserved' ? value.inFlight !== true : value.inFlight !== false)) {
+    throw new Error('Montana Billings research attempt ledger is malformed or unresolved.');
+  }
+  return value;
+}
+
+async function readMtAttemptLedger(file, nowMs) {
+  try { return validateMtAttemptLedger(JSON.parse(await readFile(file, 'utf8')), nowMs); }
+  catch (error) {
+    if (error.code === 'ENOENT') return validateMtAttemptLedger(null, nowMs);
+    if (error instanceof SyntaxError) throw new Error('Montana Billings research attempt ledger is malformed.');
+    throw error;
+  }
+}
+
+async function writeMtAttemptLedger(file, value, nowMs) {
+  const checked = validateMtAttemptLedger(value, nowMs);
+  const temp = `${file}.${process.pid}.${randomUUID()}.tmp`;
+  await mkdir(path.dirname(file), { recursive: true });
+  try { await writeFile(temp, `${JSON.stringify(checked, null, 2)}\n`, { flag: 'wx' }); await rename(temp, file); }
+  finally { await rm(temp, { force: true }); }
+}
+
+function mtShadowReport(config, { startedAt, finishedAt, signals = [], source, receipt = null, roadblocks = [], metadata = {} }) {
+  const sourceId = 'research:mt:montana-liquor-billings-html';
+  return {
+    state: 'MT', label: config.label, tier: config.tier, strategy: config.strategy, cadence: config.cadence,
+    startedAt, finishedAt, lastGoodAt: signals[0]?.observedAt || null,
+    status: signals.length ? 'partial_useful' : source.ok ? 'no_trusted_inventory' : 'source_blocked',
+    stale: signals.length > 0 && signals.every(row => row.stale),
+    signals: signals.map(row => ({ ...row, sourceRuntimeId: sourceId })), sources: [source],
+    sourceResults: [{ sourceId, sourceLabel: config.label, sourceUrl: config.sources[0].url, ok: source.ok,
+      status: source.ok ? 'success' : 'failed', checkedAt: finishedAt, lastGoodAt: signals[0]?.observedAt || null,
+      alertable: false, inventoryAlertable: false, watchAlertable: false }],
+    roadblocks,
+    metadata: { complete: source.ok, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false,
+      requests: receipt ? [receipt] : [], receipts: receipt ? [receipt] : [], origin: { kind: 'local_shadow_not_workflow_issued' }, ...metadata },
+  };
+}
+
+async function collectMontanaBillingsShadowReport(config, bible, { fetchText = fetchWithMeta, now, signal,
+  reportDirectory = process.env.BOURBON_SIGNAL_STATE_OUT_FILE ? path.dirname(process.env.BOURBON_SIGNAL_STATE_OUT_FILE) : path.resolve('out/research-plains-retail/MT'),
+  attemptFile = path.resolve('out/research-source-attempts/MT-montana-liquor-billings.json'),
+  env = process.env,
+} = {}) {
   const nowMs = Number.isFinite(now) ? now : Date.now();
   const startedAt = new Date(nowMs).toISOString();
+  const origin = env.GITHUB_ACTIONS === 'true' && /^\d+$/.test(env.GITHUB_RUN_ID || '') && /^[a-f0-9]{40}$/.test(env.GITHUB_SHA || '')
+    ? { kind: 'github_actions', repository: env.GITHUB_REPOSITORY, workflowRunId: env.GITHUB_RUN_ID, commitSha: env.GITHUB_SHA, runAttempt: env.GITHUB_RUN_ATTEMPT || '1' }
+    : { kind: 'local_shadow_not_workflow_issued' };
   const url = config.sources[0].url;
-  const result = await fetchText(url, { timeoutMs: 15_000, maxBytes: 1_000_000, maxRedirects: 0, signal });
-  const observedAt = Number.isFinite(Date.parse(result?.observedAt || '')) ? result.observedAt : new Date().toISOString();
+  const previous = await readMtAttemptLedger(attemptFile, nowMs);
+  if (previous.status === 'reserved') throw new Error('Unresolved Montana Billings attempt requires ledger review before another request.');
+  if (previous.status !== 'never' && Date.parse(previous.nextAllowedAt) > nowMs) {
+    const source = { sourceRuntimeId: 'research:mt:montana-liquor-billings-html', label: config.label, url, ok: false, status: 'not_due',
+      signalType: 'retailer_store_inventory_result', matchedBottleCount: 0, inventoryAlertable: false, watchAlertable: false,
+      error: 'Billings source is limited to one persisted attempt per 24 hours.' };
+    return mtShadowReport(config, { startedAt, finishedAt: new Date(nowMs).toISOString(), source,
+      roadblocks: [{ state: 'MT', source: config.label, status: 'source_not_due', error: source.error }],
+      metadata: { complete: false, origin, attemptNextAllowedAt: previous.nextAllowedAt } });
+  }
+  const reserved = { schemaVersion: 1, state: 'MT', sourceId: 'research:mt:montana-liquor-billings-html',
+    inFlight: true, lastAttemptAt: startedAt, nextAllowedAt: new Date(nowMs + MT_ATTEMPT_CADENCE_MS).toISOString(), status: 'reserved' };
+  await writeMtAttemptLedger(attemptFile, reserved, nowMs); // Durable before any network request.
+  let result;
+  try { result = await fetchText(url, { timeoutMs: 15_000, maxBytes: MT_MAX_BODY_BYTES, maxRedirects: 0, signal }); }
+  catch (error) {
+    await writeMtAttemptLedger(attemptFile, { ...reserved, inFlight: false, status: 'request_failed' }, nowMs);
+    throw error;
+  }
+  const responseAt = Number.isFinite(Date.parse(result?.observedAt || '')) ? result.observedAt : null;
   const body = Buffer.from(result?.text || '');
   const digest = createHash('sha256').update(body).digest('hex');
   const exactUrl = result?.url === url && result?.requestedUrl !== undefined ? result.requestedUrl === url : result?.url === url;
   const contentTypeOk = /^text\/html\b/i.test(String(result?.contentType || ''));
-  const healthy = result?.ok === true && result?.status === 200 && exactUrl && contentTypeOk && body.length <= 1_000_000;
-  const signals = healthy ? parseMontanaBillingsProductPage(body.toString('utf8'), config, bible, { observedAt, finalUrl: result.url, now: nowMs }) : [];
+  const healthy = result?.ok === true && result?.status === 200 && exactUrl && contentTypeOk
+    && Number.isFinite(Date.parse(responseAt || '')) && body.length <= MT_MAX_BODY_BYTES;
+  const observedAt = responseAt;
+  const signals = healthy ? parseMontanaBillingsProductPage(body.toString('utf8'), config, bible, { observedAt, finalUrl: result.url, now: Date.parse(observedAt) }) : [];
+  const artifactName = `001-${digest.slice(0, 12)}.html`;
+  const artifactPath = `source-captures/${artifactName}`;
+  await mkdir(path.join(reportDirectory, 'source-captures'), { recursive: true });
+  if (body.length <= MT_MAX_BODY_BYTES) await writeFile(path.join(reportDirectory, artifactPath), body);
+  const finishedAt = new Date().toISOString();
+  await writeMtAttemptLedger(attemptFile, { ...reserved, inFlight: false, status: signals.length ? 'success' : healthy ? 'no_trusted_inventory' : 'source_blocked' }, nowMs);
   const sourceId = 'research:mt:montana-liquor-billings-html';
   const source = { sourceRuntimeId: sourceId, label: config.label, url, ok: healthy, status: healthy ? 200 : Number(result?.status) || 0,
     signalType: 'retailer_store_inventory_result', matchedBottleCount: signals.length, inventoryAlertable: false, watchAlertable: false,
     error: healthy ? null : result?.error || 'Billings product page failed exact source/status/content binding' };
   const receipt = { requestedUrl: url, finalUrl: result?.url || null, status: Number(result?.status) || 0,
-    contentType: result?.contentType || '', bytes: body.length, sha256: digest, observedAt };
-  return {
-    state: 'MT', label: config.label, tier: config.tier, strategy: config.strategy, cadence: config.cadence,
-    startedAt, finishedAt: observedAt, lastGoodAt: signals[0]?.observedAt || null,
-    status: signals.length ? 'partial_useful' : healthy ? 'no_trusted_inventory' : 'source_blocked',
-    stale: signals.length > 0 && signals.every(row => row.stale),
-    signals: signals.map(row => ({ ...row, sourceRuntimeId: sourceId })), sources: [source],
-    sourceResults: [{ sourceId, sourceLabel: config.label, sourceUrl: url, ok: healthy, status: healthy ? 'success' : 'failed',
-      checkedAt: observedAt, lastGoodAt: signals[0]?.observedAt || null, alertable: false, inventoryAlertable: false, watchAlertable: false }],
-    roadblocks: healthy ? [] : [{ state: 'MT', source: config.label, status: source.status, error: source.error }],
-    metadata: { shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false,
-      requests: [receipt], origin: { kind: 'local_shadow_not_workflow_issued' } },
-  };
+    contentType: result?.contentType || '', bytes: body.length, sha256: digest, observedAt, artifactPath: body.length <= MT_MAX_BODY_BYTES ? artifactPath : null };
+  return mtShadowReport(config, { startedAt, finishedAt, signals,
+    source: { ...source, ok: healthy, status: healthy ? 200 : Number(result?.status) || 0 }, receipt,
+    roadblocks: healthy ? [] : [{ state: 'MT', source: config.label, status: Number(result?.status) || 0, error: source.error }],
+    metadata: { origin, attemptNextAllowedAt: reserved.nextAllowedAt, bodyMaximumBytes: MT_MAX_BODY_BYTES,
+      pickupEvidence: 'reviewed_single_store_binding; retained product page has no visible store selector' } });
 }
 
-export async function collectPlainsRetailResearchReport(config, bible, { env = process.env, now = Date.now(), capturePath = CAPTURE_PATH, fetchText, signal } = {}) {
+export async function collectPlainsRetailResearchReport(config, bible, { env = process.env, now = Date.now(), capturePath = CAPTURE_PATH, fetchText, signal, reportDirectory, attemptFile } = {}) {
   if (env.BOURBON_SIGNAL_SHADOW_MODE !== '1' || sourceConfigs.get(config?.id) !== config) {
     throw new Error('Plains retailer replay requires its registered isolated shadow source.');
   }
-  if (config.id === 'MT') return collectMontanaBillingsShadowReport(config, bible, { now, fetchText, signal });
+  if (config.id === 'MT') return collectMontanaBillingsShadowReport(config, bible, { now, fetchText, signal, env, reportDirectory, attemptFile });
   const bytes = await readFile(capturePath);
   const fixture = JSON.parse(bytes.toString('utf8'));
   if (createHash('sha256').update(JSON.stringify(fixture)).digest('hex') !== CAPTURE_SHA256) throw new Error('Retained retailer capture digest mismatch.');
