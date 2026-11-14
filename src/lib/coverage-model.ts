@@ -1461,13 +1461,19 @@ export function searchCoverageTargets(args: {
     const status: CoverageSearchStatus = storeHasCurrentEvidence(store)
       ? "actively-monitored"
       : "known-expansion-candidate";
+    const registeredPickupStore = status === "known-expansion-candidate"
+      && lifecycleEntry?.publicStatus === "active"
+      && store.liveInventory
+      && store.inventoryCapability === "exact_store_source_registered";
     results.push({
       kind: "store",
       label: store.name || "Known store",
       stateCode,
       status,
       canonicalTargetKey: `store:${stateCode}:${coverageTargetToken(store.id, 120)}`,
-      detail: searchStatusDetail(status),
+      detail: registeredPickupStore
+        ? "This store is included in scheduled pickup checks. There’s no current bottle listing for it."
+        : searchStatusDetail(status),
       storeId: store.id,
       city: store.city || undefined,
       address: store.address || undefined,
