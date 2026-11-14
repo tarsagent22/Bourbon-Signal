@@ -34,7 +34,9 @@ export function centralCityHiveLibraryTier(signal,bible) {
  let match=cityHiveSafeBottleMatch(identity,bible);
  if(identity!==signal.rawName){
   const reviewed=(signal.productId==='6594472cd20b667b856eb419'&&signal.rawName==='R Michters Single Barrel Rye 10yr 750ml'&&identity==="Michter's 10 Year Rye")
-    ||(signal.productId==='5e21e94d0320ad0f80403af4'&&signal.rawName==='Larceny Barrel Proof Brourbon'&&identity==='Larceny Barrel Proof');
+    ||(signal.productId==='5e21e94d0320ad0f80403af4'&&signal.rawName==='Larceny Barrel Proof Brourbon'&&identity==='Larceny Barrel Proof')
+    ||(signal.merchantId==='6060f6496aaeeb555664ca4f'&&signal.productId==='665932752999236a66c861b6'
+      &&signal.rawName==='WELLER MILLENIUM'&&identity==='Weller Millennium');
   if(!reviewed)return null;
  }
  if(match.record?.id!==record.id||match.match?.confidence!==1)return null;
@@ -65,6 +67,9 @@ export function reviewedCentralCityHiveIdentity(option, product) {
     && props.brands?.length===1 && props.brands[0]==='Larceny'
     && data.basic_category?.includes('bourbon') && !data.basic_category?.includes('rye')
     && Number.parseFloat(props.content)>=55 && Number.parseFloat(props.content)<=75)return 'Larceny Barrel Proof';
+  if(option.merchant_id==='6060f6496aaeeb555664ca4f' && id==='665932752999236a66c861b6'
+    && product.name==='WELLER MILLENIUM' && props.brands?.length===1 && props.brands[0]==='Weller Bourbon'
+    && data.basic_category?.includes('bourbon') && props.state==='Kentucky')return 'Weller Millennium';
   return null;
 }
 
@@ -115,7 +120,7 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
   sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now(),sourceIds}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
   const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts},verifiedPremises=new Set();
-  const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA','CT','HI','MD'].includes(config.id);
+  const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA','CT','DE','HI','MD','KS'].includes(config.id);
   const allowed=sourceIds===undefined?ALL_SOURCES.filter(s=>s.state===config.id):sourceIds.map(id=>ALL_SOURCES.find(s=>s.state===config.id&&s.id===id)).filter(Boolean);
   if(sourceIds!==undefined&&(allowed.length!==sourceIds.length||new Set(sourceIds).size!==sourceIds.length))throw new Error('CityHive source filter must contain unique reviewed premises for this state');
   const groups=Map.groupBy(allowed,s=>perStore?s.id:s.chainId||s.id);

@@ -1,0 +1,74 @@
+{
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "6060f6496aaeeb555664ca4f",
+        "address": {
+          "full_address": "3015 E Douglas Ave, Wichita, KS 67211, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.30042360000002,
+              37.6859783
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "665932752999236a66c861b6",
+      "name": "WELLER MILLENIUM",
+      "merchants": [
+        {
+          "merchant_id": "6060f6496aaeeb555664ca4f",
+          "full_address": "3015 E Douglas Ave, Wichita, KS 67211, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "merchant_id": "6060f6496aaeeb555664ca4f",
+              "full_address": "3015 E Douglas Ave, Wichita, KS 67211, USA",
+              "product_id": "665932752999236a66c861b6",
+              "option_id": "16797124171e9c42d7b9498673c62a479ba7e9a4a1e8deb2984cc00711bc447a",
+              "product_url": "https://rjdiscountliquor.com/shop/product/weller-millenium/665932752999236a66c861b6?option-id=16797124171e9c42d7b9498673c62a479ba7e9a4a1e8deb2984cc00711bc447a",
+              "quantity": 2,
+              "price": 7499.99,
+              "option_display_data": {
+                "name": "WELLER MILLENIUM",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Weller Bourbon"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "age": "18"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

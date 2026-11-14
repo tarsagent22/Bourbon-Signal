@@ -21,7 +21,10 @@ for(const state of Object.keys(fixtures))test(`${state} exact current first-part
 });
 
 test('additional cohorts exclude shipping premises and unproductive BottleKing candidates',()=>{
- assert.equal(ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.length,23);
+ assert.deepEqual(
+  Object.fromEntries(Map.groupBy(ADDITIONAL_CITYHIVE_EXPANSION_SOURCES, source => source.state).entries().map(([state,sources])=>[state,sources.length])),
+  { CT: 2, DE: 2, HI: 1, KS: 3, LA: 4, MA: 2, MI: 10, NJ: 5 },
+ );
  assert.equal(ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.some(s=>/shipping/i.test(s.name)),false);
  assert.equal(ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.some(s=>s.chainId==='bottle-king'),false);
  assert.ok(ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.every(s=>s.discoveryUrl&&s.capturedAt));
@@ -45,6 +48,30 @@ test('CT first-party product pages preserve exact pickup variants and full-libra
   assert.equal(row.availabilityStatus,'in_stock');assert.equal(row.sourceAvailabilityVerified,true);
   assert.equal(row.sourceProductBinding.pickupOfferVerified,true);assert.equal(row.sourceProductBinding.reportedQuantity,1);
   assert.equal(new URL(row.sourceUrl).hostname,source.hostname);
+ }
+});
+
+test('Kansas and Delaware exact pickup receipts require the reviewed retailer, address and bottle', async () => {
+ const cases = [
+  { state: 'KS', fixture: 'rj-weller-millennium', merchantId: '6060f6496aaeeb555664ca4f', canonical: 'Weller Millennium', tier: 'allocated' },
+  { state: 'DE', fixture: 'kreston-larceny-barrel-proof', merchantId: '618406f81a9efe0452444e07', canonical: 'Larceny Barrel Proof', tier: 'limited' },
+ ];
+ for (const entry of cases) {
+  const source = ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.find(store => store.merchantId === entry.merchantId);
+  const fixture = JSON.parse(await readFile(new URL(`./fixtures/ks-de-cityhive/${entry.fixture}.json`, import.meta.url), 'utf8'));
+  const observedAt = '2026-11-14T07:44:34Z';
+  const rows = parseCentralCityHiveInventory(html(fixture), source, bible, { observedAt });
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].canonicalName, entry.canonical);
+  assert.equal(rows[0].tier, entry.tier);
+  assert.equal(rows[0].state, entry.state);
+  assert.equal(rows[0].storeId, source.storeId);
+  assert.equal(rows[0].storeAddress, source.address);
+  assert.equal(rows[0].sourceProductBinding.pickupOfferVerified, true);
+  assert.equal(rows[0].quantityIsExact, false);
+  assert.equal(getStateLifecycle(entry.state)?.publicStatus === 'active', false);
+  fixture.products[0].merchants[0].offer_types = ['shipping'];
+  assert.deepEqual(parseCentralCityHiveInventory(html(fixture), source, bible, { observedAt }), []);
  }
 });
 

@@ -1,0 +1,18 @@
+[
+  {
+    "url": "https://rjdiscountliquor.com/shop/product/weller-millenium/665932752999236a66c861b6?option-id=16797124171e9c42d7b9498673c62a479ba7e9a4a1e8deb2984cc00711bc447a",
+    "observedAt": "2026-11-14T07:42:42.097Z",
+    "httpStatus": 200,
+    "rawBytes": 209811,
+    "rawSha256": "d4a4f170633a59c54b15d0f01255c64464305a0d06f6308b24370d1e962e39f4",
+    "fixture": "rj-weller-millennium.json"
+  },
+  {
+    "url": "https://krestonwines.com/shop/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+    "observedAt": "2026-11-14T07:44:34.085Z",
+    "httpStatus": 200,
+    "rawBytes": 196325,
+    "rawSha256": "7ef4e7c23eaf09f308192af7350e28d25d2ef7841b9e69ada062f37d0b10366b",
+    "fixture": "kreston-larceny-barrel-proof.json"
+  }
+]
