@@ -1441,9 +1441,12 @@
       "customerLabel": "Wyoming",
       "marketClassification": "control",
       "targetScopes": [
-        "statewide"
+        "Casper",
+        "Cody",
+        "Gillette",
+        "Powell"
       ],
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
         "official_control_board",
         "official_catalog",
@@ -1458,10 +1461,14 @@
       "lastProbeAt": null,
       "nextEligibleAt": null,
       "requestBudget": {
-        "maxQueriesPerRun": 4,
-        "maxProbesPerRun": 8
+        "maxQueriesPerRun": 8,
+        "maxProbesPerRun": 12
       },
-      "promotionEvidenceRefs": []
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json",
+        "engine/data/state-integration/WY.json",
+        "engine/data/state-fixtures/WY.json"
+      ]
     }
   ],
   "scopedControlMarkets": [
