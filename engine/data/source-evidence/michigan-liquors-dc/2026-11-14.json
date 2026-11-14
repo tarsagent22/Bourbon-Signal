@@ -28,7 +28,8 @@
     "verifiedDistinctExpressionsLowerBound": 8,
     "candidateTitleCount": 104,
     "retailerPageClaim": "221 in stock right now",
-    "reportedInStockItemCount": 221
+    "reportedInStockItemCount": 221,
+    "exactFullLibraryRareExpressions": 1
   },
   "requests": [
     {
@@ -876,7 +877,8 @@
       "canAlertAsInventory": false,
       "canAlertAsWatch": false,
       "eligibleForDelivery": false,
-      "researchOnly": true
+      "researchOnly": true,
+      "libraryIdentityMatch": "no_exact_full_library_identity_match"
     },
     {
       "sourceId": "michigan-liquors-dc",
@@ -911,7 +913,8 @@
       "canAlertAsInventory": false,
       "canAlertAsWatch": false,
       "eligibleForDelivery": false,
-      "researchOnly": true
+      "researchOnly": true,
+      "libraryIdentityMatch": "no_exact_full_library_identity_match"
     },
     {
       "sourceId": "michigan-liquors-dc",
@@ -946,7 +949,8 @@
       "canAlertAsInventory": false,
       "canAlertAsWatch": false,
       "eligibleForDelivery": false,
-      "researchOnly": true
+      "researchOnly": true,
+      "libraryIdentityMatch": "no_exact_full_library_identity_match"
     },
     {
       "sourceId": "michigan-liquors-dc",
@@ -981,7 +985,8 @@
       "canAlertAsInventory": false,
       "canAlertAsWatch": false,
       "eligibleForDelivery": false,
-      "researchOnly": true
+      "researchOnly": true,
+      "libraryIdentityMatch": "no_exact_full_library_identity_match"
     },
     {
       "sourceId": "michigan-liquors-dc",
@@ -1016,7 +1021,8 @@
       "canAlertAsInventory": false,
       "canAlertAsWatch": false,
       "eligibleForDelivery": false,
-      "researchOnly": true
+      "researchOnly": true,
+      "libraryIdentityMatch": "no_exact_full_library_identity_match"
     },
     {
       "sourceId": "michigan-liquors-dc",
@@ -1051,7 +1057,8 @@
       "canAlertAsInventory": false,
       "canAlertAsWatch": false,
       "eligibleForDelivery": false,
-      "researchOnly": true
+      "researchOnly": true,
+      "libraryIdentityMatch": "exact_bible_identity_plus_full_library_tier"
     },
     {
       "sourceId": "michigan-liquors-dc",
@@ -1086,7 +1093,8 @@
       "canAlertAsInventory": false,
       "canAlertAsWatch": false,
       "eligibleForDelivery": false,
-      "researchOnly": true
+      "researchOnly": true,
+      "libraryIdentityMatch": "no_exact_full_library_identity_match"
     },
     {
       "sourceId": "michigan-liquors-dc",
@@ -1121,7 +1129,8 @@
       "canAlertAsInventory": false,
       "canAlertAsWatch": false,
       "eligibleForDelivery": false,
-      "researchOnly": true
+      "researchOnly": true,
+      "libraryIdentityMatch": "no_exact_full_library_identity_match"
     }
   ],
   "limitations": [
@@ -1171,7 +1180,8 @@
         "canAlertAsInventory": false,
         "canAlertAsWatch": false,
         "eligibleForDelivery": false,
-        "researchOnly": true
+        "researchOnly": true,
+        "libraryIdentityMatch": "no_exact_full_library_identity_match"
       },
       {
         "sourceId": "michigan-liquors-dc",
@@ -1206,7 +1216,8 @@
         "canAlertAsInventory": false,
         "canAlertAsWatch": false,
         "eligibleForDelivery": false,
-        "researchOnly": true
+        "researchOnly": true,
+        "libraryIdentityMatch": "no_exact_full_library_identity_match"
       },
       {
         "sourceId": "michigan-liquors-dc",
@@ -1241,7 +1252,8 @@
         "canAlertAsInventory": false,
         "canAlertAsWatch": false,
         "eligibleForDelivery": false,
-        "researchOnly": true
+        "researchOnly": true,
+        "libraryIdentityMatch": "no_exact_full_library_identity_match"
       },
       {
         "sourceId": "michigan-liquors-dc",
@@ -1276,7 +1288,8 @@
         "canAlertAsInventory": false,
         "canAlertAsWatch": false,
         "eligibleForDelivery": false,
-        "researchOnly": true
+        "researchOnly": true,
+        "libraryIdentityMatch": "no_exact_full_library_identity_match"
       },
       {
         "sourceId": "michigan-liquors-dc",
@@ -1311,7 +1324,8 @@
         "canAlertAsInventory": false,
         "canAlertAsWatch": false,
         "eligibleForDelivery": false,
-        "researchOnly": true
+        "researchOnly": true,
+        "libraryIdentityMatch": "no_exact_full_library_identity_match"
       },
       {
         "sourceId": "michigan-liquors-dc",
@@ -1346,7 +1360,8 @@
         "canAlertAsInventory": false,
         "canAlertAsWatch": false,
         "eligibleForDelivery": false,
-        "researchOnly": true
+        "researchOnly": true,
+        "libraryIdentityMatch": "exact_bible_identity_plus_full_library_tier"
       },
       {
         "sourceId": "michigan-liquors-dc",
@@ -1381,7 +1396,8 @@
         "canAlertAsInventory": false,
         "canAlertAsWatch": false,
         "eligibleForDelivery": false,
-        "researchOnly": true
+        "researchOnly": true,
+        "libraryIdentityMatch": "no_exact_full_library_identity_match"
       },
       {
         "sourceId": "michigan-liquors-dc",
@@ -1416,8 +1432,21 @@
         "canAlertAsInventory": false,
         "canAlertAsWatch": false,
         "eligibleForDelivery": false,
-        "researchOnly": true
+        "researchOnly": true,
+        "libraryIdentityMatch": "no_exact_full_library_identity_match"
       }
     ]
+  },
+  "reclassification": {
+    "checkedAt": "2026-11-14T06:05:08.389Z",
+    "method": "exact BourbonBible.match at confidence 1, then full library identity tier for DC; no fuzzy or title-suffix normalization",
+    "bibleFileSha256": "5a3d0576460482be3d1f54547326c1b92429e9f53367c3f84a9980c0d594757d",
+    "bibleRecordCount": 272,
+    "fullLibraryCatalogSha256": "71d668d4d8bfe5abef0a14936a9801edca42cf47b35985a73f6e4fe3ba1e1054",
+    "fullLibraryCatalogDigest": "d599a3b86a9e78c5706a16df17f578276297ec5b419ef4198d085048438d6734",
+    "fullLibraryIdentityCount": 1176,
+    "exactRareRows": 1,
+    "directFullCatalogAliasMatches": 0,
+    "fullLibrarySource": "C:/Users/chand/projects/bs-nationwide-la-ak-preflight-20261114/engine/out/library-catalog.json"
   }
 }

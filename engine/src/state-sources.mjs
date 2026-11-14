@@ -14,6 +14,7 @@ import {
 import { COLORADO_RETAILER_SOURCES, NEW_YORK_RETAILER_SOURCES } from './collectors/metro-retailer-surfaces.mjs';
 import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
 import { CENTRAL_CITYHIVE_STATE_CONFIGS } from './central-cityhive-state-config.mjs';
+import { OREGON_DAILY_INVENTORY_URL } from './or-daily-inventory.mjs';
 
 const GEORGIA_RETAILER_SOURCES = [
   ...GEORGIA_CITYHIVE_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
@@ -45,16 +46,13 @@ const BASE_STATE_SOURCES = [
   {
     id: 'OR', label: 'Oregon OLCC / Oregon Liquor Search', tier: 'A', strategy: 'inventory_locator', cadence: 'paused',
     active: false,
-    disabledReason: 'Paused for production: Oregon Liquor Search/API currently times out and exports zero user-facing drops; keep as research-only until store-level rows are reliable again.',
-    value: 'Research-only for now. State liquor search and monthly product/price list exist, but current refresh does not produce useful user-facing drops.',
+    disabledReason: 'Official daily reports are collected in shadow pending state activation.',
+    value: 'Oregon OLCC reports store-level inventory by date. The report date and each store inventory date describe the source snapshot.',
     sources: [
-      { kind: 'html', url: 'https://www.oregonliquorsearch.com/', label: 'Oregon Liquor Search' },
-      { kind: 'html', url: 'https://www.oregon.gov/olcc/liquorstores/pages/current_month_productandpricing.aspx', label: 'Current month product/pricing' },
-      { kind: 'html', url: 'https://www.oregon.gov/olcc/LIQUORSTORES/pages/special_orders.aspx', label: 'Special orders / locator guidance' }
+      { kind: 'csv', url: OREGON_DAILY_INVENTORY_URL, label: 'OLCC Daily Store Inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://www.oregonliquorsearch.com/', label: 'Oregon Liquor Search', precisionOnly: true },
     ],
-    // Guessed API routes were removed after repeated 404/500 results. The
-    // browser/session collector is the only proven current generation path.
-    apiCandidates: []
+    apiCandidates: [],
   },
   {
     id: 'IA', label: 'Iowa ABD', tier: 'A', strategy: 'public_data_portal', cadence: 'daily-60m',

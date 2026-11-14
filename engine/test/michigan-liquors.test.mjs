@@ -53,7 +53,10 @@ test('bounded daily collector caps product requests and returns research-only lo
   const i=Number(url.match(/Bourbon-(\d+)-m/)[1]);
   return{ok:true,status:200,url,text:detailHtml('Bourbon '+i+' Bourbon','750 mL',url,1)};
  };
- const result=await collectMichiganLiquorsDC({fetchText,observedAt,nowMs:Date.parse(observedAt),bible:{match:()=>null}});
+ const fullIdentity={id:'library-allocated',canonicalName:'Bourbon 0 Bourbon',aliases:[],nationalTier:'allocated',stateOverrides:[]};
+ const wrapperRecord={id:'record-allocated',canonical:'Bourbon 0 Bourbon',tier:'standard',libraryIdentities:[fullIdentity]};
+ const bible={match:name=>name==='Bourbon 0 Bourbon'?{record:wrapperRecord,confidence:1}:null};
+ const result=await collectMichiganLiquorsDC({fetchText,observedAt,nowMs:Date.parse(observedAt),bible});
  assert.equal(result.status,'research_only');
  assert.equal(result.metadata.candidateCount,12);
  assert.equal(result.metadata.allocatedBourbonCandidates,12);
@@ -61,6 +64,8 @@ test('bounded daily collector caps product requests and returns research-only lo
  assert.equal(result.metadata.productRequests,MICHIGAN_LIQUORS_DC_BUDGET.maxProductRequestsPerDay);
  assert.equal(result.metadata.verifiedDistinctExpressionsLowerBound,8);
  assert.equal(result.signals.length,8);
+ assert.equal(result.signals[0].canonicalName,'Bourbon 0 Bourbon');
+ assert.equal(result.signals[0].tier,'allocated');
  assert.ok(result.signals.every(row=>row.researchOnly&&!row.alertable&&!row.canAlertAsInventory&&!row.canAlertAsWatch&&!row.eligibleForDelivery));
  assert.equal(calls.length,9);
  const next=await collectMichiganLiquorsDC({fetchText,observedAt:new Date(Date.parse(observedAt)+60_000).toISOString(),nowMs:Date.parse(observedAt)+60_000,attempts:result.attempts,bible:{match:()=>null}});
@@ -68,6 +73,25 @@ test('bounded daily collector caps product requests and returns research-only lo
  assert.equal(next.metadata.requests.length,0);
  assert.equal(next.signals.length,8);
  assert.equal(next.signals[0].observedAt,observedAt);
+});
+
+test('retains denial status and retry-after while holding the index cursor',async()=>{
+ const cards='<a href="/spirits/Retry-Bourbon-m9"><h3>Retry Bourbon</h3><p>Allocated Liquor</p><span>$<!-- -->49.99</span></a>';
+ const calls=[];
+ const fetchText=async(url)=>{calls.push(url);return url===MICHIGAN_LIQUORS_DC_SOURCE.inventoryUrl
+  ?{ok:true,status:200,url,text:cards}
+  :{ok:false,status:429,url,retryAfterSeconds:48*60*60,text:''};};
+ const nowMs=Date.parse(observedAt),result=await collectMichiganLiquorsDC({fetchText,observedAt,nowMs,bible:{match:()=>null}});
+ assert.equal(result.metadata.deniedStatus,429);
+ assert.equal(result.metadata.retryAfterSeconds,48*60*60);
+ assert.equal(result.attempts.lastDeniedStatus,429);
+ assert.equal(Date.parse(result.attempts.nextAllowedAt),nowMs+48*60*60_000);
+ assert.equal(result.attempts.cursor,0);
+ assert.equal(calls.length,2);
+ const again=await collectMichiganLiquorsDC({fetchText,observedAt:new Date(nowMs+24*60*60_000).toISOString(),nowMs:nowMs+24*60*60_000,attempts:result.attempts,bible:{match:()=>null}});
+ assert.equal(again.status,'not_due');
+ assert.equal(again.metadata.dueAt,result.attempts.nextAllowedAt);
+ assert.equal(calls.length,2);
 });
 
 test('DC shadow registration stays non-active and emits no alert-eligible rows',async()=>{

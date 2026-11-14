@@ -1,4 +1,5 @@
 import {createHash} from 'node:crypto';
+import {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 const BASE_URL='https://www.michiganliquors.com';
 export const MICHIGAN_LIQUORS_DC_SOURCE=Object.freeze({
  id:'michigan-liquors-dc',state:'DC',stateCode:'DC',name:'Michigan Liquors',city:'Washington',
@@ -77,8 +78,11 @@ async function publicGet(url,{timeoutMs,maxBytes,fetchImpl=fetch}={}){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(new Error('request_timeout')),timeoutMs);
  try{
   const response=await fetchImpl(url,{redirect:'manual',signal:controller.signal,headers:{accept:'text/html,application/xhtml+xml','user-agent':'BourbonSignalResearch/1.0 (+public retail index check)'}});
-  if(response.status>=300&&response.status<400)return{ok:false,status:response.status,url:response.url||url,reason:'redirect_not_followed'};
-  if(!response.ok)return{ok:false,status:response.status,url:response.url||url,reason:'http_'+response.status};
+  const retryAfter=response.headers?.get?.('retry-after')||null;
+  const retryAfterSeconds=retryAfter?(Number.isFinite(Number(retryAfter))?Math.max(0,Number(retryAfter)):
+    Number.isFinite(Date.parse(retryAfter))?Math.max(0,(Date.parse(retryAfter)-Date.now())/1000):null):null;
+  if(response.status>=300&&response.status<400)return{ok:false,status:response.status,url:response.url||url,reason:'redirect_not_followed',retryAfterSeconds};
+  if(!response.ok)return{ok:false,status:response.status,url:response.url||url,reason:'http_'+response.status,retryAfterSeconds};
   const reader=response.body?.getReader();
   if(!reader)return{ok:false,status:response.status,url:response.url||url,reason:'empty_response_body'};
   const chunks=[];let bytes=0;
@@ -99,51 +103,75 @@ async function publicGet(url,{timeoutMs,maxBytes,fetchImpl=fetch}={}){
 export async function collectMichiganLiquorsDC({fetchText,fetchImpl,bible,observedAt=new Date().toISOString(),nowMs=Date.now(),attempts={}}={}){
  const source=MICHIGAN_LIQUORS_DC_SOURCE,budget=MICHIGAN_LIQUORS_DC_BUDGET;
  if(!Number.isFinite(Date.parse(observedAt)))throw new Error('A valid observation clock is required');
- const last=Date.parse(attempts.lastAttemptAt||'');
- if(Number.isFinite(last)&&nowMs-last<budget.cadenceMs){
+ const last=Date.parse(attempts.lastAttemptAt||''),retryAt=Date.parse(attempts.nextAllowedAt||'');
+ const dueAt=Math.max(Number.isFinite(last)?last+budget.cadenceMs:0,Number.isFinite(retryAt)?retryAt:0);
+ if(dueAt>nowMs){
   const signals=(Array.isArray(attempts.signals)?attempts.signals:[]).filter(row=>{
    const age=nowMs-Date.parse(row.observedAt);return Number.isFinite(age)&&age>=0&&age<=source.freshnessMinutes*60_000;
   });
-  return{state:'DC',status:'not_due',signals,metadata:{dueAt:new Date(last+budget.cadenceMs).toISOString(),
+  return{state:'DC',status:'not_due',signals,metadata:{dueAt:new Date(dueAt).toISOString(),
    candidateCount:attempts.candidateCount||0,verifiedDistinctExpressionsLowerBound:new Set(signals.map(row=>row.name+'\u0000'+row.size)).size,
    lastObservationAt:attempts.lastSuccessfulIndexAt||null,requests:[]},attempts};
  }
  const get=fetchText||((url,options)=>publicGet(url,{...options,fetchImpl}));
  const requests=[],category=await get(source.inventoryUrl,{timeoutMs:budget.timeoutMs,maxBytes:budget.maxCategoryBytes});
  requests.push({kind:'allocated_candidate_index',url:source.inventoryUrl,status:category.status||0,ok:category.ok===true,
+  ...(category.retryAfterSeconds!=null?{retryAfterSeconds:category.retryAfterSeconds}:{}),
   ...(category.ok?{bytes:Buffer.byteLength(category.text||'','utf8'),sha256:createHash('sha256').update(category.text||'').digest('hex')}:{})});
  const nextAttempts={...attempts,lastAttemptAt:observedAt};
- if(!category.ok)return{state:'DC',status:'source_blocked',signals:[],metadata:{candidateCount:0,verifiedDistinctExpressionsLowerBound:0,requests,noAlerts:true},attempts:nextAttempts};
+ if(!category.ok){
+  if([401,403,429,435].includes(Number(category.status))){
+   const retryDelay=Math.max(budget.cadenceMs,Number(category.retryAfterSeconds||0)*1000);
+   nextAttempts.nextAllowedAt=new Date(nowMs+retryDelay).toISOString();nextAttempts.lastDeniedStatus=Number(category.status)||0;
+  }
+  return{state:'DC',status:'source_blocked',signals:[],metadata:{candidateCount:0,verifiedDistinctExpressionsLowerBound:0,
+   requests,noAlerts:true,...(nextAttempts.nextAllowedAt?{deniedStatus:nextAttempts.lastDeniedStatus,
+    retryAfterSeconds:category.retryAfterSeconds||null,blockedUntil:nextAttempts.nextAllowedAt}:{})},attempts:nextAttempts};
+ }
  const candidates=parseMichiganLiquorsAllocatedIndex(category.text,{source});
  const reportedStockCount=Number((text(category.text).match(/(\d+)\s+in stock right now/iu)||[])[1])||null;
  const exactCandidates=candidates.filter(row=>/\bbourbon\b/iu.test(row.name)
   && !/\b(?:gift\s*(?:set|box|pack)|bundle|case|sampler|collection|set)\b/iu.test(row.name));
  const cursor=Number.isSafeInteger(attempts.cursor)&&attempts.cursor>=0?attempts.cursor:0;
  const selected=exactCandidates.length?Array.from({length:Math.min(budget.maxProductRequestsPerDay,exactCandidates.length)},(_,i)=>exactCandidates[(cursor+i)%exactCandidates.length]):[];
- const signals=[];
+ const signals=[];let completedProducts=0,denial=null;
  for(const candidate of selected){
   const response=await get(candidate.url,{timeoutMs:budget.timeoutMs,maxBytes:budget.maxProductBytes});
   requests.push({kind:'product_detail',candidateId:candidate.candidateId,url:candidate.url,status:response.status||0,ok:response.ok===true,
    ...(response.ok?{bytes:Buffer.byteLength(response.text||'','utf8'),sha256:createHash('sha256').update(response.text||'').digest('hex')}:{})});
-  if(!response.ok){if([401,403,429,435].includes(Number(response.status)))break;continue;}
+  if(!response.ok){
+   if([401,403,429,435].includes(Number(response.status))){denial=response;break;}
+   completedProducts++;continue;
+  }
   const row=parseMichiganLiquorsProduct(response.text,{url:candidate.url,observedAt,source});
+  completedProducts++;
   if(!row)continue;
   const match=typeof bible?.match==='function'?bible.match(row.name):null;
-  const reviewed=match?.record&&match.confidence===1&&['allocated','unicorn'].includes(String(match.record.tier).toLowerCase());
+  const tier=match?.record&&match.confidence===1?centralCityHiveRecordMarketTier(match.record,'DC'):null;
+  const reviewed=match?.record&&match.confidence===1&&['limited','allocated','unicorn'].includes(String(tier).toLowerCase());
   row.rawName=row.name;
-  row.canonicalBottleId=reviewed?match.record.id:null;row.canonicalName=reviewed?match.record.canonical:null;row.tier=reviewed?match.record.tier:null;
+  row.canonicalBottleId=reviewed?match.record.id:null;row.canonicalName=reviewed?match.record.canonical:null;row.tier=reviewed?tier:null;
   row.inventorySemantics='Research-only first-party nightly register count; call the store to reserve; no customer alert or availability guarantee.';
   row.alertable=false;row.canAlertAsInventory=false;row.canAlertAsWatch=false;row.eligibleForDelivery=false;row.researchOnly=true;
   signals.push(row);
  }
- nextAttempts.cursor=exactCandidates.length?(cursor+selected.length)%exactCandidates.length:0;
+ nextAttempts.cursor=exactCandidates.length?(cursor+completedProducts)%exactCandidates.length:0;
  nextAttempts.candidateCount=candidates.length;
  nextAttempts.exactAllocatedBottleCandidates=exactCandidates.length;
  nextAttempts.lastSuccessfulIndexAt=observedAt;
  nextAttempts.signals=signals;
+ if(denial){
+  const retryDelay=Math.max(budget.cadenceMs,Number(denial.retryAfterSeconds||0)*1000);
+  nextAttempts.nextAllowedAt=new Date(nowMs+retryDelay).toISOString();
+  nextAttempts.lastDeniedStatus=Number(denial.status)||0;
+ }else{
+  delete nextAttempts.nextAllowedAt;
+  delete nextAttempts.lastDeniedStatus;
+ }
  const distinct=new Set(signals.map(row=>row.name+'\u0000'+row.size));
  return{state:'DC',status:'research_only',signals,source,metadata:{candidateCount:candidates.length,exactAllocatedBottleCandidates:exactCandidates.length,
   allocatedBourbonCandidates:exactCandidates.length,candidateTitleCount:new Set(candidates.map(row=>row.name)).size,
   reportedInStockItemCount:reportedStockCount,productRequests:requests.filter(r=>r.kind==='product_detail').length,verifiedDistinctExpressionsLowerBound:distinct.size,
+  ...(denial?{deniedStatus:denial.status||0,retryAfterSeconds:denial.retryAfterSeconds||null,blockedUntil:nextAttempts.nextAllowedAt}:{}),
   requests,candidateIndex:candidates,noAlerts:true,researchOnly:true,sourceClock:'once_per_24h',nextDueAt:new Date(nowMs+budget.cadenceMs).toISOString()},attempts:nextAttempts};
 }
