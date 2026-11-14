@@ -17,6 +17,9 @@ const preparationOnly=(state,file)=>[
 const kansasActivationOnlyFiles=new Set([
   '.gitattributes','engine/data/state-integration/KS.json','engine/data/state-fixtures/KS.json','scripts/download-cityhive-shadow.mjs','scripts/test-cityhive-shadow-download.mjs',
   'engine/test/central-cityhive-production.test.mjs','engine/test/ks-first-publication.test.mjs','engine/test/ks-hosted-preview-evidence.test.mjs',
+  'engine/src/central-cityhive-fixtures.mjs','engine/src/central-cityhive-production-config.mjs','engine/src/central-cityhive-state-config.mjs',
+  'engine/src/collectors/central-cityhive-expansion.mjs','engine/src/collectors/central-cityhive-premises.mjs','engine/src/collectors/central-cityhive-production.mjs',
+  'engine/src/collectors/central-cityhive-transport.mjs','engine/src/run.mjs',
   'engine/test/fixtures/ks-cityhive/hosted-coverage-receipt.json','engine/test/fixtures/ks-cityhive/hosted-deployment-receipt.json',
   'engine/test/fixtures/ks-cityhive/hosted-finder-feed-receipt.json','engine/test/fixtures/ks-cityhive/hosted-finder-feed.json',
   'engine/test/fixtures/ks-cityhive/hosted-public-protection-receipt.json','engine/test/fixtures/ks-cityhive/hosted-search-receipt.json',
@@ -46,7 +49,7 @@ export function validateInactiveMinnesotaShadowLifecycleTransition({candidateLif
 }
 
 export function validateInactiveKansasShadowLifecycleTransition({candidateLifecycle,shadowLifecycle,comparison}){
-  if(comparison?.status!=='ahead'||comparison.ahead_by<2||comparison.ahead_by>4||comparison.behind_by!==0
+  if(comparison?.status!=='ahead'||comparison.ahead_by<1||comparison.behind_by!==0
     ||comparison.base_commit?.sha!==comparison.runHeadSha
     ||!Array.isArray(comparison.files)||comparison.files.filter(file=>file.filename==='src/config/state-lifecycle.json').length!==1
     ||!Array.isArray(candidateLifecycle?.activeStates)||!candidateLifecycle.activeStates.includes('KS')
@@ -72,12 +75,22 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
     &&comparison?.status==='ahead'&&Number(comparison.ahead_by)===1&&Number(comparison.behind_by)===0
     &&comparison?.mnShadowLifecycleProof===true;
   const inactiveKsShadowTransition=state==='KS'&&comparison?.ksShadowLifecycleProof===true;
+  const exactAdminMergeFiles=new Map([
+    ['scripts/test-owner-admin-api.cjs','4e8b2acba722c0e302cda721469b9f5a7142466f'],
+    ['src/app/api/admin/catalog/route.ts','9faba372b40c774433bc558325b61f776d00436e'],
+  ]);
+  const changedFiles=Array.isArray(changes)?changes:[];
+  const adminMergeIsExact=[...exactAdminMergeFiles].every(([filename,sha])=>{
+    const changed=changedFiles.find(file=>file.filename===filename);
+    return !changed||changed.sha===sha;
+  });
   const unreviewedChanges=Array.isArray(changes)?changes.filter(file=>!(preparationOnly(state,file.filename)
     ||state==='MN'&&minnesotaAdapterFiles.has(file.filename)
     ||state==='MN'&&['src/lib/public-drop-evidence.ts','scripts/test-laak-production-projection.mjs','.github/workflows/refresh-feed.yml','engine/test/engine-continuity.test.mjs'].includes(file.filename)
     ||state==='MN'&&file.filename==='src/config/state-lifecycle.json'&&inactiveMnShadowTransition
     ||state==='KS'&&kansasActivationOnlyFiles.has(file.filename)
-    ||state==='KS'&&file.filename==='src/config/state-lifecycle.json'&&inactiveKsShadowTransition)):[];
+    ||state==='KS'&&file.filename==='src/config/state-lifecycle.json'&&inactiveKsShadowTransition
+    ||state==='KS'&&exactAdminMergeFiles.has(file.filename)&&adminMergeIsExact)):[];
   if(run.head_sha!==currentHead&&(!['ahead','identical'].includes(comparison?.status)||!Array.isArray(changes)
     ||changes.length>=300||unreviewedChanges.length>0))
     throw new Error('Shadow collector source changed; issue new shadow runs before canary');

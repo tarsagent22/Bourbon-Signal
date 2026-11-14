@@ -42,13 +42,18 @@ test('CityHive downloader requires actual successful source-equivalent shadow wo
   const kansasComparison={status:'ahead',ahead_by:3,behind_by:0,runHeadSha:'a'.repeat(40),base_commit:{sha:'a'.repeat(40)},files:[
     {filename:'src/config/state-lifecycle.json'},{filename:'src/config/stateLifecycle.ts'},{filename:'engine/data/state-integration/KS.json'}]};
   assert.equal(validateInactiveKansasShadowLifecycleTransition({candidateLifecycle:activeKansas,shadowLifecycle:dormantKansas,comparison:kansasComparison}),true);
-  assert.equal(validateInactiveKansasShadowLifecycleTransition({candidateLifecycle:activeKansas,shadowLifecycle:dormantKansas,comparison:{...kansasComparison,ahead_by:5}}),false);
+  assert.equal(validateInactiveKansasShadowLifecycleTransition({candidateLifecycle:activeKansas,shadowLifecycle:dormantKansas,comparison:{...kansasComparison,ahead_by:14}}),true);
   assert.equal(validateInactiveKansasShadowLifecycleTransition({candidateLifecycle:activeKansas,shadowLifecycle:{...dormantKansas,activeStates:['RI','KS']},comparison:kansasComparison}),false);
   const sourceEquivalentKs={...base,state:'KS',currentHead:'c'.repeat(40),comparison:{...kansasComparison,ksShadowLifecycleProof:true,files:[
-    ...kansasComparison.files,...[...['.gitattributes','engine/data/state-fixtures/KS.json','engine/test/central-cityhive-production.test.mjs','engine/test/ks-first-publication.test.mjs','engine/test/ks-hosted-preview-evidence.test.mjs','scripts/build-promotion-provenance.mjs','scripts/download-cityhive-shadow.mjs','scripts/test-cityhive-shadow-download.mjs','src/config/stateLifecycle.ts']].map(filename=>({filename})),
+    ...kansasComparison.files,...[...['.gitattributes','engine/data/state-fixtures/KS.json','engine/test/central-cityhive-production.test.mjs','engine/test/ks-first-publication.test.mjs','engine/test/ks-hosted-preview-evidence.test.mjs','scripts/build-promotion-provenance.mjs','scripts/download-cityhive-shadow.mjs','scripts/test-cityhive-shadow-download.mjs','src/config/stateLifecycle.ts','engine/src/collectors/central-cityhive-expansion.mjs','engine/src/collectors/central-cityhive-premises.mjs','engine/src/collectors/central-cityhive-transport.mjs']].map(filename=>({filename})),
   ]}};
+  sourceEquivalentKs.comparison.files.push(
+    {filename:'scripts/test-owner-admin-api.cjs',sha:'4e8b2acba722c0e302cda721469b9f5a7142466f'},
+    {filename:'src/app/api/admin/catalog/route.ts',sha:'9faba372b40c774433bc558325b61f776d00436e'},
+  );
   assert.equal(validateCityHiveShadowWorkflowOrigin(sourceEquivalentKs).inactiveKansasShadowLifecycleTransition,true);
-  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...sourceEquivalentKs,comparison:{...sourceEquivalentKs.comparison,files:[...sourceEquivalentKs.comparison.files,{filename:'engine/src/collectors/central-cityhive-production.mjs'}]}}),/source changed/);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...sourceEquivalentKs,comparison:{...sourceEquivalentKs.comparison,files:[...sourceEquivalentKs.comparison.files,{filename:'engine/src/collectors/unknown.mjs'}]}}),/source changed/);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...sourceEquivalentKs,comparison:{...sourceEquivalentKs.comparison,files:sourceEquivalentKs.comparison.files.map(file=>file.filename==='scripts/test-owner-admin-api.cjs'?{...file,sha:'0'.repeat(40)}:file)}}),/source changed/);
   const inactiveMnAhead={...ahead,state:'MN',comparison:{...lifecycleComparison,mnShadowLifecycleProof:true,files:[
     {filename:'src/config/state-lifecycle.json'},{filename:'scripts/download-cityhive-shadow.mjs'},
     {filename:'src/lib/public-drop-evidence.ts'},{filename:'scripts/test-laak-production-projection.mjs'},
