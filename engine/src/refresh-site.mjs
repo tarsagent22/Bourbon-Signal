@@ -9,7 +9,7 @@ import {
   finishRefreshControlPlane,
   renewRefreshControlLease,
 } from './refresh-control-plane.mjs';
-import {browserCollectorRefreshDecision,browserCollectorScripts,targetedPaPublicationAdmission} from './fwgs-publication-freshness.mjs';
+import {browserCollectorRefreshDecision,browserCollectorScripts,splitOverlappedBrowserScripts,targetedPaPublicationAdmission} from './fwgs-publication-freshness.mjs';
 
 const ROOT = process.cwd();
 const PROJECT_ROOT = path.dirname(ROOT);
@@ -96,7 +96,7 @@ function runNode(script, args = [], options = {}) {
   return new Promise((resolve, reject) => {
     const startedAt = new Date().toISOString();
     const timeoutMs = Number(options.timeoutMs || STEP_TIMEOUT_MS);
-    const env = { ...process.env };
+    const env = { ...process.env, ...(options.env || {}) };
     if (env.BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS === '1' && script.endsWith('run.mjs')) {
       env.BOURBON_SIGNAL_BROWSER_PREFLIGHT = '0';
     }
@@ -495,6 +495,7 @@ async function main() {
       }
       let browserOk = false;
       let browserOwner = null;
+      let fwgsDelegatedToRun = false;
       const browserWarnings = [];
       const browserSteps = [];
       lastBrowserAttemptAt = new Date().toISOString();
@@ -506,7 +507,10 @@ async function main() {
         if (browserOwner.started) {
           browserWarnings.push('OHLQ browser collector skipped on scheduled headless Chrome because OHLQ Cloudflare requires an already-warmed interactive browser session; last known OHLQ artifact/snapshot remains in use.');
         }
-        for (const script of browserScripts) {
+        const scheduledFleetRun = !String(process.env.BOURBON_SIGNAL_RUN_STATES || '').trim();
+        const scriptPlan = splitOverlappedBrowserScripts(browserScripts, { scheduledFleetRun });
+        fwgsDelegatedToRun = scriptPlan.delegatedFwgs.length > 0;
+        for (const script of scriptPlan.immediate) {
           try {
             const timeoutMs = script.includes('fwgs-browser-full') ? FWGS_BROWSER_STEP_TIMEOUT_MS : BROWSER_STEP_TIMEOUT_MS;
             browserSteps.push(summarizeStep(await runNode(script, [], { timeoutMs })));
@@ -526,6 +530,8 @@ async function main() {
       if (browserOk) lastBrowserRefreshAt = new Date().toISOString();
       return {
         skipped: false,
+        fwgsDelegatedToRun,
+        fwgsRefreshRequired: fwgsDelegatedToRun,
         lastBrowserRefreshAt,
         lastBrowserAttemptAt,
         warnings: browserWarnings,
@@ -546,8 +552,19 @@ async function main() {
     const buildBible = await runStage('build_bible', async () => ({ step: summarizeStep(await runNode('src/build-bible.mjs')) }));
     appendSteps(steps, [buildBible?.step]);
 
-    const collectStates = await runStage('collect_states', async () => ({ step: summarizeStep(await runNode('src/run.mjs', [], { timeoutMs: RUN_STEP_TIMEOUT_MS })) }));
+    const collectStates = await runStage('collect_states', async () => ({ step: summarizeStep(await runNode('src/run.mjs', [], {
+      timeoutMs: RUN_STEP_TIMEOUT_MS,
+      env: browserDetail?.fwgsDelegatedToRun ? {
+        BOURBON_SIGNAL_FWGS_STATE_OVERLAP: '1',
+        BOURBON_SIGNAL_FWGS_REFRESH_REQUIRED: browserDetail.fwgsRefreshRequired ? '1' : '0',
+      } : {},
+    })) }));
     appendSteps(steps, [collectStates?.step]);
+
+    const browserRunStatus = await readJson(path.join(OUT, 'browser-refresh-status.json'));
+    const fwgsRun = browserRunStatus?.results?.find(result => result.id === 'pa-fwgs');
+    if (fwgsRun?.startedAt) lastBrowserAttemptAt = fwgsRun.startedAt;
+    if (fwgsRun?.status === 'refreshed' && fwgsRun.finishedAt) lastBrowserRefreshAt = fwgsRun.finishedAt;
 
     const rareReport = await runStage('rare_report', async () => ({ step: summarizeStep(await runNode('src/rare-report.mjs')) }));
     appendSteps(steps, [rareReport?.step]);
