@@ -1,7 +1,7 @@
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES,CENTRAL_CITYHIVE_PRODUCTION_COHORTS } from './collectors/central-cityhive-premises.mjs';
 import {MINNESOTA_CITYHIVE_PRODUCTION_COHORT_SHA256} from './minnesota-cityhive-production-config.mjs';
 import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
-import {isPearsonsDcProductionOnSiteSignal} from './collectors/pearsons-dc-production.mjs';
+import {isPearsonsDcProductionOnSiteSignal} from './pearsons-dc-production-policy.mjs';
 export {isPearsonsDcProductionOnSiteSignal};
 
 export const CENTRAL_CITYHIVE_STATE_IDS = new Set(CENTRAL_CITYHIVE_EXPANSION_SOURCES.map(source=>source.state));

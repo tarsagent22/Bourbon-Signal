@@ -4,6 +4,8 @@ import path from 'node:path';
 import {fetchReviewedFirstPartyText} from './central-cityhive-transport.mjs';
 import {PEARSONS_DC_SOURCE,PEARSONS_DC_BUDGETS,parsePearsonsDcCapture} from './pearsons-dc-research.mjs';
 import {centralCityHiveProductionCohortKey} from '../central-cityhive-production-config.mjs';
+import {isPearsonsDcProductionOnSiteSignal} from '../pearsons-dc-production-policy.mjs';
+export {isPearsonsDcProductionOnSiteSignal};
 
 const DENIALS=new Set([401,403,429,435]),SHA256=/^[a-f0-9]{64}$/u;
 const productionSignal=row=>({...row,sourceRuntimeId:'dc:pearsons-shopify',researchOnly:false,
@@ -120,8 +122,4 @@ export async function collectPearsonsDcProductionSource({cohortSha256,bible,fetc
     }
     throw error;
   }
-}
-
-export function isPearsonsDcProductionOnSiteSignal(row,{nowMs=Date.now(),cohortSha256}={}){
-  return validRecord(row,{nowMs,cohortSha256:cohortSha256||centralCityHiveProductionCohortKey('DC')});
 }

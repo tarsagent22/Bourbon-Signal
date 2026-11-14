@@ -4,6 +4,7 @@ import {mkdtemp,rm} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {researchSourceForState,withResearchLifecycle,collectResearchStateReport} from '../src/research-state-registry.mjs';
+import {michiganLiquorsResearchSourceForState} from '../src/research-michigan-liquors-runtime.mjs';
 import {
  MICHIGAN_LIQUORS_DC_BUDGET,MICHIGAN_LIQUORS_DC_SOURCE,collectMichiganLiquorsDC,
  parseMichiganLiquorsAllocatedIndex,parseMichiganLiquorsProduct,
@@ -99,7 +100,7 @@ test('DC shadow registration stays non-active and emits no alert-eligible rows',
  process.env.BOURBON_SIGNAL_SHADOW_MODE='1';
  const dir=await mkdtemp(path.join(os.tmpdir(),'bs-michigan-liquors-'));
  try{
-  const registered=researchSourceForState('DC',{shadowMode:true});
+  const registered=michiganLiquorsResearchSourceForState('DC');
   const lifecycle=withResearchLifecycle({activeStates:['NC'],states:{}});
   assert.ok(registered);
   assert.equal(lifecycle.activeStates.includes('DC'),false);
