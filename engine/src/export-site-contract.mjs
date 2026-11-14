@@ -5,6 +5,8 @@ import { selectFleetDropBudget, serializeCustomerDropPayload } from './fleet-dro
 import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
 import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
 import { isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
+import { isOregonDailyProductionEvidence } from './oregon-daily-production-policy.mjs';
+import { OREGON_INVENTORY_MAX_AGE_MS } from './or-daily-inventory.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { requiresStateAlertSuppression } from './state-failure-isolation.mjs';
 import { createReadStream, createWriteStream } from 'node:fs';
@@ -435,8 +437,9 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const isInRetailerInventory = signal.canAlertAsInventory === true && isIndianaRetailerInventory(signal);
   const isMsSparseOnSiteInventory = isMississippiSparseOnSiteInventory(signal);
   const isGroceryOnSiteInventory = isReviewedResearchGrocery(signal);
+  const isOregonOnSiteInventory = isOregonDailyProductionEvidence(signal);
   const isCentralOnSiteInventory=isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal);
-  const nonAlertingOnSiteInventory=isMsSparseOnSiteInventory||isCentralOnSiteInventory||isGroceryOnSiteInventory;
+  const nonAlertingOnSiteInventory=isMsSparseOnSiteInventory||isCentralOnSiteInventory||isGroceryOnSiteInventory||isOregonOnSiteInventory;
   const isMetroInventory = isMetroRetailerInventory(signal);
   const isInRetailerEvent = signal.state === 'IN'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
@@ -448,7 +451,8 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
   const isMetroRetailerEvent = ['NY', 'CO'].includes(signal.state)
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
-  const inventorySemantics = isGroceryOnSiteInventory ? signal.sourceProductBinding.inventorySemantics : isNcBoardShipment
+  const inventorySemantics = isOregonOnSiteInventory ? signal.inventorySemantics
+    : isGroceryOnSiteInventory ? signal.sourceProductBinding.inventorySemantics : isNcBoardShipment
     ? (signal.inventorySemantics || 'Official NC ABC board-level shipment units; this is a shipment to the local board, not exact store shelf inventory or current availability.')
     : isCostcoWarehouseInventory
     ? 'Costco warehouse/app availability is retailer-published availability, not a reservation or guaranteed shelf hold. Treat as a fast-moving warehouse signal and verify before driving.'
@@ -663,6 +667,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     eligibleForDropFeed: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? true : undefined,
     eligibleForWatch: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : undefined,
     eligibleForDelivery: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : (canAlertAsInventory || canAlertAsWatch),
+    ...(isOregonOnSiteInventory ? { deliveryEligible: false } : {}),
     eligibleForEmail: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
     eligibleForSms: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
     raw: staleFallback ? {
@@ -756,7 +761,9 @@ function isFreshCurrentInventorySignal(signal, currentKeys) {
   if (!currentKeys.has(signalFreshnessKey(signal))) return false;
   const observedAt = asTime(signal.observedAt || signal.fetchedAt);
   if (!observedAt) return false;
-  const maxAgeHours = signal.state === 'OH' && isOhioOhlqStoreInventorySignal(signal)
+  const maxAgeHours = signal.state === 'OR' && isOregonDailyProductionEvidence(signal)
+    ? OREGON_INVENTORY_MAX_AGE_MS / (60 * 60 * 1000)
+    : signal.state === 'OH' && isOhioOhlqStoreInventorySignal(signal)
     ? OH_STORE_INVENTORY_FEED_MAX_AGE_HOURS
     : signal.state === 'PA' && String(signal.eventType || signal.type || '') === 'store_inventory_result'
       ? PA_STORE_INVENTORY_MAX_AGE_HOURS
@@ -1245,6 +1252,7 @@ function hasPositiveAvailabilityStatus(signal) {
 }
 
 function isUserFacingDropSignal(signal) {
+  if (signal.state === 'OR' && String(signal.eventType || signal.type || '').toLowerCase() === 'store_inventory_result') return isOregonDailyProductionEvidence(signal);
   if (['WA', 'NM'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
   if(isNjMiRetailerEvent(signal))return isNjMiResearchInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if(isCentralCityHiveRetailerEvent(signal))return isCentralCityHiveInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
@@ -1358,6 +1366,7 @@ function aggregateLeadIdentity(signal) {
 
 function isSafePublicSignal(signal, shopifyPolicy) {
   if (['AK', 'DC', 'LA', 'OR'].includes(signal.state) && (signal.raw?.shadowOnly === true || signal.sourceProductBinding?.shadowOnly === true)) return false;
+  if (signal.state === 'OR' && String(signal.eventType || signal.type || '').toLowerCase() === 'store_inventory_result') return isOregonDailyProductionEvidence(signal);
   if (['WA', 'NM'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
   if(isNjMiRetailerEvent(signal))return isNjMiResearchInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if(isCentralCityHiveRetailerEvent(signal))return isCentralCityHiveInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
