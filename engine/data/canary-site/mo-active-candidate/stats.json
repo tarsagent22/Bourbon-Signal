@@ -1,51 +1,48 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "runId": "cb3e68e80d1e3918",
-  "generatedAt": "2026-11-14T14:55:15.064Z",
-  "engineGeneratedAt": "2026-11-14T14:52:23.281Z",
-  "stateCount": 1,
-  "signalCount": 69123,
+  "runId": "4eb8ecc7707aa7eb",
+  "generatedAt": "2026-11-14T18:45:48.498Z",
+  "engineGeneratedAt": "2026-11-14T18:41:35.161Z",
+  "stateCount": 34,
+  "signalCount": 69164,
   "historicalSignalCount": 1187797,
   "historyDays": 30,
   "snapshotCount": 40,
-  "bottleCount": 272,
-  "bibleRecordCount": 272,
-  "storeCount": 0,
-  "locationCount": 10,
+  "bottleCount": 298,
+  "bibleRecordCount": 298,
+  "storeCount": 5468,
+  "locationCount": 6512,
   "officialLocationCount": 645,
-  "preloadedLocationCount": 4794,
-  "dropCount": 14,
-  "eventCount": 4006,
+  "preloadedLocationCount": 4812,
+  "dropCount": 17205,
+  "eventCount": 4004,
   "historicalTrendCount": 100,
-  "alertCandidateCount": 0,
-  "roadblockCount": 326,
+  "alertCandidateCount": 811,
+  "roadblockCount": 333,
   "refreshHealth": {
     "contractVersion": "bourbon-signal-state-operating-v1",
-    "degradedStateCount": 21,
-    "staleStateCount": 5,
+    "degradedStateCount": 18,
+    "staleStateCount": 9,
     "failedStateCount": 0,
     "healthCounts": {
-      "healthy": 11,
-      "stale_useful": 5,
-      "degraded": 16,
+      "healthy": 15,
+      "stale_useful": 9,
+      "degraded": 9,
       "blocked": 0
     },
     "retryStateIds": [
-      "AZ",
-      "CA",
       "CO",
       "GA",
       "ID",
-      "IL",
       "IN",
       "LA",
+      "MN",
       "MS",
       "NC",
       "NM",
-      "NV",
       "NY",
       "OH",
-      "PA",
+      "OK",
       "RI",
       "SC",
       "TN",
@@ -62,16 +59,16 @@
         "collection": {
           "status": "useful",
           "count": 1,
-          "lastSuccessAt": "2026-11-14T14:52:21.855Z"
+          "lastSuccessAt": "2026-11-14T18:17:39.403Z"
         },
         "signalCount": 28,
         "customerVisibleDropCount": 28,
         "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T14:55:15.064Z",
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T14:51:18.304Z",
-          "ageHours": 0.1
+          "observedAt": "2026-11-14T18:16:30.080Z",
+          "ageHours": 0.5
         },
         "evidenceFreshness": {
           "inventory": {
@@ -79,7 +76,7 @@
             "freshCount": 28,
             "overdueCount": 0,
             "unknownCount": 0,
-            "maxAgeHours": 0.06576666666666667,
+            "maxAgeHours": 0.48844944444444444,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -107,16 +104,16 @@
         "collection": {
           "status": "useful",
           "count": 7,
-          "lastSuccessAt": "2026-11-14T13:06:21.971Z"
+          "lastSuccessAt": "2026-11-14T18:19:00.079Z"
         },
         "signalCount": 1573,
         "customerVisibleDropCount": 1056,
         "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T13:06:17.923Z",
-          "ageHours": 1.8
+          "observedAt": "2026-11-14T18:18:57.934Z",
+          "ageHours": 0.4
         },
         "evidenceFreshness": {
           "inventory": {
@@ -139,39 +136,39 @@
       },
       {
         "state": "AZ",
-        "health": "degraded",
+        "health": "healthy",
         "collection": {
           "status": "useful",
           "count": 2,
-          "lastSuccessAt": "2026-11-14T13:04:10.402Z"
+          "lastSuccessAt": "2026-11-14T18:18:10.256Z"
         },
-        "signalCount": 1189,
-        "customerVisibleDropCount": 820,
-        "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "signalCount": 1144,
+        "customerVisibleDropCount": 802,
+        "alertCandidateCount": 153,
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T12:46:09.419Z",
-          "ageHours": 2.2
+          "observedAt": "2026-11-14T17:58:09.734Z",
+          "ageHours": 0.8
         },
         "evidenceFreshness": {
           "inventory": {
-            "totalCount": 820,
-            "freshCount": 0,
-            "overdueCount": 820,
+            "totalCount": 802,
+            "freshCount": 802,
+            "overdueCount": 0,
             "unknownCount": 0,
-            "maxAgeHours": 2.1515680555555554,
+            "maxAgeHours": 0.7941011111111111,
             "deadlineHours": 2
           },
           "informationalCount": 0,
           "sources": [
             {
               "sourceId": "precision:az",
-              "totalCount": 820,
-              "freshCount": 0,
-              "overdueCount": 820,
+              "totalCount": 802,
+              "freshCount": 802,
+              "overdueCount": 0,
               "unknownCount": 0,
-              "status": "overdue"
+              "status": "fresh"
             }
           ]
         },
@@ -179,46 +176,60 @@
           "status": "none",
           "reason": null
         },
-        "anomalyCodes": [
-          "inventory_confirmation_overdue"
-        ],
-        "recoveryAction": "retry_state_collection"
+        "anomalyCodes": [],
+        "recoveryAction": "none"
       },
       {
         "state": "CA",
-        "health": "degraded",
+        "health": "healthy",
         "collection": {
           "status": "useful",
-          "count": 2461,
-          "lastSuccessAt": "2026-11-14T12:58:51.986Z"
+          "count": 2484,
+          "lastSuccessAt": "2026-11-14T18:14:40.501Z"
         },
-        "signalCount": 2460,
-        "customerVisibleDropCount": 1663,
-        "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "signalCount": 2483,
+        "customerVisibleDropCount": 2459,
+        "alertCandidateCount": 161,
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T12:46:09.504Z",
-          "ageHours": 2.2
+          "observedAt": "2026-11-14T17:58:09.805Z",
+          "ageHours": 0.8
         },
         "evidenceFreshness": {
           "inventory": {
-            "totalCount": 1663,
-            "freshCount": 0,
-            "overdueCount": 1663,
+            "totalCount": 2459,
+            "freshCount": 2459,
+            "overdueCount": 0,
             "unknownCount": 0,
-            "maxAgeHours": 2.1515444444444443,
+            "maxAgeHours": 1.7948383333333333,
             "deadlineHours": 2
           },
           "informationalCount": 0,
           "sources": [
             {
               "sourceId": "ca:grocery-xapi",
-              "totalCount": 1663,
-              "freshCount": 0,
-              "overdueCount": 1663,
+              "totalCount": 2454,
+              "freshCount": 2454,
+              "overdueCount": 0,
               "unknownCount": 0,
-              "status": "overdue"
+              "status": "fresh"
+            },
+            {
+              "sourceId": "ca:del-mesa-liquor",
+              "totalCount": 2,
+              "freshCount": 2,
+              "overdueCount": 0,
+              "unknownCount": 0,
+              "status": "fresh"
+            },
+            {
+              "sourceId": "ca:mission-trails-wine-spirits",
+              "totalCount": 3,
+              "freshCount": 3,
+              "overdueCount": 0,
+              "unknownCount": 0,
+              "status": "fresh"
             }
           ]
         },
@@ -226,10 +237,8 @@
           "status": "none",
           "reason": null
         },
-        "anomalyCodes": [
-          "inventory_confirmation_overdue"
-        ],
-        "recoveryAction": "retry_state_collection"
+        "anomalyCodes": [],
+        "recoveryAction": "none"
       },
       {
         "state": "CO",
@@ -246,7 +255,7 @@
         "freshness": {
           "status": "stale",
           "observedAt": "2026-10-29T16:06:28.680Z",
-          "ageHours": 382.8
+          "ageHours": 386.7
         },
         "evidenceFreshness": {
           "inventory": {
@@ -254,7 +263,7 @@
             "freshCount": 0,
             "overdueCount": 16,
             "unknownCount": 0,
-            "maxAgeHours": 382.8128844444444,
+            "maxAgeHours": 386.655505,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -284,32 +293,32 @@
         "collection": {
           "status": "useful",
           "count": 3,
-          "lastSuccessAt": "2026-11-14T13:05:54.086Z"
+          "lastSuccessAt": "2026-11-14T18:18:45.973Z"
         },
-        "signalCount": 3429,
-        "customerVisibleDropCount": 776,
-        "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "signalCount": 3428,
+        "customerVisibleDropCount": 775,
+        "alertCandidateCount": 157,
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T13:05:42.253Z",
-          "ageHours": 1.8
+          "observedAt": "2026-11-14T18:18:32.994Z",
+          "ageHours": 0.5
         },
         "evidenceFreshness": {
           "inventory": {
-            "totalCount": 776,
-            "freshCount": 776,
+            "totalCount": 775,
+            "freshCount": 775,
             "overdueCount": 0,
             "unknownCount": 0,
-            "maxAgeHours": 1.8257808333333334,
+            "maxAgeHours": 0.4543066666666667,
             "deadlineHours": 2
           },
           "informationalCount": 0,
           "sources": [
             {
               "sourceId": "precision:fl",
-              "totalCount": 776,
-              "freshCount": 776,
+              "totalCount": 775,
+              "freshCount": 775,
               "overdueCount": 0,
               "unknownCount": 0,
               "status": "fresh"
@@ -338,7 +347,7 @@
         "freshness": {
           "status": "stale",
           "observedAt": "2026-10-29T20:43:41.108Z",
-          "ageHours": 378.2
+          "ageHours": 382
         },
         "evidenceFreshness": {
           "inventory": {
@@ -346,7 +355,7 @@
             "freshCount": 0,
             "overdueCount": 22,
             "unknownCount": 0,
-            "maxAgeHours": 378.1927655555556,
+            "maxAgeHours": 382.0353861111111,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -376,16 +385,16 @@
         "collection": {
           "status": "useful",
           "count": 5,
-          "lastSuccessAt": "2026-11-14T13:05:59.270Z"
+          "lastSuccessAt": "2026-11-14T18:19:11.053Z"
         },
         "signalCount": 1279,
         "customerVisibleDropCount": 1092,
         "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T13:05:54.681Z",
-          "ageHours": 1.8
+          "observedAt": "2026-11-14T18:19:06.537Z",
+          "ageHours": 0.4
         },
         "evidenceFreshness": {
           "inventory": {
@@ -412,7 +421,7 @@
         "collection": {
           "status": "stale_useful",
           "count": 3,
-          "lastSuccessAt": "2026-11-14T13:03:07.038Z"
+          "lastSuccessAt": "2026-11-14T18:21:16.191Z"
         },
         "signalCount": 218,
         "customerVisibleDropCount": 158,
@@ -421,7 +430,7 @@
         "freshness": {
           "status": "stale",
           "observedAt": "2026-11-14T09:29:44.461Z",
-          "ageHours": 5.4
+          "ageHours": 9.3
         },
         "evidenceFreshness": {
           "inventory": {
@@ -429,7 +438,7 @@
             "freshCount": 0,
             "overdueCount": 158,
             "unknownCount": 0,
-            "maxAgeHours": 5.4251675,
+            "maxAgeHours": 9.267788055555556,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -455,47 +464,47 @@
       },
       {
         "state": "IL",
-        "health": "degraded",
+        "health": "healthy",
         "collection": {
           "status": "useful",
-          "count": 3644,
-          "lastSuccessAt": "2026-11-14T13:10:53.975Z"
+          "count": 3642,
+          "lastSuccessAt": "2026-11-14T18:28:07.218Z"
         },
-        "signalCount": 3643,
-        "customerVisibleDropCount": 1511,
-        "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "signalCount": 3641,
+        "customerVisibleDropCount": 1510,
+        "alertCandidateCount": 150,
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T12:46:11.982Z",
-          "ageHours": 2.2
+          "observedAt": "2026-11-14T17:58:11.751Z",
+          "ageHours": 0.8
         },
         "evidenceFreshness": {
           "inventory": {
-            "totalCount": 1511,
-            "freshCount": 0,
-            "overdueCount": 1511,
+            "totalCount": 1510,
+            "freshCount": 1510,
+            "overdueCount": 0,
             "unknownCount": 0,
-            "maxAgeHours": 2.1508563888888887,
+            "maxAgeHours": 0.7935411111111111,
             "deadlineHours": 2
           },
           "informationalCount": 0,
           "sources": [
             {
-              "sourceId": "il:grocery-xapi",
-              "totalCount": 1112,
-              "freshCount": 0,
-              "overdueCount": 1112,
+              "sourceId": "precision:il",
+              "totalCount": 398,
+              "freshCount": 398,
+              "overdueCount": 0,
               "unknownCount": 0,
-              "status": "overdue"
+              "status": "fresh"
             },
             {
-              "sourceId": "precision:il",
-              "totalCount": 399,
-              "freshCount": 0,
-              "overdueCount": 399,
+              "sourceId": "il:grocery-xapi",
+              "totalCount": 1112,
+              "freshCount": 1112,
+              "overdueCount": 0,
               "unknownCount": 0,
-              "status": "overdue"
+              "status": "fresh"
             }
           ]
         },
@@ -503,10 +512,8 @@
           "status": "none",
           "reason": null
         },
-        "anomalyCodes": [
-          "inventory_confirmation_overdue"
-        ],
-        "recoveryAction": "retry_state_collection"
+        "anomalyCodes": [],
+        "recoveryAction": "none"
       },
       {
         "state": "IN",
@@ -514,33 +521,33 @@
         "collection": {
           "status": "useful",
           "count": 2,
-          "lastSuccessAt": "2026-11-14T13:01:02.081Z"
+          "lastSuccessAt": "2026-11-14T18:16:29.546Z"
         },
         "signalCount": 2017,
-        "customerVisibleDropCount": 48,
-        "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "customerVisibleDropCount": 39,
+        "alertCandidateCount": 14,
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T12:59:12.606Z",
-          "ageHours": 1.9
+          "observedAt": "2026-11-14T18:15:00.331Z",
+          "ageHours": 0.5
         },
         "evidenceFreshness": {
           "inventory": {
-            "totalCount": 48,
-            "freshCount": 18,
-            "overdueCount": 30,
+            "totalCount": 39,
+            "freshCount": 15,
+            "overdueCount": 24,
             "unknownCount": 0,
-            "maxAgeHours": 11.928228055555556,
+            "maxAgeHours": 11.291000833333333,
             "deadlineHours": 2
           },
           "informationalCount": 0,
           "sources": [
             {
               "sourceId": "precision:in",
-              "totalCount": 48,
-              "freshCount": 18,
-              "overdueCount": 30,
+              "totalCount": 39,
+              "freshCount": 15,
+              "overdueCount": 24,
               "unknownCount": 0,
               "status": "overdue"
             }
@@ -556,12 +563,57 @@
         "recoveryAction": "retry_state_collection"
       },
       {
+        "state": "KS",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 1,
+          "lastSuccessAt": "2026-11-14T18:41:33.300Z"
+        },
+        "signalCount": 4,
+        "customerVisibleDropCount": 4,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T18:45:48.498Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T18:41:25.795Z",
+          "ageHours": 0.1
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 4,
+            "freshCount": 4,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": 0.07297305555555555,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "ks:central-cityhive",
+              "totalCount": 4,
+              "freshCount": 4,
+              "overdueCount": 0,
+              "unknownCount": 0,
+              "status": "fresh"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [],
+        "recoveryAction": "none"
+      },
+      {
         "state": "KY",
         "health": "healthy",
         "collection": {
           "status": "useful",
           "count": 6,
-          "lastSuccessAt": "2026-11-14T13:06:13.394Z"
+          "lastSuccessAt": "2026-11-14T18:19:03.873Z"
         },
         "signalCount": 13,
         "customerVisibleDropCount": 1,
@@ -570,7 +622,7 @@
         "freshness": {
           "status": "aging",
           "observedAt": "2026-11-13T08:56:16.741Z",
-          "ageHours": 30
+          "ageHours": 33.8
         },
         "evidenceFreshness": {
           "inventory": {
@@ -593,45 +645,45 @@
       },
       {
         "state": "LA",
-        "health": "stale_useful",
+        "health": "degraded",
         "collection": {
-          "status": "stale_useful_quality_fallback",
+          "status": "useful",
           "count": 1,
-          "lastSuccessAt": "2026-11-14T13:05:52.153Z"
+          "lastSuccessAt": "2026-11-14T18:20:05.476Z"
         },
-        "signalCount": 59,
-        "customerVisibleDropCount": 59,
+        "signalCount": 58,
+        "customerVisibleDropCount": 60,
         "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
-          "status": "stale",
-          "observedAt": "2026-11-14T13:05:08.801Z",
-          "ageHours": 1.8
+          "status": "fresh",
+          "observedAt": "2026-11-14T18:19:11.738Z",
+          "ageHours": 0.4
         },
         "evidenceFreshness": {
           "inventory": {
-            "totalCount": 59,
-            "freshCount": 0,
-            "overdueCount": 59,
+            "totalCount": 60,
+            "freshCount": 57,
+            "overdueCount": 3,
             "unknownCount": 0,
-            "maxAgeHours": 3.374575,
+            "maxAgeHours": 7.217195555555556,
             "deadlineHours": 2
           },
           "informationalCount": 0,
           "sources": [
             {
               "sourceId": "la:grocery-xapi",
-              "totalCount": 59,
-              "freshCount": 0,
-              "overdueCount": 59,
+              "totalCount": 60,
+              "freshCount": 57,
+              "overdueCount": 3,
               "unknownCount": 0,
               "status": "overdue"
             }
           ]
         },
         "fallback": {
-          "status": "last_published",
-          "reason": "Quality guard preserved the last good report because signal count collapsed from 59 to 0."
+          "status": "none",
+          "reason": null
         },
         "anomalyCodes": [
           "inventory_confirmation_overdue"
@@ -644,12 +696,12 @@
         "collection": {
           "status": "useful",
           "count": 3,
-          "lastSuccessAt": "2026-11-14T13:05:38.334Z"
+          "lastSuccessAt": "2026-11-14T18:18:30.982Z"
         },
-        "signalCount": 344,
+        "signalCount": 346,
         "customerVisibleDropCount": 0,
         "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "unknown",
           "observedAt": null,
@@ -676,9 +728,9 @@
       },
       {
         "state": "MN",
-        "health": "healthy",
+        "health": "stale_useful",
         "collection": {
-          "status": "useful",
+          "status": "stale_useful_quality_fallback",
           "count": 1,
           "lastSuccessAt": "2026-11-14T14:39:51.833Z"
         },
@@ -687,17 +739,17 @@
         "alertCandidateCount": 0,
         "lastPublicationAt": "2026-11-14T14:42:42.123Z",
         "freshness": {
-          "status": "fresh",
+          "status": "stale",
           "observedAt": "2026-11-14T14:39:34.308Z",
-          "ageHours": 0.3
+          "ageHours": 4.1
         },
         "evidenceFreshness": {
           "inventory": {
             "totalCount": 2,
-            "freshCount": 2,
-            "overdueCount": 0,
+            "freshCount": 0,
+            "overdueCount": 2,
             "unknownCount": 0,
-            "maxAgeHours": 0.2613211111111111,
+            "maxAgeHours": 4.103941666666667,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -705,19 +757,21 @@
             {
               "sourceId": "mn:central-cityhive",
               "totalCount": 2,
-              "freshCount": 2,
-              "overdueCount": 0,
+              "freshCount": 0,
+              "overdueCount": 2,
               "unknownCount": 0,
-              "status": "fresh"
+              "status": "overdue"
             }
           ]
         },
         "fallback": {
-          "status": "none",
-          "reason": null
+          "status": "last_published",
+          "reason": "Quality guard preserved the last good report because signal count collapsed from 2 to 0."
         },
-        "anomalyCodes": [],
-        "recoveryAction": "none"
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
       },
       {
         "state": "MS",
@@ -725,16 +779,16 @@
         "collection": {
           "status": "useful",
           "count": 29,
-          "lastSuccessAt": "2026-11-14T13:05:41.841Z"
+          "lastSuccessAt": "2026-11-14T18:18:57.966Z"
         },
         "signalCount": 32,
         "customerVisibleDropCount": 8,
         "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T13:05:16.815Z",
-          "ageHours": 1.8
+          "observedAt": "2026-11-14T18:18:34.865Z",
+          "ageHours": 0.5
         },
         "evidenceFreshness": {
           "inventory": {
@@ -742,7 +796,7 @@
             "freshCount": 0,
             "overdueCount": 8,
             "unknownCount": 0,
-            "maxAgeHours": 1697.7085191666667,
+            "maxAgeHours": 1701.5511397222222,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -787,17 +841,17 @@
         "health": "stale_useful",
         "collection": {
           "status": "partial_useful_quality_fallback",
-          "count": 5,
-          "lastSuccessAt": "2026-11-14T13:05:09.537Z"
+          "count": 6,
+          "lastSuccessAt": "2026-11-14T18:14:59.424Z"
         },
-        "signalCount": 8621,
-        "customerVisibleDropCount": 1664,
+        "signalCount": 8729,
+        "customerVisibleDropCount": 2369,
         "alertCandidateCount": 0,
         "lastPublicationAt": "2026-10-24T19:48:12.305Z",
         "freshness": {
           "status": "stale",
-          "observedAt": "2026-11-14T10:41:02.945Z",
-          "ageHours": 4.2
+          "observedAt": "2026-11-14T18:14:54.682Z",
+          "ageHours": 0.5
         },
         "evidenceFreshness": {
           "inventory": {
@@ -805,10 +859,10 @@
             "freshCount": 0,
             "overdueCount": 60,
             "unknownCount": 0,
-            "maxAgeHours": 4.236699722222222,
+            "maxAgeHours": 0.5149488888888889,
             "deadlineHours": 2
           },
-          "informationalCount": 1604,
+          "informationalCount": 2309,
           "sources": [
             {
               "sourceId": "precision:nc",
@@ -835,16 +889,16 @@
         "collection": {
           "status": "useful",
           "count": 1,
-          "lastSuccessAt": "2026-11-14T13:04:54.022Z"
+          "lastSuccessAt": "2026-11-14T18:19:08.474Z"
         },
         "signalCount": 22,
         "customerVisibleDropCount": 23,
         "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T13:04:10.860Z",
-          "ageHours": 1.9
+          "observedAt": "2026-11-14T18:18:10.593Z",
+          "ageHours": 0.5
         },
         "evidenceFreshness": {
           "inventory": {
@@ -852,7 +906,7 @@
             "freshCount": 22,
             "overdueCount": 1,
             "unknownCount": 0,
-            "maxAgeHours": 8.6386,
+            "maxAgeHours": 12.481220555555556,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -878,39 +932,39 @@
       },
       {
         "state": "NV",
-        "health": "degraded",
+        "health": "healthy",
         "collection": {
           "status": "useful",
           "count": 2,
-          "lastSuccessAt": "2026-11-14T13:30:31.642Z"
+          "lastSuccessAt": "2026-11-14T18:14:41.118Z"
         },
-        "signalCount": 273,
-        "customerVisibleDropCount": 121,
+        "signalCount": 270,
+        "customerVisibleDropCount": 118,
         "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:34:45.441Z",
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T13:27:13.531Z",
-          "ageHours": 1.5
+          "observedAt": "2026-11-14T17:09:22.011Z",
+          "ageHours": 1.6
         },
         "evidenceFreshness": {
           "inventory": {
-            "totalCount": 121,
-            "freshCount": 116,
-            "overdueCount": 5,
+            "totalCount": 118,
+            "freshCount": 118,
+            "overdueCount": 0,
             "unknownCount": 0,
-            "maxAgeHours": 4.079094166666667,
+            "maxAgeHours": 1.6073575,
             "deadlineHours": 2
           },
           "informationalCount": 0,
           "sources": [
             {
               "sourceId": "precision:nv",
-              "totalCount": 121,
-              "freshCount": 116,
-              "overdueCount": 5,
+              "totalCount": 118,
+              "freshCount": 118,
+              "overdueCount": 0,
               "unknownCount": 0,
-              "status": "overdue"
+              "status": "fresh"
             }
           ]
         },
@@ -918,35 +972,33 @@
           "status": "none",
           "reason": null
         },
-        "anomalyCodes": [
-          "inventory_confirmation_overdue"
-        ],
-        "recoveryAction": "retry_state_collection"
+        "anomalyCodes": [],
+        "recoveryAction": "none"
       },
       {
         "state": "NY",
-        "health": "degraded",
+        "health": "stale_useful",
         "collection": {
-          "status": "useful",
+          "status": "partial_useful_quality_fallback",
           "count": 1,
-          "lastSuccessAt": "2026-11-14T13:06:18.560Z"
+          "lastSuccessAt": "2026-11-14T18:18:32.389Z"
         },
         "signalCount": 109,
         "customerVisibleDropCount": 52,
-        "alertCandidateCount": 0,
+        "alertCandidateCount": 4,
         "lastPublicationAt": "2026-11-14T13:18:51.506Z",
         "freshness": {
-          "status": "fresh",
-          "observedAt": "2026-11-14T13:06:03.766Z",
-          "ageHours": 1.8
+          "status": "stale",
+          "observedAt": "2026-11-14T18:18:31.476Z",
+          "ageHours": 0.5
         },
         "evidenceFreshness": {
           "inventory": {
             "totalCount": 52,
-            "freshCount": 47,
-            "overdueCount": 5,
+            "freshCount": 0,
+            "overdueCount": 52,
             "unknownCount": 0,
-            "maxAgeHours": 5.233829166666666,
+            "maxAgeHours": 9.076449722222222,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -954,16 +1006,16 @@
             {
               "sourceId": "precision:ny",
               "totalCount": 52,
-              "freshCount": 47,
-              "overdueCount": 5,
+              "freshCount": 0,
+              "overdueCount": 52,
               "unknownCount": 0,
               "status": "overdue"
             }
           ]
         },
         "fallback": {
-          "status": "none",
-          "reason": null
+          "status": "partial",
+          "reason": "Current evidence is combined with safe last-published context."
         },
         "anomalyCodes": [
           "inventory_confirmation_overdue"
@@ -985,7 +1037,7 @@
         "freshness": {
           "status": "stale",
           "observedAt": "2026-08-15T19:00:55.602Z",
-          "ageHours": 2179.9
+          "ageHours": 2183.7
         },
         "evidenceFreshness": {
           "inventory": {
@@ -993,7 +1045,7 @@
             "freshCount": 0,
             "overdueCount": 1204,
             "unknownCount": 0,
-            "maxAgeHours": 2179.905406111111,
+            "maxAgeHours": 2183.7480266666666,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -1019,9 +1071,9 @@
       },
       {
         "state": "OK",
-        "health": "healthy",
+        "health": "stale_useful",
         "collection": {
-          "status": "useful",
+          "status": "stale_useful_quality_fallback",
           "count": 1,
           "lastSuccessAt": "2026-11-14T13:05:52.099Z"
         },
@@ -1030,17 +1082,17 @@
         "alertCandidateCount": 0,
         "lastPublicationAt": "2026-11-14T13:18:51.506Z",
         "freshness": {
-          "status": "fresh",
+          "status": "stale",
           "observedAt": "2026-11-14T13:05:38.628Z",
-          "ageHours": 1.8
+          "ageHours": 5.7
         },
         "evidenceFreshness": {
           "inventory": {
             "totalCount": 8,
-            "freshCount": 8,
-            "overdueCount": 0,
+            "freshCount": 0,
+            "overdueCount": 8,
             "unknownCount": 0,
-            "maxAgeHours": 1.8267877777777777,
+            "maxAgeHours": 5.669408333333333,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -1048,7 +1100,54 @@
             {
               "sourceId": "ok:central-cityhive",
               "totalCount": 8,
-              "freshCount": 8,
+              "freshCount": 0,
+              "overdueCount": 8,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "last_published",
+          "reason": "Quality guard preserved the last good report because signal count collapsed from 9 to 0."
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "PA",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 1,
+          "lastSuccessAt": "2026-11-14T18:19:08.800Z"
+        },
+        "signalCount": 23051,
+        "customerVisibleDropCount": 3141,
+        "alertCandidateCount": 161,
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T17:47:50.081Z",
+          "ageHours": 1
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 3141,
+            "freshCount": 3141,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": 0.9662269444444445,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:pa",
+              "totalCount": 3141,
+              "freshCount": 3141,
               "overdueCount": 0,
               "unknownCount": 0,
               "status": "fresh"
@@ -1063,57 +1162,10 @@
         "recoveryAction": "none"
       },
       {
-        "state": "PA",
-        "health": "degraded",
-        "collection": {
-          "status": "useful",
-          "count": 1,
-          "lastSuccessAt": "2026-11-14T13:06:12.540Z"
-        },
-        "signalCount": 23086,
-        "customerVisibleDropCount": 1664,
-        "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
-        "freshness": {
-          "status": "fresh",
-          "observedAt": "2026-11-14T12:37:12.453Z",
-          "ageHours": 2.3
-        },
-        "evidenceFreshness": {
-          "inventory": {
-            "totalCount": 1664,
-            "freshCount": 0,
-            "overdueCount": 1664,
-            "unknownCount": 0,
-            "maxAgeHours": 2.3007252777777776,
-            "deadlineHours": 2
-          },
-          "informationalCount": 0,
-          "sources": [
-            {
-              "sourceId": "precision:pa",
-              "totalCount": 1664,
-              "freshCount": 0,
-              "overdueCount": 1664,
-              "unknownCount": 0,
-              "status": "overdue"
-            }
-          ]
-        },
-        "fallback": {
-          "status": "none",
-          "reason": null
-        },
-        "anomalyCodes": [
-          "inventory_confirmation_overdue"
-        ],
-        "recoveryAction": "retry_state_collection"
-      },
-      {
         "state": "RI",
-        "health": "degraded",
+        "health": "stale_useful",
         "collection": {
-          "status": "useful",
+          "status": "stale_useful_quality_fallback",
           "count": 1,
           "lastSuccessAt": "2026-11-14T14:50:32.864Z"
         },
@@ -1122,17 +1174,17 @@
         "alertCandidateCount": 0,
         "lastPublicationAt": "2026-11-14T14:55:15.064Z",
         "freshness": {
-          "status": "fresh",
+          "status": "stale",
           "observedAt": "2026-11-14T14:50:24.562Z",
-          "ageHours": 0.1
+          "ageHours": 3.9
         },
         "evidenceFreshness": {
           "inventory": {
             "totalCount": 8,
-            "freshCount": 6,
-            "overdueCount": 2,
+            "freshCount": 0,
+            "overdueCount": 8,
             "unknownCount": 0,
-            "maxAgeHours": 1.8223155555555555,
+            "maxAgeHours": 5.664936111111111,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -1140,16 +1192,16 @@
             {
               "sourceId": "ri:central-cityhive",
               "totalCount": 8,
-              "freshCount": 6,
-              "overdueCount": 2,
+              "freshCount": 0,
+              "overdueCount": 8,
               "unknownCount": 0,
               "status": "overdue"
             }
           ]
         },
         "fallback": {
-          "status": "none",
-          "reason": null
+          "status": "last_published",
+          "reason": "Quality guard preserved the last good report because signal count collapsed from 6 to 0."
         },
         "anomalyCodes": [
           "inventory_confirmation_overdue"
@@ -1171,7 +1223,7 @@
         "freshness": {
           "status": "stale",
           "observedAt": "2026-10-29T17:08:47.070Z",
-          "ageHours": 381.8
+          "ageHours": 385.6
         },
         "evidenceFreshness": {
           "inventory": {
@@ -1179,7 +1231,7 @@
             "freshCount": 0,
             "overdueCount": 32,
             "unknownCount": 0,
-            "maxAgeHours": 382.8325697222222,
+            "maxAgeHours": 386.6751902777778,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -1233,33 +1285,33 @@
         "collection": {
           "status": "useful",
           "count": 3,
-          "lastSuccessAt": "2026-11-14T13:05:08.459Z"
+          "lastSuccessAt": "2026-11-14T18:18:30.152Z"
         },
-        "signalCount": 272,
-        "customerVisibleDropCount": 49,
-        "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "signalCount": 258,
+        "customerVisibleDropCount": 44,
+        "alertCandidateCount": 9,
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T13:04:12.393Z",
-          "ageHours": 1.9
+          "observedAt": "2026-11-14T18:17:40.222Z",
+          "ageHours": 0.5
         },
         "evidenceFreshness": {
           "inventory": {
-            "totalCount": 49,
+            "totalCount": 44,
             "freshCount": 15,
-            "overdueCount": 34,
+            "overdueCount": 29,
             "unknownCount": 0,
-            "maxAgeHours": 8.894180833333333,
+            "maxAgeHours": 10.3558725,
             "deadlineHours": 2
           },
           "informationalCount": 0,
           "sources": [
             {
               "sourceId": "precision:tn",
-              "totalCount": 49,
+              "totalCount": 44,
               "freshCount": 15,
-              "overdueCount": 34,
+              "overdueCount": 29,
               "unknownCount": 0,
               "status": "overdue"
             }
@@ -1280,16 +1332,16 @@
         "collection": {
           "status": "useful",
           "count": 5,
-          "lastSuccessAt": "2026-11-14T13:06:16.104Z"
+          "lastSuccessAt": "2026-11-14T18:19:10.732Z"
         },
         "signalCount": 490,
         "customerVisibleDropCount": 2,
-        "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "alertCandidateCount": 2,
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T13:06:15.659Z",
-          "ageHours": 1.8
+          "observedAt": "2026-11-14T18:19:09.617Z",
+          "ageHours": 0.4
         },
         "evidenceFreshness": {
           "inventory": {
@@ -1297,7 +1349,7 @@
             "freshCount": 2,
             "overdueCount": 0,
             "unknownCount": 0,
-            "maxAgeHours": 1.8165013888888888,
+            "maxAgeHours": 0.4441336111111111,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -1325,12 +1377,12 @@
         "collection": {
           "status": "useful",
           "count": 6,
-          "lastSuccessAt": "2026-11-14T13:06:03.480Z"
+          "lastSuccessAt": "2026-11-14T18:18:55.113Z"
         },
-        "signalCount": 45,
+        "signalCount": 48,
         "customerVisibleDropCount": 0,
         "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "unknown",
           "observedAt": null,
@@ -1361,7 +1413,7 @@
         "collection": {
           "status": "useful",
           "count": 4,
-          "lastSuccessAt": "2026-11-14T12:59:10.558Z"
+          "lastSuccessAt": "2026-11-14T18:11:15.450Z"
         },
         "signalCount": 17863,
         "customerVisibleDropCount": 1030,
@@ -1370,7 +1422,7 @@
         "freshness": {
           "status": "stale",
           "observedAt": "2026-11-04T14:54:51.527Z",
-          "ageHours": 240
+          "ageHours": 243.8
         },
         "evidenceFreshness": {
           "inventory": {
@@ -1378,7 +1430,7 @@
             "freshCount": 0,
             "overdueCount": 1030,
             "unknownCount": 0,
-            "maxAgeHours": 240.14776444444445,
+            "maxAgeHours": 243.990385,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -1408,24 +1460,24 @@
         "collection": {
           "status": "useful",
           "count": 1,
-          "lastSuccessAt": "2026-11-14T13:01:06.517Z"
+          "lastSuccessAt": "2026-11-14T18:17:47.275Z"
         },
-        "signalCount": 135,
+        "signalCount": 137,
         "customerVisibleDropCount": 233,
         "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T12:58:53.038Z",
-          "ageHours": 1.9
+          "observedAt": "2026-11-14T18:14:41.384Z",
+          "ageHours": 0.5
         },
         "evidenceFreshness": {
           "inventory": {
             "totalCount": 233,
-            "freshCount": 135,
-            "overdueCount": 98,
+            "freshCount": 137,
+            "overdueCount": 96,
             "unknownCount": 0,
-            "maxAgeHours": 367.90645694444447,
+            "maxAgeHours": 371.7490775,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -1433,8 +1485,8 @@
             {
               "sourceId": "wa:grocery-xapi",
               "totalCount": 233,
-              "freshCount": 135,
-              "overdueCount": 98,
+              "freshCount": 137,
+              "overdueCount": 96,
               "unknownCount": 0,
               "status": "overdue"
             }
@@ -1451,9 +1503,9 @@
       },
       {
         "state": "WI",
-        "health": "degraded",
+        "health": "stale_useful",
         "collection": {
-          "status": "useful",
+          "status": "stale_useful_quality_fallback",
           "count": 1,
           "lastSuccessAt": "2026-11-14T13:06:06.289Z"
         },
@@ -1462,17 +1514,17 @@
         "alertCandidateCount": 0,
         "lastPublicationAt": "2026-11-14T13:18:51.506Z",
         "freshness": {
-          "status": "fresh",
+          "status": "stale",
           "observedAt": "2026-11-14T13:05:59.599Z",
-          "ageHours": 1.8
+          "ageHours": 5.7
         },
         "evidenceFreshness": {
           "inventory": {
             "totalCount": 8,
-            "freshCount": 2,
-            "overdueCount": 6,
+            "freshCount": 0,
+            "overdueCount": 8,
             "unknownCount": 0,
-            "maxAgeHours": 239.8067536111111,
+            "maxAgeHours": 243.64937416666666,
             "deadlineHours": 2
           },
           "informationalCount": 0,
@@ -1480,16 +1532,16 @@
             {
               "sourceId": "wi:central-cityhive",
               "totalCount": 8,
-              "freshCount": 2,
-              "overdueCount": 6,
+              "freshCount": 0,
+              "overdueCount": 8,
               "unknownCount": 0,
               "status": "overdue"
             }
           ]
         },
         "fallback": {
-          "status": "none",
-          "reason": null
+          "status": "last_published",
+          "reason": "Quality guard preserved the last good report because signal count collapsed from 2 to 0."
         },
         "anomalyCodes": [
           "inventory_confirmation_overdue"
@@ -1502,16 +1554,16 @@
         "collection": {
           "status": "useful",
           "count": 3,
-          "lastSuccessAt": "2026-11-14T13:06:09.840Z"
+          "lastSuccessAt": "2026-11-14T18:19:06.507Z"
         },
         "signalCount": 342,
         "customerVisibleDropCount": 165,
         "alertCandidateCount": 0,
-        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "lastPublicationAt": "2026-11-14T18:34:32.226Z",
         "freshness": {
           "status": "fresh",
-          "observedAt": "2026-11-14T13:06:03.181Z",
-          "ageHours": 1.8
+          "observedAt": "2026-11-14T18:19:00.895Z",
+          "ageHours": 0.4
         },
         "evidenceFreshness": {
           "inventory": {
@@ -1534,28 +1586,6 @@
       }
     ],
     "degradedStates": [
-      {
-        "state": "AZ",
-        "status": "degraded",
-        "stale": false,
-        "staleReason": "inventory_confirmation_overdue",
-        "reasons": [
-          "inventory_confirmation_overdue"
-        ],
-        "previousFinishedAt": "2026-11-14T13:04:10.402Z",
-        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
-      },
-      {
-        "state": "CA",
-        "status": "degraded",
-        "stale": false,
-        "staleReason": "inventory_confirmation_overdue",
-        "reasons": [
-          "inventory_confirmation_overdue"
-        ],
-        "previousFinishedAt": "2026-11-14T12:58:51.986Z",
-        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
-      },
       {
         "state": "CO",
         "status": "stale_useful",
@@ -1586,19 +1616,8 @@
         "reasons": [
           "inventory_confirmation_overdue"
         ],
-        "previousFinishedAt": "2026-11-14T13:03:07.038Z",
+        "previousFinishedAt": "2026-11-14T18:21:16.191Z",
         "staleFallbackAt": "2026-11-14T10:12:24.144Z"
-      },
-      {
-        "state": "IL",
-        "status": "degraded",
-        "stale": false,
-        "staleReason": "inventory_confirmation_overdue",
-        "reasons": [
-          "inventory_confirmation_overdue"
-        ],
-        "previousFinishedAt": "2026-11-14T13:10:53.975Z",
-        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
       },
       {
         "state": "IN",
@@ -1608,19 +1627,30 @@
         "reasons": [
           "inventory_confirmation_overdue"
         ],
-        "previousFinishedAt": "2026-11-14T13:01:02.081Z",
-        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+        "previousFinishedAt": "2026-11-14T18:16:29.546Z",
+        "staleFallbackAt": "2026-11-14T18:34:32.226Z"
       },
       {
         "state": "LA",
-        "status": "stale_useful",
-        "stale": true,
-        "staleReason": "Quality guard preserved the last good report because signal count collapsed from 59 to 0.",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
         "reasons": [
           "inventory_confirmation_overdue"
         ],
-        "previousFinishedAt": "2026-11-14T13:05:52.153Z",
-        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+        "previousFinishedAt": "2026-11-14T18:20:05.476Z",
+        "staleFallbackAt": "2026-11-14T18:34:32.226Z"
+      },
+      {
+        "state": "MN",
+        "status": "stale_useful",
+        "stale": true,
+        "staleReason": "Quality guard preserved the last good report because signal count collapsed from 2 to 0.",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T14:39:51.833Z",
+        "staleFallbackAt": "2026-11-14T14:42:42.123Z"
       },
       {
         "state": "MS",
@@ -1630,8 +1660,8 @@
         "reasons": [
           "inventory_confirmation_overdue"
         ],
-        "previousFinishedAt": "2026-11-14T13:05:41.841Z",
-        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+        "previousFinishedAt": "2026-11-14T18:18:57.966Z",
+        "staleFallbackAt": "2026-11-14T18:34:32.226Z"
       },
       {
         "state": "NC",
@@ -1641,7 +1671,7 @@
         "reasons": [
           "inventory_confirmation_overdue"
         ],
-        "previousFinishedAt": "2026-11-14T13:05:09.537Z",
+        "previousFinishedAt": "2026-11-14T18:14:59.424Z",
         "staleFallbackAt": "2026-10-24T19:48:12.305Z"
       },
       {
@@ -1652,29 +1682,18 @@
         "reasons": [
           "inventory_confirmation_overdue"
         ],
-        "previousFinishedAt": "2026-11-14T13:04:54.022Z",
-        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
-      },
-      {
-        "state": "NV",
-        "status": "degraded",
-        "stale": false,
-        "staleReason": "inventory_confirmation_overdue",
-        "reasons": [
-          "inventory_confirmation_overdue"
-        ],
-        "previousFinishedAt": "2026-11-14T13:30:31.642Z",
-        "staleFallbackAt": "2026-11-14T13:34:45.441Z"
+        "previousFinishedAt": "2026-11-14T18:19:08.474Z",
+        "staleFallbackAt": "2026-11-14T18:34:32.226Z"
       },
       {
         "state": "NY",
-        "status": "degraded",
-        "stale": false,
-        "staleReason": "inventory_confirmation_overdue",
+        "status": "stale_useful",
+        "stale": true,
+        "staleReason": "Current evidence is combined with safe last-published context.",
         "reasons": [
           "inventory_confirmation_overdue"
         ],
-        "previousFinishedAt": "2026-11-14T13:06:18.560Z",
+        "previousFinishedAt": "2026-11-14T18:18:32.389Z",
         "staleFallbackAt": "2026-11-14T13:18:51.506Z"
       },
       {
@@ -1689,21 +1708,21 @@
         "staleFallbackAt": "2026-08-16T05:47:22.172Z"
       },
       {
-        "state": "PA",
-        "status": "degraded",
-        "stale": false,
-        "staleReason": "inventory_confirmation_overdue",
+        "state": "OK",
+        "status": "stale_useful",
+        "stale": true,
+        "staleReason": "Quality guard preserved the last good report because signal count collapsed from 9 to 0.",
         "reasons": [
           "inventory_confirmation_overdue"
         ],
-        "previousFinishedAt": "2026-11-14T13:06:12.540Z",
+        "previousFinishedAt": "2026-11-14T13:05:52.099Z",
         "staleFallbackAt": "2026-11-14T13:18:51.506Z"
       },
       {
         "state": "RI",
-        "status": "degraded",
-        "stale": false,
-        "staleReason": "inventory_confirmation_overdue",
+        "status": "stale_useful",
+        "stale": true,
+        "staleReason": "Quality guard preserved the last good report because signal count collapsed from 6 to 0.",
         "reasons": [
           "inventory_confirmation_overdue"
         ],
@@ -1729,8 +1748,8 @@
         "reasons": [
           "inventory_confirmation_overdue"
         ],
-        "previousFinishedAt": "2026-11-14T13:05:08.459Z",
-        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+        "previousFinishedAt": "2026-11-14T18:18:30.152Z",
+        "staleFallbackAt": "2026-11-14T18:34:32.226Z"
       },
       {
         "state": "VA",
@@ -1740,7 +1759,7 @@
         "reasons": [
           "inventory_confirmation_overdue"
         ],
-        "previousFinishedAt": "2026-11-14T12:59:10.558Z",
+        "previousFinishedAt": "2026-11-14T18:11:15.450Z",
         "staleFallbackAt": "2026-11-04T15:31:17.985Z"
       },
       {
@@ -1751,14 +1770,14 @@
         "reasons": [
           "inventory_confirmation_overdue"
         ],
-        "previousFinishedAt": "2026-11-14T13:01:06.517Z",
-        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+        "previousFinishedAt": "2026-11-14T18:17:47.275Z",
+        "staleFallbackAt": "2026-11-14T18:34:32.226Z"
       },
       {
         "state": "WI",
-        "status": "degraded",
-        "stale": false,
-        "staleReason": "inventory_confirmation_overdue",
+        "status": "stale_useful",
+        "stale": true,
+        "staleReason": "Quality guard preserved the last good report because signal count collapsed from 2 to 0.",
         "reasons": [
           "inventory_confirmation_overdue"
         ],
@@ -1767,7 +1786,7 @@
       }
     ]
   },
-  "statesAtTargetPrecision": 32,
+  "statesAtTargetPrecision": 33,
   "rareStatesVerified": 30,
   "stateCoverage": {
     "counts": {
@@ -1777,7 +1796,7 @@
       "shipment_drop_intelligence": 2,
       "aggregate_inventory_watch": 2,
       "distillery_release_watch": 1,
-      "sparse_live_store_inventory": 9
+      "sparse_live_store_inventory": 10
     },
     "states": [
       {
@@ -1797,10 +1816,10 @@
     ]
   },
   "stateQuality": {
-    "stateCount": 32,
-    "releaseEligibleStates": 7,
-    "releaseBlockedStates": 25,
-    "averageScore": 73,
+    "stateCount": 33,
+    "releaseEligibleStates": 12,
+    "releaseBlockedStates": 21,
+    "averageScore": 72,
     "weakestStates": [
       "MS",
       "KY",
@@ -1810,7 +1829,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-11-14T14:55:15.150Z",
+    "generatedAt": "2026-11-14T18:45:48.517Z",
     "focusStates": [
       "NC",
       "VA",
@@ -1834,7 +1853,7 @@
         "label": "North Carolina",
         "status": "partial_useful_quality_fallback",
         "coverageTier": "live_store_inventory",
-        "signalCount": 8621,
+        "signalCount": 8729,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits.",
         "customerAreaLabel": "North Carolina ABC boards",
@@ -1864,7 +1883,7 @@
         "label": "Tennessee",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 272,
+        "signalCount": 258,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits.",
         "customerAreaLabel": "Nashville Metro",
@@ -1894,7 +1913,7 @@
         "label": "Florida",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 3429,
+        "signalCount": 3428,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits.",
         "customerAreaLabel": "Florida retailer areas",
@@ -2076,8 +2095,8 @@
           "quantity": 3410,
           "confidence": 0.9,
           "canAlertAsInventory": false,
-          "canAlertAsWatch": false,
-          "summary": "NC ABC warehouse stock page shows 3410 unit(s) available statewide for Buffalo Trace KY Straight Bourbon. This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
+          "canAlertAsWatch": true,
+          "summary": "NC ABC warehouse stock page shows 3410 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product mo"
         },
         {
           "id": "5d4e59fef4a7a9c8",
@@ -2092,7 +2111,7 @@
           "quantity": 2544,
           "confidence": 0.9,
           "canAlertAsInventory": false,
-          "canAlertAsWatch": false,
+          "canAlertAsWatch": true,
           "summary": "NC ABC Stock Shipped Data reports 2544 unit(s) of Buffalo Trace KY Straight Bourbon 1.00L shipped to Mecklenburg County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlle"
         },
         {
@@ -2108,8 +2127,8 @@
           "quantity": 2431,
           "confidence": 0.9,
           "canAlertAsInventory": false,
-          "canAlertAsWatch": false,
-          "summary": "NC ABC warehouse stock page shows 2431 unit(s) available statewide for Buffalo Trace KY Straight Bourbon. This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
+          "canAlertAsWatch": true,
+          "summary": "NC ABC warehouse stock page shows 2431 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product mo"
         },
         {
           "id": "1cc6776715ab90c1",
@@ -2124,8 +2143,8 @@
           "quantity": 2034,
           "confidence": 0.9,
           "canAlertAsInventory": false,
-          "canAlertAsWatch": false,
-          "summary": "NC ABC warehouse stock page shows 2034 unit(s) available statewide for Eagle Rare 10Y. This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
+          "canAlertAsWatch": true,
+          "summary": "NC ABC warehouse stock page shows 2034 unit(s) available statewide for Eagle Rare 10Y (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
         },
         {
           "id": "3e198913c7aed618",
@@ -2140,7 +2159,7 @@
           "quantity": 1896,
           "confidence": 0.9,
           "canAlertAsInventory": false,
-          "canAlertAsWatch": false,
+          "canAlertAsWatch": true,
           "summary": "NC ABC Stock Shipped Data reports 1896 unit(s) of Buffalo Trace KY Straight Bourbon 1.00L shipped to Wake County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-produ"
         },
         {
@@ -2156,7 +2175,7 @@
           "quantity": 1698,
           "confidence": 0.9,
           "canAlertAsInventory": false,
-          "canAlertAsWatch": false,
+          "canAlertAsWatch": true,
           "summary": "NC ABC Stock Shipped Data reports 1698 unit(s) of Willett Pot Still Reserve .75L shipped to Mecklenburg County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity."
         },
         {
@@ -2172,7 +2191,7 @@
           "quantity": 1500,
           "confidence": 0.9,
           "canAlertAsInventory": false,
-          "canAlertAsWatch": false,
+          "canAlertAsWatch": true,
           "summary": "NC ABC Stock Shipped Data reports 1500 unit(s) of Willett Family Estate Rye 4Y .75L shipped to Mecklenburg County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity."
         },
         {
@@ -2185,11 +2204,11 @@
           "rawName": "Woodford Reserve Double Oaked",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 1474,
+          "quantity": 1469,
           "confidence": 0.9,
           "canAlertAsInventory": false,
-          "canAlertAsWatch": false,
-          "summary": "NC ABC warehouse stock page shows 1474 unit(s) available statewide for Woodford Reserve Double Oaked. This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "canAlertAsWatch": true,
+          "summary": "NC ABC warehouse stock page shows 1469 unit(s) available statewide for Woodford Reserve Double Oaked (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         }
       ],
       "alReleaseIntel": [
@@ -2374,22 +2393,6 @@
           "summary": "Cool Springs Wine & Spirits public catalog currently reports 103 available WILLETT FAMILY ESTATE BOURBON 750 ML at $69.99 for 1935 Mallory Lane, Franklin, TN 37067."
         },
         {
-          "id": "430a95a1cb1aeb35",
-          "state": "TN",
-          "type": "cityhive_store_inventory_result",
-          "source": "One Stop Wines & Spirits Johnson City TN CityHive store inventory",
-          "sourceUrl": "https://onestopwines.net/product/woodford-reserve-kentucky-straight-bourbon-whiskey/5521cef765613100037c0200?option-id=2dbf56b552fa6693ffe30bb2eceb6b78d932a5c6562ab4524d51ddd6b222dcbf",
-          "bottle": "Woodford Reserve Bourbon",
-          "rawName": "Woodford Reserve Kentucky Straight Bourbon Whiskey",
-          "locationPrecision": "store_level",
-          "locationName": "One Stop Wines & Spirits - Franklin Rd",
-          "quantity": 96,
-          "confidence": 0.86,
-          "canAlertAsInventory": true,
-          "canAlertAsWatch": true,
-          "summary": "One Stop Wines & Spirits - Franklin Rd currently reports 96 Woodford Reserve Kentucky Straight Bourbon Whiskey at 1735 W State of Franklin Rd #11, Johnson City, TN 37604, USA for $36.99."
-        },
-        {
           "id": "7878ad12adea0d00",
           "state": "TN",
           "type": "cityhive_store_inventory_result",
@@ -2422,6 +2425,22 @@
           "summary": "Pour Vous Wine, Spirits & Beer currently reports 93 Woodford Reserve Kentucky Straight Bourbon Whiskey at 263 Indian Lake Blvd, Hendersonville, TN 37075, USA for $10.99."
         },
         {
+          "id": "be7af856cf76471b",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Campbell Station Wine & Spirits CityHive store inventory",
+          "sourceUrl": "https://campbellstationwine.com/shop/product/woodford-reserve-kentucky-straight-bourbon-whiskey/5521cef765613100037c0200?option-id=2dbf56b552fa6693ffe30bb2eceb6b78d932a5c6562ab4524d51ddd6b222dcbf",
+          "bottle": "Woodford Reserve Bourbon",
+          "rawName": "Woodford Reserve Kentucky Straight Bourbon Whiskey",
+          "locationPrecision": "store_level",
+          "locationName": "Campbell Station Wine & Spirits",
+          "quantity": 87,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Campbell Station Wine & Spirits currently reports 87 Woodford Reserve Kentucky Straight Bourbon Whiskey at 707 N Campbell Station Rd, Farragut, TN 37934, USA for $34.99."
+        },
+        {
           "id": "6a50354577f1eea6",
           "state": "TN",
           "type": "cityhive_store_inventory_result",
@@ -2447,11 +2466,11 @@
           "rawName": "Buffalo Trace Bourbon",
           "locationPrecision": "store_level",
           "locationName": "Frugal MacDoogal",
-          "quantity": 84,
+          "quantity": 81,
           "confidence": 0.86,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Frugal MacDoogal currently reports 84 Buffalo Trace Bourbon at 701 Division St, Nashville, TN 37203, USA for $33.99."
+          "summary": "Frugal MacDoogal currently reports 81 Buffalo Trace Bourbon at 701 Division St, Nashville, TN 37203, USA for $33.99."
         },
         {
           "id": "cd05c798d9531329",
@@ -2470,20 +2489,20 @@
           "summary": "Germantown Wine & Liquor currently reports 80 Woodford Reserve Kentucky Straight Bourbon at 7730 Poplar Ave STE 5, Germantown, TN 38138, USA for $59.99."
         },
         {
-          "id": "0f6074486780e2a7",
+          "id": "98cb35241cbbf7fd",
           "state": "TN",
           "type": "cityhive_store_inventory_result",
-          "source": "Pour Vous Wine, Spirits & Beer CityHive store inventory",
-          "sourceUrl": "https://pourvous.us/shop/product/woodford-reserve-kentucky-straight-bourbon-whiskey/56c28bc7756275139d9f0100?option-id=e572faa99b10592679561189d8bcc813aaff608eb9c2e0cc08b41db7f5335f1a",
-          "bottle": "Woodford Reserve Bourbon",
-          "rawName": "Woodford Reserve Kentucky Straight Bourbon Whiskey",
+          "source": "Frugal MacDoogal CityHive store inventory",
+          "sourceUrl": "https://www.frugalmacdoogal.com/shop/product/1792-small-batch-bourbon/56702e3d7562755050100100?option-id=f11be9eb92edda191179365fd0fa144b30702f990c8510f21c2f1e4a828a80a2",
+          "bottle": "1792 Small Batch",
+          "rawName": "1792 Small Batch Bourbon",
           "locationPrecision": "store_level",
-          "locationName": "Pour Vous Wine, Spirits & Beer",
+          "locationName": "Frugal MacDoogal",
           "quantity": 77,
           "confidence": 0.86,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Pour Vous Wine, Spirits & Beer currently reports 77 Woodford Reserve Kentucky Straight Bourbon Whiskey at 263 Indian Lake Blvd, Hendersonville, TN 37075, USA for $20.99."
+          "summary": "Frugal MacDoogal currently reports 77 1792 Small Batch Bourbon at 701 Division St, Nashville, TN 37203, USA for $22.99."
         }
       ],
       "tnSourceDiscovery": [
@@ -2551,12 +2570,12 @@
     "boardsWithInventoryPages": 8,
     "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports.",
     "sourceHealth": {
-      "checkedAt": "2026-11-14T10:41:06.149Z",
+      "checkedAt": "2026-11-14T18:14:59.408Z",
       "statusCounts": {
         "no_public_website_registered": 131,
-        "healthy": 36,
+        "healthy": 37,
         "unreachable": 5,
-        "partial": 2
+        "partial": 1
       },
       "statewideFailures": [],
       "affectedBoards": [
@@ -2572,14 +2591,14 @@
               "url": "http://www.ashevilleabcboard.com",
               "status": 0,
               "error": "fetch failed",
-              "consecutiveFailures": 54
+              "consecutiveFailures": 59
             }
           ],
-          "consecutiveFailures": 54,
+          "consecutiveFailures": 59,
           "lastSuccessfulPageAt": null,
-          "trackedShipmentRows": 34,
-          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
-          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "trackedShipmentRows": 33,
+          "shipmentObservedAt": "2026-11-14T14:05:58.000Z",
+          "shipmentRetrievedAt": "2026-11-14T18:13:22.114Z",
           "shipmentStatus": "current",
           "parserWarnings": []
         },
@@ -2595,20 +2614,20 @@
               "url": "http://concordabcboard.com",
               "status": 403,
               "error": "HTTP 403",
-              "consecutiveFailures": 332
+              "consecutiveFailures": 337
             },
             {
               "url": "https://concordabcboard.com/preparing-for-bourbon-lottery/",
               "status": 403,
               "error": "HTTP 403",
-              "consecutiveFailures": 332
+              "consecutiveFailures": 337
             }
           ],
-          "consecutiveFailures": 332,
+          "consecutiveFailures": 337,
           "lastSuccessfulPageAt": null,
-          "trackedShipmentRows": 23,
-          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
-          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "trackedShipmentRows": 21,
+          "shipmentObservedAt": "2026-11-14T14:05:58.000Z",
+          "shipmentRetrievedAt": "2026-11-14T18:13:22.114Z",
           "shipmentStatus": "current",
           "parserWarnings": []
         },
@@ -2624,49 +2643,26 @@
               "url": "https://dunnabc.com/",
               "status": 403,
               "error": "HTTP 403",
-              "consecutiveFailures": 332
+              "consecutiveFailures": 337
             },
             {
               "url": "https://dunnabc.com/allocation-policy/",
               "status": 403,
               "error": "HTTP 403",
-              "consecutiveFailures": 332
+              "consecutiveFailures": 337
             },
             {
               "url": "https://dunnabc.com/store-locations-hours/",
               "status": 403,
               "error": "HTTP 403",
-              "consecutiveFailures": 332
+              "consecutiveFailures": 337
             }
           ],
-          "consecutiveFailures": 332,
+          "consecutiveFailures": 337,
           "lastSuccessfulPageAt": null,
           "trackedShipmentRows": 0,
-          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
-          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
-          "shipmentStatus": "current",
-          "parserWarnings": []
-        },
-        {
-          "boardName": "Mecklenburg County ABC Board",
-          "website": "http://www.meckabc.com",
-          "status": "partial",
-          "attemptedPageCount": 12,
-          "successfulPageCount": 9,
-          "failedPageCount": 3,
-          "failedKnownRoutes": [
-            {
-              "url": "https://www.meckabc.com/news_detail_T4_R74.php",
-              "status": 404,
-              "error": "HTTP 404",
-              "consecutiveFailures": 27
-            }
-          ],
-          "consecutiveFailures": 27,
-          "lastSuccessfulPageAt": "2026-11-14T10:39:13.434Z",
-          "trackedShipmentRows": 31,
-          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
-          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "shipmentObservedAt": "2026-11-14T14:05:58.000Z",
+          "shipmentRetrievedAt": "2026-11-14T18:13:22.114Z",
           "shipmentStatus": "current",
           "parserWarnings": []
         },
@@ -2682,26 +2678,26 @@
               "url": "https://www.newhanovercountyabc.com/bourbon-blast/",
               "status": "source_policy_disabled",
               "error": "This optional source is suspended after captured HTTP 403; no request was made.",
-              "consecutiveFailures": 127
+              "consecutiveFailures": 132
             },
             {
               "url": "https://www.newhanovercountyabc.com/sales/",
               "status": "source_policy_disabled",
               "error": "This optional source is suspended after captured HTTP 403; no request was made.",
-              "consecutiveFailures": 127
+              "consecutiveFailures": 132
             },
             {
               "url": "https://www.newhanovercountyabc.com/barrels/",
               "status": "source_policy_disabled",
               "error": "The primary barrel page was skipped under its captured denial policy; no HTTP request was made. The independent first-party WordPress REST search returned a valid empty array. No product cards or stock are confirmed.",
-              "consecutiveFailures": 228
+              "consecutiveFailures": 236
             }
           ],
-          "consecutiveFailures": 228,
-          "lastSuccessfulPageAt": "2026-11-14T10:39:14.517Z",
+          "consecutiveFailures": 236,
+          "lastSuccessfulPageAt": "2026-11-14T18:13:25.822Z",
           "trackedShipmentRows": 24,
-          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
-          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "shipmentObservedAt": "2026-11-14T14:05:58.000Z",
+          "shipmentRetrievedAt": "2026-11-14T18:13:22.114Z",
           "shipmentStatus": "current",
           "parserWarnings": [
             {
@@ -2724,20 +2720,20 @@
               "url": "https://rowankannapolisabc.com/wordpress/",
               "status": 503,
               "error": "HTTP 503",
-              "consecutiveFailures": 200
+              "consecutiveFailures": 205
             },
             {
               "url": "https://rowankannapolisabc.com/wordpress/?page_id=23",
               "status": 503,
               "error": "HTTP 503",
-              "consecutiveFailures": 200
+              "consecutiveFailures": 205
             }
           ],
-          "consecutiveFailures": 200,
+          "consecutiveFailures": 205,
           "lastSuccessfulPageAt": null,
           "trackedShipmentRows": 12,
-          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
-          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "shipmentObservedAt": "2026-11-14T14:05:58.000Z",
+          "shipmentRetrievedAt": "2026-11-14T18:13:22.114Z",
           "shipmentStatus": "current",
           "parserWarnings": []
         },
@@ -2753,26 +2749,26 @@
               "url": "http://www.wayneabc.com",
               "status": 403,
               "error": "HTTP 403",
-              "consecutiveFailures": 332
+              "consecutiveFailures": 337
             },
             {
               "url": "https://wayneabc.com/allocation-policy/",
               "status": 403,
               "error": "HTTP 403",
-              "consecutiveFailures": 332
+              "consecutiveFailures": 337
             }
           ],
-          "consecutiveFailures": 332,
+          "consecutiveFailures": 337,
           "lastSuccessfulPageAt": null,
           "trackedShipmentRows": 23,
-          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
-          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "shipmentObservedAt": "2026-11-14T14:05:58.000Z",
+          "shipmentRetrievedAt": "2026-11-14T18:13:22.114Z",
           "shipmentStatus": "current",
           "parserWarnings": []
         }
       ],
-      "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
-      "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z"
+      "shipmentObservedAt": "2026-11-14T14:05:58.000Z",
+      "shipmentRetrievedAt": "2026-11-14T18:13:22.114Z"
     }
   },
   "locationBibleSources": [
@@ -2785,7 +2781,7 @@
       "locatorBoards": 173,
       "failures": 0,
       "sourceUrl": "https://abc2.nc.gov/Search/ABCStoreLocator",
-      "observedAt": "2026-11-14T12:27:57.868Z"
+      "observedAt": "2026-11-14T17:38:52.299Z"
     }
   ],
   "historicalTrends": [
@@ -2797,8 +2793,8 @@
       "inventoryObservations": 0,
       "watchObservations": 168,
       "positiveQuantities": 168,
-      "firstObservedAt": "2026-11-10T07:59:22.565Z",
-      "lastObservedAt": "2026-11-14T13:05:54.681Z",
+      "firstObservedAt": "2026-11-10T12:07:38.274Z",
+      "lastObservedAt": "2026-11-14T18:19:06.537Z",
       "sampleSignalIds": [
         "9b24ddebf3e1e87f",
         "9b24ddebf3e1e87f",
@@ -2818,8 +2814,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "28e77ff34ff923a2",
         "28e77ff34ff923a2",
@@ -2839,8 +2835,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "a097d35a08f25efc",
         "a097d35a08f25efc",
@@ -2860,8 +2856,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "91aca92a5e7c53f6",
         "91aca92a5e7c53f6",
@@ -2876,34 +2872,13 @@
     {
       "state": "FL",
       "bottleName": "Woodford Reserve Bourbon",
-      "source": "ABC #042 - Vero East",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 126,
-      "watchObservations": 126,
-      "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
-      "sampleSignalIds": [
-        "7dc4955556016c86",
-        "7dc4955556016c86",
-        "7dc4955556016c86",
-        "7dc4955556016c86",
-        "7dc4955556016c86"
-      ],
-      "observationCount": 252,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "FL",
-      "bottleName": "Woodford Reserve Bourbon",
       "source": "ABC #203 - Navarre",
       "locationPrecision": "store_level",
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "bba971250b1a2c01",
         "bba971250b1a2c01",
@@ -2918,13 +2893,34 @@
     {
       "state": "FL",
       "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #042 - Vero East",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
+      "sampleSignalIds": [
+        "7dc4955556016c86",
+        "7dc4955556016c86",
+        "7dc4955556016c86",
+        "7dc4955556016c86",
+        "7dc4955556016c86"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
       "source": "ABC #092 - College Rd",
       "locationPrecision": "store_level",
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "7656cbeb2e65be44",
         "7656cbeb2e65be44",
@@ -2944,8 +2940,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "357bb2b4cac8bd12",
         "357bb2b4cac8bd12",
@@ -2965,8 +2961,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "191fe41f107b1c27",
         "191fe41f107b1c27",
@@ -2981,34 +2977,13 @@
     {
       "state": "FL",
       "bottleName": "Woodford Reserve Bourbon",
-      "source": "ABC #137 - Lake Mary",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 126,
-      "watchObservations": 126,
-      "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
-      "sampleSignalIds": [
-        "80ccf20010d213d1",
-        "80ccf20010d213d1",
-        "80ccf20010d213d1",
-        "80ccf20010d213d1",
-        "80ccf20010d213d1"
-      ],
-      "observationCount": 252,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "FL",
-      "bottleName": "Woodford Reserve Bourbon",
       "source": "ABC #162 - Jupiter",
       "locationPrecision": "store_level",
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "6f81efe69e2fd260",
         "6f81efe69e2fd260",
@@ -3023,13 +2998,34 @@
     {
       "state": "FL",
       "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #137 - Lake Mary",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
+      "sampleSignalIds": [
+        "80ccf20010d213d1",
+        "80ccf20010d213d1",
+        "80ccf20010d213d1",
+        "80ccf20010d213d1",
+        "80ccf20010d213d1"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
       "source": "ABC #182 - Fleming Island",
       "locationPrecision": "store_level",
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "ed9358c8953fc412",
         "ed9358c8953fc412",
@@ -3044,34 +3040,13 @@
     {
       "state": "FL",
       "bottleName": "Woodford Reserve Bourbon",
-      "source": "ABC #081 - Oviedo",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 126,
-      "watchObservations": 126,
-      "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
-      "sampleSignalIds": [
-        "1ae65b5412ed1853",
-        "1ae65b5412ed1853",
-        "1ae65b5412ed1853",
-        "1ae65b5412ed1853",
-        "1ae65b5412ed1853"
-      ],
-      "observationCount": 252,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "FL",
-      "bottleName": "Woodford Reserve Bourbon",
       "source": "ABC #114 - Boynton Beach West",
       "locationPrecision": "store_level",
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "806bc30eebcde589",
         "806bc30eebcde589",
@@ -3086,13 +3061,55 @@
     {
       "state": "FL",
       "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #187 - Jax Beach",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
+      "sampleSignalIds": [
+        "ac2362f2ee9215de",
+        "ac2362f2ee9215de",
+        "ac2362f2ee9215de",
+        "ac2362f2ee9215de",
+        "ac2362f2ee9215de"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #081 - Oviedo",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
+      "sampleSignalIds": [
+        "1ae65b5412ed1853",
+        "1ae65b5412ed1853",
+        "1ae65b5412ed1853",
+        "1ae65b5412ed1853",
+        "1ae65b5412ed1853"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
       "source": "ABC #054 - Doral",
       "locationPrecision": "store_level",
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "a04dd6fdd72e06c1",
         "a04dd6fdd72e06c1",
@@ -3112,8 +3129,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "977711e0dd9751e2",
         "977711e0dd9751e2",
@@ -3133,8 +3150,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "cf62a0cc1f4468a9",
         "cf62a0cc1f4468a9",
@@ -3154,8 +3171,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "ff1f8f732b3c6af8",
         "ff1f8f732b3c6af8",
@@ -3175,8 +3192,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "dcd29d7bb024c319",
         "dcd29d7bb024c319",
@@ -3196,8 +3213,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "178e4598ea2458c6",
         "178e4598ea2458c6",
@@ -3217,8 +3234,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "1e10f50cc0780844",
         "1e10f50cc0780844",
@@ -3238,8 +3255,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "c8a19aa8316dab10",
         "c8a19aa8316dab10",
@@ -3259,8 +3276,8 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "7c4b7a9496575673",
         "7c4b7a9496575673",
@@ -3280,35 +3297,14 @@
       "inventoryObservations": 126,
       "watchObservations": 126,
       "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "firstObservedAt": "2026-11-10T12:26:51.724Z",
+      "lastObservedAt": "2026-11-14T18:18:32.994Z",
       "sampleSignalIds": [
         "146669edb5bc1bbf",
         "146669edb5bc1bbf",
         "146669edb5bc1bbf",
         "146669edb5bc1bbf",
         "146669edb5bc1bbf"
-      ],
-      "observationCount": 252,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "FL",
-      "bottleName": "Woodford Reserve Bourbon",
-      "source": "ABC #004 - Lake Buena Vista",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 126,
-      "watchObservations": 126,
-      "positiveQuantities": 126,
-      "firstObservedAt": "2026-11-10T08:21:00.626Z",
-      "lastObservedAt": "2026-11-14T13:05:42.253Z",
-      "sampleSignalIds": [
-        "ffbe7e29717dcab9",
-        "ffbe7e29717dcab9",
-        "ffbe7e29717dcab9",
-        "ffbe7e29717dcab9",
-        "ffbe7e29717dcab9"
       ],
       "observationCount": 252,
       "current": true,

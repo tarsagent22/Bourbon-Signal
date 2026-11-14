@@ -96,15 +96,22 @@ test('Missouri active lifecycle pin or dormant shadow entry is exact and remains
   const entry=/^    "MO": \{\n[\s\S]+?^    \},\n/mu.exec(current)?.[0];
   assert.ok(entry);
   const status=JSON.parse(current).states.MO.publicStatus;
-  if(status==='active')assert.equal(digest(entry.slice(0,-1)),'4cbb1b6701d454a0c276f096d87e5e0df5ac1e2149af47e6f134582001cca400');
+  if(status==='active')assert.equal(digest(entry),'b3c0517b815c94279b4bc515258e09d3862042aae1c2783c64989da2e94e02a9');
   else assert.equal(status,'research_only');
   assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
   const mutations=status==='active'?[entry.replace('"artifactDigest": "','"artifactDigest": "changed'),
     entry.replace('"cohortSha256": "','"cohortSha256": "changed'),entry.replace('"publicStatus": "active"','"publicStatus": "research_only"')]
     :[entry.replace('"sourceLabel": "Missouri Costco warehouse bourbon watch"','"sourceLabel": "unreviewed Missouri source"'),
       entry.replace('"shadowEligible": true','"shadowEligible": false')];
-  for(const changed of mutations)assert.notEqual(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(entry,changed)))),
-    evidence.implementationFilesSha256[name],'an altered MO lifecycle must remain outside the historical MS equivalence');
+  for(const changed of mutations){
+    const candidate=Buffer.from(current.replace(entry,changed));
+    if(status==='active'){
+      assert.throws(()=>normalizeHistoricalImplementationBytes(name,candidate),/exact attested MO entry/);
+    }else{
+      assert.notEqual(digest(normalizeHistoricalImplementationBytes(name,candidate)),
+        evidence.implementationFilesSha256[name],'an altered MO lifecycle must remain outside the historical MS equivalence');
+    }
+  }
 });
 
 test('FL and IN proof normalization reverse exact additions while preserving the original MS anchor', async () => {

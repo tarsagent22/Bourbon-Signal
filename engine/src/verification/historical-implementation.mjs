@@ -153,6 +153,12 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const releasedMo = /^    "MO": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if (text.includes(',\n    "MO"\n  ],\n  "reliabilityPolicy"')) {
+      assert.equal(createHash('sha256').update(releasedMo || '').digest('hex'), 'b3c0517b815c94279b4bc515258e09d3862042aae1c2783c64989da2e94e02a9', name + ': exact attested MO entry');
+      text = replaceUnique(text, releasedMo, "    \"MO\": {\n      \"customerLabel\": \"Missouri\",\n      \"sourceLabel\": \"Missouri Costco warehouse bourbon watch\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"blocked_costco_inventory_research\",\n      \"coverageTier\": \"blocked\",\n      \"refinementLevel\": \"warehouse\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research-only: Missouri has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked.\"\n    },\n", name + ': MO lifecycle');
+      text = replaceUnique(text, ',\n    "MO"\n  ],\n  "reliabilityPolicy"', '\n  ],\n  "reliabilityPolicy"', name + ': MO active list');
+    }
     const activeKansasTail=/^    \},\n    "KS": \{[\s\S]+?^    \}\n  \}/mu.exec(text)?.[0];
     const kansasTailSha='e58074869dfcb88cc8f7dce74e9e00a1c636559a05824c61cc3a3a4b6a3c3c8a';
     if(activeKansasTail&&createHash('sha256').update(activeKansasTail).digest('hex')===kansasTailSha){

@@ -34,7 +34,8 @@ export const STATE_LIFECYCLE_CONFIG = {
     "LA",
     "RI",
     "MN",
-    "KS"
+    "KS",
+    "MO"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -1119,15 +1120,88 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "MO": {
       "customerLabel": "Missouri",
-      "sourceLabel": "Missouri Costco warehouse bourbon watch",
-      "publicStatus": "research_only",
-      "shadowEligible": true,
-      "lifecycle": "blocked_costco_inventory_research",
-      "coverageTier": "blocked",
-      "refinementLevel": "warehouse",
+      "sourceLabel": "Missouri reviewed CityHive pickup inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
       "inventoryAlertable": false,
       "watchAlertable": false,
-      "customerSummary": "Research-only: Missouri has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
+      "customerSummary": "Retailer-published pickup availability and scheduled allocated-bottle searches at selected Missouri stores.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-11-14T19:19:49.960Z",
+        "verticalSliceManifest": "engine/data/state-integration/MO.json",
+        "fixtureContract": "engine/data/state-fixtures/MO.json",
+        "canaryPreviewUrl": "https://bourbonsignal-r72jh8k6z-tarsagent22s-projects.vercel.app",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "MO",
+          "generatedAt": "2026-11-14T19:19:49.960Z",
+          "sourceConfigHash": "cb43b8d30dd3940ea88e9105b043abee1a48b92f2333221925e70d69fc7e8dbb",
+          "sourceRuntimeId": "mo:central-cityhive",
+          "cohortSha256": "5b3f88be5a779f0e9631bb68a1f054fd833ce6d098fa62b2f13ae710bcc1fe17",
+          "previewUrl": "https://bourbonsignal-r72jh8k6z-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "43604789165",
+              "status": "success",
+              "artifactHash": "d31abe103887b0cd4c5372ebcf5fbd3f9fe6cdd01242e34ac52f81a23426ff37",
+              "artifactId": "14118246159",
+              "commitSha": "8cf6f6f9529d047a04d95d5cc0400c9ecbeecb90",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43604789165"
+            },
+            {
+              "runId": "43611542644",
+              "status": "success",
+              "artifactHash": "21627829a8c0592865fd9558215b1d9886ab6e89c0466774e5e4e341e75e6bb7",
+              "artifactId": "14120083470",
+              "commitSha": "e52c0baafe3860b3fbe42f240008cc8532f785f8",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43611542644"
+            },
+            {
+              "runId": "43631023624",
+              "status": "success",
+              "artifactHash": "d50c4632e5cf9e0b312ed52b2028aa3c0999125c66688d46d17189a94f73a03f",
+              "artifactId": "14128530066",
+              "commitSha": "ca1c4e27a4afaff6757c546728f60ac19fdf0744",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43631023624"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "43615283586",
+              "status": "success",
+              "artifactHash": "22e03035a95159827de0eb040bb74079241dd29068f020ddd33e51e2d504bbbf",
+              "artifactId": "14122410442",
+              "commitSha": "bb258e4ca7e08c86163d838c043716434aeed31c",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43615283586"
+            },
+            {
+              "runId": "43631126691",
+              "status": "success",
+              "artifactHash": "dcdb0b4cb97e8f5cba1ec4ad3d9ca48c2e74a8b26e702a964d928d05abcbdff3",
+              "artifactId": "14127589784",
+              "commitSha": "ca1c4e27a4afaff6757c546728f60ac19fdf0744",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43631126691"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "43631128848",
+            "artifactId": "14127804516",
+            "commitSha": "ca1c4e27a4afaff6757c546728f60ac19fdf0744",
+            "artifactDigest": "e33cebc435d6a3e1b8b33f88d36cde874ef84e937ea9f7f63f88613f10f9b244",
+            "bundleDigest": "f48cf0953e32f1c628a70d5b9cea50f1d06f406a35112ab6a3e6196034ed49c5",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43631128848",
+            "artifactName": "state-promotion-provenance-MO-43631128848"
+          }
+        }
+      }
     },
     "MS": {
       "customerLabel": "Mississippi",

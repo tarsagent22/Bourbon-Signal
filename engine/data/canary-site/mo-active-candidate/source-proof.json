@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "mode": "reviewed_ci_only_canary_extract",
+  "originalPartitionBytesPreserved": true,
+  "productionSnapshotTouched": false,
+  "runs": [
+    {
+      "state": "MO",
+      "canaryRunId": "43631126691",
+      "sourceShadowRunId": "43631023624",
+      "artifactDigest": "dcdb0b4cb97e8f5cba1ec4ad3d9ca48c2e74a8b26e702a964d928d05abcbdff3",
+      "partitionSha256": "60a18296d54f04cc15acd24db198c0405817d80184de56a8aa18d7b760280f9e"
+    }
+  ]
+}

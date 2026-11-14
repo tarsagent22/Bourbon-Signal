@@ -65,35 +65,9 @@
   "evidence": {
     "shadow": {
       "status": "verified",
-      "runs": 4,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43611542644",
+      "runs": 3,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43631023624",
       "observations": [
-        {
-          "runId": "43565682813",
-          "status": "success",
-          "artifactHash": "be685c255dddd4d9010f5dd80fa1a0ceaba469c9c396178c33a5a58dcf320404",
-          "artifactId": "14101879455",
-          "commitSha": "e3fc259d5723af5034e240c2dc5ad1d112b67573",
-          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813",
-          "sourceStartedAt": "2026-11-14T06:21:23.129Z",
-          "sourceFinishedAt": "2026-11-14T06:21:47.073Z",
-          "currentRows": 14,
-          "positiveStores": 9,
-          "positiveCities": 6
-        },
-        {
-          "runId": "43586205036",
-          "status": "success",
-          "artifactHash": "33812069d1e141b2f491f0f40ad075fca4aa0ed16253cc8d1ea4787f3a973c5f",
-          "artifactId": "14110308404",
-          "commitSha": "f417fa44dfad17880935107a8eef8445d8f205c2",
-          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43586205036",
-          "sourceStartedAt": "2026-11-14T10:39:05.353Z",
-          "sourceFinishedAt": "2026-11-14T10:39:27.63Z",
-          "currentRows": 14,
-          "positiveStores": 9,
-          "positiveCities": 6
-        },
         {
           "runId": "43604789165",
           "status": "success",
@@ -119,56 +93,30 @@
           "currentRows": 14,
           "positiveStores": 9,
           "positiveCities": 6
+        },
+        {
+          "runId": "43631023624",
+          "status": "success",
+          "artifactHash": "d50c4632e5cf9e0b312ed52b2028aa3c0999125c66688d46d17189a94f73a03f",
+          "artifactId": "14128530066",
+          "commitSha": "ca1c4e27a4afaff6757c546728f60ac19fdf0744",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43631023624",
+          "artifactName": "state-expansion-shadow-43631023624",
+          "currentRows": 14,
+          "positiveStores": 9,
+          "positiveCities": 6,
+          "searchableStores": 10,
+          "allDeliveryDisabled": true
         }
       ],
       "originalSourceClocksPreserved": true
     },
     "canary": {
       "status": "verified",
-      "runs": 4,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43615283586",
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43631126691",
       "siteArtifact": "engine/data/canary-site/mo-active-candidate",
       "observations": [
-        {
-          "runId": "43587011078",
-          "status": "success",
-          "artifactHash": "049a18af56492c1f949a69ce9995a73d1d18de0608d87dbf6f77a5f5f11b134c",
-          "artifactId": "14110950295",
-          "commitSha": "777ee3c3d5016b04b37bd0f338c3bcc4a52f2e14",
-          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43587011078",
-          "currentRows": 14,
-          "positiveStores": 9,
-          "positiveCities": 6,
-          "searchableStores": 10,
-          "allDeliveryDisabled": true
-        },
-        {
-          "runId": "43607500881",
-          "status": "success",
-          "artifactHash": "a974ccecb4b4d41194843bcd3ab79369e305a5bdacc1e97c71fc0fb49f8de622",
-          "artifactId": "14118656707",
-          "commitSha": "cf42ca3d51035944746ee588eeab1f9dbab74e33",
-          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43607500881",
-          "currentRows": 14,
-          "positiveStores": 9,
-          "positiveCities": 6,
-          "searchableStores": 10,
-          "allDeliveryDisabled": true
-        },
-        {
-          "runId": "43613518791",
-          "status": "success",
-          "artifactHash": "45a34eedeac6f94a44dcfa927793d72f34b533a9273fbd910886bf365ad20440",
-          "artifactId": "14120923877",
-          "commitSha": "52dec5be126dec5ab7f81a79ddea692cb457f12c",
-          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43613518791",
-          "currentRows": 14,
-          "positiveStores": 9,
-          "positiveCities": 6,
-          "searchableStores": 10,
-          "allDeliveryDisabled": true,
-          "publicProjectionSha256": "e7a4112a80e78a5fc13898a80e32afc2f669dbd15805aa73636f241540bbf032"
-        },
         {
           "runId": "43615283586",
           "status": "success",
@@ -182,66 +130,124 @@
           "searchableStores": 10,
           "allDeliveryDisabled": true,
           "publicProjectionSha256": "30ae804fff816dc91ad599cb2199a6dd62a477a8da14b4ffa0eba725f4c77f11"
+        },
+        {
+          "runId": "43631126691",
+          "status": "success",
+          "artifactHash": "dcdb0b4cb97e8f5cba1ec4ad3d9ca48c2e74a8b26e702a964d928d05abcbdff3",
+          "artifactId": "14127589784",
+          "commitSha": "ca1c4e27a4afaff6757c546728f60ac19fdf0744",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43631126691",
+          "artifactName": "state-expansion-canary-MO-43631126691",
+          "currentRows": 14,
+          "positiveStores": 9,
+          "positiveCities": 6,
+          "searchableStores": 10,
+          "allDeliveryDisabled": true,
+          "partitionSha256": "60a18296d54f04cc15acd24db198c0405817d80184de56a8aa18d7b760280f9e"
         }
       ],
-      "preview": {
-        "url": "https://bourbonsignal-bxv13ot38-tarsagent22s-projects.vercel.app",
-        "deploymentId": "dpl_vHE7QCwLFNHwoGXbkkJCYFeNLZLe",
-        "verified": true,
-        "verifiedAt": "2026-11-14T16:01:58.298Z",
-        "currentRows": 14,
-        "positiveStores": 9,
-        "positiveCities": 6,
-        "searchableStores": 10,
-        "finderStoreIds": 2,
-        "finderQueries": [
-          {
-            "storeId": "brown-derby:5e7b0ae35c462e765a9bd2b0",
-            "status": "actively-monitored",
-            "city": "Nixa",
-            "httpStatus": 200
-          },
-          {
-            "storeId": "brown-derby:5d8cd7bfdaea8420a917658d",
-            "status": "known-expansion-candidate",
-            "city": "Springfield",
-            "httpStatus": 200
-          }
-        ],
-        "allDeliveryDisabled": true,
-        "authenticatedUiVerified": false
-      }
+      "previewUrl": "https://bourbonsignal-r72jh8k6z-tarsagent22s-projects.vercel.app",
+      "allDeliveryChannelsDisabled": true
     },
-    "production": {
-      "status": "pending_release",
-      "url": "https://www.bourbonsignal.com/api/drops?state=MO",
-      "siteArtifact": "engine/data/canary-site/mo-active-candidate",
-      "assertion": "Target endpoint only; Missouri is not published. A guarded release and successful first-publication verifier are still required.",
-      "reason": "No Missouri production workflow or customer publication has been authorized or run."
+    "actualPreviewVerification": {
+      "preview": "https://bourbonsignal-r72jh8k6z-tarsagent22s-projects.vercel.app",
+      "deploymentId": "dpl_4tZrmiocXZ97CYpAX3yAqGUS3wsM",
+      "canaryRun": "43631126691",
+      "shadowRun": "43631023624",
+      "artifactId": "14127589784",
+      "artifactDigest": "sha256:dcdb0b4cb97e8f5cba1ec4ad3d9ca48c2e74a8b26e702a964d928d05abcbdff3",
+      "observedAt": "2026-11-14T19:22:22.244Z",
+      "generatedAt": "2026-11-14T18:45:48.498Z",
+      "currentRows": 14,
+      "currentStores": 9,
+      "cities": 6,
+      "searchableStores": 10,
+      "alertStores": 0,
+      "anonymousHttpStatus": 302,
+      "finder": [
+        {
+          "storeId": "barrel-blends:65e3a2aa392dc12bf9e2969a",
+          "address": "9325 Gravois Rd, Affton, MO 63123, USA",
+          "city": "Affton",
+          "stateCode": "MO",
+          "status": "actively-monitored"
+        },
+        {
+          "storeId": "randalls:5e7abd775c462e6bb92453ec",
+          "address": "14201 Manchester Rd, Ballwin, MO 63011, USA",
+          "city": "Ballwin",
+          "stateCode": "MO",
+          "status": "actively-monitored"
+        },
+        {
+          "storeId": "barrel-blends:6226405682c4ff6dfe6d578a",
+          "address": "12133 St Charles Rock Rd, Bridgeton, MO 63044, USA",
+          "city": "Bridgeton",
+          "stateCode": "MO",
+          "status": "actively-monitored"
+        },
+        {
+          "storeId": "barrel-blends:65e3a3add98c982bad17d305",
+          "address": "13645 Big Bend Rd Suite 103, Kirkwood, MO 63122, USA",
+          "city": "Kirkwood",
+          "stateCode": "MO",
+          "status": "actively-monitored"
+        },
+        {
+          "storeId": "brown-derby:5e7b0ae35c462e765a9bd2b0",
+          "address": "830 W Mt Vernon St, Nixa, MO 65714, USA",
+          "city": "Nixa",
+          "stateCode": "MO",
+          "status": "actively-monitored"
+        },
+        {
+          "storeId": "brown-derby:5d8cd7bfdaea8420a917658d",
+          "address": "3253 E Chestnut Expressway #103, Springfield, MO 65802, USA",
+          "city": "Springfield",
+          "stateCode": "MO",
+          "status": "known-expansion-candidate"
+        },
+        {
+          "storeId": "barrel-blends:66e1fb4f01034f2962f28403",
+          "address": "4911 Hampton Ave, St. Louis, MO 63109, USA",
+          "city": "St. Louis",
+          "stateCode": "MO",
+          "status": "actively-monitored"
+        },
+        {
+          "storeId": "randalls:5e7abcdaf6e97c7f51638b96",
+          "address": "11000 Old Halls Ferry Rd, St. Louis, MO 63136, USA",
+          "city": "St. Louis",
+          "stateCode": "MO",
+          "status": "actively-monitored"
+        },
+        {
+          "storeId": "randalls:5e6d8e2a90ed122417f9338a",
+          "address": "1910 S Jefferson Ave, St. Louis, MO 63104, USA",
+          "city": "St. Louis",
+          "stateCode": "MO",
+          "status": "actively-monitored"
+        },
+        {
+          "storeId": "randalls:615fa307ff6375479c112c44",
+          "address": "4925 Southwest Ave, St. Louis, MO 63110, USA",
+          "city": "St. Louis",
+          "stateCode": "MO",
+          "status": "actively-monitored"
+        }
+      ],
+      "partitionSha256": "60a18296d54f04cc15acd24db198c0405817d80184de56a8aa18d7b760280f9e"
     },
     "immutablePromotionEvidence": {
       "schemaVersion": 1,
       "state": "MO",
-      "generatedAt": "2026-11-14T16:33:50.000Z",
+      "generatedAt": "2026-11-14T19:19:49.960Z",
       "sourceConfigHash": "cb43b8d30dd3940ea88e9105b043abee1a48b92f2333221925e70d69fc7e8dbb",
-      "previewUrl": "https://bourbonsignal-bxv13ot38-tarsagent22s-projects.vercel.app",
+      "sourceRuntimeId": "mo:central-cityhive",
+      "cohortSha256": "5b3f88be5a779f0e9631bb68a1f054fd833ce6d098fa62b2f13ae710bcc1fe17",
+      "previewUrl": "https://bourbonsignal-r72jh8k6z-tarsagent22s-projects.vercel.app",
       "shadowRuns": [
-        {
-          "runId": "43565682813",
-          "status": "success",
-          "artifactHash": "be685c255dddd4d9010f5dd80fa1a0ceaba469c9c396178c33a5a58dcf320404",
-          "artifactId": "14101879455",
-          "commitSha": "e3fc259d5723af5034e240c2dc5ad1d112b67573",
-          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813"
-        },
-        {
-          "runId": "43586205036",
-          "status": "success",
-          "artifactHash": "33812069d1e141b2f491f0f40ad075fca4aa0ed16253cc8d1ea4787f3a973c5f",
-          "artifactId": "14110308404",
-          "commitSha": "f417fa44dfad17880935107a8eef8445d8f205c2",
-          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43586205036"
-        },
         {
           "runId": "43604789165",
           "status": "success",
@@ -257,33 +263,17 @@
           "artifactId": "14120083470",
           "commitSha": "e52c0baafe3860b3fbe42f240008cc8532f785f8",
           "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43611542644"
+        },
+        {
+          "runId": "43631023624",
+          "status": "success",
+          "artifactHash": "d50c4632e5cf9e0b312ed52b2028aa3c0999125c66688d46d17189a94f73a03f",
+          "artifactId": "14128530066",
+          "commitSha": "ca1c4e27a4afaff6757c546728f60ac19fdf0744",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43631023624"
         }
       ],
       "canaryRuns": [
-        {
-          "runId": "43587011078",
-          "status": "success",
-          "artifactHash": "049a18af56492c1f949a69ce9995a73d1d18de0608d87dbf6f77a5f5f11b134c",
-          "artifactId": "14110950295",
-          "commitSha": "777ee3c3d5016b04b37bd0f338c3bcc4a52f2e14",
-          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43587011078"
-        },
-        {
-          "runId": "43607500881",
-          "status": "success",
-          "artifactHash": "a974ccecb4b4d41194843bcd3ab79369e305a5bdacc1e97c71fc0fb49f8de622",
-          "artifactId": "14118656707",
-          "commitSha": "cf42ca3d51035944746ee588eeab1f9dbab74e33",
-          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43607500881"
-        },
-        {
-          "runId": "43613518791",
-          "status": "success",
-          "artifactHash": "45a34eedeac6f94a44dcfa927793d72f34b533a9273fbd910886bf365ad20440",
-          "artifactId": "14120923877",
-          "commitSha": "52dec5be126dec5ab7f81a79ddea692cb457f12c",
-          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43613518791"
-        },
         {
           "runId": "43615283586",
           "status": "success",
@@ -291,71 +281,35 @@
           "artifactId": "14122410442",
           "commitSha": "bb258e4ca7e08c86163d838c043716434aeed31c",
           "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43615283586"
+        },
+        {
+          "runId": "43631126691",
+          "status": "success",
+          "artifactHash": "dcdb0b4cb97e8f5cba1ec4ad3d9ca48c2e74a8b26e702a964d928d05abcbdff3",
+          "artifactId": "14127589784",
+          "commitSha": "ca1c4e27a4afaff6757c546728f60ac19fdf0744",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43631126691"
         }
       ],
-      "cohortSha256": "5b3f88be5a779f0e9631bb68a1f054fd833ce6d098fa62b2f13ae710bcc1fe17",
-      "sourceRuntimeId": "mo:central-cityhive",
       "provenance": {
         "status": "success",
         "repository": "tarsagent22/Bourbon-Signal",
-        "workflowRunId": "43615652766",
-        "artifactId": "14122216678",
-        "commitSha": "630a2d9dbcb6732e63bc71f4f5649b072d3f28c9",
-        "artifactDigest": "0d548374e077e4db5f1b86ba94e9c3cd08f1b42fe242828dbf7c4f8abc7b4b4d",
-        "bundleDigest": "7666ecc1bad7104b07493527dbdc7ce19b7b661aae16d682b81a7e81721cad85",
-        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43615652766",
-        "artifactName": "state-promotion-provenance-MO-43615652766"
+        "workflowRunId": "43631128848",
+        "artifactId": "14127804516",
+        "commitSha": "ca1c4e27a4afaff6757c546728f60ac19fdf0744",
+        "artifactDigest": "e33cebc435d6a3e1b8b33f88d36cde874ef84e937ea9f7f63f88613f10f9b244",
+        "bundleDigest": "f48cf0953e32f1c628a70d5b9cea50f1d06f406a35112ab6a3e6196034ed49c5",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43631128848",
+        "artifactName": "state-promotion-provenance-MO-43631128848"
       }
     },
-    "actualPreviewVerification": {
-      "verifiedAt": "2026-10-29T17:56:00.428Z",
-      "currentPublicRows": 1,
-      "currentPublicStores": 1,
-      "statsHttpStatus": 200,
-      "coverageHttpStatus": 200,
-      "signedFeedCountVerified": true,
-      "finderHttpStatus": 401,
-      "normalPaidFilterStatus": 403,
-      "authenticatedPaidUiSessionVerified": false,
-      "physicalDeviceExercised": false,
-      "allDeliveryChannelsDisabled": true,
-      "combinedSnapshotDigest": "362d2cbd33b6bbcc3ec80217b6af3cee3c046cd7f5544929786e60994077d38e",
-      "partitionSha256": "87f9cdb9b4211397d23294e5ba0475477bcecf607e477bb71f6532a818b54269"
+    "production": {
+      "status": "awaiting_first_publication",
+      "url": "https://www.bourbonsignal.com/api/coverage",
+      "assertion": "First publication requires current indexed pickup evidence at nine stores across six cities and successful allocated-bottle searches at every reviewed location."
     }
   },
   "rollback": {
     "disableSource": "Keep Missouri authoritative lifecycle research_only; production collection remains closed until all immutable admission evidence is reviewed."
-  },
-  "actualPreviewVerification": {
-    "verifiedAt": "2026-11-14T16:01:58.298Z",
-    "currentPublicRows": 14,
-    "currentPublicStores": 9,
-    "currentPublicCities": 6,
-    "coverageHttpStatus": 200,
-    "searchableStores": 10,
-    "finderHttpStatus": 200,
-    "finderStoreIds": 2,
-    "finderQueries": [
-      {
-        "storeId": "brown-derby:5e7b0ae35c462e765a9bd2b0",
-        "status": "actively-monitored",
-        "city": "Nixa",
-        "httpStatus": 200
-      },
-      {
-        "storeId": "brown-derby:5d8cd7bfdaea8420a917658d",
-        "status": "known-expansion-candidate",
-        "city": "Springfield",
-        "httpStatus": 200
-      }
-    ],
-    "statsHttpStatus": null,
-    "signedFeedCountVerified": false,
-    "normalPaidFilterStatus": null,
-    "authenticatedPaidUiSessionVerified": false,
-    "physicalDeviceExercised": false,
-    "allDeliveryChannelsDisabled": true,
-    "combinedSnapshotDigest": null,
-    "partitionSha256": "034ce01f6b2a5c93e5c82e56b2f2db789900b6ddc7714c39a17267254be46b6d"
   }
 }
