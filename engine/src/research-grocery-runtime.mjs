@@ -7,9 +7,9 @@ import {WESTERN_GROCERY_EXPANSION_SOURCES} from './collectors/western-grocery-pr
 import {MAINE_SHAWS_RESEARCH_SOURCES} from './collectors/maine-shaws-research.mjs';
 import {fetchWithMeta} from './core/fetcher.mjs';
 
-export const GROCERY_RESEARCH_STATE_IDS=new Set(['WA','NM','ME','ND']);
+export const GROCERY_RESEARCH_STATE_IDS=new Set(['WA','NM','ME','ND','SD']);
 const names={WA:'Washington',NM:'New Mexico'};
-const lifecycleNames={...names,ME:"Maine Shaw's",ND:"North Dakota"};
+const lifecycleNames={...names,ME:"Maine Shaw's",ND:"North Dakota",SD:"South Dakota"};
 const configs=new Map(Object.entries(names).map(([state,name])=>[state,Object.freeze({
   id:state,label:`${name} exact-store grocery research`,tier:'B',active:false,
   strategy:'retailer_store_inventory',cadence:'shadow-only',
@@ -80,6 +80,34 @@ const northDakotaConfig = Object.freeze({
     && northDakotaProductNames.get(String(row.productId)) === row.canonicalName
     && Number.isFinite(row.price) && row.price > 0,
 });
+const southDakotaSafewayStores = Object.freeze([
+  ['583', '1606 North Ave', 'Spearfish', '57783', 44.50016609173007, -103.85797622541223, '1606-north-ave'],
+  ['1554', '730 Mountain View Rd', 'Rapid City', '57702', 44.080083590585474, -103.25076239632988, '730-mountain-view-rd'],
+  ['581', '2120 Mt Rushmore Rd', 'Rapid City', '57701', 44.06496807826007, -103.23091494725608, '2120-mt-rushmore-rd'],
+].map(([merchantId, street, city, zip, lat, lng, path]) => Object.freeze({
+  id: `sd:safeway:${merchantId}`, name: 'Safeway', stateCode: 'SD', merchantId,
+  banner: 'safeway', resolverDomainName: 'Safeway', host: 'www.safeway.com',
+  sourceLabel: 'Safeway South Dakota first-party in-store availability',
+  address: `${street}, ${city}, SD ${zip}`, city, zip, lat, lng, storeId: `safeway:${merchantId}`,
+  locator: `https://local.safeway.com/safeway/sd/${city.toLowerCase().replace(' ', '-')}/${path}/Beer-Wine-Liquor.html`,
+})));
+const southDakotaSafewayConfig = Object.freeze({
+  id: 'SD', label: 'South Dakota exact-store Safeway research', tier: 'B', active: false,
+  strategy: 'retailer_store_inventory', cadence: 'once-per-day-shadow-only',
+  sources: Object.freeze([
+    {kind:'api',url:'https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all',precisionOnly:true},
+    {kind:'api',url:'https://www.safeway.com/abs/pub/xapi/search/substitute',precisionOnly:true},
+  ]),
+  apiCandidates: Object.freeze([]), sourceRegistry: southDakotaSafewayStores,
+  resolverZips: Object.freeze(southDakotaSafewayStores.map(store => store.zip)),
+  requestLimit: 9, storeLimit: 3, searchTerms: Object.freeze(['bourbon', 'eagle rare']),
+  requireExactSearchEcho: true, disableLibrarySearchPlan: true,
+  includeProduct: (row, source) => southDakotaSafewayStores.includes(source)
+    && ['limited', 'allocated', 'highly_allocated', 'unicorn'].includes(row.tier)
+    && row.quantity === 0 && row.quantityIsExact === false
+    && Number.isFinite(row.price) && row.price > 0,
+});
+configs.set('SD',southDakotaSafewayConfig);
 configs.set('ME',maineShawsConfig);
 configs.set('ND',northDakotaConfig);
 export const groceryResearchSourceForState=state=>configs.get(state)||null;
