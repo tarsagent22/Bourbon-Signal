@@ -9,11 +9,15 @@ const REPOSITORY='tarsagent22/Bourbon-Signal';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const preparationOnly=file=>[
   '.github/workflows/state-expansion-canary.yml','.github/workflows/refresh-feed.yml','scripts/download-oregon-shadow.mjs','scripts/test-oregon-shadow-download.mjs',
+  'scripts/test-owner-admin-api.cjs','src/app/api/admin/catalog/route.ts',
   'scripts/test-oregon-public-canary.mjs','engine/src/prepare-oregon-canary.mjs','engine/src/oregon-research-fixtures.mjs',
-  'engine/src/oregon-daily-production-policy.mjs','src/lib/public-drop-evidence.ts','src/lib/drop-feed-visibility.ts',
+  'engine/src/oregon-daily-production-policy.mjs','engine/src/verify-oregon-first-publication.mjs',
+  'engine/src/verification/historical-implementation.mjs','engine/src/verify-ms.mjs',
+  'src/lib/public-drop-evidence.ts','src/lib/drop-feed-visibility.ts',
   'engine/src/build-state-canary-preview.mjs',
   'engine/src/central-cityhive-policy.mjs','engine/src/export-site-contract.mjs',
-  'engine/src/verify-state-fixtures.mjs','engine/test/oregon-canary.test.mjs','engine/test/or-daily-inventory.test.mjs',
+  'engine/src/verify-state-fixtures.mjs','engine/test/oregon-canary.test.mjs','engine/test/oregon-daily-production.test.mjs',
+  'engine/test/oregon-first-publication.test.mjs','engine/test/or-daily-inventory.test.mjs',
   'engine/data/state-fixtures/OR.json','engine/data/state-integration/OR.json',
 ].includes(file);
 

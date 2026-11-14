@@ -66,8 +66,11 @@ test('Oregon source-equivalent canary changes cannot include the inventory colle
   const allowed=validateOregonShadowOrigin({...common,comparison:{status:'ahead',files:[
     {filename:'engine/src/oregon-daily-production-policy.mjs'},
     {filename:'src/lib/drop-feed-visibility.ts'},
-    {filename:'engine/src/prepare-oregon-canary.mjs'}]}});
-  assert.equal(allowed.sourceEquivalentPreparationChanges.length,3);
+    {filename:'engine/src/prepare-oregon-canary.mjs'},
+    {filename:'engine/src/verify-oregon-first-publication.mjs'},
+    {filename:'.github/workflows/refresh-feed.yml'},
+    {filename:'src/app/api/admin/catalog/route.ts'}]}});
+  assert.equal(allowed.sourceEquivalentPreparationChanges.length,6);
   assert.throws(()=>validateOregonShadowOrigin({...common,comparison:{status:'ahead',files:[
     {filename:'engine/src/or-daily-inventory.mjs'}]}}),/collector\/source changed/);
 });
