@@ -58,7 +58,7 @@ test('Delaware Ecwid collector remains shadow-only and reports binary orderabili
   t.after(()=>rm(directory,{recursive:true,force:true}));
   const calls=[];
   const result=await collectDelawareEcwidResearch(delawareEcwidResearchSource('DE'),bible,{
-    env:{BOURBON_SIGNAL_SHADOW_MODE:'1'},clocksFile:path.join(directory,'clock.json'),
+    env:{BOURBON_SIGNAL_SHADOW_MODE:'1'},clocksFile:path.join(directory,'clock.json'),cacheFile:path.join(directory,'cache.json'),
       fetchText:async (url,options)=>{calls.push(url);assert.equal(options.maxBytes,2*1024*1024);return{status:200,url,text:url===sourceData.source.homeUrl?home:productPage};},
   });
   assert.equal(calls.length,2);
@@ -84,13 +84,15 @@ test('Delaware Ecwid collector remains shadow-only and reports binary orderabili
   assert.equal(projection.readiness.inventory.trustedSignalCount,1);
   const before=calls.length;
   const notDue=await collectDelawareEcwidResearch(delawareEcwidResearchSource('DE'),bible,{
-    env:{BOURBON_SIGNAL_SHADOW_MODE:'1'},clocksFile:path.join(directory,'clock.json'),
+    env:{BOURBON_SIGNAL_SHADOW_MODE:'1'},clocksFile:path.join(directory,'clock.json'),cacheFile:path.join(directory,'cache.json'),
     fetchText:async()=>{calls.push('unexpected');throw Error('source should respect its own cadence');},
   });
   assert.equal(calls.length,before);
-  assert.equal(notDue.status,'not_due');
+  assert.equal(notDue.status,'useful');
+  assert.equal(notDue.metadata.cacheReused,true);
+  assert.equal(notDue.signals[0].observedAt,row.observedAt);
   await assert.rejects(collectDelawareEcwidResearch(delawareEcwidResearchSource('DE'),bible,{
-    env:{BOURBON_SIGNAL_SHADOW_MODE:'0'},clocksFile:path.join(directory,'guard.json'),
+    env:{BOURBON_SIGNAL_SHADOW_MODE:'0'},clocksFile:path.join(directory,'guard.json'),cacheFile:path.join(directory,'guard-cache.json'),
     fetchText:async()=>{throw Error('guard must run before any request');},
   }),/isolated shadow source/);
 });
