@@ -15,6 +15,8 @@ const json = async (file, fallback) => {
   try { return JSON.parse(await readFile(file, 'utf8')); }
   catch (error) { if (error.code === 'ENOENT' && fallback !== undefined) return fallback; throw error; }
 };
+const ADDITIONAL_JURISDICTIONS = ['DC', 'MD-MONTGOMERY'];
+const AUDITED_JURISDICTIONS = [...US_STATES, ...ADDITIONAL_JURISDICTIONS];
 const rowsOf = (value, key) => Array.isArray(value) ? value : Array.isArray(value?.[key]) ? value[key] : [];
 const timestamp = row => Date.parse(row.observedAt || row.lastSeenAt || row.timestamp || '');
 const sourceIdentity = row => JSON.stringify([row.storeId || '', row.sourceUrl || '', row.rawName || '']);
@@ -31,26 +33,46 @@ export function isLibraryObservation(row, record, sourceRows = new Map()) {
     && libraryIdentityKey(row.canonicalName || row.bottleName || row.rawName) === libraryIdentityKey(record.canonical);
 }
 
+function verifiedStateQueries(report, state, nowMs, maxAgeMs) {
+  const { startedAt, finishedAt, metadata, precisionMetadata } = report || {};
+  if (report?.stale || report?.sourceStale) return [];
+  const current = at => {
+    const time = Date.parse(at || '');
+    return Number.isFinite(time) && time >= Date.parse(startedAt || '')
+      && time <= Date.parse(finishedAt || '') && time <= nowMs && nowMs - time <= maxAgeMs;
+  };
+  const precision = [precisionMetadata?.xapi?.requests, precisionMetadata?.librarySearch?.requests,
+    precisionMetadata?.smartFinal?.searches].flatMap(requests => requests || [])
+    .filter(request => request.ok && (!request.kind || request.kind === 'inventory') && current(request.requestedAt));
+  const cityHive = metadata?.cityhive;
+  const cityHiveQueries = cityHive?.complete === true && cityHive.cacheReused !== true && current(cityHive.sourceObservedAt)
+    ? rowsOf(cityHive.requests).flatMap(request => {
+      const url = URL.parse(request.url);
+      const term = url?.searchParams.get('ch-query');
+      return request.status === 200 && request.ok && url?.protocol === 'https:'
+        && url.pathname === '/shop/' && term?.trim() ? [{ term }] : [];
+    }) : [];
+  const grocery = ['AK', 'LA'].includes(state) && ['closed_profile_verified', 'positive_only_verified'].includes(metadata?.productionAdmission?.status)
+    ? rowsOf(metadata.requests).filter(request => request.kind === 'inventory'
+      && request.ok && current(request.observedAt)) : [];
+  return [...precision, ...cityHiveQueries, ...grocery];
+}
+
 export function buildLibraryCoverageAudit({ bible, catalog, reports = {}, drops = [], alerts = [], stats = {}, nowMs = Date.now(), maxAgeMs = 2 * 3_600_000 }) {
   if (catalog.digest !== bible.libraryCatalog?.digest) throw new Error('Audit catalog differs from the engine build');
   const matcher = new BourbonBible(bible.records);
   const targets = catalog.records.filter(isLibraryDetectionTarget);
-  const jurisdictions = [...US_STATES, 'MD-MONTGOMERY'];
   const fresh = row => { const age = nowMs - timestamp(row); return Number.isFinite(age) && age >= -60_000 && age <= maxAgeMs && !row.stale && !row.sourceStale && !row.raw?.staleFallback; };
   const inventoryRows = drops.filter(row => fresh(row) && isPublicDropFeedEligible(row));
   const queryPool = new Set(libraryDetectionQueries(matcher).map(libraryIdentityKey));
   const cells = [];
-  for (const state of jurisdictions) {
+  for (const state of AUDITED_JURISDICTIONS) {
     const active = CUSTOMER_ACTIVE_STATE_IDS.has(state);
     const lifecycle = STATE_LIFECYCLE[state];
     const report = reports[state];
     const signals = report?.signals || [];
     const sourceRows = new Map(signals.map(row => [sourceIdentity(row), row]));
-    const sourceQueries = [...(report?.precisionMetadata?.xapi?.requests || []), ...(report?.precisionMetadata?.librarySearch?.requests || []), ...(report?.precisionMetadata?.smartFinal?.searches || [])];
-    const currentQueries = sourceQueries.filter(q => {
-      const at = Date.parse(q.requestedAt || '');
-      return !report?.stale && !report?.sourceStale && Number.isFinite(at) && at >= Date.parse(report?.startedAt || '') && at <= Date.parse(report?.finishedAt || '') && nowMs - at <= maxAgeMs && at <= nowMs;
-    });
+    const currentQueries = verifiedStateQueries(report, state, nowMs, maxAgeMs);
     const searchPlans = report?.precisionMetadata?.librarySearch?.plans || [];
     const plan = precisionRetrievalAuditInputs(state);
     if (state === 'WV') plan.pinnedProducts = WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.map(row => ({ name: row.query, code: row.expectedProductId }));
@@ -63,13 +85,13 @@ export function buildLibraryCoverageAudit({ bible, catalog, reports = {}, drops 
       const alertRows = alerts.filter(row => row.state === state && fresh(row) && sameBottle(row)
         && row.action === 'inventory_alert_candidate' && row.eligibleForOnSite === true && !(row.blockers?.length) && row.alertSuppressed !== true);
       const tier = bottle.stateOverrides.find(o => o.jurisdiction === state)?.tier || bottle.nationalTier;
-      const directQuery = currentQueries.some(q => (!q.kind || q.kind === 'inventory') && q.ok && libraryIdentityKey(q.term) === libraryIdentityKey(bottle.canonicalName));
+      const directQuery = currentQueries.some(q => libraryIdentityKey(q.term) === libraryIdentityKey(bottle.canonicalName));
       cells.push({ state, bottleId: bottle.id, canonicalName: bottle.canonicalName, tier, targetInState: DROP_TIERS.has(tier),
         engineId: record?.id || null, exactMatch: Boolean(record), matchIssue: result.unsafeReason,
         retrieval: !active ? 'no_active_state_collector' : state === 'AZ' && queryPool.has(libraryIdentityKey(bottle.canonicalName)) ? 'bounded_broad_search_and_targeted_rotation' : 'bounded_sources_completeness_unverified',
         searchedExactExpressionThisRun: active ? directQuery : null,
         libraryRotationPlanned: searchPlans.some(plan => plan.targetCount >= targets.length),
-        familySearchSucceededThisRun: currentQueries.some(q => q.ok && (!q.kind || q.kind === 'inventory') && libraryIdentityKey(q.term).length >= 4 && libraryIdentityKey(bottle.canonicalName).includes(libraryIdentityKey(q.term))),
+        familySearchSucceededThisRun: currentQueries.some(q => libraryIdentityKey(q.term).length >= 4 && libraryIdentityKey(bottle.canonicalName).includes(libraryIdentityKey(q.term))),
         knownLaneQueryTermHits: plan.knownQueryTerms.filter(term => libraryIdentityKey(bottle.canonicalName).includes(libraryIdentityKey(term))),
         knownLaneProductIds: plan.pinnedProducts.filter(product => {
           const hit = cityHiveSafeBottleMatch(product.name, matcher).record;
@@ -86,7 +108,7 @@ export function buildLibraryCoverageAudit({ bible, catalog, reports = {}, drops 
       });
     }
   }
-  const states = jurisdictions.map(state => {
+  const states = AUDITED_JURISDICTIONS.map(state => {
     const rows = cells.filter(row => row.state === state);
     return { state, active: CUSTOMER_ACTIVE_STATE_IDS.has(state), evidenceClass: rows[0]?.evidenceClass,
       targetCount: rows.filter(row => row.targetInState).length, exactMatchCount: rows.filter(row => row.exactMatch).length,
@@ -101,7 +123,7 @@ export function buildLibraryCoverageAudit({ bible, catalog, reports = {}, drops 
   });
   return { schemaVersion: 1, generatedAt: new Date(nowMs).toISOString(), runId: stats.runId || null,
     library: { count: catalog.records.length, targetCount: targets.length, digest: catalog.digest, mode: bible.libraryCatalog.mode, fetchedAt: catalog.fetchedAt },
-    auditFreshnessWindowMs: maxAgeMs, stateCount: US_STATES.length, additionalJurisdictions: ['MD-MONTGOMERY'],
+    auditFreshnessWindowMs: maxAgeMs, stateCount: US_STATES.length, additionalJurisdictions: ADDITIONAL_JURISDICTIONS,
     matchingGapCount: targets.filter(bottle => !cityHiveSafeBottleMatch(bottle.canonicalName, matcher).record).length,
     caveat: 'Matching is capability, not inventory. Bounded retrieval is not exhaustive. No fresh public evidence means unknown availability, never out of stock. Maryland county coverage is not statewide. Alert candidate counts do not prove delivery.',
     arizona: { queryPoolSize: queryPool.size, selectedStores: reports.AZ?.precisionMetadata?.xapi?.selectedStores?.length ?? null,
@@ -119,7 +141,7 @@ async function main() {
   const bible = await json(path.join(out, 'bourbon-bible.json'));
   const catalog = await json(path.join(out, 'library-catalog.json'));
   const stats = await json(path.join(out, 'site/stats.json'));
-  const reports = Object.fromEntries(await Promise.all([...US_STATES, 'MD-MONTGOMERY'].map(async state => [state, await json(path.join(out, `states/${state}.json`), {})])));
+  const reports = Object.fromEntries(await Promise.all(AUDITED_JURISDICTIONS.map(async state => [state, await json(path.join(out, `states/${state}.json`), {})])));
   const dropPayload = await json(path.join(out, 'site/drops.json'));
   const alertPayload = await json(path.join(out, 'site/alerts.json'));
   if (!stats.runId || stats.runId !== dropPayload.runId || stats.runId !== alertPayload.runId) throw new Error('Audit requires one coherent exported snapshot');
@@ -130,7 +152,7 @@ async function main() {
   await writeFile(path.join(out, 'verification/library-coverage.json'), JSON.stringify(audit, null, 2));
   await writeFile(path.join(out, 'verification/library-coverage.md'), libraryCoverageMarkdown(audit));
   if (audit.matchingGapCount) throw new Error(`Library has ${audit.matchingGapCount} canonical matching gaps; see audit`);
-  console.log(`Audited ${audit.library.targetCount} target bottles across all 50 states plus Montgomery County; no exhaustive-coverage claim.`);
+  console.log(`Audited ${audit.library.targetCount} target bottles across all 50 states plus DC and Montgomery County; no exhaustive-coverage claim.`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) main().catch(error => { console.error(error); process.exitCode = 1; });
