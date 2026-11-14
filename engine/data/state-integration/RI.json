@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "state": "RI",
+  "lifecycle": {
+    "customerLabel": "Rhode Island",
+    "publicStatus": "active",
+    "coverageTier": "blocked",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "rhode-island-liquor-delivery:64f6226b7537422b95e04824",
+      "fifth-ward-liquor:546babb03932330002100300",
+      "california-liquors-ri:6114919961187149b8241cdd"
+    ],
+    "registration": "Isolated CityHive canary replay from a verified workflow-issued RI shadow artifact; no production lifecycle or source activation."
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 3,
+    "proof": "Current merchant-scoped source captures must reparse to the exact reviewed merchant ID, address, coordinates, product ID, option ID and pickup offer."
+  },
+  "sourceSemantics": {
+    "availability": "Binary retailer-published pickup availability. Positive options do not create an exact shelf count; verify before driving.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": { "status": "verified", "assertion": "The isolated canary lifecycle and state partition are consumed by the existing lifecycle-backed state filter." },
+    "areaFilter": { "status": "verified", "assertion": "The isolated canary lifecycle and state partition are consumed by the existing lifecycle-backed area filter." },
+    "preferences": { "status": "verified", "assertion": "The existing preference normalization retains state selection through the nationwide geography resolver." },
+    "dashboard": { "status": "verified", "assertion": "The existing dashboard reads the isolated state selection and preview snapshot." },
+    "dropFeedApi": { "status": "verified", "assertion": "The current Drop Feed API projection filters by the isolated state partition." },
+    "finder": { "status": "verified", "assertion": "Finder exposes only the three reviewed RI premises from the canary input." },
+    "alerts": { "status": "verified", "assertion": "Canary observations remain non-alertable with every delivery channel disabled." },
+    "monitoring": { "status": "verified", "assertion": "The isolated canary snapshot records RI coverage without changing production monitoring." },
+    "export": { "status": "verified", "assertion": "Executable source fixtures enforce exact merchant, address, variant, freshness, pickup and binary-quantity semantics." }
+  },
+  "evidence": {
+    "shadow": { "status": "not_run", "runs": 0, "artifact": null, "reason": "Research-only shadow evidence is held in its own workflow artifact; this manifest is not promotion evidence." },
+    "canary": { "status": "not_run", "runs": 0, "artifact": null, "reason": "Preview-only replay; no deployment or release admission is claimed." },
+    "production": { "status": "not_deployed", "url": null, "assertion": "No production lifecycle or source configuration was changed.", "reason": "RI remains research-only and inactive in the authoritative lifecycle." }
+  }
+}
