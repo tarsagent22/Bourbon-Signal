@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "state": "WY",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "eagle-rare",
+      "kind": "positive_bottle_match",
+      "input": {},
+      "expected": {
+        "sourceRows": 1,
+        "proof": true,
+        "candidateCount": 1,
+        "names": [
+          "Eagle Rare 10 Year"
+        ]
+      }
+    },
+    {
+      "id": "ordinary",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "rawName": "Unreviewed Ordinary Bourbon 750 ml"
+      },
+      "expected": {
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "cream",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "rawName": "Eagle Rare Cream Liqueur 750 ml"
+      },
+      "expected": {
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "mini",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "size": 50
+      },
+      "expected": {
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "binary",
+      "kind": "availability_semantics",
+      "input": {},
+      "expected": {
+        "candidateCount": 1,
+        "quantity": 0,
+        "quantityIsExact": false,
+        "alertEligible": false,
+        "originalClockPreserved": true
+      }
+    },
+    {
+      "id": "merchant",
+      "kind": "store_identity",
+      "input": {
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "expired",
+      "kind": "timestamp_freshness",
+      "input": {
+        "ageMinutes": 180
+      },
+      "expected": {
+        "sourceRows": 1,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "host",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 1,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "delivery",
+      "kind": "delivery_isolation",
+      "input": {
+        "delivery": true
+      },
+      "expected": {
+        "sourceRows": 1,
+        "candidateCount": 0
+      }
+    }
+  ]
+}

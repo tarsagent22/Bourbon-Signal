@@ -74,6 +74,17 @@ function replaceUnique(text, current, original, label) {
 export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (name === 'engine/src/operational-report.mjs') {
     let implementation = bytes.toString('utf8');
+    const wyomingImport = "import { isWyomingGroceryProductionInventory } from './wyoming-grocery-policy.mjs';\n";
+    if (implementation.includes(wyomingImport)) {
+      implementation = replaceUnique(implementation, wyomingImport, '', `${name}: Wyoming proof import`);
+      implementation = replaceUnique(implementation,`    ...(isWyomingGroceryProductionInventory(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`,'',`${name}: Wyoming production projection`);
+    }
     implementation=replaceUnique(implementation,"import {isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';\n",'',`${name}: AK/LA production projection import`);
     implementation=replaceUnique(implementation,`    ...(isLouisianaAlaskaGroceryOnSiteSignal(signal)?{
       tier:signal.tier,inventorySemantics:signal.inventorySemantics,
@@ -138,6 +149,11 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
   if(name==='engine/src/state-sources.mjs'){
+    const wyomingImport = "import { WYOMING_GROCERY_CONFIG } from './collectors/wyoming-grocery-production.mjs';\n";
+    if (text.includes(wyomingImport)) {
+      text = replaceUnique(text, wyomingImport, '', `${name}: Wyoming source import`);
+      text = replaceUnique(text, '  WYOMING_GROCERY_CONFIG,\n', '', `${name}: Wyoming source registration`);
+    }
     const minnesotaImport = "import { MINNESOTA_CITYHIVE_PRODUCTION_CONFIG } from './minnesota-cityhive-production-config.mjs';\n";
     if (text.includes(minnesotaImport)) {
       text = replaceUnique(text, minnesotaImport, '', `${name}: MN registry import`);

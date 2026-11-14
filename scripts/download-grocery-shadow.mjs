@@ -6,6 +6,7 @@ import {pathToFileURL} from 'node:url';
 import {unzipSync} from 'fflate';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+const reviewedStates=['WA','NM','WY'];
 const allowedPreparationChange=file=>[
   '.github/workflows/state-expansion-canary.yml','.github/workflows/state-promotion-provenance.yml',
   'engine/src/prepare-grocery-canary.mjs','engine/src/grocery-research-fixtures.mjs',
@@ -17,7 +18,7 @@ const allowedPreparationChange=file=>[
   ||file==='scripts/test-grocery-shadow-download.mjs';
 
 export function validateShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison}){
-  if(!['WA','NM'].includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed grocery research state or repository');
+  if(!reviewedStates.includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed grocery research state or repository');
   if(run?.conclusion!=='success'||run.status!=='completed'||run.repository?.full_name!==repository
     ||run.path!=='.github/workflows/state-expansion-shadow.yml'||!/^\d+$/.test(String(run.id))
     ||!/^[a-f0-9]{40}$/.test(run.head_sha||''))throw new Error('Shadow run is not a successful repository-issued shadow workflow');
@@ -26,7 +27,11 @@ export function validateShadowWorkflowOrigin({state,repository,run,artifact,curr
     ||!(artifact.size_in_bytes>0&&artifact.size_in_bytes<=128*1024*1024))throw new Error('Missing, expired, oversized or unbound shadow artifact');
   const changes=run.head_sha===currentHead?[]:comparison?.files;
   if(run.head_sha!==currentHead&&(!['ahead','identical'].includes(comparison?.status)||!Array.isArray(changes)
-    ||changes.length>=300||changes.some(file=>!allowedPreparationChange(file.filename)))){
+    ||changes.length>=300||changes.some(file=>!allowedPreparationChange(file.filename)
+      && !(state==='WY'&&[
+        'engine/src/prepare-wyoming-grocery-canary.mjs','engine/data/state-integration/WY.json',
+        'engine/data/state-fixtures/WY.json','engine/src/wyoming-grocery-fixtures.mjs',
+      ].includes(file.filename))))){
     throw new Error('Shadow collector source changed; issue new shadow runs before canary');
   }
   return {status:'verified_github_shadow_artifact',state,repository,workflowRunId:String(run.id),
@@ -50,7 +55,7 @@ export function decodeBoundedShadowArchive(bytes,digest){
 function argument(flag){return process.argv.find(value=>value.startsWith(flag+'='))?.slice(flag.length+1);}
 async function main(){
   const state=argument('--state'),runId=argument('--run'),out=path.resolve(argument('--out-dir')||'');
-  if(!['WA','NM'].includes(state)||!/^\d+$/.test(runId||'')||!argument('--out-dir'))throw new Error('Use --state=WA|NM --run=<actual GitHub run ID> --out-dir=<new directory>');
+  if(!reviewedStates.includes(state)||!/^\d+$/.test(runId||'')||!argument('--out-dir'))throw new Error('Use --state=WA|NM|WY --run=<actual GitHub run ID> --out-dir=<new directory>');
   const repository='tarsagent22/Bourbon-Signal',gh=process.platform==='win32'?'gh.exe':'gh';
   const api=endpoint=>JSON.parse(execFileSync(gh,['api',`repos/${repository}/${endpoint}`],{encoding:'utf8',maxBuffer:8*1024*1024,windowsHide:true}));
   const run=api(`actions/runs/${runId}`),artifacts=api(`actions/runs/${runId}/artifacts?per_page=100`);

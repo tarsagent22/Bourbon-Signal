@@ -38,7 +38,7 @@ const files = [
 ];
 // These files control production admission, actual HTTP, host-denial durability
 // and public projection. Missing inputs must fail issuance, never be skipped.
-if (['WA','NM','WI','OK','NJ','MI','MN','KS','MO'].includes(state)) files.push(
+if (['WA','NM','WI','OK','NJ','MI','MN','KS','MO','WY'].includes(state)) files.push(
   'engine/src/collectors/generic-state.mjs',
   'engine/src/collectors/north-carolina-intelligence.mjs',
   'engine/src/collectors/virginia-inventory-recovery.mjs',
@@ -78,6 +78,32 @@ if (['WA','NM','WI','OK','NJ','MI','MN','KS','MO'].includes(state)) files.push(
   'src/app/api/v1/signals/route.ts',
   '.github/workflows/state-expansion-shadow.yml',
   '.github/workflows/refresh-feed.yml',
+);
+if (state === 'WY') files.push(
+  'engine/src/collectors/wyoming-grocery-production.mjs',
+  'engine/src/verify-wy-first-publication.mjs',
+  'engine/src/research-wyoming-grocery-runtime.mjs',
+  'engine/src/research-state-registry.mjs',
+  'engine/src/wyoming-grocery-policy.mjs',
+  'engine/src/wyoming-grocery-fixtures.mjs',
+  'engine/src/prepare-wyoming-grocery-canary.mjs',
+  'engine/src/collectors/grocery-xapi-expansion.mjs',
+  'engine/src/collectors/grocery-xapi-identity.mjs',
+  'engine/src/collectors/arizona-xapi-matching.mjs',
+  'engine/src/collectors/arizona-xapi.mjs',
+  'engine/src/operational-report.mjs',
+  'engine/src/location-bible.mjs',
+  'engine/test/fixtures/wyoming-albertsons/identity.json',
+  'src/lib/drop-feed-visibility.ts',
+  'src/lib/public-drop-evidence.ts',
+  'src/lib/site-engine-contract.ts',
+  'scripts/download-grocery-shadow.mjs',
+  'scripts/test-grocery-public-canary.mjs',
+  '.github/workflows/state-expansion-canary.yml',
+  '.github/workflows/state-promotion-provenance.yml',
+  'engine/out/canary/WY/public-projection.json',
+  'engine/out/grocery-shadow-input/WY/provenance.json',
+  'engine/out/grocery-shadow-input/WY/artifact.zip',
 );
 // Bind grocery promotions to the actual replay parser, frozen premise registry,
 // source policy, portable artifact verifier, executable fixtures and raw ZIP digest.
