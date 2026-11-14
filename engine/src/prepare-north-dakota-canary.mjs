@@ -21,6 +21,13 @@ const productKey = row => [row.storeId, row.merchantId, row.productId, row.varia
   row.canonicalName, row.rawName, row.tier, row.price, row.sourceUrl, row.observedAt];
 const identities = rows => rows.map(row => JSON.stringify(productKey(row))).sort();
 
+function canonicalSourceUrl(value) {
+  const url = new URL(value);
+  assert.ok(url.protocol === 'https:' && !url.username && !url.password && !url.hash);
+  url.searchParams.sort();
+  return url.href;
+}
+
 function verifyOrigin(report, provenance, bible) {
   const origin = report.metadata?.origin;
   assert.equal(report.state, 'ND');
@@ -50,9 +57,10 @@ async function readReceipts(reportDirectory, receipts, report, nowMs) {
   assert.ok(start <= finish && finish <= nowMs && nowMs - start <= maxAgeMs);
   return Promise.all(receipts.map(async receipt => {
     assert.equal(receipt.status, 200);
-    assert.equal(receipt.url, receipt.finalUrl);
-    assert.ok(!urls.has(receipt.url));
-    urls.add(receipt.url);
+    const url = canonicalSourceUrl(receipt.url);
+    assert.equal(url, canonicalSourceUrl(receipt.finalUrl));
+    assert.ok(!urls.has(url));
+    urls.add(url);
     assert.match(receipt.artifactPath, /^source-captures\/[a-z0-9-]+\.(?:html|json)$/);
     assert.ok(!paths.has(receipt.artifactPath));
     paths.add(receipt.artifactPath);
