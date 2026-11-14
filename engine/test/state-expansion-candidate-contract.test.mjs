@@ -20,6 +20,11 @@ test('national candidate registry gives every state an explicit lifecycle record
   assert.deepEqual(registry.states.map((state) => state.state).sort(), [...ALL_US_STATE_IDS].sort());
   assert.deepEqual(lifecycle.activeStates, before, 'candidate validation must not mutate customer activation');
   assert.ok(registry.scopedControlMarkets.some((market) => market.id === 'MD-MONTGOMERY'));
+  for (const state of ['AK', 'LA']) {
+    assert.equal(lifecycle.activeStates.includes(state), true);
+    assert.equal(registry.states.find((row) => row.state === state).lifecycleStage, 'active');
+    assert.deepEqual(registry.states.find((row) => row.state === state).promotionEvidenceRefs, ['src/config/state-lifecycle.json']);
+  }
   assert.equal(registry.states.find((state) => state.state === 'OR').lifecycleStage, 'discovery');
   assert.equal(registry.states.find((state) => state.state === 'NH').lifecycleStage, 'discovery');
   assert.equal(registry.states.find((state) => state.state === 'CO').lifecycleStage, 'active');
