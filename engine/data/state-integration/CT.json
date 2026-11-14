@@ -13,9 +13,9 @@
       "reason": "Canary workflow pending."
     },
     "shadow": {
-      "runs": 1,
-      "status": "verified",
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43601110460",
+      "runs": 0,
+      "status": "pending",
+      "artifact": null,
       "originalSourceClocksPreserved": true
     }
   },
@@ -82,7 +82,8 @@
       "universal-wine-liquor-ct:69e9228fdcbd600066ee5aff",
       "bottle-house-ct:654ea77f27845d7ca6476608",
       "new-london-wine-spirits:5d16b2c002a20e15787d923c",
-      "big-discount-wine-liquor-ct:62fd4d7f483e882938c96fc1"
+      "big-discount-wine-liquor-ct:62fd4d7f483e882938c96fc1",
+      "sammys-buy-rite-liquors:6054cf6fae8bdc21346c3112"
     ],
     "registration": "Closed reviewed research-only CityHive premises; immutable source replay requires merchant and address proof."
   }
