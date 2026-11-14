@@ -6,6 +6,19 @@ export const MINNESOTA_CITYHIVE_PRODUCTION_BATCH_SIZE=7;
 export const MINNESOTA_CITYHIVE_PRODUCTION_BUDGET=Object.freeze({sourceMs:180_000,stateMs:240_000,maxRequests:14});
 export const MINNESOTA_CITYHIVE_PRODUCTION_SOURCES=Object.freeze(MINNESOTA_CITYHIVE_EXPANSION_SOURCES.map(source=>Object.freeze({...source})));
 export const MINNESOTA_CITYHIVE_PRODUCTION_STORE_IDS=Object.freeze(MINNESOTA_CITYHIVE_PRODUCTION_SOURCES.map(source=>source.storeId));
+export const MINNESOTA_CITYHIVE_PRODUCTION_CONFIG = Object.freeze({
+  id: MINNESOTA_CITYHIVE_PRODUCTION_STATE,
+  label: 'Minnesota reviewed first-party pickup availability',
+  tier: 'B',
+  strategy: 'retailer_store_inventory',
+  cadence: '30m',
+  value: 'Exact-store pickup availability from 16 reviewed Top Ten Liquors premises in seven-store rotations.',
+  rareSignalTarget: true,
+  sources: Object.freeze(MINNESOTA_CITYHIVE_PRODUCTION_SOURCES.map(source => Object.freeze({
+    kind: 'html', label: source.name, url: source.categoryUrl, precisionOnly: true,
+  }))),
+  apiCandidates: Object.freeze([]),
+});
 // Fixed review pin, recomputed in the Node test so pure policy imports stay free
 // of Node crypto and cannot become a runtime-derived source authorization.
 export const MINNESOTA_CITYHIVE_PRODUCTION_COHORT_SHA256='f8966ff41632ffe3d8f9dc06136bcaa453c7e0177cd3bc991dbd96baae197c74';

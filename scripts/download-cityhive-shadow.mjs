@@ -34,6 +34,7 @@ export function validateInactiveMinnesotaShadowLifecycleTransition({candidateLif
   const expectedShadow=structuredClone(candidateLifecycle);
   expectedShadow.activeStates=expectedShadow.activeStates.filter(id=>id!=='MN');
   expectedShadow.states.MN.publicStatus='research_only';
+  if(expectedShadow.reliabilityPolicy?.stateExpectedRunMs?.MN===30000&&!Object.hasOwn(shadowLifecycle.reliabilityPolicy?.stateExpectedRunMs||{},'MN'))delete expectedShadow.reliabilityPolicy.stateExpectedRunMs.MN;
   return JSON.stringify(expectedShadow)===JSON.stringify(shadowLifecycle);
 }
 

@@ -36,6 +36,10 @@ test('Costco research stays blocked unless a distinct retailer integration passe
     }else if(state==='WA'){
       assert.equal(research.strategy,'retailer_store_inventory');assert.equal(lifecycle.refinementLevel,'store');
       assert.ok(research.sources.some(source=>source.precisionOnly===true&&source.kind!=='costco'));
+    }else if(state==='MN'&&active.has(state)){
+      assert.equal(research.strategy,'retailer_store_inventory');
+      assert.equal(research.sources.length,16);
+      assert.ok(research.sources.every(source=>source.kind==='html'&&source.precisionOnly===true));
     }else assert.ok(research.sources.some(source=>source.kind==='costco'));
     assert.equal(grandfathered.has(state), false, `${state} must not bypass the promotion contract`);
     if(active.has(state)){
