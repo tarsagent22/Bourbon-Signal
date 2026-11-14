@@ -1,5 +1,5 @@
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES,CENTRAL_CITYHIVE_PRODUCTION_COHORTS } from './collectors/central-cityhive-premises.mjs';
-import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-expansion.mjs';
+import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
 
 export const CENTRAL_CITYHIVE_STATE_IDS = new Set(CENTRAL_CITYHIVE_EXPANSION_SOURCES.map(source=>source.state));
 const ALL_RECOGNIZED_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]);
