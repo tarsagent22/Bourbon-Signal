@@ -10,6 +10,7 @@ import { LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS, LOUISIANA_ALASKA_GROCERY_B
 import { collectLouisianaAlaskaGroceryProductionState, validateLouisianaAlaskaProductionResult } from '../src/collectors/louisiana-alaska-grocery-production-adapter.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal, toLouisianaAlaskaGroceryOnSiteSignal } from '../src/louisiana-alaska-grocery-policy.mjs';
 import { syntheticLaakAdmission } from './helpers/synthetic-laak-admission.mjs';
+import { stateReportContinuityStateIds } from '../src/state-report-guard.mjs';
 
 const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
 const identity = JSON.parse(await readFile(new URL('./fixtures/louisiana-alaska/identity.json', import.meta.url), 'utf8'));
@@ -97,6 +98,49 @@ test('production admission rejects incomplete, unconfirmed, altered-store, and m
     const changed = structuredClone(valid);
     mutate(changed);
     assert.throws(() => validateLouisianaAlaskaProductionResult('AK', admissionBible, changed), /production profile rejected/);
+  }
+});
+
+test('Louisiana preserves exact positives through fully scoped but unconfirmed negative searches', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'la-positive-only-'));
+  try {
+    const config = LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS.find(item => item.id === 'LA');
+    const sources = LOUISIANA_ALASKA_GROCERY_SOURCES.filter(item => item.stateCode === 'LA');
+    const { lifecycle, manifest: promotionManifest } = syntheticLaakAdmission('LA');
+    const response = (url, payload) => ({ url, ok: true, status: 200, text: JSON.stringify(payload) });
+    const fetchText = async url => {
+      const parsed = new URL(url);
+      if (parsed.pathname.endsWith('/all')) {
+        return response(url, { instore: { stores: sources.map(source => {
+          const [line1, city] = source.address.split(', ');
+          return { locationId: source.merchantId, polarisBannerName: source.banner, domainName: source.resolverDomainName || source.banner,
+            address: { line1, city, state: 'LA', country: 'US', zipcode: source.zip } };
+        }) } });
+      }
+      const merchantId = parsed.searchParams.get('storeid');
+      const term = parsed.searchParams.get('q');
+      if (merchantId === sources[0].merchantId && term === 'bourbon') {
+        return response(url, { appCode: 'GR200', response: { docs: [{ ...identity.product, storeId: merchantId }] } });
+      }
+      return response(url, { appCode: 'GR204', appMsg: 'GR : Google Retail returned empty response..' });
+    };
+    const report = await collectLouisianaAlaskaGroceryProductionState(config, admissionBible, { fetchText,
+      sleep: async () => {}, cursorDir: path.join(directory, 'cursor'), incidentDirectory: path.join(directory, 'incidents'),
+      lifecycleConfig: lifecycle, promotionManifest, env: {}, sourceRunnerOptions: { checkpointDir: null } });
+    assert.equal(report.status, 'partial_useful_positive_evidence_only');
+    assert.equal(report.metadata.requestCount, 43);
+    assert.equal(report.metadata.productionAdmission.negativeComplete, false);
+    assert.equal(report.metadata.unconfirmedNegativeQueryCount, 37);
+    assert.equal(report.signals.length, 1);
+    assert.equal(report.signals[0].storeId, sources[0].storeId);
+    assert.ok(isLouisianaAlaskaGroceryOnSiteSignal(report.signals[0]));
+    assert.deepEqual(stateReportContinuityStateIds([report]), { partialFallbackStateIds: ['LA'], fallbackStateIds: [] });
+    const profile = { signals: [rowFor('LA')], metadata: report.metadata, roadblocks: [] };
+    assert.throws(() => validateLouisianaAlaskaProductionResult('LA', admissionBible, { ...profile, signals: [] }), /production profile rejected/);
+    assert.throws(() => validateLouisianaAlaskaProductionResult('LA', admissionBible,
+      { ...profile, roadblocks: [{ status: 403 }] }), /source roadblock/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
   }
 });
 
