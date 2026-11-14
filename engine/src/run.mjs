@@ -650,10 +650,13 @@ async function main() {
     ? prioritizeScheduledStateRuns(dueConfigs, previousMetrics, Date.parse(scheduleOptions.now))
     : dueConfigs;
   console.log(`State scheduler selected ${runnable.length}/${selectedStateSources.length} states; worker concurrency=${STATE_WORKER_CONCURRENCY}.`);
-  const browserBarriers = overlapFwgs ? new Map([
-    ['PA', (fwgsRefreshPromise || Promise.resolve()).then(requireFwgsStateArtifact)],
-    ['OH', Promise.resolve().then(requireOhlqStateArtifact)],
-  ]) : new Map();
+  const browserBarriers = new Map();
+  if (overlapFwgs && runnable.some(config => config.id === 'PA')) {
+    browserBarriers.set('PA', (fwgsRefreshPromise || Promise.resolve()).then(requireFwgsStateArtifact));
+  }
+  if (overlapFwgs && runnable.some(config => config.id === 'OH')) {
+    browserBarriers.set('OH', Promise.resolve().then(requireOhlqStateArtifact));
+  }
   const poolResults = await runStatePoolWithBrowserBarriers(runnable, async (config) => {
     console.log(`Collecting ${config.id} — ${config.label}`);
     const report = await collectStateResilient(config);
