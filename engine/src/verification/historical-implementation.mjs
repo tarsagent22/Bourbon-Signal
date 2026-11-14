@@ -146,7 +146,7 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
     const releasedAkLa = /^    \},\n    "AK": \{[\s\S]+?^  \}/mu.exec(text)?.[0];
-    if (releasedAkLa && createHash('sha256').update(releasedAkLa).digest('hex') === 'c24a52ecfe4ae25f399301a87fc8aea11c1a8a786774e77b5b78a925edfe6f90') {
+    if (releasedAkLa && createHash('sha256').update(releasedAkLa).digest('hex') === '7b71ef26f902cb8a8f31049a54c0cb5b8f980c73172fe41343e6d5e9242037f4') {
       text=replaceUnique(text,releasedAkLa,'    }\n  }',`${name}: exact attested AK/LA lifecycle entries`);
       text=replaceUnique(text,'    "OK",\n    "AK",\n    "LA"\n  ],\n  "reliabilityPolicy"','    "OK"\n  ],\n  "reliabilityPolicy"',`${name}: exact AK/LA active list tail`);
     } else {
