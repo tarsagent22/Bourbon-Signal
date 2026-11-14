@@ -38,7 +38,7 @@ const files = [
 ];
 // These files control production admission, actual HTTP, host-denial durability
 // and public projection. Missing inputs must fail issuance, never be skipped.
-if (['WA','NM','WI','OK','NJ','MI','MN','KS','MO'].includes(state)) files.push(
+if (['WA','NM','WI','OK','NJ','MI','MN','KS','MO','DE'].includes(state)) files.push(
   'engine/src/collectors/generic-state.mjs',
   'engine/src/collectors/north-carolina-intelligence.mjs',
   'engine/src/collectors/virginia-inventory-recovery.mjs',
@@ -362,6 +362,26 @@ if (state === 'RI') files.push(
   'src/config/stateLifecycle.ts',
   '.github/workflows/state-expansion-shadow.yml',
   '.github/workflows/refresh-feed.yml',
+);
+if (state === 'DE') files.push(
+  'engine/src/collectors/central-cityhive-production.mjs',
+  'engine/src/central-cityhive-production-config.mjs',
+  'engine/src/collectors/central-cityhive-premises.mjs',
+  'engine/src/collectors/central-cityhive-research-premises.mjs',
+  'engine/src/collectors/central-cityhive-expansion.mjs',
+  'engine/src/collectors/central-cityhive-transport.mjs',
+  'engine/src/collectors/cityhive-surfaces.mjs',
+  'engine/src/collectors/central-cityhive-market-policy.mjs',
+  'engine/src/central-cityhive-policy.mjs',
+  'engine/src/delaware-ecwid-production-policy.mjs',
+  'engine/src/research-delaware-ecwid.mjs',
+  'engine/src/verify-de-first-publication.mjs',
+  'engine/src/customer-drop-freshness.mjs',
+  'engine/data/additional-cityhive-expansion-sources.json',
+  'engine/data/de-ecwid-research-source.json',
+  'engine/data/state-integration/DE.json',
+  'engine/test/de-production-adapter.test.mjs',
+  'engine/test/de-first-publication.test.mjs',
 );
 for (const file of files) {
   const content = await readFile(path.join(root, file));
