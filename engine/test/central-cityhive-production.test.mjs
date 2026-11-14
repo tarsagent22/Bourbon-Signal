@@ -57,9 +57,9 @@ test('Missouri production route is registered while an inactive lifecycle still 
   assert.equal(sources.length,10);
   assert.ok(CENTRAL_CITYHIVE_PRODUCTION_STATES.includes('MO'));
   assert.equal(CENTRAL_CITYHIVE_PRODUCTION_COHORTS.MO,centralCityHiveProductionCohortKey('MO'));
-  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('MO'),true);
-  assert.equal(STATE_SOURCES.some(source=>source.id==='MO'),true);
-  assert.equal(DISABLED_STATE_SOURCES.some(source=>source.id==='MO'),false);
+  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('MO'),false);
+  assert.equal(STATE_SOURCES.some(source=>source.id==='MO'),false);
+  assert.equal(DISABLED_STATE_SOURCES.some(source=>source.id==='MO'),true);
   assert.equal(moConfig.strategy,'retailer_store_inventory');
   assert.ok(moConfig.sources.some(source=>source.precisionOnly===true&&source.kind!=='costco'));
   assert.equal(centralCityHiveProductionAllowed('MO',inactiveLifecycle),false);
