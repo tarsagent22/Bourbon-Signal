@@ -143,6 +143,9 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       text = replaceUnique(text, minnesotaImport, '', `${name}: MN registry import`);
       text = replaceUnique(text, "  if (source.id === 'MN' && CONFIG_CUSTOMER_ACTIVE_STATE_IDS.has('MN')) return MINNESOTA_CITYHIVE_PRODUCTION_CONFIG;\n", '', `${name}: MN registry overlay`);
     }
+    text=replaceUnique(text,"  ...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id==='MO'),\n",
+      "  {\n    id: 'MO', label: 'Missouri Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',\n    value: 'Costco-only expansion state. Missouri Costco warehouses are useful private-market bourbon signals where verified.',\n    rareSignalTarget: false,\n    sources: [],\n    apiCandidates: []\n  },\n",`${name}: dormant Missouri source registration`);
+    text=replaceUnique(text,'  ...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id!==\'MO\'),\n','  ...CENTRAL_CITYHIVE_STATE_CONFIGS,\n',`${name}: central source config spread`);
     text=replaceUnique(text,"import {LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS,LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES} from './louisiana-alaska-grocery-production-config.mjs';\n",'',`${name}: AK/LA production config import`);
     text=replaceUnique(text,
       "export const ALL_STATE_SOURCES = [...BASE_STATE_SOURCES.filter(source=>!NJ_MI_PRODUCTION_STATES.includes(source.id)&&!LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id)),...NJ_MI_PRODUCTION_CONFIGS,...LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS].map((source) => {\n  if(NJ_MI_PRODUCTION_STATES.includes(source.id)||LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id))return source;",
