@@ -8,13 +8,18 @@ import { workspaceStyles as s, Action } from '../../../src/components/WorkspaceU
 import { coverageStatusLabels, type CoverageRequestItem } from '../../../../../shared/coverage-requests';
 import { COVERAGE_STATES } from '../../../../../shared/coverage-states';
 import { coverageContext } from '../../../src/continuity/bottle-handoff';
+import type { MobileCoverageState } from '../../../src/api/types';
+import { CoverageMap } from '../../../src/coverage/CoverageMap';
 
 export default function CoverageRequestsScreen() {
   const api = useMobileApi();
   const params = useLocalSearchParams<{ state?: string; area?: string; store?: string; address?: string; kind?: string }>();
   const initial = coverageContext(params);
   const [state, setState] = useState(initial.state);
-  const [picker, setPicker] = useState(false);
+  const [picker, setPicker] = useState<'map' | 'request' | null>(null);
+  const [mapState, setMapState] = useState('');
+  const [coverage, setCoverage] = useState<MobileCoverageState[]>([]);
+  const [coverageError, setCoverageError] = useState(false);
   const [kind, setKind] = useState<'state' | 'city' | 'county' | 'store'>(initial.kind);
   const [area, setArea] = useState(initial.area);
   const [store, setStore] = useState(initial.store);
@@ -34,8 +39,24 @@ export default function CoverageRequestsScreen() {
     } catch { if (request === sequence.current) setError('Your requests could not be loaded. Try again.'); }
     finally { if (request === sequence.current) setLoading(false); }
   }, [api]);
+  const coverageSequence = useRef(0);
+  const loadCoverage = useCallback(async () => {
+    const request = ++coverageSequence.current;
+    try {
+      const { states } = await api.getCoverageSummary();
+      if (request !== coverageSequence.current) return;
+      setCoverage(states);
+      setCoverageError(states.length === 0);
+    } catch {
+      if (request === coverageSequence.current) {
+        setCoverage([]);
+        setCoverageError(true);
+      }
+    }
+  }, [api]);
   useScreenRevalidation(load);
-  useEffect(() => () => { sequence.current += 1; }, [api]);
+  useScreenRevalidation(loadCoverage);
+  useEffect(() => () => { sequence.current += 1; coverageSequence.current += 1; }, [api]);
   async function submit() {
     if (mutation.current) return;
     mutation.current = true; setBusy(true); setError(''); setMessage('');
@@ -47,11 +68,29 @@ export default function CoverageRequestsScreen() {
   }
   const relevant = requests.filter(row => row.stateCode === state);
   const others = requests.filter(row => row.stateCode !== state);
+  const selectedCoverage = coverage.find(row => row.code === (mapState || state));
+  const coverageName = COVERAGE_STATES.find(row => row.code === selectedCoverage?.code)?.name;
   return <ScrollView style={s.screen} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
-    <Text accessibilityRole="header" style={s.title}>Request coverage</Text>
+    <Text accessibilityRole="header" style={s.title}>Coverage</Text>
+    <View style={s.card}>
+      <Text accessibilityRole="header" style={s.heading}>Coverage map</Text>
+      {coverageError ? <ErrorState message="Coverage could not be loaded." onRetry={() => void loadCoverage()} /> : coverage.length === 0 ? <LoadingState label="Loading coverage…" /> : <>
+        <CoverageMap states={coverage} selected={mapState || state} onSelect={setMapState} />
+        <Action label={coverageName ? `Browse coverage · ${coverageName}` : 'Browse coverage by state'} onPress={() => setPicker('map')} />
+        {selectedCoverage ? <View accessibilityLiveRegion="polite">
+          <Text style={s.label}>{selectedCoverage.coverageStrengthLabel} · {selectedCoverage.healthLabel}</Text>
+          <Text style={s.copy}>{selectedCoverage.customerSummary || selectedCoverage.summary}</Text>
+          {selectedCoverage.freshness.observedInventoryStores > 0 || selectedCoverage.freshness.currentInventoryStores > 0 ? <Text style={s.copy}>
+            {selectedCoverage.freshness.currentInventoryStores} {selectedCoverage.freshness.currentInventoryStores === 1 ? 'store' : 'stores'} with current bottle availability
+            {selectedCoverage.freshness.currentInventoryCities > 0 ? ` across ${selectedCoverage.freshness.currentInventoryCities} ${selectedCoverage.freshness.currentInventoryCities === 1 ? 'city' : 'cities'}` : ''}
+          </Text> : null}
+        </View> : null}
+      </>}
+    </View>
+    <Text accessibilityRole="header" style={s.heading}>Request coverage</Text>
     <Text style={s.copy}>Tell us where you hunt. Requests help us decide which areas and stores to cover next.</Text>
     {initial.state ? <Text style={s.copy}>From your selected area: {[initial.store, initial.area, initial.state].filter(Boolean).join(', ')}. You can edit these details.</Text> : null}
-    <View style={s.card}><Text style={s.label}>State</Text><Action label={COVERAGE_STATES.find(row => row.code === state)?.name || 'Choose a state'} disabled={busy} onPress={() => setPicker(true)} />
+    <View style={s.card}><Text style={s.label}>State</Text><Action label={COVERAGE_STATES.find(row => row.code === state)?.name || 'Choose a state'} disabled={busy} onPress={() => setPicker('request')} />
       <Text style={s.label}>What should we cover?</Text><View style={s.wrap}>{(['city', 'county', 'store', 'state'] as const).map(value => <Action key={value} label={value === 'state' ? 'Entire state' : value[0].toUpperCase() + value.slice(1)} disabled={busy} selected={kind === value} onPress={() => setKind(value)} />)}</View>
       {kind !== 'state' ? <><Text style={s.label}>{kind === 'county' ? 'County' : 'City'}</Text><TextInput accessibilityLabel={kind === 'county' ? 'County' : 'City'} editable={!busy} style={s.input} value={area} onChangeText={value => { touched.current = true; setArea(value); }} maxLength={120} /></> : null}
       {kind === 'store' ? <><Text style={s.label}>Store name</Text><TextInput accessibilityLabel="Store name" editable={!busy} style={s.input} value={store} onChangeText={setStore} maxLength={180} /><Text style={s.label}>Address (optional)</Text><TextInput accessibilityLabel="Store address" editable={!busy} style={s.input} value={address} onChangeText={setAddress} maxLength={220} /></> : null}
@@ -61,6 +100,20 @@ export default function CoverageRequestsScreen() {
     {error ? <ErrorState message={error} onRetry={() => void load()} /> : null}{message ? <Text accessibilityRole="alert" style={s.success}>{message}</Text> : null}
     <Text accessibilityRole="header" style={s.heading}>My coverage requests</Text>
     {loading ? <LoadingState label="Loading requests…" /> : !requests.length ? <Text style={s.copy}>Your requests and their progress will appear here.</Text> : [...relevant, ...others].map(request => <View key={request.id} style={s.card}><Text style={s.heading}>{request.storeName || request.areaLabel}, {request.stateCode}</Text><Text style={s.success}>{coverageStatusLabels[request.status]}</Text>{request.memberUpdate ? <Text style={s.copy}>{request.memberUpdate}</Text> : null}<Text style={s.copy}>Updated {request.updatedAt.slice(0, 10)}</Text></View>)}
-    <Modal visible={picker} onRequestClose={() => setPicker(false)} animationType="fade"><ScrollView style={s.screen} contentContainerStyle={s.content}><Text style={s.title}>Choose a state</Text><Action label="Close" onPress={() => setPicker(false)} />{COVERAGE_STATES.map(row => <Action key={row.code} label={row.name} onPress={() => { touched.current = true; if (row.code !== state) { setArea(''); setStore(''); setAddress(''); } setState(row.code); setPicker(false); }} />)}</ScrollView></Modal>
+    <Modal visible={picker !== null} onRequestClose={() => setPicker(null)} animationType="fade">
+      <ScrollView style={s.screen} contentContainerStyle={s.content}>
+        <Text style={s.title}>Choose a state</Text>
+        <Action label="Close" onPress={() => setPicker(null)} />
+        {COVERAGE_STATES.map(row => <Action key={row.code} label={row.name} selected={row.code === (picker === 'map' ? mapState || state : state)} onPress={() => {
+          if (picker === 'map') setMapState(row.code);
+          if (picker === 'request') {
+            touched.current = true;
+            if (row.code !== state) { setArea(''); setStore(''); setAddress(''); }
+            setState(row.code);
+          }
+          setPicker(null);
+        }} />)}
+      </ScrollView>
+    </Modal>
   </ScrollView>;
 }
