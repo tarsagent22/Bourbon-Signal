@@ -38,6 +38,8 @@
       "status": "verified",
       "runs": 1,
       "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565542444",
+      "sourceReportDate": "11/13/2026",
+      "sourceReportSha256": "7f3358819f99f036fb3b7594a25f0c0ec331588d680aa16773d71f4084bd6775",
       "assertion": "Successful hosted shadow run retained the parsed official OLCC report and a complete OR shadow summary. The report is dated 11/13/2026; original store observation clocks are preserved."
     },
     "canary": {

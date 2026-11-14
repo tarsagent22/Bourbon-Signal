@@ -2,13 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash } from 'node:crypto';
 import fixture from './fixtures/oregon-daily-production-replay.json' with { type: 'json' };
-import { collectOregonDailyProduction, OREGON_DAILY_PRODUCTION_CONFIG, OREGON_DAILY_PRODUCTION_RUNTIME_ID, oregonDailyProductionAllowed, oregonDailyProductionSourceConfigHash, projectOregonDailyProduction } from '../src/collectors/oregon-daily-production.mjs';
+import { collectOregonDailyProduction, collectOregonDailyProductionState, OREGON_DAILY_PRODUCTION_CONFIG, OREGON_DAILY_PRODUCTION_RUNTIME_ID, oregonDailyProductionAllowed, oregonDailyProductionSourceConfigHash, projectOregonDailyProduction } from '../src/collectors/oregon-daily-production.mjs';
 import { OREGON_DAILY_PRODUCTION_COHORT_SHA256 } from '../src/oregon-daily-production-policy.mjs';
 import { OREGON_DAILY_INVENTORY_URL } from '../src/or-daily-inventory.mjs';
 import { canonicalizeSignal } from '../src/operational-report.mjs';
 import { buildDrops, bibleLookup } from '../src/export-site-contract.mjs';
 import { STATE_LIFECYCLE, CUSTOMER_ACTIVE_STATE_IDS } from '../src/state-lifecycle.mjs';
 import { isOregonDailyProductionEvidence } from '../src/oregon-daily-production-policy.mjs';
+import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 
 const report = {
   schemaVersion: 'bourbon-signal-or-product-availability-v1', status: 'ready', sourceUrl: OREGON_DAILY_INVENTORY_URL,
@@ -117,6 +118,17 @@ test('dormant production wrapper does not probe OLCC while lifecycle and source 
   assert.equal(requestCount, 0);
   assert.deepEqual(result.signals, []);
   assert.equal(result.metadata.blockedByPromotion, true);
+});
+
+test('generic Oregon production route remains dormant and makes zero requests before immutable promotion', async () => {
+  let requests = 0;
+  const config = ALL_STATE_SOURCES.find(row => row.id === 'OR');
+  const result = await collectOregonDailyProductionState(config, bible, { fetchImpl: async () => { requests++; throw new Error('must stay closed'); } });
+  assert.equal(result.status, 'not_promoted');
+  assert.equal(result.metadata.blockedByPromotion, true);
+  assert.equal(result.metadata.requestCount, 0);
+  assert.equal(result.signals.length, 0);
+  assert.equal(requests, 0);
 });
 
 test('replay excludes stale, future, inexact, and identity-drifted source rows', () => {

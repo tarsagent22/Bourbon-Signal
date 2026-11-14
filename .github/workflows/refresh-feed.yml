@@ -558,6 +558,11 @@ jobs:
         working-directory: engine
         run: node src/verify-mn-first-publication.mjs
 
+      - name: Require current Oregon report and exact-store coverage at first publication
+        if: ${{ startsWith(inputs.incident_key, 'oregon-daily-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-oregon-first-publication.mjs
+
       - name: Audit every scarce library bottle across all states
         working-directory: engine
         run: node src/library-coverage-audit.mjs

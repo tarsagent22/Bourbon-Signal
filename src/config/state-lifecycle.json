@@ -429,7 +429,7 @@
       "lifecycle": "blocked_store_inventory_research",
       "coverageTier": "blocked",
       "refinementLevel": "store",
-      "customerSummary": "Research-only until Oregon Liquor Search browser/session collection reliably produces current store rows."
+      "customerSummary": "Research-only while the official daily store inventory source, immutable promotion evidence, and first publication remain behind the activation gate."
     },
     "NH": {
       "customerLabel": "New Hampshire",

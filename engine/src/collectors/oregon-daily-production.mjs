@@ -3,6 +3,8 @@ import { collectOregonDailyInventory, OREGON_INVENTORY_MAX_AGE_MS, resolveOregon
 import { stableId } from '../core/text.mjs';
 import { validateImmutablePromotionEvidence, evaluateStateControl } from '../reliability-policy.mjs';
 import { isOregonDailyProductionEvidence, OREGON_DAILY_INVENTORY_URL, OREGON_DAILY_PRODUCTION_COHORT_SHA256, OREGON_DAILY_PRODUCTION_RUNTIME_ID } from '../oregon-daily-production-policy.mjs';
+import oregonManifest from '../../data/state-integration/OR.json' with { type: 'json' };
+import { STATE_LIFECYCLE_CONFIG } from '../state-lifecycle.mjs';
 export { OREGON_DAILY_PRODUCTION_RUNTIME_ID };
 
 export const OREGON_DAILY_PRODUCTION_CONFIG = Object.freeze({
@@ -123,9 +125,60 @@ export async function collectOregonDailyProduction(config, manifest, bible, opti
   const signals = projectOregonDailyProduction(report, bible, { nowMs });
   return {
     signals,
-    metadata: { complete: report.status === 'ready' && signals.length > 0, sourceObservedAt: report.generatedAt,
+    metadata: { complete: report.status === 'ready', hasCurrentInventory: signals.length > 0, sourceUrl: report.sourceUrl, sourceObservedAt: report.generatedAt,
       sourceReportDate: report.sourceReportDate, sourceReportSha256: report.sourceSha256, sourceRequestCount: report.sourceRequestCount ?? null,
+      sourceBytes: report.sourceBytes ?? null, sourceBodyFetched: report.sourceBodyFetched === true,
+      cacheDisposition: report.cacheDisposition || null,
       productionAlertDeliveryAllowed: false, observation: 'official_daily_store_inventory_exact_quantity' },
-    accounting: { requestCount: report.sourceRequestCount ?? null, bytes: report.sourceBytes ?? null, completeSnapshot: signals.length > 0 },
+    accounting: { requestCount: report.sourceRequestCount ?? (report.cacheDisposition ? (report.sourceBodyFetched ? 2 : 1) : null),
+      bytes: report.sourceBytes ?? null, completeSnapshot: report.status === 'ready' },
   };
+}
+
+/** State-report adapter. Its promotion check runs before even a conditional HEAD. */
+export async function collectOregonDailyProductionState(config, bible, options = {}) {
+  const startedAt = new Date().toISOString();
+  const id = OREGON_DAILY_PRODUCTION_RUNTIME_ID;
+  const label = config.label || 'Oregon OLCC Daily Store Inventory';
+  const base = { state: 'OR', label, tier: config.tier, strategy: config.strategy, cadence: config.cadence,
+    startedAt, finishedAt: null, lastGoodAt: null, stale: false, signals: [], sources: [], sourceResults: [], roadblocks: [],
+    metadata: { sourceRuntimeId: id, requestCount: 0, allDeliveryDisabled: true } };
+  const lifecycleConfig = options.lifecycleConfig || STATE_LIFECYCLE_CONFIG;
+  const manifest = options.promotionManifest || oregonManifest;
+  const sourceMeta = { sourceRuntimeId: id, label: 'Oregon OLCC Daily Store Inventory', url: OREGON_DAILY_INVENTORY_URL,
+    signalType: 'store_inventory_result', locationPrecision: 'store_level' };
+  if (!oregonDailyProductionAllowed(lifecycleConfig, manifest, { env: options.env || process.env })) {
+    return { ...base, finishedAt: new Date().toISOString(), status: 'not_promoted',
+      metadata: { ...base.metadata, blockedByPromotion: true } };
+  }
+
+  try {
+    const value = await collectOregonDailyProduction(lifecycleConfig, manifest, bible, options);
+    const complete = value.metadata.complete === true;
+    const source = { ...sourceMeta, ok: complete, status: complete ? 200 : 'incomplete',
+      matchedBottleCount: value.signals.length, bytes: value.accounting.bytes, error: complete ? null : 'Official OLCC report was not complete' };
+    return { ...base, finishedAt: new Date().toISOString(), lastGoodAt: complete ? value.metadata.sourceObservedAt : null,
+      status: !complete ? 'blocked' : value.signals.length ? 'useful' : 'monitored_no_current_inventory',
+      signals: value.signals, sources: [source],
+      sourceResults: [{ sourceId: id, sourceLabel: source.label, sourceUrl: source.url, ok: complete,
+        status: complete ? 'success' : 'failure', stale: false, alertable: false, attemptCount: value.accounting.requestCount,
+        startedAt, finishedAt: new Date().toISOString(), error: source.error, metadata: value.metadata }],
+      roadblocks: complete ? [] : [{ state: 'OR', source: source.label, sourceRuntimeId: id, url: source.url,
+        status: source.status, error: source.error, nextRoute: 'Review the official report/cache receipt and retry on a later scheduled run.' }],
+      metadata: { ...base.metadata, oregonDailyInventory: value.metadata, requestCount: value.accounting.requestCount ?? 0,
+        bytes: value.accounting.bytes, allDeliveryDisabled: true } };
+  } catch (error) {
+    const receipt = error?.oregonCacheReceipt || null;
+    const status = Number(receipt?.getStatus || receipt?.httpStatus) || null;
+    const finishedAt = new Date().toISOString();
+    const source = { ...sourceMeta, ok: false, status, matchedBottleCount: 0, bytes: 0, error: String(error?.message || error) };
+    return { ...base, finishedAt, status: 'blocked', sources: [source],
+      sourceResults: [{ sourceId: id, sourceLabel: source.label, sourceUrl: source.url, ok: false, status: 'failure',
+        stale: false, alertable: false, attemptCount: receipt ? (receipt.checkMethod === 'HEAD+GET' ? 2 : 1) : null,
+        startedAt, finishedAt, error: source.error, metadata: { cacheReceipt: receipt } }],
+      roadblocks: [{ state: 'OR', source: source.label, sourceRuntimeId: id, url: source.url, status, error: source.error,
+        nextRoute: 'Honor the source response and inspect the bounded Oregon cache receipt before another request.' }],
+      metadata: { ...base.metadata, oregonDailyInventory: { complete: false, cacheReceipt: receipt },
+        requestCount: receipt ? (receipt.checkMethod === 'HEAD+GET' ? 2 : 1) : 0, allDeliveryDisabled: true } };
+  }
 }

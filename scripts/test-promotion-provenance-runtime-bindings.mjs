@@ -12,7 +12,7 @@ const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const common=['engine/src/collectors/generic-state.mjs','engine/src/confidence-policy.mjs','engine/src/run.mjs',
   'engine/src/core/collection-http.mjs','engine/src/reliability-policy.mjs','.github/workflows/refresh-feed.yml',
   '.github/workflows/state-expansion-shadow.yml','engine/out/library-catalog.json','engine/out/bourbon-bible.json'];
-for(const state of ['WA','NM','WI','OK','MN','NJ','MI','AK','LA','RI'])test(`${state} issued bundle binds actual runtime files and refuses missing mandatory production code`,async t=>{
+for(const state of ['WA','NM','WI','OK','MN','NJ','MI','AK','LA','RI','OR'])test(`${state} issued bundle binds actual runtime files and refuses missing mandatory production code`,async t=>{
   const directory=await mkdtemp(path.join(tmpdir(),'synthetic-promotion-hashes-'));
   assert.ok(path.resolve(directory).startsWith(path.resolve(tmpdir())+path.sep));t.after(()=>rm(directory,{recursive:true,force:true}));
   // Synthetic replay bytes validate the issuer, never source or promotion truth.
@@ -20,6 +20,7 @@ for(const state of ['WA','NM','WI','OK','MN','NJ','MI','AK','LA','RI'])test(`${s
   const candidates=[...source.matchAll(/['`]([^'`\n]+)['`]/g)].map(match=>match[1])
     .filter(file=>/^(?:engine\/|src\/|scripts\/|apps\/|\.github\/|next\.config\.ts$)/.test(file)&&!file.includes(' '))
     .map(file=>file.replaceAll('${candidateDrops}',`data/canary-inputs/${state}.json`).replaceAll('${state}',state));
+  if(state==='OR')candidates.push('engine/out/canary/OR/site/public-projection.json');
   for(const file of new Set(candidates)){
     const destination=path.join(directory,file);await mkdir(path.dirname(destination),{recursive:true});
     if(file.startsWith('engine/out/')||file.startsWith('engine/data/canary-inputs/'))await writeFile(destination,JSON.stringify({syntheticUnitFixture:true,state}));
@@ -36,10 +37,12 @@ for(const state of ['WA','NM','WI','OK','MN','NJ','MI','AK','LA','RI'])test(`${s
     env:{...process.env,PROMOTION_CANDIDATE_DROPS:`data/canary-inputs/${state}.json`,GITHUB_REPOSITORY:'synthetic/unit-only',GITHUB_RUN_ID:'unit-only',GITHUB_SHA:'unit-only'}});
   const first=run();assert.equal(first.status,0,first.stderr);
   const out=path.join(directory,`engine/out/promotion-provenance/${state}.json`),payload=JSON.parse(await readFile(out,'utf8'));
-  const central=['WI','OK','RI'].includes(state),minnesota=state==='MN',njmi=['NJ','MI'].includes(state),laak=['AK','LA'].includes(state);
-  const module=laak?'engine/src/collectors/louisiana-alaska-grocery-production-adapter.mjs':njmi?'engine/src/collectors/nj-mi-cityhive-production.mjs':minnesota?'engine/src/collectors/minnesota-cityhive-production.mjs':central?'engine/src/collectors/central-cityhive-production.mjs':'engine/src/collectors/western-grocery-production.mjs';
-  const config=laak?'engine/src/louisiana-alaska-grocery-production-config.mjs':njmi?'engine/src/nj-mi-production-config.mjs':minnesota?'engine/src/minnesota-cityhive-production-config.mjs':central?'engine/src/central-cityhive-production-config.mjs':'engine/src/western-grocery-production-config.mjs';
-  const runtimeFiles=laak?[
+  const central=['WI','OK','RI'].includes(state),minnesota=state==='MN',njmi=['NJ','MI'].includes(state),laak=['AK','LA'].includes(state),oregon=state==='OR';
+  const module=oregon?'engine/src/collectors/oregon-daily-production.mjs':laak?'engine/src/collectors/louisiana-alaska-grocery-production-adapter.mjs':njmi?'engine/src/collectors/nj-mi-cityhive-production.mjs':minnesota?'engine/src/collectors/minnesota-cityhive-production.mjs':central?'engine/src/collectors/central-cityhive-production.mjs':'engine/src/collectors/western-grocery-production.mjs';
+  const config=oregon?'engine/src/oregon-daily-production-policy.mjs':laak?'engine/src/louisiana-alaska-grocery-production-config.mjs':njmi?'engine/src/nj-mi-production-config.mjs':minnesota?'engine/src/minnesota-cityhive-production-config.mjs':central?'engine/src/central-cityhive-production-config.mjs':'engine/src/western-grocery-production-config.mjs';
+  const runtimeFiles=oregon?['engine/src/collectors/generic-state.mjs','engine/src/run.mjs','.github/workflows/refresh-feed.yml',
+    'engine/src/verify-oregon-first-publication.mjs','engine/src/verify-oregon-distinct-report.mjs']:
+  laak?[
     'engine/src/collectors/generic-state.mjs','engine/src/run.mjs','.github/workflows/refresh-feed.yml',
     'engine/src/verify-laak-first-publication.mjs','engine/src/operational-report.mjs',
     `engine/out/laak-shadow-input/${state}/provenance.json`,

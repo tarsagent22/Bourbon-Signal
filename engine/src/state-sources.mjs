@@ -45,17 +45,18 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'OR', label: 'Oregon OLCC / Oregon Liquor Search', tier: 'A', strategy: 'inventory_locator', cadence: 'paused',
+    id: 'OR', label: 'Oregon OLCC Daily Store Inventory', tier: 'A', strategy: 'inventory_locator', cadence: 'daily-report-conditional-check',
     active: false,
-    disabledReason: 'Paused for production: Oregon Liquor Search/API currently times out and exports zero user-facing drops; keep as research-only until store-level rows are reliable again.',
-    value: 'Research-only for now. State liquor search and monthly product/price list exist, but current refresh does not produce useful user-facing drops.',
+    disabledReason: 'Official daily store inventory is prepared behind the lifecycle and immutable-promotion gate; production stays inactive until a distinct current Pacific-date report passes shadow, canary, and first-publication checks.',
+    value: 'Official OLCC daily store-reported exact quantities with original inventory dates; not a restock event or shelf guarantee, and all customer alert delivery remains disabled.',
     sources: [
+      { kind: 'csv', url: 'https://www.olcc.state.or.us/pdfs/DailyStoreInventory.csv', label: 'Official OLCC daily store inventory' },
       { kind: 'html', url: 'https://www.oregonliquorsearch.com/', label: 'Oregon Liquor Search' },
       { kind: 'html', url: 'https://www.oregon.gov/olcc/liquorstores/pages/current_month_productandpricing.aspx', label: 'Current month product/pricing' },
       { kind: 'html', url: 'https://www.oregon.gov/olcc/LIQUORSTORES/pages/special_orders.aspx', label: 'Special orders / locator guidance' }
     ],
-    // Guessed API routes were removed after repeated 404/500 results. The
-    // browser/session collector is the only proven current generation path.
+    // Legacy search-page/API probes are research-only; the dedicated daily CSV
+    // collector is independently promotion-gated and never raises alerts.
     apiCandidates: []
   },
   {
