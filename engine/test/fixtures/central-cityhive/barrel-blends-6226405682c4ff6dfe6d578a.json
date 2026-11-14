@@ -1,0 +1,84 @@
+{
+  "sourceId": "barrel-blends:6226405682c4ff6dfe6d578a",
+  "captures": [
+    {
+      "url": "https://barrelblends.com/shop/?ch-query=barrel%20proof&merchant-id=6226405682c4ff6dfe6d578a",
+      "capturedAt": "fixture-only"
+    }
+  ],
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "6226405682c4ff6dfe6d578a",
+        "name": "Liquorguys",
+        "address": {
+          "full_address": "12133 St Charles Rock Rd, Bridgeton, MO 63044, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.425222,
+              38.750733
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "6594472cd20b667b856eb419",
+      "name": "R Michters Single Barrel Rye 10yr 750ml",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "6226405682c4ff6dfe6d578a",
+          "full_address": "12133 St Charles Rock Rd, Bridgeton, MO 63044, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "6594472cd20b667b856eb419",
+              "option_id": "678137eff45b2a44e894272b88b02eed15dab8c85ac8977d29bdfa2df4ebc9ea",
+              "merchant_id": "6226405682c4ff6dfe6d578a",
+              "full_address": "12133 St Charles Rock Rd, Bridgeton, MO 63044, USA",
+              "product_url": "https://barrelblends.com/shop/product/r-michters-single-barrel-rye-10yr-750ml/6594472cd20b667b856eb419?option-id=678137eff45b2a44e894272b88b02eed15dab8c85ac8977d29bdfa2df4ebc9ea",
+              "quantity": 1,
+              "price": 249.99,
+              "option_display_data": {
+                "name": "R Michters Single Barrel Rye 10yr 750ml",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rye",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rye",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Michter's"
+                  ],
+                  "age": "10"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

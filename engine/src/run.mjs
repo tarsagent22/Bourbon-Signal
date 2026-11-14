@@ -54,9 +54,10 @@ function isIndexedCustomerDropSignal(signal, index) {
 
 const STATE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_STATE_TIMEOUT_MS || 180_000);
 const STATE_TIMEOUT_OVERRIDES_MS = {
+  KS: Number(process.env.BOURBON_SIGNAL_KS_STATE_TIMEOUT_MS || 30_000),
   NJ: Number(process.env.BOURBON_SIGNAL_NJ_STATE_TIMEOUT_MS || 120_000),
   MI: Number(process.env.BOURBON_SIGNAL_MI_STATE_TIMEOUT_MS || 60_000),
-  KS: Number(process.env.BOURBON_SIGNAL_KS_STATE_TIMEOUT_MS || 30_000),
+  MO: Number(process.env.BOURBON_SIGNAL_MO_STATE_TIMEOUT_MS || 270_000),
   // VA and IN can legitimately do broad store-level inventory work. Give them
   // enough room in the full scheduled run so they do not regress to stale
   // fallback while still keeping hard failure bounds.

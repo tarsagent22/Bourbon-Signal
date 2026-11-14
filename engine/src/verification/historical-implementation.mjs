@@ -143,6 +143,9 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       text = replaceUnique(text, minnesotaImport, '', `${name}: MN registry import`);
       text = replaceUnique(text, "  if (source.id === 'MN' && CONFIG_CUSTOMER_ACTIVE_STATE_IDS.has('MN')) return MINNESOTA_CITYHIVE_PRODUCTION_CONFIG;\n", '', `${name}: MN registry overlay`);
     }
+    text=replaceUnique(text,"  ...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id==='MO'),\n",
+      "  {\n    id: 'MO', label: 'Missouri Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',\n    value: 'Costco-only expansion state. Missouri Costco warehouses are useful private-market bourbon signals where verified.',\n    rareSignalTarget: false,\n    sources: [],\n    apiCandidates: []\n  },\n",`${name}: dormant Missouri source registration`);
+    text=replaceUnique(text,'  ...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id!==\'MO\'),\n','  ...CENTRAL_CITYHIVE_STATE_CONFIGS,\n',`${name}: central source config spread`);
     text=replaceUnique(text,"import {LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS,LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES} from './louisiana-alaska-grocery-production-config.mjs';\n",'',`${name}: AK/LA production config import`);
     text=replaceUnique(text,
       "export const ALL_STATE_SOURCES = [...BASE_STATE_SOURCES.filter(source=>!NJ_MI_PRODUCTION_STATES.includes(source.id)&&!LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id)),...NJ_MI_PRODUCTION_CONFIGS,...LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS].map((source) => {\n  if(NJ_MI_PRODUCTION_STATES.includes(source.id)||LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id))return source;",
@@ -154,7 +157,9 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     const kansasTailSha='e58074869dfcb88cc8f7dce74e9e00a1c636559a05824c61cc3a3a4b6a3c3c8a';
     if(activeKansasTail&&createHash('sha256').update(activeKansasTail).digest('hex')===kansasTailSha){
       text=replaceUnique(text,activeKansasTail,'    }\n  }',`${name}: exact attested KS lifecycle tail`);
-      text=replaceUnique(text,'    "MN",\n    "KS"\n  ],\n  "reliabilityPolicy"','    "MN"\n  ],\n  "reliabilityPolicy"',`${name}: exact KS active list tail`);
+      const activeTailWithMo='    "MO",\n    "KS"\n  ],\n  "reliabilityPolicy"';
+      if(text.includes(activeTailWithMo)) text=replaceUnique(text,activeTailWithMo,'    "MO"\n  ],\n  "reliabilityPolicy"',`${name}: exact KS active list tail alongside MO`);
+      else text=replaceUnique(text,'    "MN",\n    "KS"\n  ],\n  "reliabilityPolicy"','    "MN"\n  ],\n  "reliabilityPolicy"',`${name}: exact KS active list tail`);
       text=replaceUnique(text,'      "KS": 15000,\n','',`${name}: exact KS expected runtime`);
     }
     const releasedMinnesota = /^    "MN": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
@@ -175,10 +180,35 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     },
 `;
       text = replaceUnique(text, releasedMinnesota, inactiveMinnesota, `${name}: exact attested MN lifecycle entry`);
-      text = replaceUnique(text, '    "RI",\n    "MN"\n  ],\n  "reliabilityPolicy"',
+      const activeStatesWithMo = '    "RI",\n    "MN",\n    "MO"\n  ],\n  "reliabilityPolicy"';
+      if (text.includes(activeStatesWithMo)) text = replaceUnique(text, activeStatesWithMo,
+        '    "RI"\n  ],\n  "reliabilityPolicy"', `${name}: exact MN/MO active list tail`);
+      else text = replaceUnique(text, '    "RI",\n    "MN"\n  ],\n  "reliabilityPolicy"',
         '    "RI"\n  ],\n  "reliabilityPolicy"', `${name}: exact MN active list tail`);
       text = replaceUnique(text, '    "stateExpectedRunMs": {\n      "MN": 30000,\n',
         '    "stateExpectedRunMs": {\n', `${name}: exact MN expected runtime`);
+    }
+    const quote = String.fromCharCode(34);
+    const moStart = text.indexOf(`    ${quote}MO${quote}: {`);
+    const msStart = text.indexOf(`    ${quote}MS${quote}: {`, moStart);
+    const moEnd = msStart > moStart ? text.lastIndexOf('    },', msStart) : -1;
+    const activeMissouri = moEnd > moStart ? text.slice(moStart, moEnd + 6) : '';
+    if (activeMissouri && ['4903f307402d6bda0a655772a81cde6f39408d2ec08a7c667cf4bd9ca872fbc0',
+      '4cbb1b6701d454a0c276f096d87e5e0df5ac1e2149af47e6f134582001cca400']
+      .includes(createHash('sha256').update(activeMissouri).digest('hex'))) {
+      const dormantMissouri = `    "MO": {
+      "customerLabel": "Missouri",
+      "sourceLabel": "Missouri Costco warehouse bourbon watch",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_costco_inventory_research",
+      "coverageTier": "blocked",
+      "refinementLevel": "warehouse",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research-only: Missouri has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
+    },`;
+      text = replaceUnique(text, activeMissouri, dormantMissouri, `${name}: exact attested MO lifecycle entry`);
     }
     const releasedRi = /^    \},\n    "RI": \{[\s\S]+?^  \}/mu.exec(text)?.[0];
     if (releasedRi && createHash('sha256').update(releasedRi).digest('hex') === '630ee689b046da0c7c418c9254b2babadb06898921b1fc875b1dd903a4c90fe2') {
@@ -256,5 +286,19 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     text = replaceUnique(text, menu.reviewed, menu.original, `${name}: CA reviewed metadata city expansion`);
     text = replaceUnique(text, nationwide.reviewed, nationwide.original, `${name}: CA reviewed metadata`);
   }
+  if(name==='src/config/state-lifecycle.json')for(const [current,historical]of [
+    ['Northwest / DeSoto–Memphis fringe','Northwest / DeSoto\\u2013Memphis fringe'],
+    ['Northeast / Tupelo–Golden Triangle','Northeast / Tupelo\\u2013Golden Triangle'],
+    ['Delta / Greenville–Clarksdale–Greenwood','Delta / Greenville\\u2013Clarksdale\\u2013Greenwood'],
+    ['Central / Jackson–Madison–Rankin','Central / Jackson\\u2013Madison\\u2013Rankin'],
+    ['Pine Belt / Hattiesburg–Laurel','Pine Belt / Hattiesburg\\u2013Laurel'],
+    ['Gulf Coast / Gulfport–Biloxi–Pascagoula','Gulf Coast / Gulfport\\u2013Biloxi\\u2013Pascagoula'],
+    ['Southwest / Natchez–Brookhaven–McComb–Vicksburg','Southwest / Natchez\\u2013Brookhaven\\u2013McComb\\u2013Vicksburg'],
+    ['Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson–Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.',
+      'Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson\\u2013Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.'],
+    ['First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno–Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane.',
+      'First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno\\u2013Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane.'],
+  ])text=replaceUnique(text,current,historical,`${name}: exact historical JSON unicode escapes`);
+  if(name==='src/config/state-lifecycle.json')text=replaceUnique(text,'Reno–Sparks','Reno\\u2013Sparks',`${name}: exact Nevada area Unicode escape`);
   return Buffer.from(text);
 }

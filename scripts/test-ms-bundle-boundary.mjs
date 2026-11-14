@@ -90,6 +90,21 @@ test('Minnesota admission reverses only its reviewed lifecycle, active list and 
   }
 });
 
+test('Missouri active lifecycle pin is exact and remains isolated from the historical MS bundle', async () => {
+  const name='src/config/state-lifecycle.json';
+  const current=await readFile(new URL('../'+name,import.meta.url),'utf8');
+  const entry=/^    "MO": \{\n[\s\S]+?^    \},\n/mu.exec(current)?.[0];
+  assert.ok(entry);
+  assert.equal(digest(entry.slice(0,-1)),'4cbb1b6701d454a0c276f096d87e5e0df5ac1e2149af47e6f134582001cca400');
+  assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
+  for(const changed of [
+    entry.replace('"artifactDigest": "','"artifactDigest": "changed'),
+    entry.replace('"cohortSha256": "','"cohortSha256": "changed'),
+    entry.replace('"publicStatus": "active"','"publicStatus": "research_only"'),
+  ])assert.notEqual(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(entry,changed)))),
+    evidence.implementationFilesSha256[name],'an altered MO lifecycle must remain outside the historical MS equivalence');
+});
+
 test('FL and IN proof normalization reverse exact additions while preserving the original MS anchor', async () => {
   const name = 'engine/src/operational-report.mjs';
   const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
@@ -242,9 +257,13 @@ test('nationwide reversal accepts only exact reviewed CA metadata and inactive c
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
     for (const { reviewed, original } of reversals) {
       assert.notEqual(reviewed, original);
+      const hook = reviewed === entry.registration?.reviewed
+        ? reviewed.replace('...CENTRAL_CITYHIVE_STATE_CONFIGS,', "...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id!=='MO'),")
+        : reviewed;
+      assert.equal(current.split(hook).length - 1, 1, name);
       const changed = reviewed.replace(name.endsWith('.mjs') ? 'CENTRAL_CITYHIVE_STATE_CONFIGS' : 'California', 'UNREVIEWED_METADATA');
       assert.notEqual(changed, reviewed);
-      for (const mutation of [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed]) {
+      for (const mutation of [current.replace(hook, original), current.replace(hook, changed), current + '\n' + hook]) {
         assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /exact historical verification hook/);
       }
     }

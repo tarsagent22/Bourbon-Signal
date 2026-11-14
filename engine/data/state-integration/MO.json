@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "state": "MO",
+  "lifecycle": {
+    "customerLabel": "Missouri",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "mo:central-cityhive"
+    ],
+    "registration": "Closed reviewed CityHive cohort with immutable semantic manifest admission before cache or HTTP. Production observations are on-site only and cannot alert or deliver.",
+    "cohortSha256": "5b3f88be5a779f0e9631bb68a1f054fd833ce6d098fa62b2f13ae710bcc1fe17"
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "proof": "Current first-party merchant configuration, address, product ID, option ID, same-host product URL and pickup offer must agree. Stored source bindings are rechecked in confidence and export policy."
+  },
+  "sourceSemantics": {
+    "availability": "Binary retailer-published pickup availability. Positive options never create an exact shelf count; verify before driving.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "The isolated MO canary lifecycle and Missouri state partition are exercised by workflow-issued candidate replay; this does not activate the authoritative MO production lifecycle."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "The isolated MO canary lifecycle and Missouri state partition are exercised by workflow-issued candidate replay; this does not activate the authoritative MO production lifecycle."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "Missouri customer projection is exercised only by the isolated no-delivery canary; this does not activate the authoritative MO production lifecycle."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Missouri customer projection is exercised only by the isolated no-delivery canary; this does not activate the authoritative MO production lifecycle."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "Missouri customer projection is exercised only by the isolated no-delivery canary; this does not activate the authoritative MO production lifecycle."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Missouri customer projection is exercised only by the isolated no-delivery canary; this does not activate the authoritative MO production lifecycle."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Missouri customer projection is exercised only by the isolated no-delivery canary; this does not activate the authoritative MO production lifecycle."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Missouri customer projection is exercised only by the isolated no-delivery canary; this does not activate the authoritative MO production lifecycle."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Missouri customer projection is exercised only by the isolated no-delivery canary; this does not activate the authoritative MO production lifecycle."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "verified",
+      "runs": 4,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43611542644",
+      "observations": [
+        {
+          "runId": "43565682813",
+          "status": "success",
+          "artifactHash": "be685c255dddd4d9010f5dd80fa1a0ceaba469c9c396178c33a5a58dcf320404",
+          "artifactId": "14101879455",
+          "commitSha": "e3fc259d5723af5034e240c2dc5ad1d112b67573",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813",
+          "sourceStartedAt": "2026-11-14T06:21:23.129Z",
+          "sourceFinishedAt": "2026-11-14T06:21:47.073Z",
+          "currentRows": 14,
+          "positiveStores": 9,
+          "positiveCities": 6
+        },
+        {
+          "runId": "43586205036",
+          "status": "success",
+          "artifactHash": "33812069d1e141b2f491f0f40ad075fca4aa0ed16253cc8d1ea4787f3a973c5f",
+          "artifactId": "14110308404",
+          "commitSha": "f417fa44dfad17880935107a8eef8445d8f205c2",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43586205036",
+          "sourceStartedAt": "2026-11-14T10:39:05.353Z",
+          "sourceFinishedAt": "2026-11-14T10:39:27.63Z",
+          "currentRows": 14,
+          "positiveStores": 9,
+          "positiveCities": 6
+        },
+        {
+          "runId": "43604789165",
+          "status": "success",
+          "artifactHash": "d31abe103887b0cd4c5372ebcf5fbd3f9fe6cdd01242e34ac52f81a23426ff37",
+          "artifactId": "14118246159",
+          "commitSha": "8cf6f6f9529d047a04d95d5cc0400c9ecbeecb90",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43604789165",
+          "sourceStartedAt": "2026-11-14T14:26:06.355Z",
+          "sourceFinishedAt": "2026-11-14T14:26:32.854Z",
+          "currentRows": 14,
+          "positiveStores": 9,
+          "positiveCities": 6
+        },
+        {
+          "runId": "43611542644",
+          "status": "success",
+          "artifactHash": "21627829a8c0592865fd9558215b1d9886ab6e89c0466774e5e4e341e75e6bb7",
+          "artifactId": "14120083470",
+          "commitSha": "e52c0baafe3860b3fbe42f240008cc8532f785f8",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43611542644",
+          "sourceStartedAt": "2026-11-14T15:42:22.591Z",
+          "sourceFinishedAt": "2026-11-14T15:42:47.182Z",
+          "currentRows": 14,
+          "positiveStores": 9,
+          "positiveCities": 6
+        }
+      ],
+      "originalSourceClocksPreserved": true
+    },
+    "canary": {
+      "status": "verified",
+      "runs": 4,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43615283586",
+      "siteArtifact": "engine/data/canary-site/mo-active-candidate",
+      "observations": [
+        {
+          "runId": "43587011078",
+          "status": "success",
+          "artifactHash": "049a18af56492c1f949a69ce9995a73d1d18de0608d87dbf6f77a5f5f11b134c",
+          "artifactId": "14110950295",
+          "commitSha": "777ee3c3d5016b04b37bd0f338c3bcc4a52f2e14",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43587011078",
+          "currentRows": 14,
+          "positiveStores": 9,
+          "positiveCities": 6,
+          "searchableStores": 10,
+          "allDeliveryDisabled": true
+        },
+        {
+          "runId": "43607500881",
+          "status": "success",
+          "artifactHash": "a974ccecb4b4d41194843bcd3ab79369e305a5bdacc1e97c71fc0fb49f8de622",
+          "artifactId": "14118656707",
+          "commitSha": "cf42ca3d51035944746ee588eeab1f9dbab74e33",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43607500881",
+          "currentRows": 14,
+          "positiveStores": 9,
+          "positiveCities": 6,
+          "searchableStores": 10,
+          "allDeliveryDisabled": true
+        },
+        {
+          "runId": "43613518791",
+          "status": "success",
+          "artifactHash": "45a34eedeac6f94a44dcfa927793d72f34b533a9273fbd910886bf365ad20440",
+          "artifactId": "14120923877",
+          "commitSha": "52dec5be126dec5ab7f81a79ddea692cb457f12c",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43613518791",
+          "currentRows": 14,
+          "positiveStores": 9,
+          "positiveCities": 6,
+          "searchableStores": 10,
+          "allDeliveryDisabled": true,
+          "publicProjectionSha256": "e7a4112a80e78a5fc13898a80e32afc2f669dbd15805aa73636f241540bbf032"
+        },
+        {
+          "runId": "43615283586",
+          "status": "success",
+          "artifactHash": "22e03035a95159827de0eb040bb74079241dd29068f020ddd33e51e2d504bbbf",
+          "artifactId": "14122410442",
+          "commitSha": "bb258e4ca7e08c86163d838c043716434aeed31c",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43615283586",
+          "currentRows": 14,
+          "positiveStores": 9,
+          "positiveCities": 6,
+          "searchableStores": 10,
+          "allDeliveryDisabled": true,
+          "publicProjectionSha256": "30ae804fff816dc91ad599cb2199a6dd62a477a8da14b4ffa0eba725f4c77f11"
+        }
+      ],
+      "preview": {
+        "url": "https://bourbonsignal-bxv13ot38-tarsagent22s-projects.vercel.app",
+        "deploymentId": "dpl_vHE7QCwLFNHwoGXbkkJCYFeNLZLe",
+        "verified": true,
+        "verifiedAt": "2026-11-14T16:01:58.298Z",
+        "currentRows": 14,
+        "positiveStores": 9,
+        "positiveCities": 6,
+        "searchableStores": 10,
+        "finderStoreIds": 2,
+        "finderQueries": [
+          {
+            "storeId": "brown-derby:5e7b0ae35c462e765a9bd2b0",
+            "status": "actively-monitored",
+            "city": "Nixa",
+            "httpStatus": 200
+          },
+          {
+            "storeId": "brown-derby:5d8cd7bfdaea8420a917658d",
+            "status": "known-expansion-candidate",
+            "city": "Springfield",
+            "httpStatus": 200
+          }
+        ],
+        "allDeliveryDisabled": true,
+        "authenticatedUiVerified": false
+      }
+    },
+    "production": {
+      "status": "pending_release",
+      "url": "https://www.bourbonsignal.com/api/drops?state=MO",
+      "siteArtifact": "engine/data/canary-site/mo-active-candidate",
+      "assertion": "Target endpoint only; Missouri is not published. A guarded release and successful first-publication verifier are still required.",
+      "reason": "No Missouri production workflow or customer publication has been authorized or run."
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "MO",
+      "generatedAt": "2026-11-14T16:33:50.000Z",
+      "sourceConfigHash": "cb43b8d30dd3940ea88e9105b043abee1a48b92f2333221925e70d69fc7e8dbb",
+      "previewUrl": "https://bourbonsignal-bxv13ot38-tarsagent22s-projects.vercel.app",
+      "shadowRuns": [
+        {
+          "runId": "43565682813",
+          "status": "success",
+          "artifactHash": "be685c255dddd4d9010f5dd80fa1a0ceaba469c9c396178c33a5a58dcf320404",
+          "artifactId": "14101879455",
+          "commitSha": "e3fc259d5723af5034e240c2dc5ad1d112b67573",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813"
+        },
+        {
+          "runId": "43586205036",
+          "status": "success",
+          "artifactHash": "33812069d1e141b2f491f0f40ad075fca4aa0ed16253cc8d1ea4787f3a973c5f",
+          "artifactId": "14110308404",
+          "commitSha": "f417fa44dfad17880935107a8eef8445d8f205c2",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43586205036"
+        },
+        {
+          "runId": "43604789165",
+          "status": "success",
+          "artifactHash": "d31abe103887b0cd4c5372ebcf5fbd3f9fe6cdd01242e34ac52f81a23426ff37",
+          "artifactId": "14118246159",
+          "commitSha": "8cf6f6f9529d047a04d95d5cc0400c9ecbeecb90",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43604789165"
+        },
+        {
+          "runId": "43611542644",
+          "status": "success",
+          "artifactHash": "21627829a8c0592865fd9558215b1d9886ab6e89c0466774e5e4e341e75e6bb7",
+          "artifactId": "14120083470",
+          "commitSha": "e52c0baafe3860b3fbe42f240008cc8532f785f8",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43611542644"
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "43587011078",
+          "status": "success",
+          "artifactHash": "049a18af56492c1f949a69ce9995a73d1d18de0608d87dbf6f77a5f5f11b134c",
+          "artifactId": "14110950295",
+          "commitSha": "777ee3c3d5016b04b37bd0f338c3bcc4a52f2e14",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43587011078"
+        },
+        {
+          "runId": "43607500881",
+          "status": "success",
+          "artifactHash": "a974ccecb4b4d41194843bcd3ab79369e305a5bdacc1e97c71fc0fb49f8de622",
+          "artifactId": "14118656707",
+          "commitSha": "cf42ca3d51035944746ee588eeab1f9dbab74e33",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43607500881"
+        },
+        {
+          "runId": "43613518791",
+          "status": "success",
+          "artifactHash": "45a34eedeac6f94a44dcfa927793d72f34b533a9273fbd910886bf365ad20440",
+          "artifactId": "14120923877",
+          "commitSha": "52dec5be126dec5ab7f81a79ddea692cb457f12c",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43613518791"
+        },
+        {
+          "runId": "43615283586",
+          "status": "success",
+          "artifactHash": "22e03035a95159827de0eb040bb74079241dd29068f020ddd33e51e2d504bbbf",
+          "artifactId": "14122410442",
+          "commitSha": "bb258e4ca7e08c86163d838c043716434aeed31c",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43615283586"
+        }
+      ],
+      "cohortSha256": "5b3f88be5a779f0e9631bb68a1f054fd833ce6d098fa62b2f13ae710bcc1fe17",
+      "sourceRuntimeId": "mo:central-cityhive",
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "43615652766",
+        "artifactId": "14122216678",
+        "commitSha": "630a2d9dbcb6732e63bc71f4f5649b072d3f28c9",
+        "artifactDigest": "0d548374e077e4db5f1b86ba94e9c3cd08f1b42fe242828dbf7c4f8abc7b4b4d",
+        "bundleDigest": "7666ecc1bad7104b07493527dbdc7ce19b7b661aae16d682b81a7e81721cad85",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43615652766",
+        "artifactName": "state-promotion-provenance-MO-43615652766"
+      }
+    },
+    "actualPreviewVerification": {
+      "verifiedAt": "2026-10-29T17:56:00.428Z",
+      "currentPublicRows": 1,
+      "currentPublicStores": 1,
+      "statsHttpStatus": 200,
+      "coverageHttpStatus": 200,
+      "signedFeedCountVerified": true,
+      "finderHttpStatus": 401,
+      "normalPaidFilterStatus": 403,
+      "authenticatedPaidUiSessionVerified": false,
+      "physicalDeviceExercised": false,
+      "allDeliveryChannelsDisabled": true,
+      "combinedSnapshotDigest": "362d2cbd33b6bbcc3ec80217b6af3cee3c046cd7f5544929786e60994077d38e",
+      "partitionSha256": "87f9cdb9b4211397d23294e5ba0475477bcecf607e477bb71f6532a818b54269"
+    }
+  },
+  "rollback": {
+    "disableSource": "Keep Missouri authoritative lifecycle research_only; production collection remains closed until all immutable admission evidence is reviewed."
+  },
+  "actualPreviewVerification": {
+    "verifiedAt": "2026-11-14T16:01:58.298Z",
+    "currentPublicRows": 14,
+    "currentPublicStores": 9,
+    "currentPublicCities": 6,
+    "coverageHttpStatus": 200,
+    "searchableStores": 10,
+    "finderHttpStatus": 200,
+    "finderStoreIds": 2,
+    "finderQueries": [
+      {
+        "storeId": "brown-derby:5e7b0ae35c462e765a9bd2b0",
+        "status": "actively-monitored",
+        "city": "Nixa",
+        "httpStatus": 200
+      },
+      {
+        "storeId": "brown-derby:5d8cd7bfdaea8420a917658d",
+        "status": "known-expansion-candidate",
+        "city": "Springfield",
+        "httpStatus": 200
+      }
+    ],
+    "statsHttpStatus": null,
+    "signedFeedCountVerified": false,
+    "normalPaidFilterStatus": null,
+    "authenticatedPaidUiSessionVerified": false,
+    "physicalDeviceExercised": false,
+    "allDeliveryChannelsDisabled": true,
+    "combinedSnapshotDigest": null,
+    "partitionSha256": "034ce01f6b2a5c93e5c82e56b2f2db789900b6ddc7714c39a17267254be46b6d"
+  }
+}
