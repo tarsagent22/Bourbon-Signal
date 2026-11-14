@@ -9,6 +9,7 @@ const preparationOnly=file=>[
   '.github/workflows/state-expansion-canary.yml','.github/workflows/state-promotion-provenance.yml',
   'engine/src/prepare-central-cityhive-canary.mjs','scripts/download-cityhive-shadow.mjs',
   'engine/src/central-cityhive-fixtures.mjs','engine/src/verify-state-fixtures.mjs',
+  'src/lib/drop-feed-visibility.ts',
   'engine/test/central-cityhive-canary.test.mjs','scripts/test-cityhive-shadow-download.mjs',
   'scripts/test-central-cityhive-public-canary.mjs','scripts/build-promotion-provenance.mjs',
   'engine/src/build-state-canary-preview.mjs','next.config.ts','src/lib/site-engine-contract.ts',
