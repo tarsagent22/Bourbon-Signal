@@ -3,6 +3,7 @@ import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 import {stableId} from '../src/core/text.mjs';
 import {OREGON_DAILY_INVENTORY_URL} from '../src/or-daily-inventory.mjs';
+import {isOregonDailyCanaryPreviewEvidence} from '../src/oregon-daily-production-policy.mjs';
 import {prepareOregonCanary} from '../src/prepare-oregon-canary.mjs';
 import {validateStateFixtures} from '../src/verify-state-fixtures.mjs';
 import {executeOregonResearchFixtures} from '../src/oregon-research-fixtures.mjs';
@@ -29,6 +30,10 @@ test('Oregon official report replays exact rows, retains source clocks, and disa
   assert.equal(result.drops.length,1);assert.equal(result.drops[0].observedAt,observedAt);assert.equal(result.sourceReportDate,sourceReportDate);
   for(const key of ['canAlertAsInventory','canAlertAsWatch','alertable','eligibleForDelivery','deliveryEligible','eligibleForEmail','eligibleForSms'])assert.equal(result.drops[0][key],false);
   assert.equal(result.drops[0].previewOnly,true);assert.equal(result.policy.productionActivationAllowed,false);
+  assert.equal(isOregonDailyCanaryPreviewEvidence(result.drops[0]),true);
+  for(const mutation of [{sourceProductBinding:{...result.drops[0].sourceProductBinding,reportSha256:'not-a-sha256'}},
+    {quantity:result.drops[0].quantity+1},{raw:{...result.drops[0].raw,shadowOnly:true}},{canAlertAsInventory:true}])
+    assert.equal(isOregonDailyCanaryPreviewEvidence({...result.drops[0],...mutation}),false);
 });
 
 test('Oregon canary rejects stale report dates, changed revisions, or alert-authorizing summaries',()=>{

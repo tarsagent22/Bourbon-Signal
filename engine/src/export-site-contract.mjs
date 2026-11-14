@@ -6,7 +6,7 @@ import { isMassachusettsResearchInventory } from './massachusetts-research-polic
 import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
 import { isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
 import { isLouisianaAlaskaGroceryInventory, isLouisianaAlaskaGroceryOnSiteSignal } from './louisiana-alaska-grocery-policy.mjs';
-import { isOregonDailyProductionEvidence } from './oregon-daily-production-policy.mjs';
+import { isOregonDailyProductionEvidence, isOregonDailyCanaryPreviewEvidence } from './oregon-daily-production-policy.mjs';
 import { OREGON_INVENTORY_MAX_AGE_MS } from './or-daily-inventory.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { requiresStateAlertSuppression } from './state-failure-isolation.mjs';
@@ -1270,7 +1270,7 @@ function hasPositiveAvailabilityStatus(signal) {
 }
 
 function isUserFacingDropSignal(signal) {
-  if (signal.state === 'OR' && String(signal.eventType || signal.type || '').toLowerCase() === 'store_inventory_result') return isOregonDailyProductionEvidence(signal);
+  if (signal.state === 'OR' && String(signal.eventType || signal.type || '').toLowerCase() === 'store_inventory_result') return isOregonDailyProductionEvidence(signal) || isOregonDailyCanaryPreviewEvidence(signal);
   if (['WA', 'NM'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
   if(isNjMiRetailerEvent(signal))return isNjMiResearchInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if(isCentralCityHiveRetailerEvent(signal))return isCentralCityHiveInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;

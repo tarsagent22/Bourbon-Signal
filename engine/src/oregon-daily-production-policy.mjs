@@ -22,3 +22,10 @@ export function isOregonDailyProductionEvidence(drop = {}) {
     && drop.eligibleForOnSite === true && drop.eligibleForDropFeed === true && drop.eligibleForWatch === false
     && drop.eligibleForDelivery === false && drop.deliveryEligible === false && drop.eligibleForEmail === false && drop.eligibleForSms === false;
 }
+
+/** Isolated canary preview evidence reuses the complete OLCC proof while remaining non-production. */
+export function isOregonDailyCanaryPreviewEvidence(drop = {}) {
+  return drop.previewOnly === true && drop.raw?.shadowOnly !== true
+    && drop.sourceProductBinding?.shadowOnly !== true
+    && isOregonDailyProductionEvidence({ ...drop, previewOnly: false });
+}
