@@ -10,7 +10,7 @@ import {buildStateQualityInputs,buildStateQualityScorecard} from '../engine/src/
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const ADDITIONS=['WA','NM','WI','OK'];
-const VERIFIED_GROCERY_ADDITIONS=['AK','LA'];
+const VERIFIED_LATER_ADDITIONS=['AK','LA','RI'];
 const LEGACY_RUN='a7401de0a51cca45';
 const readJson=async file=>JSON.parse(await readFile(file,'utf8'));
 const serialize=value=>JSON.stringify(value,null,2)+'\n';
@@ -28,7 +28,7 @@ export async function prepareLegacySiteFixtureForCi({root=ROOT,ci=false,workflow
     ||manifest.generatedAt!==stats.generatedAt||manifest.generatedAt!==index.generatedAt
     ||manifest.generatedAt!==quality.generatedAt||manifest.generatedAt!==drops.generatedAt)
     throw Error('CI preparation only accepts the reviewed historical site fixture and its original clocks');
-  const additionalStates=[...ADDITIONS,...VERIFIED_GROCERY_ADDITIONS.filter(state=>config.activeStates.includes(state))];
+  const additionalStates=[...ADDITIONS,...VERIFIED_LATER_ADDITIONS.filter(state=>config.activeStates.includes(state))];
   const legacyStates=config.activeStates.filter(state=>!additionalStates.includes(state));
   if(legacyStates.length!==24||config.activeStates.length!==24+additionalStates.length||ADDITIONS.some(state=>!config.activeStates.includes(state)))throw Error('Unexpected lifecycle scope for this exact CI fixture migration');
   for(const state of legacyStates)if(!index.states.some(row=>row.state===state)||!stats.stateCoverage.states.some(row=>row.state===state)||!quality.states.some(row=>row.state===state))throw Error('Missing legacy state '+state);
