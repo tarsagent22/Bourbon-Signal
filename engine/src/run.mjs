@@ -11,7 +11,7 @@ import { ensureBrowserCdp, killBrowserCdp, DEFAULT_CDP_URL } from './core/browse
 import { confidenceForSignal } from './confidence-policy.mjs';
 import { atomicWriteJson, validateFwgsFullArtifact } from './fwgs-artifact-policy.mjs';
 import { runBoundedPool } from './optimization/worker-pool.mjs';
-import { selectScheduledStates, updateStateRunMetric } from './optimization/state-run-plan.mjs';
+import { prioritizeScheduledStateRuns, selectScheduledStates, updateStateRunMetric } from './optimization/state-run-plan.mjs';
 import { guardStateReport, stateReportContinuityStateIds, usesPartialSignalContinuity } from './state-report-guard.mjs';
 import { resolveAggregateStateReports } from './state-report-aggregation.mjs';
 import { markStaleReport } from './state-report-fallback.mjs';
@@ -582,7 +582,12 @@ async function main() {
       }
     }
   }
-  const runnable = schedule.filter((entry) => entry.run).map((entry) => entry.config);
+  const dueConfigs = schedule.filter((entry) => entry.run).map((entry) => entry.config);
+  // The export waits for every selected state. Start measured long-running
+  // states early and preserve the normal order for explicitly scoped refreshes.
+  const runnable = STATE_SCHEDULER_ENABLED && !REQUESTED_STATE_IDS.size
+    ? prioritizeScheduledStateRuns(dueConfigs, previousMetrics, Date.parse(scheduleOptions.now))
+    : dueConfigs;
   console.log(`State scheduler selected ${runnable.length}/${selectedStateSources.length} states; worker concurrency=${STATE_WORKER_CONCURRENCY}.`);
   const poolResults = await runBoundedPool(runnable, async (config) => {
     console.log(`Collecting ${config.id} — ${config.label}`);
