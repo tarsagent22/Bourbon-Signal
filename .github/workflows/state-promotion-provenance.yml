@@ -54,7 +54,7 @@ jobs:
               exit 1
             fi
           elif [[ -n "$RAW_SHADOW_RUN" ]]; then
-            echo "Artifact replay is reviewed only for OR/AK/LA/WA/NM/WI/OK/RI/KS/AR/NJ/MI/MN/AR" >&2
+            echo "Artifact replay is reviewed only for OR/AK/LA/WA/NM/WI/OK/RI/MN/KS/AR/NJ/MI" >&2
             exit 1
           fi
           echo "shadow_run=$RAW_SHADOW_RUN" >> "$GITHUB_OUTPUT"
