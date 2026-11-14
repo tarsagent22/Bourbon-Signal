@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -11,7 +11,12 @@ const gh = process.platform === 'win32' ? 'gh.exe' : 'gh';
 const api = route => JSON.parse(execFileSync(gh, ['api', `repos/${repo}/${route}`], {encoding:'utf8'}));
 const run = api(`actions/runs/${runId}`);
 if (run.conclusion !== 'success' || run.repository.full_name !== repo || run.path !== '.github/workflows/state-expansion-shadow.yml'
-  || run.head_branch !== 'research/south-dakota-sante-20261114') throw Error('South Dakota source did not come from the reviewed GitHub shadow workflow.');
+  || run.head_branch !== 'research/south-dakota-sante-20261114' || !/^[a-f\d]{40}$/.test(run.head_sha)) {
+  throw Error('South Dakota source did not come from the reviewed GitHub shadow workflow.');
+}
+if (spawnSync('git', ['cat-file', '-e', `${run.head_sha}^{commit}`]).status !== 0) {
+  execFileSync('git', ['fetch', '--no-tags', '--depth=1', 'origin', run.head_sha], { stdio: 'inherit' });
+}
 for (const name of ['engine/src/research-south-dakota-retailer.mjs', 'engine/src/south-dakota-pickup-policy.mjs', 'engine/src/research-state-registry.mjs']) {
   const reviewed = execFileSync('git',['show',`${run.head_sha}:${name}`]);
   const current = execFileSync('git',['show',`HEAD:${name}`]);
