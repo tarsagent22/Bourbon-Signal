@@ -7,6 +7,7 @@ import { cityHiveResearchSourceForState, cityHiveResearchLifecycleEntries, colle
 import {njMiResearchSourceForState,njMiResearchLifecycleEntries,collectNjMiResearchReport} from './nj-mi-research-runtime.mjs';
 import {michiganLiquorsResearchSourceForState,michiganLiquorsResearchLifecycleEntries,collectMichiganLiquorsResearchReport} from './research-michigan-liquors-runtime.mjs';
 import { louisianaAlaskaResearchSourceForState, louisianaAlaskaResearchLifecycleEntries, collectLouisianaAlaskaResearchReport } from './research-louisiana-alaska-grocery-runtime.mjs';
+import { hiSafewayResearchSourceForState, collectHiSafewayResearchReport } from './research-hi-safeway-runtime.mjs';
 
 // Research registrations never rewrite production lifecycle/source files or
 // historical promotion evidence. Activation requires a separate reviewed change.
@@ -21,6 +22,7 @@ const MASSACHUSETTS = Object.freeze({
 export function researchSourceForState(state, { shadowMode = process.env.BOURBON_SIGNAL_SHADOW_MODE === '1' } = {}) {
   if (!shadowMode) return null;
   if (state === 'MA') return MASSACHUSETTS;
+  if (state === 'HI') return hiSafewayResearchSourceForState(state);
   return oregonResearchSourceForState(state)
     || michiganLiquorsResearchSourceForState(state)
     || louisianaAlaskaResearchSourceForState(state)
@@ -35,6 +37,10 @@ export function withResearchLifecycle(production) {
   const additions = {
     ...cityHiveResearchLifecycleEntries(), ...groceryResearchLifecycleEntries(), ...njMiResearchLifecycleEntries(),
     ...michiganLiquorsResearchLifecycleEntries(), ...louisianaAlaskaResearchLifecycleEntries(),
+    HI: { customerLabel: 'Hawaii', sourceLabel: 'Hawaii Safeway exact-store research',
+      publicStatus: 'research_only', shadowEligible: true, lifecycle: 'retailer_inventory_research',
+      coverageTier: 'sparse_live_store_inventory', refinementLevel: 'store', inventoryAlertable: false,
+      watchAlertable: false, customerSummary: 'Research-only first-party exact-store observations. Customer activation and delivery remain blocked.' },
   };
   for(const state of Object.keys(additions))if(production.activeStates.includes(state)||production.states[state]?.publicStatus==='active') {
     delete additions[state];
@@ -54,6 +60,7 @@ export async function collectResearchStateReport(config, bible, options = {}) {
   if (config && config === oregonResearchSourceForState(config.id)) return collectOregonResearchReport(config, bible, options);
   if(config&&config===michiganLiquorsResearchSourceForState(config.id))return collectMichiganLiquorsResearchReport(config,bible,options);
   if (config && config === louisianaAlaskaResearchSourceForState(config.id)) return collectLouisianaAlaskaResearchReport(config, bible, options);
+  if (config && config === hiSafewayResearchSourceForState(config.id)) return collectHiSafewayResearchReport(config, bible, options);
   if(config&&config===groceryResearchSourceForState(config.id))return collectGroceryResearchReport(config,bible,options);
   if(config&&config===njMiResearchSourceForState(config.id))return collectNjMiResearchReport(config,bible,options);
   if (config && config === cityHiveResearchSourceForState(config.id)) return collectCityHiveResearchReport(config,bible,options);

@@ -1,0 +1,309 @@
+{
+  "schema": "bs-hi-safeway-research-capture@1",
+  "status": "research_only_no_production_admission",
+  "sourceHost": "www.safeway.com",
+  "method": "bounded first-party GET; existing resolver/XAPI route and in-store channel; no cart or checkout",
+  "note": "The provider reports only binary in-store availability for selected product rows; numeric instoreItemQty is absent. This is the observation time at capture, not a retailer-supplied timestamp. Exact 750mL product identity constrained by product id, UPC, title, ABV, size, store id, alcohol flag, and inStore channel.",
+  "stores": [
+    {
+      "island": "Oahu",
+      "store": {
+        "storeId": "safeway:2944",
+        "locationId": "2944",
+        "address": "1234 S Beretania St, Honolulu, HI 96814",
+        "banner": "safeway",
+        "domain": "Safeway"
+      },
+      "resolver": {
+        "status": 206,
+        "body": {
+          "file": "resolver-96814.json",
+          "bytes": 140945,
+          "sha256": "6b73b8d96cbd8b5d68b5b6ea52e6ec3560fbb942542ccdb383b72184f6107db4",
+          "capturedAtUtc": "2026-11-14T09:16:13.206Z"
+        }
+      },
+      "productQuery": {
+        "url": "https://www.safeway.com/abs/pub/xapi/search/substitute",
+        "params": {
+          "q": "bourbon",
+          "storeid": "2944",
+          "channel": "instore",
+          "banner": "safeway",
+          "rows": 100,
+          "start": 0,
+          "search-type": "keyword"
+        },
+        "status": 200,
+        "appCode": "GR200 :: A-CT: 200",
+        "totalReturned": 100,
+        "containsAlcohol": 96,
+        "positiveInStoreAlcohol": 85,
+        "binaryAvailabilityOnly": true,
+        "products": [
+          {
+            "productId": "960488502",
+            "upc": "0008800400552",
+            "name": "Colonel E.H. Taylor Barrel Proof Straight Kentucky Bourbon Whiskey Variable Proof - 750 Ml (limited quantities may be available in store)",
+            "abv": 63,
+            "sizeMl": "750.0",
+            "sizeUnit": "ML",
+            "channelEligibility": {
+              "pickUp": false,
+              "delivery": false,
+              "inStore": true,
+              "shipping": false
+            },
+            "channelInventory": {
+              "delivery": "1",
+              "pickup": "1",
+              "instore": "1",
+              "shipping": "0"
+            }
+          },
+          {
+            "productId": "960051942",
+            "upc": "0008024400923",
+            "name": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+            "abv": 45,
+            "sizeMl": "750.0",
+            "sizeUnit": "ML",
+            "channelEligibility": {
+              "pickUp": false,
+              "delivery": false,
+              "inStore": true,
+              "shipping": false
+            },
+            "channelInventory": {
+              "delivery": "1",
+              "pickup": "1",
+              "instore": "1",
+              "shipping": "0"
+            }
+          },
+          {
+            "productId": "960293806",
+            "upc": "0008800400549",
+            "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+            "abv": 50,
+            "sizeMl": "750.0",
+            "sizeUnit": "ML",
+            "channelEligibility": {
+              "pickUp": false,
+              "delivery": false,
+              "inStore": true,
+              "shipping": false
+            },
+            "channelInventory": {
+              "delivery": "1",
+              "pickup": "1",
+              "instore": "1",
+              "shipping": "0"
+            }
+          }
+        ],
+        "body": {
+          "file": "products-2944.json",
+          "bytes": 247233,
+          "sha256": "d24c3d467ab2c7f1a2efcc92190a6b01157c5d5cac209d4cc5252d18913038d0",
+          "capturedAtUtc": "2026-11-14T09:17:49.664Z"
+        }
+      }
+    },
+    {
+      "island": "Maui",
+      "store": {
+        "storeId": "safeway:280",
+        "locationId": "280",
+        "address": "1090 Ho'okele St, Kahului, HI 96732",
+        "banner": "safeway",
+        "domain": "Safeway"
+      },
+      "resolver": {
+        "status": 206,
+        "body": {
+          "file": "resolver-96732.json",
+          "bytes": 44075,
+          "sha256": "8a49d9d4071bb89b3c5c6e4fdfba3b12e03e572c29783f4d50cec22255188adf",
+          "capturedAtUtc": "2026-11-14T09:16:13.601Z"
+        }
+      },
+      "productQuery": {
+        "url": "https://www.safeway.com/abs/pub/xapi/search/substitute",
+        "params": {
+          "q": "bourbon",
+          "storeid": "280",
+          "channel": "instore",
+          "banner": "safeway",
+          "rows": 100,
+          "start": 0,
+          "search-type": "keyword"
+        },
+        "status": 200,
+        "appCode": "GR200 :: A-CT: 200",
+        "totalReturned": 100,
+        "containsAlcohol": 96,
+        "positiveInStoreAlcohol": 90,
+        "binaryAvailabilityOnly": true,
+        "products": [
+          {
+            "productId": "960051942",
+            "upc": "0008024400923",
+            "name": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+            "abv": 45,
+            "sizeMl": "750.0",
+            "sizeUnit": "ML",
+            "channelEligibility": {
+              "pickUp": false,
+              "delivery": false,
+              "inStore": true,
+              "shipping": false
+            },
+            "channelInventory": {
+              "delivery": "1",
+              "pickup": "1",
+              "instore": "1",
+              "shipping": "0"
+            }
+          }
+        ],
+        "body": {
+          "file": "products-280.json",
+          "bytes": 245722,
+          "sha256": "226f4de343a0d99a33dd3a6a1afe17ee351743590db16b38a47176628b8ee955",
+          "capturedAtUtc": "2026-11-14T09:17:50.461Z"
+        }
+      }
+    },
+    {
+      "island": "Kauai",
+      "store": {
+        "storeId": "safeway:2894",
+        "locationId": "2894",
+        "address": "4454 Nuhou St Suite #301, Lihue, HI 96766",
+        "banner": "safeway",
+        "domain": "Safeway"
+      },
+      "resolver": {
+        "status": 206,
+        "body": {
+          "file": "resolver-96766.json",
+          "bytes": 24237,
+          "sha256": "27de559a7f4cb2fa5e39d2ccc7bdf7d603f460447c88f9415001b76bb96d881b",
+          "capturedAtUtc": "2026-11-14T09:16:13.849Z"
+        }
+      },
+      "productQuery": {
+        "url": "https://www.safeway.com/abs/pub/xapi/search/substitute",
+        "params": {
+          "q": "bourbon",
+          "storeid": "2894",
+          "channel": "instore",
+          "banner": "safeway",
+          "rows": 100,
+          "start": 0,
+          "search-type": "keyword"
+        },
+        "status": 200,
+        "appCode": "GR200 :: A-CT: 200",
+        "totalReturned": 99,
+        "containsAlcohol": 96,
+        "positiveInStoreAlcohol": 83,
+        "binaryAvailabilityOnly": true,
+        "products": [
+          {
+            "productId": "960051942",
+            "upc": "0008024400923",
+            "name": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+            "abv": 45,
+            "sizeMl": "750.0",
+            "sizeUnit": "ML",
+            "channelEligibility": {
+              "pickUp": false,
+              "delivery": false,
+              "inStore": true,
+              "shipping": false
+            },
+            "channelInventory": {
+              "delivery": "1",
+              "pickup": "1",
+              "instore": "1",
+              "shipping": "0"
+            }
+          }
+        ],
+        "body": {
+          "file": "products-2894.json",
+          "bytes": 242224,
+          "sha256": "1381bf22b833dde04f85fc4b80233c123786a552d0571c72d4ea30f1e84afde9",
+          "capturedAtUtc": "2026-11-14T09:17:51.236Z"
+        }
+      }
+    },
+    {
+      "island": "Hawaii Island",
+      "store": {
+        "storeId": "safeway:2893",
+        "locationId": "2893",
+        "address": "381 E Maka'Ala St, Hilo, HI 96720",
+        "banner": "safeway",
+        "domain": "Safeway"
+      },
+      "resolver": {
+        "status": 206,
+        "body": {
+          "file": "resolver-96720.json",
+          "bytes": 20398,
+          "sha256": "870a585bd2a19beff915164af96a2af95d6fdd9f4184321edad60b39bc3f519a",
+          "capturedAtUtc": "2026-11-14T09:16:14.243Z"
+        }
+      },
+      "productQuery": {
+        "url": "https://www.safeway.com/abs/pub/xapi/search/substitute",
+        "params": {
+          "q": "bourbon",
+          "storeid": "2893",
+          "channel": "instore",
+          "banner": "safeway",
+          "rows": 100,
+          "start": 0,
+          "search-type": "keyword"
+        },
+        "status": 200,
+        "appCode": "GR200 :: A-CT: 200",
+        "totalReturned": 99,
+        "containsAlcohol": 96,
+        "positiveInStoreAlcohol": 84,
+        "binaryAvailabilityOnly": true,
+        "products": [
+          {
+            "productId": "960051942",
+            "upc": "0008024400923",
+            "name": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+            "abv": 45,
+            "sizeMl": "750.0",
+            "sizeUnit": "ML",
+            "channelEligibility": {
+              "pickUp": false,
+              "delivery": false,
+              "inStore": true,
+              "shipping": false
+            },
+            "channelInventory": {
+              "delivery": "1",
+              "pickup": "1",
+              "instore": "1",
+              "shipping": "0"
+            }
+          }
+        ],
+        "body": {
+          "file": "products-2893.json",
+          "bytes": 243807,
+          "sha256": "c8deea74da6b65716145a99af32bb6a48347b16d70233e60161cdb9f8bfe1ee8",
+          "capturedAtUtc": "2026-11-14T09:17:51.936Z"
+        }
+      }
+    }
+  ]
+}
