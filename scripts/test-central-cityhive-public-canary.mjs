@@ -73,10 +73,12 @@ const locationRoute=loadWithMocks('src/app/api/locations/route.ts',{
   '@/lib/site-engine-contract':{readSiteExport:async name=>payloads[name],readBundledSiteExport:()=>null,siteExportHeaders:()=>({}),
     listStates:contractHelpers.listStates,normalizeStoreForSite:contractHelpers.normalizeStoreForSite,normalizeDropForSite},
 });
+const currentStoreIds = new Set(accepted.map(row => row.storeId));
 for(const location of candidateLocations){
+  const expectedStatus = currentStoreIds.has(location.id) ? 'actively-monitored' : 'known-expansion-candidate';
   const searched=await coverageRoute.POST(new Request('https://fixture.test/api/coverage',{method:'POST',body:JSON.stringify({state,query:location.name})}));
   assert.equal(searched.status,200);const search=await searched.json();
-  assert.ok(search.results.some(row=>row.kind==='store'&&row.storeId===location.id&&row.status==='actively-monitored'));
+  assert.ok(search.results.some(row=>row.kind==='store'&&row.storeId===location.id&&row.status===expectedStatus && row.address===location.address));
   assert.ok(directory.some(row=>row.state===state&&row.id===location.id));
   for(const route of [storeRoute,locationRoute]){
     const response=await route.GET(new Request('https://fixture.test/api/stores?state='+state+'&limit=1000'));
