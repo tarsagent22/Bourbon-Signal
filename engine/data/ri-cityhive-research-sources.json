@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "status": "research_only",
+  "source": "Direct first-party CityHive product detail captures and two current merchant-scoped search captures, 2026-11-14; compact evidence fixtures in engine/test/fixtures/ri-cityhive/.",
+  "stores": [
+    {
+      "id": "rhode-island-liquor-delivery:64f6226b7537422b95e04824",
+      "chainId": "rhode-island-liquor-delivery",
+      "chainName": "Rhode Island Liquor Delivery",
+      "name": "Rhode Island Liquor Delivery",
+      "state": "RI",
+      "stateCode": "RI",
+      "platform": "cityhive",
+      "baseUrl": "https://riliquordelivery.com",
+      "hostname": "riliquordelivery.com",
+      "merchantId": "64f6226b7537422b95e04824",
+      "address": "342 Broad St, Providence, RI 02907, USA",
+      "city": "Providence",
+      "zip": "02907",
+      "storeId": "rhode-island-liquor-delivery:64f6226b7537422b95e04824",
+      "sourceLabel": "Rhode Island Liquor Delivery RI first-party pickup inventory",
+      "categoryUrl": "https://riliquordelivery.com/shop/?subtype=Bourbon&merchant-id=64f6226b7537422b95e04824",
+      "lat": 41.8138408,
+      "lng": -71.4212627,
+      "evidenceDate": "2026-11-14",
+      "prioritySearchTerms": [
+        "eagle rare",
+        "stagg"
+      ]
+    },
+    {
+      "state": "RI",
+      "stateCode": "RI",
+      "platform": "cityhive",
+      "evidenceDate": "2026-11-14",
+      "prioritySearchTerms": [
+        "eagle rare"
+      ],
+      "id": "fifth-ward-liquor:546babb03932330002100300",
+      "chainId": "fifth-ward-liquor",
+      "chainName": "Fifth Ward Liquor",
+      "name": "Fifth Ward Liquor",
+      "baseUrl": "https://fifthwardliquor.com",
+      "hostname": "fifthwardliquor.com",
+      "merchantId": "546babb03932330002100300",
+      "address": "695 Thames St, Newport, RI 02840, USA",
+      "city": "Newport",
+      "zip": "02840",
+      "storeId": "fifth-ward-liquor:546babb03932330002100300",
+      "sourceLabel": "Fifth Ward Liquor RI first-party pickup inventory",
+      "categoryUrl": "https://fifthwardliquor.com/shop/?subtype=Bourbon&merchant-id=546babb03932330002100300",
+      "lat": 41.4734266,
+      "lng": -71.31391909999999
+    },
+    {
+      "state": "RI",
+      "stateCode": "RI",
+      "platform": "cityhive",
+      "evidenceDate": "2026-11-14",
+      "prioritySearchTerms": [
+        "eagle rare"
+      ],
+      "id": "california-liquors-ri:6114919961187149b8241cdd",
+      "chainId": "california-liquors-ri",
+      "chainName": "California Liquors",
+      "name": "California Liquors",
+      "baseUrl": "https://californialiquorsri.com",
+      "hostname": "californialiquorsri.com",
+      "merchantId": "6114919961187149b8241cdd",
+      "address": "84 Union Ave, Providence, RI 02909, USA",
+      "city": "Providence",
+      "zip": "02909",
+      "storeId": "california-liquors-ri:6114919961187149b8241cdd",
+      "sourceLabel": "California Liquors RI first-party pickup inventory",
+      "categoryUrl": "https://californialiquorsri.com/shop/?subtype=Bourbon&merchant-id=6114919961187149b8241cdd",
+      "lat": 41.809196,
+      "lng": -71.4383083
+    }
+  ]
+}

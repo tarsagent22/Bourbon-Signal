@@ -1,0 +1,99 @@
+{
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "64f6226b7537422b95e04824",
+        "name": "Rhode Island Liquor Delivery",
+        "address": {
+          "full_address": "342 Broad St, Providence, RI 02907, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -71.4212627,
+              41.8138408
+            ]
+          }
+        },
+        "accept_orders": true
+      }
+    }
+  ],
+  "product": {
+    "id": "56c28cb0756275139def0100",
+    "name": "Stagg Jr. Kentucky Straight Bourbon Whiskey",
+    "basic_category": [
+      "bourbon",
+      "whiskey"
+    ],
+    "size": {
+      "measure": "ml",
+      "quantity": "750"
+    },
+    "additional_properties": {
+      "brands": "Stagg Bourbon",
+      "content": "64.2%"
+    },
+    "merchants": [
+      {
+        "merchant_id": "64f6226b7537422b95e04824",
+        "offer_types": [
+          "pick_up",
+          "delivery",
+          "shipping"
+        ],
+        "product_options": [
+          {
+            "merchant_id": "64f6226b7537422b95e04824",
+            "merchant_name": "Rhode Island Liquor Delivery",
+            "full_address": "342 Broad St, Providence, RI 02907, USA",
+            "coordinates": [
+              -71.4212627,
+              41.8138408
+            ],
+            "product_id": "56c28cb0756275139def0100",
+            "option_id": "2551e19595a2b433409d02980b3f776e6818302352e0ee40538b4f77b782c479",
+            "option_params": {
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              }
+            },
+            "product_url": "https://riliquordelivery.com/shop/product/stagg-jr-kentucky-straight-bourbon-whiskey/56c28cb0756275139def0100?option-id=2551e19595a2b433409d02980b3f776e6818302352e0ee40538b4f77b782c479",
+            "price": 129.99,
+            "quantity": 1,
+            "option_display_data": {
+              "name": "Stagg Jr. Kentucky Straight Bourbon Whiskey",
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              },
+              "properties": {
+                "product_views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "product_basic_categories": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "brands": [
+                  "Stagg Bourbon"
+                ],
+                "country": "United States",
+                "state": "Kentucky",
+                "region": "Frank Fort",
+                "age": "2021",
+                "content": "64.2%",
+                "brand": "Stagg Jr"
+              },
+              "basic_category": [
+                "bourbon",
+                "whiskey"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
