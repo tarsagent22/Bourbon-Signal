@@ -301,18 +301,19 @@ function independentlyAcceptedSource(drop: PublicDropEvidenceInput) {
       || drop.canAlertAsWatch === true || drop.can_alert_as_watch === true);
 }
 
-function reviewedCaliforniaOverdueSiblingEvidence(drop: PublicDropEvidenceInput, options: PublicDropEligibilityOptions) {
-  const reasons = options.degradedStateReasons?.get("CA");
+function reviewedGroceryOverdueSiblingEvidence(drop: PublicDropEvidenceInput, options: PublicDropEligibilityOptions) {
+  const state = stateCode(drop);
+  const reasons = options.degradedStateReasons?.get(state);
+  if (reasons?.length !== 1 || reasons[0] !== "inventory_confirmation_overdue") return false;
   const raw = drop.raw && typeof drop.raw === "object" ? drop.raw as Record<string, unknown> : null;
   const binding = drop.sourceProductBinding as Record<string, unknown> | undefined;
   // The existing CA public export omits the internal zero for binary stock.
   // Restore it only for strict proof evaluation; no displayed count is added.
   const proofInput = drop.quantity == null && drop.quantityIsExact === false
     && binding?.inventorySemantics === "binary_retailer_orderable_no_exact_count" ? { ...drop, quantity: 0 } : drop;
-  // A healthy closed grocery leaf may survive only an overdue sibling warning.
-  // This neither changes state health nor grants source-poll/notification authority.
-  return stateCode(drop) === "CA" && reasons?.length === 1 && reasons[0] === "inventory_confirmation_overdue"
-    && isGroceryExpansionInventory(proofInput) && !sourceStale(drop) && drop.quarantined !== true
+  const provenInventory = state === "CA" ? isGroceryExpansionInventory(proofInput)
+    : isLouisianaAlaskaGroceryOnSiteSignal(drop);
+  return provenInventory && !sourceStale(drop) && drop.quarantined !== true
     && raw?.sourceRuntimeNonAlertable !== true && raw?.staleFallback !== true
     && raw?.shadowOnly !== true && binding?.shadowOnly !== true
     && drop.previewOnly !== true && drop.eligibleForOnSite === true && drop.eligibleForDropFeed !== false
@@ -365,7 +366,7 @@ export function isPublicDropFeedEligible(
   const drop = normalizePublicDropEvidenceInput(input);
   const state = stateCode(drop);
   if (!state || options.degradedStateCodes?.has(state)
-    && !independentlyAcceptedSource(drop) && !reviewedCaliforniaOverdueSiblingEvidence(drop, options)) return false;
+    && !independentlyAcceptedSource(drop) && !reviewedGroceryOverdueSiblingEvidence(drop, options)) return false;
   if (['AK','LA'].includes(state) && drop.previewOnly === true && !isLouisianaAlaskaGroceryCanaryPreview(drop)) return false;
   if (['AK','LA'].includes(state) && isLouisianaAlaskaGroceryOnSiteSignal(drop)) return true;
   const retailer = isVerifiedRetailerDrop(drop);
@@ -701,7 +702,7 @@ export function derivePublicDropEvidence(
     const current = exactInventory ? isCurrentInventoryEvidence(drop, asOf) : fresh && !sourceStale(drop);
     if (current) bucket.freshPublicSignalCount += 1;
     else bucket.stalePublicSignalCount += 1;
-    if (current && (independentlyAcceptedSource(drop) || reviewedCaliforniaOverdueSiblingEvidence(drop, eligibilityOptions))) bucket.independentFreshPublicSignalCount += 1;
+    if (current && (independentlyAcceptedSource(drop) || reviewedGroceryOverdueSiblingEvidence(drop, eligibilityOptions))) bucket.independentFreshPublicSignalCount += 1;
 
     if (current && !exactInventory) addFreshPublicUpdateScope(bucket, drop);
     if (!exactInventory) continue;
