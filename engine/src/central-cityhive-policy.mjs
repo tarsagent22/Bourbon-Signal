@@ -1,4 +1,5 @@
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES,CENTRAL_CITYHIVE_PRODUCTION_COHORTS } from './collectors/central-cityhive-premises.mjs';
+import {MINNESOTA_CITYHIVE_PRODUCTION_COHORT_SHA256} from './minnesota-cityhive-production-config.mjs';
 import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
 
 export const CENTRAL_CITYHIVE_STATE_IDS = new Set(CENTRAL_CITYHIVE_EXPANSION_SOURCES.map(source=>source.state));
@@ -61,11 +62,12 @@ export function isCentralCityHiveCanaryOnSiteSignal(row,{nowMs=Date.now()}={}){
 
 export function isCentralCityHiveProductionOnSiteSignal(row,{nowMs=Date.now()}={}){
   const source=centralCityHiveSourceForSignal(row),proof=row?.sourceProductBinding;
+  const expectedCohort=source?.state==='MN'?MINNESOTA_CITYHIVE_PRODUCTION_COHORT_SHA256:CENTRAL_CITYHIVE_PRODUCTION_COHORTS[source?.state];
   return Boolean(source)&&isCentralCityHiveInventory(row,{nowMs})&&nowMs-Date.parse(row.observedAt)<=2*60*60_000
     &&!Object.hasOwn(row,'previewOnly')&&row.quarantined!==true&&row.raw?.cacheFallback!==true
     &&row.raw?.shadowOnly!==true&&proof?.shadowOnly!==true
     &&row.sourceRuntimeId===`${source.state.toLowerCase()}:central-cityhive`
-    &&proof.productionOnSiteOnly===true&&proof.productionCohortSha256===CENTRAL_CITYHIVE_PRODUCTION_COHORTS[source.state]
+    &&proof.productionOnSiteOnly===true&&proof.productionCohortSha256===expectedCohort
     &&row.canAlertAsInventory===false&&row.can_alert_as_inventory!==true&&row.canAlertAsWatch===false&&row.can_alert_as_watch!==true
     &&row.alertable!==true&&row.eligibleForOnSite===true&&row.eligibleForDropFeed===true&&row.eligibleForWatch===false
     &&row.eligibleForDelivery===false&&row.deliveryEligible!==true&&row.eligibleForEmail===false&&row.eligibleForSms===false;
