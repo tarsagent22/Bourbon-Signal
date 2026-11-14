@@ -21,12 +21,13 @@ const arg=flag=>process.argv.find(value=>value.startsWith(flag+'='))?.slice(flag
 async function findReports(directory){const result=[];for(const entry of await readdir(directory,{withFileTypes:true})){const file=path.join(directory,entry.name);if(entry.isDirectory())result.push(...await findReports(file));else if(entry.name==='report.json')result.push(file);}return result;}
 
 export async function prepareDcPearsonsCanary({report,reportDirectory,bible,provenance,nowMs=Date.now()}={}){
-  const receipts=report?.metadata?.receipts||[], requests=report?.metadata?.requests||[];
+  const cityReceipts=report?.metadata?.receipts||[], pearsonReceipts=report?.metadata?.pearsons?.receipts||[];
+  const receipts=[...cityReceipts,...pearsonReceipts], requests=report?.metadata?.requests||[];
   const pearsonSourceId='research:dc:pearsons-shopify';
   const sourceRow=report?.sources?.find(row=>row.sourceRuntimeId===pearsonSourceId);
   const receipt=receipts.find(row=>row.url===PEARSONS_DC_SOURCE.productUrl);
   const pearsonRequest=report?.metadata?.pearsons?.sourceAttempts?.['pearsons-wine-dc'];
-  const finished=Date.parse(report?.finishedAt||'');
+  const pearsonSourceCheckedAt=Date.parse(sourceRow?.checkedAt||'');
   const sourceTime=Date.parse(receipt?.observedAt||'');
   if(report?.state!=='DC'||report.metadata?.complete!==true||report.metadata.shadowOnly!==true
     ||report.metadata.productionActivationAllowed!==false||report.metadata.customerDeliveryAllowed!==false
@@ -34,7 +35,8 @@ export async function prepareDcPearsonsCanary({report,reportDirectory,bible,prov
     ||provenance.repository!=='tarsagent22/Bourbon-Signal'||String(report.metadata.origin?.workflowRunId)!==provenance.workflowRunId
     ||report.metadata.origin?.commitSha!==provenance.headSha||sourceRow?.ok!==true||Number(sourceRow.status)!==200
     ||!receipt||receipt.status!==200||receipt.finalUrl!==receipt.url||receipt.bytes<1||receipt.bytes>512*1024
-    ||!Number.isFinite(sourceTime)||sourceTime>nowMs||nowMs-sourceTime>2*60*60_000||sourceTime>finished
+    ||!Number.isFinite(sourceTime)||sourceTime>nowMs||nowMs-sourceTime>2*60*60_000
+    ||!Number.isFinite(pearsonSourceCheckedAt)||sourceTime>pearsonSourceCheckedAt
     ||pearsonRequest?.status!=='success'||pearsonRequest.httpStatus!==200
     ||!Array.isArray(requests)||requests.length!==4||receipts.length!==5
     ||!/^[a-f0-9]{64}$/.test(report.metadata.bibleRecordsSha256||''))
@@ -48,11 +50,11 @@ export async function prepareDcPearsonsCanary({report,reportDirectory,bible,prov
   if(!parsed)throw new Error('Retained Pearson page no longer satisfies its reviewed exact-store/product/pickup parser');
   parsed.observedAt=receipt.observedAt;parsed.sourceProductBinding.capturedAt=receipt.observedAt;
   parsed.sourceRuntimeId=pearsonSourceId;
-  const cityReceipts=receipts.filter(row=>row.url!==PEARSONS_DC_SOURCE.productUrl);
+  const cityReceiptRows=receipts.filter(row=>row.url!==PEARSONS_DC_SOURCE.productUrl);
   const cityRequests=requests.filter(row=>row.url!==PEARSONS_DC_SOURCE.productUrl);
   const citySources=report.sources.filter(row=>row.sourceRuntimeId!==pearsonSourceId);
   const replayed=[];
-  for(const cityReceipt of cityReceipts){
+  for(const cityReceipt of cityReceiptRows){
     const url=new URL(cityReceipt.url),source=CENTRAL_CITYHIVE_RESEARCH_SOURCES.find(row=>row.state==='DC'
       &&row.hostname===url.hostname&&row.merchantId===url.searchParams.get('merchant-id'));
     if(!source)throw new Error('DC CityHive receipt is outside the reviewed exact merchant roster');
@@ -65,7 +67,7 @@ export async function prepareDcPearsonsCanary({report,reportDirectory,bible,prov
   if(JSON.stringify(order(replayed))!==JSON.stringify(order(shadowCityRows)))
     throw new Error('Current Bottle Bible replay changed the exact CityHive candidate identity/option/name/tier/price/URL cohort');
   const shadowBibleRecordsSha256=report.metadata.bibleRecordsSha256,currentHash=currentBibleHash(bible);
-  const cityReport={...report,sources:citySources,metadata:{...report.metadata,receipts:cityReceipts,requests:cityRequests,
+  const cityReport={...report,sources:citySources,metadata:{...report.metadata,receipts:cityReceiptRows,requests:cityRequests,
     // Only rebase this helper's library guard after exact semantic row agreement
     // between every immutable receipt and the original hosted report.
     bibleRecordsSha256:currentHash}};

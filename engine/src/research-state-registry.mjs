@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { oregonResearchSourceForState, collectOregonResearchReport } from './research-oregon-runtime.mjs';
 import { groceryResearchSourceForState, groceryResearchLifecycleEntries, collectGroceryResearchReport } from './research-grocery-runtime.mjs';
 import { MA_JULIOS_PROBE_URLS } from './collectors/massachusetts-retailer-surfaces.mjs';
@@ -62,7 +63,11 @@ export async function collectResearchStateReport(config, bible, options = {}) {
     if(config.id!=='DC')return collectCityHiveResearchReport(config,bible,options);
     const city=await collectCityHiveResearchReport(config,bible,options);
     if(city.metadata?.complete!==true)return{...city,metadata:{...city.metadata,complete:false,pearsons:null,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false}};
-    const pearson=await collectPearsonsDcResearchReport(config,bible,options);
+    const env=options.env||process.env;
+    const reportFile=env.BOURBON_SIGNAL_STATE_OUT_FILE;
+    const reportDirectory=options.reportDirectory||(reportFile?path.dirname(reportFile):null);
+    const captureRoot=options.captureRoot||(reportDirectory?path.join(reportDirectory,'source-captures'):undefined);
+    const pearson=await collectPearsonsDcResearchReport(config,bible,{...options,...(captureRoot?{captureRoot}:{})});
     const complete=city.metadata?.complete===true&&pearson.metadata?.complete===true;
     const signals=complete?[...(city.signals||[]),...(pearson.signals||[])]:[];
     return{...city,status:complete?(signals.length?'useful':'no_trusted_inventory'):'partial_useful',lastGoodAt:complete?[city.lastGoodAt,pearson.lastGoodAt].filter(Boolean).sort()[0]||null:null,

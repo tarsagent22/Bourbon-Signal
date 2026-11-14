@@ -63,7 +63,7 @@ test('scheduled Pearson collector makes one bounded shadow request then honors i
   try {
     const attemptFile = path.join(directory, 'attempt.json'), calls = [];
     const nowMs = Date.now();
-    const options = { attemptFile, env: { BOURBON_SIGNAL_SHADOW_MODE: '1' }, now: () => new Date(nowMs),
+    const options = { attemptFile, captureRoot: path.join(directory,'source-captures'), env: { BOURBON_SIGNAL_SHADOW_MODE: '1' }, now: () => new Date(nowMs),
       fetchText: async (url, requestOptions) => { calls.push({ url, requestOptions }); return { ok: true, status: 200, url, text: fixture.toString() }; } };
     const first = await collectPearsonsDcResearchReport(PEARSONS_DC_RESEARCH_CONFIG, bible, options);
     assert.equal(calls.length, 1);
@@ -76,6 +76,8 @@ test('scheduled Pearson collector makes one bounded shadow request then honors i
     assert.equal(first.signals[0].eligibleForDelivery, false);
     assert.equal(first.signals[0].sourceRuntimeId, 'research:dc:pearsons-shopify');
     assert.equal(first.metadata.receipts[0].sha256, createHash('sha256').update(fixture).digest('hex'));
+    assert.equal(first.metadata.receipts[0].artifactPath,`source-captures/pearsons-${first.metadata.receipts[0].sha256.slice(0,12)}.html`);
+    assert.equal(createHash('sha256').update(await readFile(path.join(directory,first.metadata.receipts[0].artifactPath))).digest('hex'),first.metadata.receipts[0].sha256);
     const second = await collectPearsonsDcResearchReport(PEARSONS_DC_RESEARCH_CONFIG, bible, options);
     assert.equal(calls.length, 1, 'a source inside its 30-minute cadence must not receive another request');
     assert.equal(second.sources[0].cadenceStatus, 'not_due');
