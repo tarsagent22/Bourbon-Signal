@@ -364,6 +364,10 @@ if (state === 'RI') files.push(
   '.github/workflows/refresh-feed.yml',
 );
 if (state === 'ND') files.push(
+  'engine/src/collectors/north-dakota-retail-production.mjs',
+  'engine/src/verify-nd-first-publication.mjs',
+  'engine/test/north-dakota-retail-production.test.mjs',
+  '.github/workflows/refresh-feed.yml',
   'engine/src/research-north-dakota-runtime.mjs',
   'engine/src/north-dakota-retail-policy.mjs',
   'engine/src/north-dakota-fixtures.mjs',
