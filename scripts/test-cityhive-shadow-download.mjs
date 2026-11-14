@@ -9,7 +9,7 @@ const base={state:'WI',repository:'tarsagent22/Bourbon-Signal',currentHead:'a'.r
   run:{id:123,status:'completed',conclusion:'success',head_sha:'a'.repeat(40),repository:{full_name:'tarsagent22/Bourbon-Signal'},path:'.github/workflows/state-expansion-shadow.yml'},
   artifact:{id:456,name:'state-expansion-shadow-123',digest:'sha256:'+'b'.repeat(64),size_in_bytes:100,expired:false}};
 test('CityHive downloader requires actual successful source-equivalent shadow workflow provenance',()=>{
-  for(const state of ['WI','OK','RI','MN'])assert.equal(validateCityHiveShadowWorkflowOrigin({...base,state}).state,state);
+  for(const state of ['WI','OK','RI','MN','MO'])assert.equal(validateCityHiveShadowWorkflowOrigin({...base,state}).state,state);
   for(const change of [{state:'TX'},{run:{...base.run,conclusion:'failure'}},{run:{...base.run,path:'.github/workflows/refresh-feed.yml'}},
     {artifact:{...base.artifact,expired:true}},{artifact:{...base.artifact,digest:null}},{repository:'foreign/repository'}]){
     assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...base,...change}));

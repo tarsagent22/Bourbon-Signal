@@ -38,7 +38,7 @@ const files = [
 ];
 // These files control production admission, actual HTTP, host-denial durability
 // and public projection. Missing inputs must fail issuance, never be skipped.
-if (['WA','NM','WI','OK','NJ','MI','MN'].includes(state)) files.push(
+if (['WA','NM','WI','OK','NJ','MI','MN','MO'].includes(state)) files.push(
   'engine/src/collectors/generic-state.mjs',
   'engine/src/collectors/north-carolina-intelligence.mjs',
   'engine/src/collectors/virginia-inventory-recovery.mjs',
@@ -145,7 +145,7 @@ if (['NJ','MI'].includes(state)) files.push(
   `engine/out/njmi-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
 );
-if (['WI', 'OK', 'RI', 'MN'].includes(state)) files.push(
+if (['WI', 'OK', 'RI', 'MN', 'MO'].includes(state)) files.push(
   'engine/src/collectors/central-cityhive-production.mjs',
   'engine/src/collectors/central-cityhive-transport.mjs',
   'engine/src/central-cityhive-production-config.mjs',
@@ -235,6 +235,27 @@ if (state === 'MN') files.push(
   'engine/data/canary-site/minnesota-20261114/states/index.json',
   'engine/data/canary-site/minnesota-20261114/states/MN/drops.json',
   'engine/data/canary-site/minnesota-20261114/source-proof.json',
+);
+if (state === 'MO') files.push(
+  'engine/src/collectors/central-cityhive-production.mjs',
+  'engine/src/central-cityhive-production-config.mjs',
+  'engine/src/verify-mo-first-publication.mjs',
+  'engine/data/state-integration/MO.json',
+  'engine/data/state-fixtures/MO.json',
+  'src/config/state-lifecycle.json',
+  '.github/workflows/refresh-feed.yml',
+  'engine/data/canary-site/mo-active-candidate/manifest.json',
+  'engine/data/canary-site/mo-active-candidate/stats.json',
+  'engine/data/canary-site/mo-active-candidate/alerts.json',
+  'engine/data/canary-site/mo-active-candidate/locations.json',
+  'engine/data/canary-site/mo-active-candidate/canary-preview-policy.json',
+  'engine/data/canary-site/mo-active-candidate/states/index.json',
+  'engine/data/canary-site/mo-active-candidate/states/MO/drops.json',
+  'engine/src/collectors/central-cityhive-research-premises.mjs',
+  'engine/src/collectors/central-cityhive-expansion.mjs',
+  'engine/data/midwest-cityhive-expansion-sources.json',
+  'engine/test/fixtures/central-cityhive/barrel-blends-6226405682c4ff6dfe6d578a.json',
+  'engine/src/verification/historical-implementation.mjs',
 );
 if (['OR', 'AK', 'LA'].includes(state)) files.push(
   'engine/src/research-state-registry.mjs',

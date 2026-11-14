@@ -14,7 +14,7 @@ const {buildCoverageContract}=coverageModule.default||coverageModule;
 const {normalizeDropForSite}=contractModule.default||contractModule;
 const {loadWithMocks}=harness.default||harness;
 const state=process.argv.find(value=>value.startsWith('--state='))?.slice(8);
-assert.ok(['WI','OK','RI','MN'].includes(state),'Use reviewed --state=WI|OK|RI|MN');
+assert.ok(['WI','OK','RI','MN','MO'].includes(state),'Use reviewed --state=WI|OK|RI|MN|MO');
 const read=async file=>JSON.parse(await readFile(file,'utf8'));
 const root=`engine/out/canary/${state}/site`,clock=new Date().toISOString();
 const partition=await read(root+`/states/${state}/drops.json`),stats=await read(root+'/stats.json');

@@ -241,9 +241,13 @@ test('nationwide reversal accepts only exact reviewed CA metadata and inactive c
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
     for (const { reviewed, original } of reversals) {
       assert.notEqual(reviewed, original);
+      const hook = reviewed === entry.registration?.reviewed
+        ? reviewed.replace('...CENTRAL_CITYHIVE_STATE_CONFIGS,', "...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id!=='MO'),")
+        : reviewed;
+      assert.equal(current.split(hook).length - 1, 1, name);
       const changed = reviewed.replace(name.endsWith('.mjs') ? 'CENTRAL_CITYHIVE_STATE_CONFIGS' : 'California', 'UNREVIEWED_METADATA');
       assert.notEqual(changed, reviewed);
-      for (const mutation of [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed]) {
+      for (const mutation of [current.replace(hook, original), current.replace(hook, changed), current + '\n' + hook]) {
         assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /exact historical verification hook/);
       }
     }
