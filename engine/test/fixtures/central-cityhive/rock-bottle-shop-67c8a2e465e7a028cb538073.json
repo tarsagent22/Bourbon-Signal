@@ -1,0 +1,138 @@
+{
+  "derivedFrom": {
+    "workflowRunId": "43647207025",
+    "artifactId": "14134413493",
+    "captureSha256": "3b028daf9679e0066ae3d9860f29a7de65b67bf6905c1997b121ebc53334e474",
+    "observedAt": "2026-11-14T22:16:45.149Z"
+  },
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "67c8a2e465e7a028cb538073",
+        "name": "The Rock Bottle Shop",
+        "display_name": "The Rock Bottle Shop",
+        "accept_orders": true,
+        "address": {
+          "full_address": "1730 13th Ave N, Grand Forks, ND 58203, USA",
+          "address_properties": {
+            "success": true,
+            "lat": 47.9325365,
+            "lng": -97.05130249999999,
+            "country_code": "US",
+            "city": "Grand Forks",
+            "state": "ND",
+            "zip": "58203",
+            "street_address": "1730 13th Avenue North",
+            "province": "ND",
+            "district": "Grand Forks County",
+            "provider": "google",
+            "full_address": "1730 13th Ave N, Grand Forks, ND 58203, USA",
+            "is_us?": true,
+            "ll": "47.9325365,-97.05130249999999",
+            "precision": "building",
+            "street_number": "1730",
+            "state_full_name": "North Dakota"
+          },
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.05130249999999,
+              47.9325365
+            ]
+          },
+          "district": "Grand Forks County",
+          "province": "ND",
+          "street_address": "1730 13th Avenue North",
+          "zipcode": "58203",
+          "state": "ND",
+          "city": "Grand Forks",
+          "country_code": "US",
+          "apt": null,
+          "id": "67c8a2e365e7a028cb538072",
+          "place_id": "ChIJbwUqtLKGxlIRWDH3uLJ6sro"
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "69965f242c90e40001cad3b1",
+      "name": "Maker's Mark Wood Finishing Series",
+      "basic_category": [
+        "bourbon"
+      ],
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "67c8a2e465e7a028cb538073",
+          "full_address": "1730 13th Ave N, Grand Forks, ND 58203, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "option_id": "7726361585bcc1f9a465f4a7ba4eeaf4a6ebf4351becf4df23e4c30bafb0c87a",
+              "merchant_id": "67c8a2e465e7a028cb538073",
+              "full_address": "1730 13th Ave N, Grand Forks, ND 58203, USA",
+              "allowed_offer_types": null,
+              "quantity": 3,
+              "price": 72.29,
+              "option_display_data": {
+                "name": "Maker's Mark Wood Finishing Series",
+                "description": "<p>The Stewards Release celebrates the dedicated team at Star Hill Farm, who meticulously oversee every aspect of the process to produce Maker’s Mark. Their craftsmanship, precision, and expertise ensure that we navigate challenges seamlessly, delivering excellence from the initial liquid to the final bottling.</p><p><br></p><p>This release pays tribute to the unwavering care and commitment of the distillery’s “stewards,” whose attention to detail embodies our pursuit of quality in every drop. The result is a vibrant expression, with hints of raw honey and stone fruit.</p>",
+                "images": {
+                  "primary": {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/product_details/69f110719c1209005ca9d84e/primary_image/original.png?sig=2b82fe64bcd02dd98f7dc2c89915f58321e3a44324bf8e8be3d64794856b28b6",
+                    "large": "https://cityhive-production-cdn.cityhive.net/product_details/69f110719c1209005ca9d84e/primary_image/large.png?sig=2b82fe64bcd02dd98f7dc2c89915f58321e3a44324bf8e8be3d64794856b28b6",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/product_details/69f110719c1209005ca9d84e/primary_image/medium.png?sig=2b82fe64bcd02dd98f7dc2c89915f58321e3a44324bf8e8be3d64794856b28b6",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/product_details/69f110719c1209005ca9d84e/primary_image/small.png?sig=2b82fe64bcd02dd98f7dc2c89915f58321e3a44324bf8e8be3d64794856b28b6",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/product_details/69f110719c1209005ca9d84e/primary_image/thumbnail.png?sig=2b82fe64bcd02dd98f7dc2c89915f58321e3a44324bf8e8be3d64794856b28b6"
+                  },
+                  "more_images": []
+                },
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "subtitle": null,
+                "views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "basic_category": [
+                  "bourbon"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon"
+                  ],
+                  "brands": [
+                    "Maker's Mark"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky"
+                },
+                "product_group_product_subtitle": {
+                  "product_subtitle": null,
+                  "show_product_subtitle_on_app_and_website": null,
+                  "override_individual_product_subtitle": null
+                }
+              },
+              "product_url": "https://rockbottleshop.com/shop/product/makers-mark-wood-finishing-series/69965f242c90e40001cad3b1?option-id=7726361585bcc1f9a465f4a7ba4eeaf4a6ebf4351becf4df23e4c30bafb0c87a",
+              "product_id": "69965f242c90e40001cad3b1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

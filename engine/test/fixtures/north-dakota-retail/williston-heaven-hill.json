@@ -1,0 +1,44 @@
+{
+  "derivedFrom": {
+    "workflowRunId": "43647207025",
+    "artifactId": "14134413493",
+    "captureSha256": "8fbb4fd8ee08438a75a44722b27a2a868203fac7f142b6b05daefcc87131a08b",
+    "observedAt": "2026-11-14T22:16:47.358Z"
+  },
+  "appCode": "GR200 :: A-CT: 200",
+  "response": {
+    "miscInfo": {
+      "query": "bourbon",
+      "filter": "(inventory(28, price) >0) AND (inventory(28,attributes.custom_type_2) = 1) AND (attributes.is_custom_cake: ANY(\"false\"))"
+    },
+    "start": 0,
+    "docs": [
+      {
+        "id": "970022436",
+        "pid": "970022436",
+        "storeId": "28",
+        "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "upc": "0009674900242",
+        "price": 53.99,
+        "containsAlcohol": true,
+        "alcoholVolumePct": 50,
+        "dispItemSizeQty": "750.0",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        }
+      }
+    ]
+  }
+}

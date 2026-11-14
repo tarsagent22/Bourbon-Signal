@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "state": "ND",
+  "lifecycle": {
+    "customerLabel": "North Dakota",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "research:nd:rock-bottle-shop:67c8a2e465e7a028cb538073",
+      "research:nd:albertsons-xapi"
+    ],
+    "registration": "Isolated Grand Forks CityHive pickup and Williston Albertsons in-store data with independent original observation clocks."
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_retailer_store",
+    "addressRequired": true,
+    "expectedKnownStores": 2,
+    "proof": "Grand Forks merchant configuration, address, coordinates and pickup variant agree. Williston locator, search store and in-store product channel agree."
+  },
+  "sourceSemantics": {
+    "availability": "Retailer-reported pickup availability in Grand Forks and in-store availability in Williston. Exact shelf quantities are unavailable.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "The isolated Coverage response exposes the two reviewed North Dakota stores."
+    },
+    "areaFilter": {
+      "status": "not_applicable",
+      "reason": "This verification covers state and exact-store searches."
+    },
+    "preferences": {
+      "status": "not_applicable",
+      "reason": "This isolated snapshot has no delivery or saved-preference exercise."
+    },
+    "dashboard": {
+      "status": "not_applicable",
+      "reason": "This verification covers live availability data for Coverage and Finder."
+    },
+    "dropFeedApi": {
+      "status": "not_applicable",
+      "reason": "This verification tests the shared current-row policy before a protected deployment."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Both store identities resolve in the Coverage Finder, store and location test routes."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Replay checks require zero alert and delivery eligibility for each source."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "The isolated snapshot reports two reviewed premises through the shared web and app Coverage contract."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "The isolated partition replays immutable retailer bodies and retains each source clock."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "verified",
+      "runs": 1,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43647207025",
+      "observations": [
+        {
+          "runId": "43647207025",
+          "status": "success",
+          "artifactId": "14134413493",
+          "artifactHash": "7b418587f68eeb14e959c75cb2cd07ef23ec8ac911aead55d586b266909fd5b0",
+          "commitSha": "a8795741bd6f3ada9bf88e0a7d8689699c35ab3b",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43647207025"
+        }
+      ],
+      "originalSourceClocksPreserved": true
+    },
+    "canary": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Local production-route projection passed. Hosted replay has not run."
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "Publication must verify admitted exact stores and their availability on the canonical remote snapshot and shared Coverage API.",
+      "reason": "Research lifecycle only."
+    }
+  }
+}
