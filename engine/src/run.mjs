@@ -593,7 +593,9 @@ async function main() {
     concurrency: STATE_WORKER_CONCURRENCY,
     perDomain: 1,
     timeoutMs: Math.max(...runnable.map(stateTimeoutMs), STATE_TIMEOUT_MS) + 60_000,
-    domainFor: (config) => config.id,
+    domainFor: (config) => Object.hasOwn(LOUISIANA_ALASKA_GROCERY_BUDGETS, config.id)
+      ? 'louisiana-alaska-grocery'
+      : config.id,
   });
   const poolResultsByState = new Map(poolResults.map((result) => [result.task.id, result]));
   const collected = new Map(poolResults.map((result) => [result.task.id, result.status === 'fulfilled' ? result.value : null]));

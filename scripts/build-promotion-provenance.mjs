@@ -209,6 +209,7 @@ if (['AK', 'LA'].includes(state)) files.push(
   'engine/src/louisiana-alaska-grocery-production-config.mjs',
   'engine/src/louisiana-alaska-grocery-policy.mjs',
   'engine/src/louisiana-alaska-grocery-positive-proof.mjs',
+  'engine/src/verify-laak-first-publication.mjs',
   'engine/src/collectors/louisiana-alaska-grocery-production-adapter.mjs',
   'engine/src/collectors/louisiana-alaska-grocery-transport.mjs',
   'engine/src/collectors/louisiana-alaska-grocery-expansion.mjs',

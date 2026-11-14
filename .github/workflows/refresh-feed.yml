@@ -535,6 +535,11 @@ jobs:
         working-directory: engine
         run: npm run verify:state-isolation
 
+      - name: Require current Alaska and Louisiana coverage at first publication
+        if: ${{ startsWith(inputs.incident_key, 'alaska-louisiana-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-laak-first-publication.mjs
+
       - name: Audit every scarce library bottle across all states
         working-directory: engine
         run: node src/library-coverage-audit.mjs

@@ -175,8 +175,9 @@ async function collectLouisianaAlaskaGroceryProductionSource(config, bible, {
     files[candidate] = path.join(incidentDirectory, `${candidate}.json`);
     journals[candidate] = await readJournal(files[candidate], candidate);
   }
-  const combined = Object.assign({}, ...Object.values(journals));
-  if (isCoolingDown(combined, nowMs)) fail('a durable host cooldown or unfinished request is active');
+  if (Object.values(journals).some(journal => isCoolingDown(journal, nowMs))) {
+    fail('a durable host cooldown or unfinished request is active');
+  }
 
   const guardedFetch = async (url, requestOptions = {}) => {
     const kind = louisianaAlaskaRequestIdentity(url);
