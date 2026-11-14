@@ -1,5 +1,6 @@
 import {isNjMiOnSiteSignal} from '../../engine/src/nj-mi-research-policy.mjs';
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
+import { isNorthDakotaGroceryCanaryPreview } from '../../engine/src/north-dakota-retail-policy.mjs';
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { isCentralCityHiveCanaryOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { isCentralCityHiveProductionOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
@@ -172,6 +173,9 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
   }
   if (isLaakCanaryPreview || isLaakProductionOnSite) return true;
   if (isGroceryExpansionOnSiteSignal(drop)) return true;
+  if (state === 'ND' && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) {
+    return drop.previewOnly === true && (isNorthDakotaGroceryCanaryPreview(drop) || isCentralCityHiveOnSiteSignal(drop));
+  }
   if (['NJ','MI'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isNjMiOnSiteSignal(drop);
   if (state === 'MD' && drop.engineStateCode !== 'MD-MONTGOMERY'
     && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isCentralCityHiveOnSiteSignal(drop);

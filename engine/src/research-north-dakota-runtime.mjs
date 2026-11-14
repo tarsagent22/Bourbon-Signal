@@ -9,19 +9,12 @@ import { CITYHIVE_DENIAL_STATUSES, CITYHIVE_DENIAL_MINIMUM_MS, fetchReviewedFirs
   persistCityHiveIncidentJournal, readCityHiveIncidentJournal } from './collectors/central-cityhive-transport.mjs';
 import { librarySourceSearchPlan } from './library-search-runtime.mjs';
 import { cityHiveResearchSourceForState, collectCityHiveResearchReport } from './research-cityhive-runtime.mjs';
+import { allowedTiers, groceryId, isNorthDakotaGroceryResearchInventory, williston } from './north-dakota-retail-policy.mjs';
+export { isNorthDakotaGroceryResearchInventory } from './north-dakota-retail-policy.mjs';
 
 const cityHive = cityHiveResearchSourceForState('ND');
-const williston = Object.freeze({
-  state: 'ND', stateCode: 'ND', storeId: 'albertsons:28', merchantId: '28', name: 'Albertsons Williston',
-  street: '20 26th St E', address: '20 26th St E, Williston, ND 58801', city: 'Williston', zip: '58801',
-  lat: 48.167667, lng: -103.622448,
-  locator: 'https://local.albertsons.com/nd/williston/20-26th-st-e/Beer-Wine-Liquor.html',
-  sourceLabel: 'Albertsons Williston first-party in-store availability',
-});
-const groceryId = 'research:nd:albertsons-xapi';
 const endpoint = 'https://www.albertsons.com/abs/pub/xapi/search/substitute';
 const hosts = [williston.locator, endpoint].map(url => ({ state: 'ND', hostname: new URL(url).hostname }));
-const allowedTiers = new Set(['limited', 'allocated', 'unicorn']);
 const config = Object.freeze({ ...cityHive, label: 'North Dakota exact-store retailer research',
   sources: Object.freeze([...cityHive.sources, { kind: 'html', url: williston.locator, precisionOnly: true },
     { kind: 'api', url: endpoint, precisionOnly: true }]) });
@@ -73,32 +66,6 @@ export function parseNorthDakotaGrocerySearch(payload, term, bible, observedAt) 
     }];
   });
   return { confirmed: true, signals };
-}
-
-export function isNorthDakotaGroceryResearchInventory(row) {
-  const proof = row?.sourceProductBinding, item = proof?.productSnapshot, inventory = item?.channelInventory;
-  const count = inventory?.instoreItemQty ?? inventory?.inStoreItemQty;
-  return Boolean(row?.state === 'ND' && row.sourceRuntimeId === groceryId && row.storeId === williston.storeId
-    && row.storeAddress === williston.address && row.city === williston.city && row.zip === williston.zip
-    && row.lat === williston.lat && row.lng === williston.lng && row.merchantId === williston.merchantId
-    && row.sourceLabel === williston.sourceLabel && row.locationPrecision === 'store_level'
-    && /^\d+$/.test(row.productId) && row.variantId === row.productId
-    && row.sourceUrl === `https://www.albertsons.com/shop/product-details.${row.productId}.html`
-    && row.availabilityStatus === 'in_stock' && row.sourceAvailabilityVerified === true
-    && row.quantity === 0 && row.quantityIsExact === false && allowedTiers.has(row.tier)
-    && Number.isFinite(row.price) && row.price > 0 && Number.isFinite(Date.parse(row.observedAt))
-    && proof?.schemaVersion === 1 && proof.source === 'grocery-xapi' && proof.shadowOnly === true
-    && proof.premisesVerified === true && proof.inStoreChannelVerified === true
-    && proof.storeId === row.storeId && proof.storeAddress === row.storeAddress && proof.merchantId === row.merchantId
-    && proof.productId === row.productId && proof.variantId === row.variantId && proof.observedAt === row.observedAt
-    && proof.canonicalBottleId === row.canonicalBottleId && proof.price === row.price
-    && String(item?.id) === row.productId && String(item.pid) === row.variantId
-    && String(item.storeId) === row.merchantId && /^\d{12,14}$/.test(String(item.upc))
-    && item.containsAlcohol === true && Number(item.price) === row.price && item.channelEligibility?.inStore === true
-    && String(inventory?.instore ?? inventory?.inStore) === '1'
-    && (count == null || (String(count).trim() && Number.isFinite(Number(count)) && Number(count) > 0))
-    && ['alertable', 'canAlertAsInventory', 'canAlertAsWatch', 'eligibleForOnSite', 'eligibleForDropFeed',
-      'eligibleForDelivery', 'eligibleForWatch', 'eligibleForEmail', 'eligibleForSms'].every(key => row[key] === false));
 }
 
 function grocerySearchUrl(term) {
