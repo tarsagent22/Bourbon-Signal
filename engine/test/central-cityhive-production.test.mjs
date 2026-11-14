@@ -82,6 +82,32 @@ test('Missouri production route is registered while an inactive lifecycle still 
   await assert.rejects(()=>readFile(path.join(directory,'incidents','MO.json')),{code:'ENOENT'});
 });
 
+test('DC three-source production route stays dormant until lifecycle and immutable admission are present',async t=>{
+  const stores=CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source=>source.state==='DC');
+  const dcConfig=config('DC'),budget=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.DC;
+  let requests=0;
+  assert.equal(stores.length,2);
+  assert.deepEqual(CENTRAL_CITYHIVE_PRODUCTION_COHORTS.DC,centralCityHiveProductionCohortKey('DC'));
+  assert.equal(dcConfig.id,'DC');
+  assert.ok(CENTRAL_CITYHIVE_PRODUCTION_STATES.includes('DC'));
+  assert.ok(ALL_STATE_SOURCES.some(source=>source.id==='DC'));
+  assert.ok(!STATE_LIFECYCLE_CONFIG.activeStates.includes('DC'));
+  assert.equal(centralCityHiveProductionAllowed('DC',STATE_LIFECYCLE_CONFIG),false);
+  assert.equal(budget.maxRequests,4);
+  assert.equal(budget.maxStateRequests,5);
+  assert.equal(budget.pearsonsMaxRequests,1);
+  const directory=await mkdtemp(path.join(tmpdir(),'central-production-dc-dormant-'));
+  t.after(()=>rm(directory,{recursive:true,force:true}));
+  const report=await collectState(dcConfig,bible,{forceLive:true,cityHiveSourceOptions:{
+    cacheDir:path.join(directory,'cache'),incidentDir:path.join(directory,'incidents'),
+    fetchText:async()=>{requests++;throw Error('Dormant DC route must not issue HTTP');},
+  },pearsonsSourceOptions:{journalFile:path.join(directory,'pearsons.json'),fetchText:async()=>{requests++;throw Error('Dormant DC Pearson route must not issue HTTP');}}});
+  assert.equal(report.status,'not_promoted');
+  assert.equal(report.metadata.blockedByPromotion,true);
+  assert.equal(report.metadata.requestCount,0);
+  assert.equal(requests,0);
+});
+
 test('KS activation is exact, silent, and still blocks when disabled or lifecycle is removed',async t=>{
   let requests=0;
   assert.ok(CENTRAL_CITYHIVE_PRODUCTION_STATES.includes('KS'));

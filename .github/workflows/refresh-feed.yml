@@ -194,6 +194,14 @@ jobs:
           restore-keys: |
             inventory-central-cityhive-incidents-${{ runner.os }}-
 
+      - name: Restore Pearson DC attempt journal independently of publication
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/pearsons-dc/DC.json
+          key: inventory-pearsons-dc-journal-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-pearsons-dc-journal-${{ runner.os }}-
+
       - name: Restore Minnesota CityHive rotation cursor independently
         uses: actions/cache/restore@v4
         with:
@@ -573,6 +581,11 @@ jobs:
         working-directory: engine
         run: node src/verify-ar-first-publication.mjs
 
+      - name: Require the exact DC three-store source cohort at first publication
+        if: ${{ startsWith(inputs.incident_key, 'district-of-columbia-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-dc-first-publication.mjs
+
       - name: Audit every scarce library bottle across all states
         working-directory: engine
         run: node src/library-coverage-audit.mjs
@@ -725,6 +738,13 @@ jobs:
           path: engine/out/source-incidents/central-cityhive
           key: inventory-central-cityhive-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
+      - name: Save Pearson DC attempt journal independently of publication
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/source-incidents/pearsons-dc/DC.json
+          key: inventory-pearsons-dc-journal-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
       - name: Save Minnesota CityHive rotation cursor independently of publication
         if: always()
         uses: actions/cache/save@v4
@@ -801,6 +821,9 @@ jobs:
             engine/out/states/AR.json
             engine/out/site/states/AR/drops.json
             engine/out/first-publication/AR.json
+            engine/out/states/DC.json
+            engine/out/site/states/DC/drops.json
+            engine/out/first-publication/DC.json
             engine/out/verification/library-coverage.json
             engine/out/verification/library-coverage.md
             engine/out/verification/production-engine-verification.log

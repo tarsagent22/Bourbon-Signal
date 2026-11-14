@@ -3,7 +3,7 @@ import { isPhoenixCityHiveExpansionProof, phoenixExpansionLibraryTier } from './
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { selectFleetDropBudget, serializeCustomerDropPayload } from './fleet-drop-budget.mjs';
 import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
-import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
+import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal,isPearsonsDcProductionOnSiteSignal } from './central-cityhive-policy.mjs';
 import { isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
 import { isLouisianaAlaskaGroceryInventory, isLouisianaAlaskaGroceryOnSiteSignal } from './louisiana-alaska-grocery-policy.mjs';
 import { createHash, randomUUID } from 'node:crypto';
@@ -436,7 +436,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const isInRetailerInventory = signal.canAlertAsInventory === true && isIndianaRetailerInventory(signal);
   const isMsSparseOnSiteInventory = isMississippiSparseOnSiteInventory(signal);
   const isGroceryOnSiteInventory = isReviewedResearchGrocery(signal) || isLouisianaAlaskaGroceryOnSiteSignal(signal);
-  const isCentralOnSiteInventory=isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal);
+  const isCentralOnSiteInventory=isCentralCityHiveProductionOnSiteSignal(signal)||isPearsonsDcProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal);
   const nonAlertingOnSiteInventory=isMsSparseOnSiteInventory||isCentralOnSiteInventory||isGroceryOnSiteInventory;
   const isMetroInventory = isMetroRetailerInventory(signal);
   const isInRetailerEvent = signal.state === 'IN'
@@ -747,7 +747,7 @@ function isFastMovingStoreInventory(signal) {
   const source = String(signal.sourceLabel || signal.source || '').toLowerCase();
   if (signal.locationPrecision !== 'store_level') return false;
   if (!signalCanAlertAsInventory(signal) && !isMississippiSparseOnSiteInventory(signal)
-    && !isReviewedResearchGrocery(signal) && !isCentralCityHiveProductionOnSiteSignal(signal) && !isNjMiProductionOnSiteSignal(signal)) return false;
+    && !isReviewedResearchGrocery(signal) && !isCentralCityHiveProductionOnSiteSignal(signal) && !isPearsonsDcProductionOnSiteSignal(signal) && !isNjMiProductionOnSiteSignal(signal)) return false;
   if (signal.state === 'NC' && source.includes('wake county abc store inventory search')) return true;
   return /store_inventory_result|cityhive_store_inventory_result|retailer_store_inventory_result|browser_assisted_store_inventory_(limited_supply|in_stock)/i.test(type);
 }
@@ -1114,7 +1114,7 @@ function buildBottles(signals, bible, bibleRecords = []) {
 
 export function buildStores(signals) {
   const storeSignals = signals.filter((s) => s.locationProjectionDisabled !== true && s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
-  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal) || isReviewedResearchGrocery(signal)||isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal)));
+  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal) || isReviewedResearchGrocery(signal)||isCentralCityHiveProductionOnSiteSignal(signal)||isPearsonsDcProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal)));
   const fallbackStoreKey = (signal) => JSON.stringify([
     [typeof signal.state, signal.state],
     [typeof (signal.storeName || signal.locationName), signal.storeName || signal.locationName],

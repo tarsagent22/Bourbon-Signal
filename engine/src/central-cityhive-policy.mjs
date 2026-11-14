@@ -1,6 +1,8 @@
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES,CENTRAL_CITYHIVE_PRODUCTION_COHORTS } from './collectors/central-cityhive-premises.mjs';
 import {MINNESOTA_CITYHIVE_PRODUCTION_COHORT_SHA256} from './minnesota-cityhive-production-config.mjs';
 import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
+import {isPearsonsDcProductionOnSiteSignal} from './collectors/pearsons-dc-production.mjs';
+export {isPearsonsDcProductionOnSiteSignal};
 
 export const CENTRAL_CITYHIVE_STATE_IDS = new Set(CENTRAL_CITYHIVE_EXPANSION_SOURCES.map(source=>source.state));
 const ALL_RECOGNIZED_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]);
@@ -72,7 +74,7 @@ export function isCentralCityHiveProductionOnSiteSignal(row,{nowMs=Date.now()}={
     &&row.alertable!==true&&row.eligibleForOnSite===true&&row.eligibleForDropFeed===true&&row.eligibleForWatch===false
     &&row.eligibleForDelivery===false&&row.deliveryEligible!==true&&row.eligibleForEmail===false&&row.eligibleForSms===false;
 }
-export const isCentralCityHiveOnSiteSignal=(row,options)=>isCentralCityHiveCanaryOnSiteSignal(row,options)||isCentralCityHiveProductionOnSiteSignal(row,options);
+export const isCentralCityHiveOnSiteSignal=(row,options)=>isCentralCityHiveCanaryOnSiteSignal(row,options)||isCentralCityHiveProductionOnSiteSignal(row,options)||isPearsonsDcProductionOnSiteSignal(row,options);
 
 // Source readiness is independent of notification eligibility. This proof may
 // count only in isolated shadow evidence and never grants public visibility.

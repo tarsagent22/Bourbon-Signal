@@ -1,4 +1,4 @@
-import { ADDITIONAL_CITYHIVE_EXPANSION_SOURCES, ARKANSAS_CITYHIVE_RESEARCH_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
+import { ADDITIONAL_CITYHIVE_EXPANSION_SOURCES, ARKANSAS_CITYHIVE_RESEARCH_SOURCES, DC_CITYHIVE_RESEARCH_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
 
 function source(id,name,state,baseUrl,merchantId,address,city,zip){
   return Object.freeze({id,name,state,stateCode:state,platform:'cityhive',baseUrl,
@@ -24,6 +24,7 @@ export const CENTRAL_CITYHIVE_PRODUCTION_SOURCES = Object.freeze([
   ...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state==='KS'),
   ...ARKANSAS_CITYHIVE_RESEARCH_SOURCES,
   ...MIDWEST_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state==='MO'),
+  ...DC_CITYHIVE_RESEARCH_SOURCES,
 ]);
 
 // Reviewed cohort pins, recomputed by server-side admission and tested against
@@ -35,4 +36,5 @@ export const CENTRAL_CITYHIVE_PRODUCTION_COHORTS=Object.freeze({
   KS:'234805b62e662b95e0b4c9bbea79f01075349753b56865eef9b475558853ede5',
   AR:'367dc29f27cb3dfe34ca968609fbd3164c1d98ea97e8536b595566e53e9455fb',
   MO:'5b3f88be5a779f0e9631bb68a1f054fd833ce6d098fa62b2f13ae710bcc1fe17',
+  DC:'a3348a6e502c76553a88d9b659dfca68808cfb8d29d3437afec97993a69c6080',
 });

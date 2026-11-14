@@ -149,7 +149,7 @@ test('DC composite stops before Pearson after a CityHive denial', async () => {
     assert.equal(report.metadata.complete, false);
     assert.equal(report.metadata.productionActivationAllowed, false);
     assert.equal(report.metadata.customerDeliveryAllowed, false);
-    assert.ok(report.roadblocks.some(row => row.status === 'skipped_after_denial'));
+    assert.equal(report.metadata.pearsons, null, 'Pearson is not consulted after the CityHive cohort fails');
   } finally {
     if (priorMode === undefined) delete process.env.BOURBON_SIGNAL_SHADOW_MODE;
     else process.env.BOURBON_SIGNAL_SHADOW_MODE = priorMode;

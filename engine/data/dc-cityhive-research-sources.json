@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "status": "research_only",
+  "source": "Reviewed first-party exact-address product and pickup observations in Washington, DC on 2026-11-14.",
+  "stores": [
+    {
+      "id": "hop-cask-and-barrel:6054cf9d0168813b45dd1624",
+      "chainId": "hop-cask-and-barrel",
+      "chainName": "Hop, Cask & Barrel",
+      "name": "Hop, Cask & Barrel",
+      "state": "DC",
+      "stateCode": "DC",
+      "platform": "cityhive",
+      "baseUrl": "https://hopcaskandbarrel.com",
+      "hostname": "hopcaskandbarrel.com",
+      "merchantId": "6054cf9d0168813b45dd1624",
+      "address": "1717 Wisconsin Ave NW, Washington, DC 20007, USA",
+      "city": "Washington",
+      "zip": "20007",
+      "storeId": "hop-cask-and-barrel:6054cf9d0168813b45dd1624",
+      "sourceLabel": "Hop, Cask & Barrel DC first-party pickup inventory",
+      "categoryUrl": "https://hopcaskandbarrel.com/shop/?subtype=Bourbon&merchant-id=6054cf9d0168813b45dd1624",
+      "lat": 38.91435120000001,
+      "lng": -77.06671109999999,
+      "prioritySearchTerm": "eagle rare",
+      "evidenceDate": "2026-11-14"
+    },
+    {
+      "id": "metro-wine-dc:5b8ede1211bc076567b49bd5",
+      "chainId": "metro-wine-dc",
+      "chainName": "Metro Wine & Spirits",
+      "name": "Metro Wine & Spirits",
+      "state": "DC",
+      "stateCode": "DC",
+      "platform": "cityhive",
+      "baseUrl": "https://www.metrowinedc.com",
+      "hostname": "www.metrowinedc.com",
+      "merchantId": "5b8ede1211bc076567b49bd5",
+      "address": "1726 Columbia Rd NW, Washington, DC 20009, USA",
+      "city": "Washington",
+      "zip": "20009",
+      "storeId": "metro-wine-dc:5b8ede1211bc076567b49bd5",
+      "sourceLabel": "Metro Wine & Spirits DC first-party pickup inventory",
+      "categoryUrl": "https://www.metrowinedc.com/shop/?subtype=Bourbon&merchant-id=5b8ede1211bc076567b49bd5",
+      "lat": 38.9243637,
+      "lng": -77.0397196,
+      "prioritySearchTerm": "eagle rare",
+      "evidenceDate": "2026-11-14"
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import { cityHiveResearchSourceForState, cityHiveResearchLifecycleEntries, colle
 import {njMiResearchSourceForState,njMiResearchLifecycleEntries,collectNjMiResearchReport} from './nj-mi-research-runtime.mjs';
 import {michiganLiquorsResearchSourceForState,michiganLiquorsResearchLifecycleEntries,collectMichiganLiquorsResearchReport} from './research-michigan-liquors-runtime.mjs';
 import { louisianaAlaskaResearchSourceForState, louisianaAlaskaResearchLifecycleEntries, collectLouisianaAlaskaResearchReport } from './research-louisiana-alaska-grocery-runtime.mjs';
+import {collectPearsonsDcResearchReport} from './collectors/pearsons-dc-research.mjs';
 
 // Research registrations never rewrite production lifecycle/source files or
 // historical promotion evidence. Activation requires a separate reviewed change.
@@ -21,6 +22,7 @@ const MASSACHUSETTS = Object.freeze({
 export function researchSourceForState(state, { shadowMode = process.env.BOURBON_SIGNAL_SHADOW_MODE === '1' } = {}) {
   if (!shadowMode) return null;
   if (state === 'MA') return MASSACHUSETTS;
+  if (state === 'DC') return cityHiveResearchSourceForState('DC');
   return oregonResearchSourceForState(state)
     || michiganLiquorsResearchSourceForState(state)
     || louisianaAlaskaResearchSourceForState(state)
@@ -33,8 +35,8 @@ export function withResearchLifecycle(production) {
   if (!Array.isArray(production?.activeStates) || !production?.states) throw new Error('A production lifecycle is required.');
   if (production.activeStates.includes('MA') || production.states.MA) throw new Error('MA production/research registration requires reconciliation.');
   const additions = {
-    ...cityHiveResearchLifecycleEntries(), ...groceryResearchLifecycleEntries(), ...njMiResearchLifecycleEntries(),
     ...michiganLiquorsResearchLifecycleEntries(), ...louisianaAlaskaResearchLifecycleEntries(),
+    ...cityHiveResearchLifecycleEntries(), ...groceryResearchLifecycleEntries(), ...njMiResearchLifecycleEntries(),
   };
   for(const state of Object.keys(additions))if(production.activeStates.includes(state)||production.states[state]?.publicStatus==='active') {
     delete additions[state];
@@ -56,7 +58,19 @@ export async function collectResearchStateReport(config, bible, options = {}) {
   if (config && config === louisianaAlaskaResearchSourceForState(config.id)) return collectLouisianaAlaskaResearchReport(config, bible, options);
   if(config&&config===groceryResearchSourceForState(config.id))return collectGroceryResearchReport(config,bible,options);
   if(config&&config===njMiResearchSourceForState(config.id))return collectNjMiResearchReport(config,bible,options);
-  if (config && config === cityHiveResearchSourceForState(config.id)) return collectCityHiveResearchReport(config,bible,options);
+  if (config && config === cityHiveResearchSourceForState(config.id)) {
+    if(config.id!=='DC')return collectCityHiveResearchReport(config,bible,options);
+    const city=await collectCityHiveResearchReport(config,bible,options);
+    if(city.metadata?.complete!==true)return{...city,metadata:{...city.metadata,complete:false,pearsons:null,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false}};
+    const pearson=await collectPearsonsDcResearchReport(config,bible,options);
+    const complete=city.metadata?.complete===true&&pearson.metadata?.complete===true;
+    const signals=complete?[...(city.signals||[]),...(pearson.signals||[])]:[];
+    return{...city,status:complete?(signals.length?'useful':'no_trusted_inventory'):'partial_useful',lastGoodAt:complete?[city.lastGoodAt,pearson.lastGoodAt].filter(Boolean).sort()[0]||null:null,
+      signals,sources:[...(city.sources||[]),...(pearson.sources||[])],sourceResults:[...(city.sourceResults||[]),...(pearson.sourceResults||[])],
+      roadblocks:[...(city.roadblocks||[]),...(pearson.roadblocks||[])],
+      metadata:{...city.metadata,cityhive:city.metadata,pearsons:pearson.metadata,complete,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false,
+        requestCount:Number(city.metadata?.requestCount||0)+Number(pearson.metadata?.requestCount||0),allDeliveryDisabled:true}};
+  }
   if (process.env.BOURBON_SIGNAL_SHADOW_MODE !== '1' || config !== MASSACHUSETTS) {
     throw new Error('Research reports require the registered isolated shadow source.');
   }

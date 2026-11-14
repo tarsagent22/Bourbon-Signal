@@ -18,7 +18,7 @@ import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from 
 import { isSouthCarolinaDunesInventory, isSouthCarolinaDunesSignal } from './south-carolina-dunes-policy.mjs';
 import { isSouthCarolinaLiquorLibraryInventory, isSouthCarolinaLiquorLibrarySignal, isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaDiscountLiquorSignal, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
 import { lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
-import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
+import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal,isPearsonsDcProductionOnSiteSignal } from './central-cityhive-policy.mjs';
 
 export const STATE_CONFIDENCE_POLICY = {
   OH: { maxAlertMode: 'browser_store_inventory_status', inventorySemantics: 'OHLQ store-level product availability is collected through browser/CDP via /api/product-availability/{sku} with RequestVerificationToken from the rendered page. The frontend bundle decodes hashed availability buckets as Not Available, Sold Out, Limited Supply, and In Stock. Direct server fetch is Cloudflare-gated and OHLQ does not expose explicit bottle counts, so alerts should describe status, not quantity.', defaultCadence: '15-60m' },
@@ -187,7 +187,7 @@ const COSTCO_WAREHOUSE_POLICY = {
 };
 
 function policyForSignal(signal, nowMs = Date.now()) {
-  if(isCentralCityHiveProductionOnSiteSignal(signal,{nowMs})||isNjMiProductionOnSiteSignal(signal,{nowMs}))return{
+  if(isCentralCityHiveProductionOnSiteSignal(signal,{nowMs})||isPearsonsDcProductionOnSiteSignal(signal,{nowMs})||isNjMiProductionOnSiteSignal(signal,{nowMs}))return{
     maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:'Reviewed exact-store pickup availability; binary availability is not an exact shelf count. Verify before driving.',defaultCadence:'30m'};
   if(isCentralCityHiveRetailerEvent(signal)&&isCentralCityHiveInventory(signal,{nowMs})) return {
     maxAlertMode:'alert_retailer_store_inventory_caveat',
