@@ -124,7 +124,7 @@ test('the isolated registry produces valid shadow evidence without modifying pro
     await assert.rejects(collectResearchStateReport({ id: 'MA' }, bible), /isolated shadow/);
     process.env.BOURBON_SIGNAL_SHADOW_MODE = '1';
     const config = researchSourceForState('MA');
-    const report = await collectResearchStateReport(config, bible, { fetchImpl: async () => new Response(fixture()) });
+    const report = await collectResearchStateReport(config, bible, { fetchImpl: async () => new Response(fixture()),includeCityHiveResearch:false });
     assert.equal(report.state, 'MA');
     assert.equal(report.sources.length, 2);
     assert.equal(buildShadowEvidence('MA', report).complete, true);
