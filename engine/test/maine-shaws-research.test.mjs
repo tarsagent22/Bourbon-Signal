@@ -6,7 +6,7 @@ import path from 'node:path';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS, STATE_LIFECYCLE_CONFIG } from '../src/state-lifecycle.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
-import { groceryResearchSourceForState, collectGroceryResearchReport } from '../src/research-grocery-runtime.mjs';
+import { groceryResearchSourceForState, collectGroceryResearchReport, isExactGroceryResearchInventory } from '../src/research-grocery-runtime.mjs';
 import { researchSourceForState, withResearchLifecycle } from '../src/research-state-registry.mjs';
 import {
   MAINE_SHAWS_RESEARCH_SOURCES,
@@ -36,7 +36,7 @@ test('Maine Shaw\'s registry covers ten premises; eight retain exact limited-pro
   for (const capture of fixture.stores) {
     const source = byMerchant.get(capture.source.merchantId);
     assert.ok(source);
-    assert.deepEqual(capture.source, source);
+    assert.deepEqual({ ...capture.source, sourceLabel: source.sourceLabel }, source);
     assert.equal(capture.locator.spirits, true);
     assert.equal(capture.resolver.domainName, "Shaw's");
     assert.equal(maineShawsPremiseMatches(source, capture.resolver), true);
@@ -113,6 +113,10 @@ test('Maine Shaw\'s registered shadow collector stays within the retained 30-req
     });
     assert.equal(report.metadata.complete, true, JSON.stringify({metadata:report.metadata,roadblocks:report.roadblocks}));
     assert.equal(report.metadata.shadowOnly, true);
+    assert.ok(report.signals.every(isExactGroceryResearchInventory));
+    const [positive] = report.signals;
+    assert.equal(isExactGroceryResearchInventory({ ...positive, canAlertAsInventory: true }), false);
+    assert.equal(isExactGroceryResearchInventory({ ...positive, storeAddress: "12 Different St, Portland, ME 04103" }), false);
     assert.equal(report.metadata.productionActivationAllowed, false);
     assert.equal(report.metadata.customerDeliveryAllowed, false);
     assert.equal(report.metadata.requests.length, 30);

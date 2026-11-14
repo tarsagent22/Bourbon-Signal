@@ -15,7 +15,10 @@ export const MAINE_SHAWS_RESEARCH_SOURCES = Object.freeze([
   { id: 'me:shaws:3551', name: "Shaw's", stateCode: 'ME', merchantId: '3551', banner: 'shaws', resolverDomainName: "Shaw's", host: 'www.shaws.com', address: '251 Kennedy Memorial Dr, Waterville, ME 04901', city: 'Waterville', zip: '04901', storeId: 'shaws:3551', lat: 44.5445203298343, lng: -69.66724271953993, locator: 'https://local.shaws.com/me/waterville/251-kennedy-memorial-dr/Beer-Wine-Liquor.html', researchOnly: true },
   { id: 'me:shaws:1609', name: "Shaw's", stateCode: 'ME', merchantId: '1609', banner: 'shaws', resolverDomainName: "Shaw's", host: 'www.shaws.com', address: '670 Bath Rd, Wiscasset, ME 04578', city: 'Wiscasset', zip: '04578', storeId: 'shaws:1609', lat: 43.97302858953805, lng: -69.7093306751248, locator: 'https://local.shaws.com/me/wiscasset/670-bath-rd/Beer-Wine-Liquor.html', researchOnly: true },
   { id: 'me:shaws:608', name: "Shaw's", stateCode: 'ME', merchantId: '608', banner: 'shaws', resolverDomainName: "Shaw's", host: 'www.shaws.com', address: '200 Lower Main St, Freeport, ME 04032', city: 'Freeport', zip: '04032', storeId: 'shaws:608', lat: 43.845043345050144, lng: -70.11839112985183, locator: 'https://local.shaws.com/me/freeport/200-lower-main-st/Beer-Wine-Liquor.html', researchOnly: true },
-].map(source => Object.freeze(source)));
+].map(source => Object.freeze({
+  ...source,
+  sourceLabel: "Shaw's Maine first-party in-store availability",
+})));
 
 const RESEARCHED_LIMITED_EXPRESSIONS = new Map([
   ['960137024', 'Blade and Bow Bourbon'],
