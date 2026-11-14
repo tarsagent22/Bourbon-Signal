@@ -124,6 +124,14 @@ jobs:
           if-no-files-found: warn
           path: engine/out/shadow
 
+      - name: Preserve the parsed Oregon report for replay
+        if: always() && hashFiles('engine/out/browser/OR-product-availability.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: oregon-inventory-source-${{ github.run_id }}
+          retention-days: 30
+          path: engine/out/browser/OR-product-availability.json
+
   collect-nj-mi-research:
     if: ${{ inputs.states == 'NJ,MI' || inputs.states == 'NJ' || inputs.states == 'MI' }}
     uses: ./.github/workflows/nj-mi-research-preflight.yml

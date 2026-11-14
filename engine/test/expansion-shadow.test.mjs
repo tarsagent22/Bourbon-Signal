@@ -8,6 +8,7 @@ import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
 
 import { buildShadowEvidence, classifyShadowReadiness, isValidShadowReport, runCandidatePrerequisite, runExpansionShadow, selectShadowCandidates, terminateSubprocessTree, validateShadowRunRequest } from '../src/run-expansion-shadow.mjs';
+import { OREGON_DAILY_INVENTORY_URL } from '../src/or-daily-inventory.mjs';
 
 test('shadow collection only selects explicitly eligible non-active candidates and never emits publishable rows', () => {
   const lifecycle = {
@@ -65,6 +66,19 @@ test('shadow inventory trust requires a fresh nonfuture signal with concrete sto
   ]) {
     assert.equal(classifyShadowReadiness({ ...base, signals: [untrusted] }, { now }).inventory.ready, false);
   }
+});
+
+test('official Oregon dates retain their original clock and can establish shadow inventory without alert authority', () => {
+  const row = { state: 'OR', sourceUrl: OREGON_DAILY_INVENTORY_URL, observedAt: '2026-11-13T08:00:00.000Z',
+    storeId: '100', storeAddress: '1 Main St, Salem, OR 97301', locationPrecision: 'store_level', canonicalBottleId: 'bottle',
+    sourceAvailabilityVerified: true, canAlertAsInventory: false, canAlertAsWatch: false, quantity: 1 };
+  const report = { state: 'OR', strategy: 'inventory_locator', status: 'useful', signals: [row], sources: [{ ok: true }] };
+  const evidence = buildShadowEvidence('OR', report, { now: '2026-11-14T08:00:00.000Z' });
+  assert.equal(evidence.complete, true);
+  assert.equal(evidence.metrics.alertCandidateCount, 0);
+  assert.equal(evidence.metrics.freshSignalCount, 1);
+  assert.equal(evidence.publication.allowed, false);
+  assert.equal(classifyShadowReadiness(report, { now: '2026-11-15T08:00:00.001Z' }).inventory.ready, false);
 });
 
 test('partial discovery cannot be labeled complete even when a sibling inventory row is trusted', () => {

@@ -7,6 +7,7 @@ import { withResearchLifecycle } from './research-state-registry.mjs';
 import {isCentralCityHiveResearchInventory} from './central-cityhive-policy.mjs';
 import {isNjMiResearchSourceInventory} from './nj-mi-research-policy.mjs';
 import { isLouisianaAlaskaGroceryShadowInventory } from './research-louisiana-alaska-grocery-runtime.mjs';
+import { isOregonDailyInventoryObservation, OREGON_DAILY_INVENTORY_URL } from './or-daily-inventory.mjs';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -58,6 +59,7 @@ function trustedCurrentInventorySignals(report = {}, { now = new Date().toISOStr
   if (report?.stale === true) return [];
   const nowMs = Date.parse(String(now || ''));
   return asArray(report.signals).filter((row) => (row?.canAlertAsInventory === true
+    || (report.state === 'OR' && row?.sourceUrl === OREGON_DAILY_INVENTORY_URL)
     || report.metadata?.complete===true&&report.metadata.shadowOnly===true&&report.metadata.productionActivationAllowed===false
       &&report.metadata.customerDeliveryAllowed===false&&(isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})||isLouisianaAlaskaGroceryShadowInventory(row)))
     && row?.stale !== true
@@ -67,6 +69,7 @@ function trustedCurrentInventorySignals(report = {}, { now = new Date().toISOStr
     && (() => {
       const observedAt = Date.parse(String(row?.observedAt || row?.lastConfirmedAt || row?.eventAt || ''));
       const ageMs = nowMs - observedAt;
+      if (report.state === 'OR' && row.sourceUrl === OREGON_DAILY_INVENTORY_URL) return isOregonDailyInventoryObservation(row, nowMs);
       return Number.isFinite(nowMs) && Number.isFinite(observedAt) && ageMs >= 0 && ageMs <= maximumAgeMs;
     })());
 }
@@ -130,6 +133,7 @@ export function buildShadowEvidence(state, report, { now = new Date().toISOStrin
   const exactStore = signals.filter((row) => row?.storeId && row?.storeAddress);
   const nowMs = Date.parse(String(now || ''));
   const fresh = signals.filter((row) => {
+    if (state === 'OR' && row?.sourceUrl === OREGON_DAILY_INVENTORY_URL) return isOregonDailyInventoryObservation(row, nowMs);
     const observedAt = Date.parse(String(row?.observedAt || row?.lastConfirmedAt || row?.eventAt || ''));
     const ageMs = nowMs - observedAt;
     return Number.isFinite(nowMs) && Number.isFinite(observedAt) && ageMs >= 0 && ageMs <= SHADOW_INVENTORY_MAX_AGE_MS && row?.stale !== true;
