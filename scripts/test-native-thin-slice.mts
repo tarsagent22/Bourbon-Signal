@@ -355,7 +355,8 @@ assert.match(nativeSignalFeed, /serverSignalFilters\(filters\)/, "selected rarit
 assert.match(nativeSignalFeed, /onPress=\{\(\) => applyRarityFilters\(toggleRarity\(filters, option\.value\)\)\}/, "rarity chips must use the non-destructive local transition path");
 assert.doesNotMatch(nativeSignalFeed, /onPress=\{\(\) => applyFilters\(toggleRarity/, "rarity chips must never clear the feed through the remote filter reset path");
 assert.doesNotMatch(nativeSignalFeed, /shouldBackfillRarity|rarityBackfillRef/, "rarity is filtered before server pagination");
-assert.match(nativeSignalFeed, /onEndReached=.*void load\(false\)/, "filtered timelines must page like All");
+assert.match(nativeSignalFeed, /canPage && !error[\s\S]*?onPress=\{\(\) => load\(false\)\}[\s\S]*?>See more signals<\/Text>/, "filtered timelines must offer the same next-page action as All");
+assert.match(nativeSignalFeed, /ListFooterComponent=\{feedFooter\}/);
 assert.match(nativeSignalFeed, /homeFeedCache/, "native feed restores account and filter scoped results");
 assert.match(nativeSignalFeed, /horizontal/, "rarity chips should scroll instead of wrapping into multiple rows");
 assert.doesNotMatch(nativeSignalFeed, /<Modal|Open Signal filters/, "Signal filters must stay directly on the feed instead of hiding in a sheet");
