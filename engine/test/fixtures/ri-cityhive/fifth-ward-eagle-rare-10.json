@@ -1,0 +1,96 @@
+{
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "546babb03932330002100300",
+        "name": "Fifth Ward Liquor",
+        "address": {
+          "full_address": "695 Thames St, Newport, RI 02840, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -71.31391909999999,
+              41.4734266
+            ]
+          }
+        },
+        "accept_orders": true
+      }
+    }
+  ],
+  "product": {
+    "id": "5521cef16561310003020100",
+    "name": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+    "basic_category": [
+      "bourbon",
+      "whiskey"
+    ],
+    "size": {
+      "measure": "ml",
+      "quantity": "750"
+    },
+    "additional_properties": {
+      "brands": "Eagle Rare",
+      "content": "45%"
+    },
+    "merchants": [
+      {
+        "merchant_id": "546babb03932330002100300",
+        "offer_types": [
+          "pick_up",
+          "delivery",
+          "shipping"
+        ],
+        "product_options": [
+          {
+            "merchant_id": "546babb03932330002100300",
+            "merchant_name": "Fifth Ward Liquor",
+            "full_address": "695 Thames St, Newport, RI 02840, USA",
+            "coordinates": [
+              -71.31391909999999,
+              41.4734266
+            ],
+            "product_id": "5521cef16561310003020100",
+            "option_id": "2019723d4bc388a1636a0e8333f6cab54fb3b7f582d026c6e3b19cb398a6e87c",
+            "option_params": {
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              }
+            },
+            "product_url": "https://fifthwardliquor.com/shop/product/eagle-rare-10-year-kentucky-straight-bourbon/5521cef16561310003020100?option-id=2019723d4bc388a1636a0e8333f6cab54fb3b7f582d026c6e3b19cb398a6e87c",
+            "price": 75.99,
+            "quantity": 6,
+            "option_display_data": {
+              "name": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              },
+              "properties": {
+                "product_views": [
+                  "spirits"
+                ],
+                "product_basic_categories": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "brands": [
+                  "Eagle Rare"
+                ],
+                "country": "United States",
+                "state": "Kentucky",
+                "age": "10",
+                "content": "45%"
+              },
+              "basic_category": [
+                "bourbon",
+                "whiskey"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
