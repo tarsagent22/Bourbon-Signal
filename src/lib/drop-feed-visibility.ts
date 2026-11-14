@@ -157,7 +157,7 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
   if (isLaakCanaryPreview) return true;
   if (isGroceryExpansionOnSiteSignal(drop)) return true;
   if (['NJ','MI'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isNjMiOnSiteSignal(drop);
-  if (['MN','MO'].includes(state) && drop.previewOnly === true && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isCentralCityHiveCanaryOnSiteSignal(drop);
+  if (['MN','MO','KS','DE'].includes(state) && drop.previewOnly === true && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isCentralCityHiveCanaryOnSiteSignal(drop);
   if (['WI','OK'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isCentralCityHiveOnSiteSignal(drop);
   if (!type) return false;
   if (type === "wv_abca_retailer_recent_purchase_window") return isWestVirginiaRecentPurchase;
