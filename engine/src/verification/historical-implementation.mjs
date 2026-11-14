@@ -351,6 +351,10 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     ['First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno–Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane.',
       'First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno\\u2013Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane.'],
   ])text=replaceUnique(text,current,historical,`${name}: exact historical JSON unicode escapes`);
+  if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const current='"workerConcurrency": 5,';
+    if(text.includes(current))text=replaceUnique(text,current,'"workerConcurrency": 4,',`${name}: exact five-worker capacity forecast`);
+  }
   if(name==='src/config/state-lifecycle.json')text=replaceUnique(text,'Reno–Sparks','Reno\\u2013Sparks',`${name}: exact Nevada area Unicode escape`);
   return Buffer.from(text);
 }

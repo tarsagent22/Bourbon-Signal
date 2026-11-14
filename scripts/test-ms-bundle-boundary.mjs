@@ -27,6 +27,18 @@ test('MS historical implementation bytes remain pinned, including policy', async
   }
 });
 
+test('five-worker capacity forecast reverses only its exact shared lifecycle field', async () => {
+  for (const name of ['src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']) {
+    const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
+    assert.equal(current.split('"workerConcurrency": 5,').length - 1, 1);
+    const normalized = normalizeHistoricalImplementationBytes(name, Buffer.from(current)).toString('utf8');
+    assert.equal(normalized.split('"workerConcurrency": 4,').length - 1, 1);
+    assert.equal(digest(Buffer.from(normalized)), evidence.implementationFilesSha256[name]);
+    const altered = current.replace('"workerConcurrency": 5,', '"workerConcurrency": 6,');
+    assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(altered))), evidence.implementationFilesSha256[name]);
+  }
+});
+
 test('measured forecast reversal accepts only the complete reviewed map and preserves original MS hashes', async () => {
   const baseline = JSON.parse(await readFile(new URL('../engine/data/source-evidence/refresh-capacity-20261029/forecast-metadata-ms-boundary.json', import.meta.url), 'utf8'));
   assert.equal(baseline.contractVersion, 'bourbon-signal/measured-runtime-forecast-ms-boundary@1');

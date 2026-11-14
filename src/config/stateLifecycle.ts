@@ -45,7 +45,7 @@ export const STATE_LIFECYCLE_CONFIG = {
     "refreshIntervalMs": 1800000,
     "refreshSafetyMarginMs": 300000,
     "defaultExpectedStateRunMs": 90000,
-    "workerConcurrency": 4,
+    "workerConcurrency": 5,
     "promotionPolicy": {
       "minShadowRuns": 3,
       "minCanaryRuns": 2,

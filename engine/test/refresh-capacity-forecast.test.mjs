@@ -6,6 +6,7 @@ import {WESTERN_GROCERY_BUDGETS} from '../src/western-grocery-production-config.
 import {CENTRAL_CITYHIVE_PRODUCTION_BUDGETS} from '../src/central-cityhive-production-config.mjs';
 const read=relative=>JSON.parse(readFileSync(new URL(relative,import.meta.url),'utf8'));
 const forecast=read('../data/source-evidence/refresh-capacity-20261029/forecast-refinement.json');
+const historical=read('../data/source-evidence/refresh-capacity-20261029/observed-capacity.json');
 const config=read('../../src/config/state-lifecycle.json');
 test('four planning forecasts follow one observed-sample formula without changing source or parent budgets',()=>{
   assert.equal(forecast.sourceObservations.length,3);
@@ -32,6 +33,6 @@ test('four planning forecasts follow one observed-sample formula without changin
   assert.deepEqual(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.RI,{sourceMs:90000,stateMs:150000,maxRequests:7});
   // Keep the historical forecast tied to its recorded state set; current AK/LA admission belongs to later capacity reviews.
   const p=config.reliabilityPolicy,states=[...new Set(forecast.prospectiveStates)];
-  assert.deepEqual(evaluateCapacityBudget({stateExpectedRunMs:states.map(state=>p.stateExpectedRunMs[state]||p.defaultExpectedStateRunMs),concurrency:p.workerConcurrency,intervalMs:p.refreshIntervalMs,safetyMarginMs:p.refreshSafetyMarginMs}),forecast.prospectiveCollectionModel);
+  assert.deepEqual(evaluateCapacityBudget({stateExpectedRunMs:states.map(state=>p.stateExpectedRunMs[state]||p.defaultExpectedStateRunMs),concurrency:historical.policy.workerConcurrency,intervalMs:p.refreshIntervalMs,safetyMarginMs:p.refreshSafetyMarginMs}),forecast.prospectiveCollectionModel);
   assert.equal(forecast.sourceAndParentHardcapsChanged,false);assert.equal(forecast.promotionManifestSemanticsChanged,false);
 });

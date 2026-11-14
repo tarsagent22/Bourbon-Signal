@@ -6,11 +6,12 @@ import { pathToFileURL } from 'node:url';
 import { ALL_STATE_SOURCES, STATE_SOURCES } from './state-sources.mjs';
 import { sourceRefreshScope } from './source-scoped-refresh.mjs';
 import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
-import { customerStateLabel, getStateLifecycle, sourceStateLabel } from './state-lifecycle.mjs';
+import { customerStateLabel, getStateLifecycle, sourceStateLabel, STATE_LIFECYCLE_CONFIG } from './state-lifecycle.mjs';
 import { ensureBrowserCdp, killBrowserCdp, DEFAULT_CDP_URL } from './core/browser-session.mjs';
 import { confidenceForSignal } from './confidence-policy.mjs';
 import { atomicWriteJson, validateFwgsFullArtifact } from './fwgs-artifact-policy.mjs';
 import { runStatePoolWithBrowserBarriers } from './optimization/browser-state-barrier.mjs';
+import { resolveStateWorkerConcurrency } from './optimization/state-worker-config.mjs';
 import { prioritizeScheduledStateRuns, selectScheduledStates, updateStateRunMetric } from './optimization/state-run-plan.mjs';
 import { guardStateReport, stateReportContinuityStateIds, usesPartialSignalContinuity } from './state-report-guard.mjs';
 import { resolveAggregateStateReports } from './state-report-aggregation.mjs';
@@ -114,7 +115,10 @@ const OHLQ_STATE_ARTIFACT_MAX_AGE_MS = Math.min(12 * 60 * 60_000,
   Number(process.env.BOURBON_SIGNAL_OHLQ_PREFLIGHT_MAX_AGE_MS || 12 * 60 * 60_000));
 const BROWSER_PREFLIGHT_ENABLED = process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT !== '0' && !process.argv.includes('--skip-browser-preflight');
 const STATE_SCHEDULER_ENABLED = process.env.BOURBON_SIGNAL_STATE_SCHEDULER !== '0';
-const STATE_WORKER_CONCURRENCY = Math.max(1, Number(process.env.BOURBON_SIGNAL_STATE_WORKER_CONCURRENCY || 4));
+const STATE_WORKER_CONCURRENCY = resolveStateWorkerConcurrency(
+  STATE_LIFECYCLE_CONFIG.reliabilityPolicy?.workerConcurrency,
+  process.env.BOURBON_SIGNAL_STATE_WORKER_CONCURRENCY,
+);
 const STATE_RUN_METRICS = path.join(OUT, 'optimization', 'state-run-metrics.json');
 const SOURCE_RUN_HISTORY = path.join(OUT, 'optimization', 'source-run-history.json');
 const REQUESTED_STATE_IDS = new Set((process.env.BOURBON_SIGNAL_RUN_STATES || process.argv.find((arg) => arg.startsWith('--states='))?.split('=')[1] || '')

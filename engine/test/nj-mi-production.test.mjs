@@ -8,6 +8,7 @@ import {collectState} from '../src/collectors/generic-state.mjs';
 import {ALL_STATE_SOURCES} from '../src/state-sources.mjs';
 import {STATE_LIFECYCLE_CONFIG} from '../src/state-lifecycle.mjs';
 import {evaluateCapacityBudget} from '../src/reliability-policy.mjs';
+import {resolveStateWorkerConcurrency} from '../src/optimization/state-worker-config.mjs';
 import {stateTimeoutMs} from '../src/run.mjs';
 import {collectNjMiCityHiveProductionSource,njMiProductionAllowed} from '../src/collectors/nj-mi-cityhive-production.mjs';
 import {njMiProductionCohortKey,NJ_MI_PRODUCTION_BUDGETS} from '../src/nj-mi-production-config.mjs';
@@ -115,7 +116,7 @@ test('source deadlines fit parent watchdogs and denial cache saves independently
   assert.ok(restore&&save);assert.match(save,/if: always\(\)/);assert.equal(save.match(/\bkey: (.+)/)[1],restore.match(/\bkey: (.+)/)[1]);
   const policy=STATE_LIFECYCLE_CONFIG.reliabilityPolicy;
   const expected=STATE_LIFECYCLE_CONFIG.activeStates.map(state=>policy.stateExpectedRunMs[state]||policy.defaultExpectedStateRunMs);
-  const capacityOptions={concurrency:policy.workerConcurrency,intervalMs:policy.refreshIntervalMs,safetyMarginMs:policy.refreshSafetyMarginMs};
+  const capacityOptions={concurrency:resolveStateWorkerConcurrency(policy.workerConcurrency,process.env.BOURBON_SIGNAL_STATE_WORKER_CONCURRENCY),intervalMs:policy.refreshIntervalMs,safetyMarginMs:policy.refreshSafetyMarginMs};
   const active=evaluateCapacityBudget({...capacityOptions,stateExpectedRunMs:expected});
   assert.equal(active.ok,true,active.reason);
 });

@@ -6,6 +6,7 @@ import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { renderStateLifecycleTypes, verifyStateLifecycleDrift } from '../../scripts/generate-state-lifecycle-types.mjs';
 import { evaluateCapacityBudget, validateExpansionLifecycle } from './reliability-policy.mjs';
+import { resolveStateWorkerConcurrency } from './optimization/state-worker-config.mjs';
 import { validateStateFixtures } from './verify-state-fixtures.mjs';
 import { validateStateVerticalSliceManifest } from './state-vertical-slice-contract.mjs';
 
@@ -47,7 +48,7 @@ export function prepareStatePromotion({ state, config, manifest, fixtures, now =
   const durations = projectedStates.map((id) => Number(policy.stateExpectedRunMs?.[id] || policy.defaultExpectedStateRunMs));
   const capacity = evaluateCapacityBudget({
     stateExpectedRunMs: durations,
-    concurrency: policy.workerConcurrency,
+    concurrency: resolveStateWorkerConcurrency(policy.workerConcurrency, process.env.BOURBON_SIGNAL_STATE_WORKER_CONCURRENCY),
     intervalMs: policy.refreshIntervalMs,
     safetyMarginMs: policy.refreshSafetyMarginMs,
   });

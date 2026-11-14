@@ -9,6 +9,7 @@ import {collectState} from '../src/collectors/generic-state.mjs';
 import {ALL_STATE_SOURCES,STATE_SOURCES,DISABLED_STATE_SOURCES} from '../src/state-sources.mjs';
 import {STATE_LIFECYCLE_CONFIG} from '../src/state-lifecycle.mjs';
 import {evaluateCapacityBudget} from '../src/reliability-policy.mjs';
+import {resolveStateWorkerConcurrency} from '../src/optimization/state-worker-config.mjs';
 import {stateTimeoutMs} from '../src/run.mjs';
 import {collectCentralCityHiveProductionSource,centralCityHiveProductionAllowed} from '../src/collectors/central-cityhive-production.mjs';
 import {centralCityHiveProductionCohortKey,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,CENTRAL_CITYHIVE_PRODUCTION_STATES} from '../src/central-cityhive-production-config.mjs';
@@ -268,7 +269,7 @@ test('source deadlines fit parent watchdogs and denial cache saves independently
   const policy=STATE_LIFECYCLE_CONFIG.reliabilityPolicy;
   const expected=[...new Set([...STATE_LIFECYCLE_CONFIG.activeStates,'WI','OK','KS'])].map(state=>policy.stateExpectedRunMs[state]||policy.defaultExpectedStateRunMs);
   const capacity=evaluateCapacityBudget({stateExpectedRunMs:expected,
-    concurrency:policy.workerConcurrency,intervalMs:policy.refreshIntervalMs,safetyMarginMs:policy.refreshSafetyMarginMs});
+    concurrency:resolveStateWorkerConcurrency(policy.workerConcurrency,process.env.BOURBON_SIGNAL_STATE_WORKER_CONCURRENCY),intervalMs:policy.refreshIntervalMs,safetyMarginMs:policy.refreshSafetyMarginMs});
   assert.equal(capacity.ok,true,'Distinct active/planned state runtime forecasts must fit the existing collection-only capacity');
   assert.equal(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.KS.sourceMs,25_000);
   assert.equal(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.KS.stateMs,30_000);
