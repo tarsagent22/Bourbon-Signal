@@ -143,6 +143,38 @@ test('Oregon cache uses conditional HEAD, reuses the validated report, and prese
   assert.deepEqual(calls.map((call) => call.method), ['HEAD']);
 });
 
+test('Oregon reuses the report when regeneration changes only the Bible file metadata', async (t) => {
+  const directory = await cacheDirectory(t);
+  const bibleFile = path.join(directory, 'live-bible.json');
+  const previous = process.env.OR_BIBLE_FILE;
+  process.env.OR_BIBLE_FILE = bibleFile;
+  t.after(() => {
+    if (previous === undefined) delete process.env.OR_BIBLE_FILE;
+    else process.env.OR_BIBLE_FILE = previous;
+  });
+  const records = [{ id: 'bb_buffalo_trace', canonical: 'Buffalo Trace', aliases: ['Buffalo Trace'], tier: 'allocated' }];
+  const writeBible = (generatedAt) => writeFile(bibleFile, JSON.stringify({ generatedAt, records, libraryCatalog: { mode: 'live', count: 1 } }));
+  await writeBible('2026-11-14T11:59:00.000Z');
+  const original = await collectOregonDailyInventory({
+    fetchImpl: async (_url, options) => options.method === 'HEAD' ? head200() : csv200(),
+    cacheDir: directory, terms: ['buffalo trace'], generatedAt: '2026-11-14T12:00:00.000Z',
+  });
+  await writeBible('2026-11-14T12:59:00.000Z');
+  const reused = await collectOregonDailyInventory({
+    fetchImpl: async (_url, options) => {
+      assert.equal(options.method, 'HEAD');
+      return new Response(null, { status: 304, headers: { etag: '"or-r1"' } });
+    },
+    cacheDir: directory, terms: ['buffalo trace'], generatedAt: '2026-11-14T13:00:00.000Z',
+  });
+  assert.equal(reused.cacheDisposition, 'reused_304');
+  assert.equal(reused.cacheUpdated, false);
+  assert.equal(reused.generatedAt, original.generatedAt);
+  assert.equal(reused.cacheReceipt.reportSha256, original.cacheReceipt.reportSha256);
+  assert.equal(reused.cacheReceipt.verifiedBible.recordsSha256, original.bible.recordsSha256);
+  assert.notEqual(reused.cacheReceipt.verifiedBible.sourceFileSha256, original.bible.sourceFileSha256);
+});
+
 test('Oregon unchanged source is reparsed for a changed full Bible without refreshing inventory dates', async (t) => {
   const directory = await cacheDirectory(t);
   await collectOregonDailyInventory({
