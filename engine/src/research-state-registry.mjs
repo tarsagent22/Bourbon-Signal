@@ -8,6 +8,7 @@ import {njMiResearchSourceForState,njMiResearchLifecycleEntries,collectNjMiResea
 import {michiganLiquorsResearchSourceForState,michiganLiquorsResearchLifecycleEntries,collectMichiganLiquorsResearchReport} from './research-michigan-liquors-runtime.mjs';
 import { louisianaAlaskaResearchSourceForState, louisianaAlaskaResearchLifecycleEntries, collectLouisianaAlaskaResearchReport } from './research-louisiana-alaska-grocery-runtime.mjs';
 import { wyomingGroceryResearchSourceForState, wyomingGroceryResearchLifecycle, collectWyomingGroceryResearchReport } from './research-wyoming-grocery-runtime.mjs';
+import { northDakotaResearchSourceForState, collectNorthDakotaResearchReport } from './research-north-dakota-runtime.mjs';
 
 import { delawareEcwidResearchSource, collectDelawareEcwidResearch } from './research-delaware-ecwid.mjs';
 // Research registrations never rewrite production lifecycle/source files or
@@ -24,6 +25,7 @@ export function researchSourceForState(state, { shadowMode = process.env.BOURBON
   if (!shadowMode) return null;
   if (state === 'MA') return MASSACHUSETTS;
   return oregonResearchSourceForState(state)
+    || northDakotaResearchSourceForState(state)
     || michiganLiquorsResearchSourceForState(state)
     || louisianaAlaskaResearchSourceForState(state)
     || wyomingGroceryResearchSourceForState(state)
@@ -72,6 +74,7 @@ export async function collectResearchStateReport(config, bible, options = {}) {
       stale:false,signals,sources,sourceResults,roadblocks,metadata:{complete,shadowOnly:true,productionActivationAllowed:false,
         customerDeliveryAllowed:false,allDeliveryDisabled:true,cityHive:cityHive?.metadata||null,delawareEcwid:banks.metadata}};
   }
+  if (config && config === northDakotaResearchSourceForState(config.id)) return collectNorthDakotaResearchReport(config, bible, options);
   if (config && config === oregonResearchSourceForState(config.id)) return collectOregonResearchReport(config, bible, options);
   if(config&&config===michiganLiquorsResearchSourceForState(config.id))return collectMichiganLiquorsResearchReport(config,bible,options);
   if (config && config === louisianaAlaskaResearchSourceForState(config.id)) return collectLouisianaAlaskaResearchReport(config, bible, options);
