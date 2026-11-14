@@ -583,6 +583,11 @@ jobs:
         working-directory: engine
         run: node src/verify-ar-first-publication.mjs
 
+      - name: Verify the first Delaware production cohort before publication
+        if: ${{ startsWith(inputs.incident_key, 'delaware-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-de-first-publication.mjs
+
       - name: Audit every scarce library bottle across all states
         working-directory: engine
         run: node src/library-coverage-audit.mjs
@@ -816,6 +821,9 @@ jobs:
             engine/out/states/AR.json
             engine/out/site/states/AR/drops.json
             engine/out/first-publication/AR.json
+            engine/out/states/DE.json
+            engine/out/site/states/DE/drops.json
+            engine/out/first-publication/DE.json
             engine/out/verification/library-coverage.json
             engine/out/verification/library-coverage.md
             engine/out/verification/production-engine-verification.log

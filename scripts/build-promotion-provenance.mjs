@@ -38,7 +38,7 @@ const files = [
 ];
 // These files control production admission, actual HTTP, host-denial durability
 // and public projection. Missing inputs must fail issuance, never be skipped.
-if (['WA','NM','WI','OK','NJ','MI','MN','KS','MO','MD','WY'].includes(state)) files.push(
+if (['WA','NM','WI','OK','NJ','MI','MN','KS','MO','MD','DE','WY'].includes(state)) files.push(
   'engine/src/collectors/generic-state.mjs',
   'engine/src/collectors/north-carolina-intelligence.mjs',
   'engine/src/collectors/virginia-inventory-recovery.mjs',
@@ -409,6 +409,25 @@ if (state === 'MD') files.push(
   'engine/test/fixtures/md-cityhive/owings-mills-elijah-craig-bp.json',
   'engine/out/canary/MD/site/states/MD-MONTGOMERY/drops.json',
 );
+  'engine/src/collectors/central-cityhive-production.mjs',
+  'engine/src/central-cityhive-production-config.mjs',
+  'engine/src/collectors/central-cityhive-premises.mjs',
+  'engine/src/collectors/central-cityhive-research-premises.mjs',
+  'engine/src/collectors/central-cityhive-expansion.mjs',
+  'engine/src/collectors/central-cityhive-transport.mjs',
+  'engine/src/collectors/cityhive-surfaces.mjs',
+  'engine/src/collectors/central-cityhive-market-policy.mjs',
+  'engine/src/central-cityhive-policy.mjs',
+  'engine/src/delaware-ecwid-production-policy.mjs',
+  'engine/src/research-delaware-ecwid.mjs',
+  'engine/src/verify-de-first-publication.mjs',
+  'engine/src/customer-drop-freshness.mjs',
+  'engine/data/additional-cityhive-expansion-sources.json',
+  'engine/data/de-ecwid-research-source.json',
+  'engine/data/state-integration/DE.json',
+  'engine/test/de-production-adapter.test.mjs',
+  'engine/test/de-first-publication.test.mjs',
+);
 for (const file of files) {
   const content = await readFile(path.join(root, file));
   fileDigests[file] = createHash('sha256').update(content).digest('hex');
@@ -428,3 +447,4 @@ const out = path.join(root, 'engine', 'out', 'promotion-provenance', `${state}.j
 await mkdir(path.dirname(out), { recursive: true });
 await writeFile(out, `${JSON.stringify(payload, null, 2)}\n`);
 console.log(JSON.stringify({ state, out, bundleDigest: payload.bundleDigest }));
+
