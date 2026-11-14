@@ -73,7 +73,7 @@ test('KS production parser uses six exact merchant-scoped requests and projects 
   const sha256=value=>createHash('sha256').update(value).digest('hex');
   assert.equal(fixtureInfo.sourceArtifact.runId,'43587613750');
   assert.equal(fixtureInfo.sourceArtifact.artifactDigest,'561b86527e45b5350ccf426c087ea242c026a0947d3e72587469b310dc70a85d');
-  for(const receipt of fixtureInfo.captures)assert.equal(sha256(captures.get(receipt.fixture)),receipt.fixtureSha256,receipt.fixture);
+  for(const receipt of fixtureInfo.captures)assert.equal(sha256(captures.get(receipt.fixture).replace(/\r\n/g,'\n')),receipt.fixtureSha256,receipt.fixture);
   const byHost=new Map([
     ['kingsliquorolathe.com','kings-weller-special-reserve.json'],
     ['vernsliquor.com','verns-larceny-barrel-proof.json'],

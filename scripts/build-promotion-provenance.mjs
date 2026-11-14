@@ -145,7 +145,7 @@ if (['NJ','MI'].includes(state)) files.push(
   `engine/out/njmi-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
 );
-if (['WI', 'OK', 'RI', 'MN'].includes(state)) files.push(
+if (['WI', 'OK', 'RI', 'MN', 'KS'].includes(state)) files.push(
   'engine/src/collectors/central-cityhive-production.mjs',
   'engine/src/collectors/central-cityhive-transport.mjs',
   'engine/src/central-cityhive-production-config.mjs',

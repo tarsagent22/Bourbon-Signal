@@ -125,14 +125,13 @@ export async function collectCentralCityHiveProductionSource(config,bible,{lifec
     }
     };
     bounded.throwIfAborted();requestCount++;onRequest();
-    const response=await fetchText(url,{...options,signal:bounded,onResponse:observeDenial});bytes+=Buffer.byteLength(response.text||'');
+    const response=await fetchText(url,{...options,timeoutMs:CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].requestTimeoutMs||options.timeoutMs,signal:bounded,onResponse:observeDenial});bytes+=Buffer.byteLength(response.text||'');
     await observeDenial(response);
     if(response.ok){const requested=new URL(url),final=new URL(response.url);requested.searchParams.sort();final.searchParams.sort();if(requested.href!==final.href)throw Error('CityHive source redirected or omitted its first-party final URL');}
     return response;
   };
   try{
-    const result=await collectCentralCityHiveExpansion(config,bible,{fetchText:measured,observedAt:new Date(nowMs).toISOString(),nowMs,signal:bounded,sleep,cursorDir,
-      requestTimeoutMs:CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].requestTimeoutMs||10_000});
+    const result=await collectCentralCityHiveExpansion(config,bible,{fetchText:measured,observedAt:new Date(nowMs).toISOString(),nowMs,signal:bounded,sleep,cursorDir});
     bounded.throwIfAborted();if(!completeCohort(result.metadata,state))throw Error('Production CityHive collection did not verify its complete reviewed cohort');
     const cohort=centralCityHiveProductionCohortKey(state),rows=result.signals.map(row=>silent({...row,sourceRuntimeId:centralCityHiveProductionRuntimeId(state),
       sourceProductBinding:{...row.sourceProductBinding,productionOnSiteOnly:true,productionCohortSha256:cohort}}));
