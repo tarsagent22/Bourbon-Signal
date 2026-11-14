@@ -169,6 +169,16 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const releasedWyoming = /^    "WY": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if (releasedWyoming || text.includes('  "activeStates": [\n    "WY",\n')) {
+      assert.equal(createHash('sha256').update(releasedWyoming || '').digest('hex'),
+        'af5063c6bc3d8a818d4107490cd1d20b8a0b48da9562a5fe0cf692a8ecaaf719', name + ': exact attested WY entry');
+      text = replaceUnique(text, releasedWyoming, '', name + ': Wyoming retailer lifecycle entry');
+      text = replaceUnique(text, '  "activeStates": [\n    "WY",\n', '  "activeStates": [\n',
+        name + ': exact WY active list head');
+      text = replaceUnique(text, '    "stateExpectedRunMs": {\n      "WY": 30000,\n', '    "stateExpectedRunMs": {\n',
+        name + ': exact WY measured runtime forecast');
+    }
     const releasedMo = /^    "MO": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
     if (text.includes(',\n    "MO"\n  ],\n  "reliabilityPolicy"')) {
       assert.equal(createHash('sha256').update(releasedMo || '').digest('hex'), 'b3c0517b815c94279b4bc515258e09d3862042aae1c2783c64989da2e94e02a9', name + ': exact attested MO entry');
