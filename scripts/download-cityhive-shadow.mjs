@@ -13,6 +13,11 @@ const preparationOnly=(state,file)=>[
   'engine/src/build-state-canary-preview.mjs','next.config.ts','src/lib/site-engine-contract.ts',
 ].includes(file)||/^engine\/data\/(?:state-fixtures|state-integration)\/(?:WI|OK|RI|KS|MO)\.json$/.test(file)
   ||(state==='DE'&&/^engine\/data\/(?:state-fixtures|state-integration)\/DE\.json$/.test(file))
+  ||(state==='DE'&&['engine/data/canary-site/de-active-candidate/alerts.json','engine/data/canary-site/de-active-candidate/canary-preview-policy.json',
+    'engine/data/canary-site/de-active-candidate/drops.json','engine/data/canary-site/de-active-candidate/locations.json',
+    'engine/data/canary-site/de-active-candidate/manifest.json','engine/data/canary-site/de-active-candidate/source-proof.json',
+    'engine/data/canary-site/de-active-candidate/stats.json','engine/data/canary-site/de-active-candidate/states/index.json',
+    'engine/data/canary-site/de-active-candidate/states/DE/drops.json'].includes(file))
   ||(state==='DE'&&file==='engine/src/central-cityhive-fixtures.mjs')
   ||(state==='DE'&&/^engine\/test\/fixtures\/ks-de-cityhive\/[a-z0-9-]+\.json$/.test(file))
   ||(state==='AR'&&/^engine\/data\/(?:state-fixtures|state-integration)\/AR(?:-canary)?\.json$/.test(file))

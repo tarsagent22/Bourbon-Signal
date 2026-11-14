@@ -93,13 +93,31 @@
       "artifactDigest": "ebe32e4e51f7bf8bc55675435c6d432e7a889c0f0a04a9af82c6a43d52a45ecd",
       "assertion": "Source-replayed canary produced five current first-party pickup signals across the exact three-store cohort; all delivery channels remained disabled and production snapshot untouched.",
       "allDeliveryChannelsDisabled": true,
-      "productionSnapshotTouched": false
+      "productionSnapshotTouched": false,
+      "siteArtifact": "engine/data/canary-site/de-active-candidate",
+      "observations": [
+        {
+          "runId": "43646026417",
+          "status": "success",
+          "artifactId": "14133876873",
+          "artifactHash": "896b16fced2ad5841180f0757ac7260eac9b600338e94c9559e6b06ec3fae596",
+          "commitSha": "e9483872cd4d304e0016f4e95c8e70f2726edb1d",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43646026417"
+        },
+        {
+          "runId": "43648899554",
+          "status": "success",
+          "artifactId": "14135431680",
+          "artifactHash": "ebe32e4e51f7bf8bc55675435c6d432e7a889c0f0a04a9af82c6a43d52a45ecd",
+          "commitSha": "e9483872cd4d304e0016f4e95c8e70f2726edb1d",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43648899554"
+        }
+      ]
     },
     "production": {
-      "status": "not_deployed",
-      "url": null,
-      "assertion": "Delaware is staged only in this isolated admission candidate; customer production has not been changed.",
-      "reason": "No production release or deployment has been run."
+      "status": "awaiting_first_publication",
+      "url": "https://www.bourbonsignal.com/api/coverage",
+      "assertion": "First publication must verify fresh pickup inventory, all three exact premise addresses, the indexed request cohort and disabled alert delivery."
     },
     "immutablePromotionEvidence": {
       "schemaVersion": 1,

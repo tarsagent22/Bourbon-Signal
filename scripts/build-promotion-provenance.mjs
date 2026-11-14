@@ -426,6 +426,15 @@ if (state === 'DE') files.push(
   'engine/data/additional-cityhive-expansion-sources.json',
   'engine/data/de-ecwid-research-source.json',
   'engine/data/state-integration/DE.json',
+  'engine/data/canary-site/de-active-candidate/alerts.json',
+  'engine/data/canary-site/de-active-candidate/canary-preview-policy.json',
+  'engine/data/canary-site/de-active-candidate/drops.json',
+  'engine/data/canary-site/de-active-candidate/locations.json',
+  'engine/data/canary-site/de-active-candidate/manifest.json',
+  'engine/data/canary-site/de-active-candidate/source-proof.json',
+  'engine/data/canary-site/de-active-candidate/stats.json',
+  'engine/data/canary-site/de-active-candidate/states/index.json',
+  'engine/data/canary-site/de-active-candidate/states/DE/drops.json',
   'engine/test/de-production-adapter.test.mjs',
   'engine/test/de-first-publication.test.mjs',
 );
@@ -448,5 +457,3 @@ const out = path.join(root, 'engine', 'out', 'promotion-provenance', `${state}.j
 await mkdir(path.dirname(out), { recursive: true });
 await writeFile(out, `${JSON.stringify(payload, null, 2)}\n`);
 console.log(JSON.stringify({ state, out, bundleDigest: payload.bundleDigest }));
-
-\n
