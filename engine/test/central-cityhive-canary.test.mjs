@@ -15,6 +15,13 @@ const bible=await BourbonBible.load(new URL('../out/bourbon-bible.json',import.m
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const bodies=new Map(await Promise.all(CENTRAL_CITYHIVE_EXPANSION_SOURCES.map(async source=>[source.hostname,
   `<script type="application/json">${await readFile(new URL(`./fixtures/central-cityhive/${source.id}.json`,import.meta.url),'utf8')}</script>`])));
+const researchFixtureNames={
+  'rhode-island-liquor-delivery:64f6226b7537422b95e04824':'eagle-rare-10-year-kentucky-straight-bourbon.json',
+  'fifth-ward-liquor:546babb03932330002100300':'fifth-ward-eagle-rare-10.json',
+  'california-liquors-ri:6114919961187149b8241cdd':'california-liquors-eagle-rare-10.json',
+};
+const researchBodies=new Map(await Promise.all(CENTRAL_CITYHIVE_RESEARCH_SOURCES.filter(source=>source.state==='RI').map(async source=>[
+  source.id,`<script type="application/json">${await readFile(new URL(`./fixtures/ri-cityhive/${researchFixtureNames[source.id]}`,import.meta.url),'utf8')}</script>`])));
 
 for(const state of ['WI','OK'])test(`${state} portable replay reparses raw merchant proof/current library and preserves clocks without delivery`,async()=>{
   const directory=await mkdtemp(path.join(tmpdir(),'central-canary-')),original=process.env.BOURBON_SIGNAL_SHADOW_MODE;
@@ -95,7 +102,7 @@ async function makePerStoreReport(state,directory){
   const at=new Date().toISOString();
   for(const [index,source] of sources.entries()){
     const url=`${source.baseUrl}/shop/?ch-query=${encodeURIComponent('barrel proof')}&merchant-id=${source.merchantId}`;
-    const body=Buffer.from(perStoreBody(source));
+    const body=Buffer.from(state==='RI'?researchBodies.get(source.id):perStoreBody(source));
     const artifactPath=`source-captures/${String(index+1).padStart(3,'0')}.html`;
     await writeFile(path.join(directory,artifactPath),body);
     receipts.push({url,finalUrl:url,status:200,observedAt:at,bytes:body.length,sha256:sha(body),artifactPath});
@@ -110,7 +117,7 @@ async function makePerStoreReport(state,directory){
   return{sources,report,at};
 }
 
-for(const state of ['MN','MO','MA'])test(`${state} per-store CityHive artifacts replay only complete exact-premise raw source receipts`,async t=>{
+for(const state of ['MN','MO','MA','RI'])test(`${state} per-store CityHive artifacts replay only complete exact-premise raw source receipts`,async t=>{
   const directory=await mkdtemp(path.join(tmpdir(),`cityhive-${state.toLowerCase()}-canary-`));
   t.after(()=>rm(directory,{recursive:true,force:true}));
   const {sources,report}=await makePerStoreReport(state,directory);
