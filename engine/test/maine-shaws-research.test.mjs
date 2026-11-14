@@ -8,6 +8,8 @@ import { CUSTOMER_ACTIVE_STATE_IDS, STATE_LIFECYCLE_CONFIG } from '../src/state-
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 import { groceryResearchSourceForState, collectGroceryResearchReport } from '../src/research-grocery-runtime.mjs';
 import { researchSourceForState, withResearchLifecycle } from '../src/research-state-registry.mjs';
+import { parseGroceryExpansionInventory } from '../src/collectors/grocery-xapi-expansion.mjs';
+import { buildShadowEvidence } from '../src/run-expansion-shadow.mjs';
 import {
   MAINE_SHAWS_RESEARCH_SOURCES,
   maineShawsPremiseMatches,
@@ -124,6 +126,7 @@ test('Maine Shaw\'s registered shadow collector stays within the retained 30-req
       'Penelope Four Grain Bourbon', 'Wild Turkey Rare Breed Straight Bourbon',
     ]);
     assert.ok(report.signals.every(row => row.researchOnly === true && row.alertable === false
+      && row.canAlertAsInventory === false && row.canAlertAsWatch === false
       && row.eligibleForOnSite === false && row.eligibleForDelivery === false
       && row.sourceProductBinding.shadowOnly === true && row.raw.shadowOnly === true));
     assert.ok(requests.every(url => url.hostname === 'www.shaws.com'
@@ -170,4 +173,54 @@ test('Maine Shaw\'s resolver identity requires the recorded ASCII-apostrophe dom
       { observedAt: capture.productReceipt.capturedAt },
     ), []);
   }
+});
+
+test('Maine Shaw\'s binary proof is trusted only inside the isolated shadow lane', () => {
+  const capture = fixture.stores.find(store => store.products.some(product => product.id === '960137024'));
+  const source = byMerchant.get(capture.source.merchantId);
+  const observedAt = '2026-11-14T11:45:34.319Z';
+  const parsed = parseGroceryExpansionInventory({ response: { docs: capture.products } }, source, bible,
+    { observedAt, sourceRegistry: MAINE_SHAWS_RESEARCH_SOURCES })
+    .find(row => row.productId === '960137024');
+  assert.ok(parsed);
+  const signal = {
+    ...parsed,
+    sourceRuntimeId: 'research:me:grocery-xapi',
+    researchOnly: true,
+    alertable: false,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    eligibleForOnSite: false,
+    eligibleForDelivery: false,
+    eligibleForEmail: false,
+    eligibleForSms: false,
+    sourceProductBinding: { ...parsed.sourceProductBinding, shadowOnly: true },
+    raw: { ...parsed.raw, shadowOnly: true },
+  };
+  const report = {
+    state: 'ME', strategy: 'retailer_store_inventory', status: 'useful', stale: false,
+    signals: [signal], sources: [{ ok: true }], sourceResults: [], roadblocks: [],
+    metadata: { complete: true, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false },
+  };
+  const now = '2026-11-14T12:00:00.000Z';
+  const evidence = buildShadowEvidence('ME', report, { now });
+  assert.equal(evidence.complete, true);
+  assert.equal(evidence.metrics.trustedCurrentInventorySignalCount, 1);
+  assert.equal(evidence.metrics.alertCandidateCount, 0);
+  assert.equal(evidence.publication.allowed, false);
+  assert.equal(evidence.alerts.deliveryAttempted, false);
+
+  for (const mutation of [
+    { storeId: 'shaws:9999' },
+    { storeAddress: '1 Imaginary Rd, Portland, ME 04103' },
+    { productId: '960137025' },
+    { canAlertAsInventory: true },
+    { eligibleForDelivery: true },
+    { stale: true },
+    { observedAt: '2026-11-14T12:00:00.001Z' },
+    { observedAt: '2026-11-14T09:59:59.999Z' },
+  ]) {
+    assert.equal(buildShadowEvidence('ME', { ...report, signals: [{ ...signal, ...mutation }] }, { now }).complete, false);
+  }
+  assert.equal(buildShadowEvidence('ME', { ...report, metadata: { ...report.metadata, complete: false } }, { now }).complete, false);
 });

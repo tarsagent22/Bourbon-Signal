@@ -24,6 +24,8 @@ const RESEARCHED_LIMITED_EXPRESSIONS = new Map([
   ['970022436', 'Heaven Hill Bottled-in-Bond 7 Year'],
 ]);
 const SOURCES_BY_MERCHANT = new Map(MAINE_SHAWS_RESEARCH_SOURCES.map(source => [source.merchantId, source]));
+export const MAINE_SHAWS_RESEARCH_RUNTIME_ID = 'research:me:grocery-xapi';
+export const MAINE_SHAWS_SHADOW_MAX_AGE_MS = 2 * 60 * 60_000;
 
 export function maineShawsPremiseMatches(source, resolverStore) {
   return SOURCES_BY_MERCHANT.get(String(source?.merchantId || '')) === source
@@ -67,4 +69,41 @@ export function parseMaineShawsResearchInventory(payload, source, bible, { obser
       canAlertAsWatch: false,
       rawProduct: row.rawProduct,
     }));
+}
+
+/** Admit only the held Shaw's binary in-store proof to the isolated shadow summary. */
+export function isMaineShawsResearchInventory(row, { nowMs = Date.now(), maximumAgeMs = MAINE_SHAWS_SHADOW_MAX_AGE_MS } = {}) {
+  const source = MAINE_SHAWS_RESEARCH_SOURCES.find(candidate => candidate.storeId === String(row?.storeId || ''));
+  const productId = String(row?.productId || '');
+  const canonicalName = RESEARCHED_LIMITED_EXPRESSIONS.get(productId);
+  const binding = row?.sourceProductBinding;
+  const observedAt = Date.parse(String(row?.observedAt || ''));
+  const ageMs = nowMs - observedAt;
+  if (!source || !canonicalName || !binding || !Number.isFinite(nowMs) || !Number.isFinite(observedAt)
+    || !Number.isFinite(maximumAgeMs) || maximumAgeMs < 0 || ageMs < 0 || ageMs > maximumAgeMs) return false;
+
+  return row.state === 'ME' && row.stateCode === 'ME'
+    && row.sourceRuntimeId === MAINE_SHAWS_RESEARCH_RUNTIME_ID
+    && row.sourceChain === source.id && row.merchantId === source.merchantId
+    && row.sourceUrl === `https://www.shaws.com/shop/product-details.${productId}.html`
+    && row.locationPrecision === 'store_level' && row.storeAddress === source.address
+    && row.city === source.city && row.storeName === source.name
+    && row.canonicalName === canonicalName && row.tier === 'limited'
+    && row.researchOnly === true && row.alertable === false
+    && row.canAlertAsInventory === false && row.canAlertAsWatch === false
+    && row.eligibleForOnSite === false && row.eligibleForDelivery === false
+    && row.eligibleForEmail === false && row.eligibleForSms === false
+    && row.sourceAvailabilityVerified === true && row.sourceStale !== true && row.stale !== true
+    && row.quantity === 0 && row.quantityIsExact === false
+    && Number.isFinite(row.price) && row.price > 0
+    && binding.source === 'grocery-xapi' && binding.merchantId === source.merchantId
+    && binding.storeId === source.storeId && binding.storeAddress === source.address
+    && binding.productId === productId && binding.canonicalBottleId === row.canonicalBottleId
+    && binding.rawName === row.rawName && binding.price === row.price
+    && binding.observedAt === row.observedAt && binding.premisesVerified === true
+    && binding.inStoreChannelVerified === true
+    && binding.inventorySemantics === 'binary_retailer_orderable_no_exact_count'
+    && binding.shadowOnly === true
+    && row.raw?.chain === source.id && row.raw?.merchantId === source.merchantId
+    && row.raw?.fulfillmentPolicyVerified === true && row.raw?.shadowOnly === true;
 }

@@ -7,6 +7,7 @@ import { withResearchLifecycle } from './research-state-registry.mjs';
 import {isCentralCityHiveResearchInventory} from './central-cityhive-policy.mjs';
 import {isNjMiResearchSourceInventory} from './nj-mi-research-policy.mjs';
 import { isLouisianaAlaskaGroceryShadowInventory } from './research-louisiana-alaska-grocery-runtime.mjs';
+import { isMaineShawsResearchInventory } from './collectors/maine-shaws-research.mjs';
 import { isOregonDailyInventoryObservation, OREGON_DAILY_INVENTORY_URL } from './or-daily-inventory.mjs';
 import { promisify } from 'node:util';
 
@@ -58,10 +59,14 @@ function inventoryRequired(report = {}) {
 function trustedCurrentInventorySignals(report = {}, { now = new Date().toISOString(), maximumAgeMs = SHADOW_INVENTORY_MAX_AGE_MS } = {}) {
   if (report?.stale === true) return [];
   const nowMs = Date.parse(String(now || ''));
-  return asArray(report.signals).filter((row) => (row?.canAlertAsInventory === true
-    || (report.state === 'OR' && row?.sourceUrl === OREGON_DAILY_INVENTORY_URL)
-    || report.metadata?.complete===true&&report.metadata.shadowOnly===true&&report.metadata.productionActivationAllowed===false
-      &&report.metadata.customerDeliveryAllowed===false&&(isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})||isLouisianaAlaskaGroceryShadowInventory(row)))
+  const isolatedResearchReport = report.metadata?.complete === true && report.metadata.shadowOnly === true
+    && report.metadata.productionActivationAllowed === false && report.metadata.customerDeliveryAllowed === false;
+  return asArray(report.signals).filter((row) => (report.state === 'ME'
+    ? isolatedResearchReport && isMaineShawsResearchInventory(row, { nowMs })
+    : row?.canAlertAsInventory === true
+      || (report.state === 'OR' && row?.sourceUrl === OREGON_DAILY_INVENTORY_URL)
+      || isolatedResearchReport && (isCentralCityHiveResearchInventory(row, { nowMs })
+        || isNjMiResearchSourceInventory(row, { nowMs }) || isLouisianaAlaskaGroceryShadowInventory(row)))
     && row?.stale !== true
     && row?.locationPrecision === 'store_level'
     && String(row?.storeId ?? '').trim()

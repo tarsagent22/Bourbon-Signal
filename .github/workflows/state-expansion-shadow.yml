@@ -55,6 +55,7 @@ jobs:
         with:
           path: |
             engine/out/research-source-attempts
+            engine/out/source-clocks
             engine/out/cache/library-search
           key: research-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: research-shadow-${{ runner.os }}-${{ github.ref_name }}-
@@ -131,6 +132,7 @@ jobs:
         with:
           path: |
             engine/out/research-source-attempts
+            engine/out/source-clocks
             engine/out/cache/library-search
           key: research-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 

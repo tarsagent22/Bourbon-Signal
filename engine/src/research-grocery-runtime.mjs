@@ -109,6 +109,7 @@ export async function collectGroceryResearchReport(config,bible,{fetchText=fetch
   }
   const sourceId=`research:${config.id.toLowerCase()}:grocery-xapi`;
   const signals=result.signals.map(row=>({...row,sourceRuntimeId:sourceId,researchOnly:true,alertable:false,
+    ...(config.id==='ME'?{canAlertAsInventory:false,canAlertAsWatch:false}:{}),
     eligibleForOnSite:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
     sourceProductBinding:{...row.sourceProductBinding,shadowOnly:true},raw:{...row.raw,shadowOnly:true}}));
   const sources=[{sourceRuntimeId:sourceId,label:config.label,url:config.sources[0].url,ok:healthy,status:healthy?200:0,
