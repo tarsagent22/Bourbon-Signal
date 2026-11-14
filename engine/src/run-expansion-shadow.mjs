@@ -11,6 +11,7 @@ import { isWyomingGroceryResearchInventory } from './research-wyoming-grocery-ru
 import { isOregonDailyInventoryObservation, OREGON_DAILY_INVENTORY_URL } from './or-daily-inventory.mjs';
 import { promisify } from 'node:util';
 
+import { isDelawareEcwidShadowPickup } from './research-delaware-ecwid.mjs';
 const execFileAsync = promisify(execFile);
 const SHADOW_INVENTORY_MAX_AGE_MS = 2 * 60 * 60_000;
 const OREGON_PREREQUISITE_TIMEOUT_MS = 3 * 60_000;
@@ -59,11 +60,13 @@ function inventoryRequired(report = {}) {
 function trustedCurrentInventorySignals(report = {}, { now = new Date().toISOString(), maximumAgeMs = SHADOW_INVENTORY_MAX_AGE_MS } = {}) {
   if (report?.stale === true) return [];
   const nowMs = Date.parse(String(now || ''));
-  return asArray(report.signals).filter((row) => (row?.canAlertAsInventory === true
+    return asArray(report.signals).filter((row) => (row?.canAlertAsInventory === true
+      || report.metadata?.shadowOnly===true&&report.metadata?.productionActivationAllowed===false
+        &&report.metadata?.customerDeliveryAllowed===false&&isDelawareEcwidShadowPickup(row,{nowMs})
     || (report.state === 'OR' && row?.sourceUrl === OREGON_DAILY_INVENTORY_URL)
     || report.metadata?.complete===true&&report.metadata.shadowOnly===true&&report.metadata.productionActivationAllowed===false
       &&report.metadata.customerDeliveryAllowed===false&&(isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})
-        ||isLouisianaAlaskaGroceryShadowInventory(row)||isWyomingGroceryResearchInventory(row)))
+        ||isLouisianaAlaskaGroceryShadowInventory(row)||isWyomingGroceryResearchInventory(row)||isDelawareEcwidShadowPickup(row,{nowMs})))
     && row?.stale !== true
     && row?.locationPrecision === 'store_level'
     && String(row?.storeId ?? '').trim()
