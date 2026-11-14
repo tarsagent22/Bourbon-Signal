@@ -1,0 +1,45 @@
+{
+  "id": "bb_8924180d0cc2d853",
+  "canonical": "Blade and Bow Bourbon",
+  "normalizedKey": "blade and bow",
+  "aliases": [
+    "BLADE & BOW",
+    "Blade & Bow",
+    "Blade and Bow Bourbon",
+    "Blade and Bow Kentucky Straight Bourbon",
+    "Blade and Bow Straight Bourbon"
+  ],
+  "tier": "limited",
+  "producer": "Diageo",
+  "sources": [
+    "state-data-additions",
+    "state:IA",
+    "state:MS"
+  ],
+  "libraryIdentities": [
+    {
+      "id": "bb_8924180d0cc2d853",
+      "canonicalName": "Blade and Bow Bourbon",
+      "aliases": [
+        "BLADE & BOW",
+        "Blade & Bow",
+        "Blade and Bow Bourbon",
+        "Blade and Bow Kentucky Straight Bourbon",
+        "Blade and Bow Straight Bourbon"
+      ],
+      "nationalTier": "limited",
+      "stateOverrides": [],
+      "isAlertEligible": true
+    },
+    {
+      "id": "blade-and-bow",
+      "canonicalName": "Blade & Bow",
+      "aliases": [
+        "Blade & Bow"
+      ],
+      "nationalTier": "regular",
+      "stateOverrides": [],
+      "isAlertEligible": false
+    }
+  ]
+}
