@@ -1,11 +1,15 @@
-import { readFile } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { mkdir, open, readFile, rename, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { Readable } from 'node:stream';
 import { BourbonBible } from './core/bible.mjs';
 import { cityHiveUnsafeBottleMatchReason } from './collectors/safe-bottle-match.mjs';
 
 export const OREGON_DAILY_INVENTORY_URL = 'https://www.olcc.state.or.us/pdfs/DailyStoreInventory.csv';
 export const OREGON_INVENTORY_MAX_AGE_MS = 48 * 60 * 60_000;
+export const OREGON_DAILY_BODY_MAX_BYTES = 150_000_000;
+const OREGON_CACHE_SCHEMA = 'bourbon-signal/or-daily-inventory-cache@1';
 
 export function isOregonDailyInventoryObservation(row, nowMs) {
   const age = nowMs - Date.parse(row?.observedAt);
@@ -301,7 +305,7 @@ export function parseOregonDailyInventoryCsv(text, { terms = DEFAULT_TERMS, gene
   return accumulator.finish();
 }
 
-async function parseOregonDailyInventoryStream(stream, accumulator, maxBytes) {
+async function parseOregonDailyInventoryStream(stream, accumulator, maxBytes, onChunk) {
   const reader = stream.getReader();
   const decoder = new TextDecoder('utf-8');
   const parser = { row: [], field: '', quoted: false, pending: '', acceptRecord: accumulator.acceptRecord };
@@ -315,6 +319,7 @@ async function parseOregonDailyInventoryStream(stream, accumulator, maxBytes) {
       bytes += value.byteLength;
       if (bytes > maxBytes) throw new Error(`Oregon OLCC inventory exceeded 150 MB limit (${bytes}).`);
       digest.update(value);
+      if (onChunk) await onChunk(value);
       let text = decoder.decode(value, { stream: true });
       if (firstChunk) { text = text.replace(/^\uFEFF/, ''); firstChunk = false; }
       pushCsvChunk(parser, text);
@@ -331,8 +336,8 @@ async function parseOregonDailyInventoryStream(stream, accumulator, maxBytes) {
 
 async function loadFullAppBible() {
   const pathName = path.resolve(process.env.OR_BIBLE_FILE || 'out/bourbon-bible.json');
-  let data;
-  try { data = JSON.parse(await readFile(pathName, 'utf8')); }
+  let data, bytes;
+  try { bytes = await readFile(pathName); data = JSON.parse(bytes.toString('utf8')); }
   catch { throw new Error('Full app Bible is unavailable. Run `npm run bible` before the Oregon inventory collector.'); }
   if (data.libraryCatalog?.mode !== 'live') {
     throw new Error('Oregon collection requires the full app Bible with a live library catalog; static/fallback Bible data cannot authorize inventory identities. Set OR_BIBLE_FILE to a current live Bible file.');
@@ -344,32 +349,274 @@ async function loadFullAppBible() {
       generatedAt: data.generatedAt || null,
       canonicalRecordCount: data.records?.length || 0,
       libraryIdentityCount: data.libraryCatalog.count || 0,
+      sourceFileSha256: createHash('sha256').update(bytes).digest('hex'),
+      recordsSha256: createHash('sha256').update(JSON.stringify(data.records || [])).digest('hex'),
     },
   };
 }
 
-export async function collectOregonDailyInventory({ fetchImpl = fetch, terms = [], generatedAt = new Date().toISOString(), bible } = {}) {
-  const loaded = bible ? { bible, metadata: { mode: 'injected_test_fixture', generatedAt: null, canonicalRecordCount: null, libraryIdentityCount: null } } : await loadFullAppBible();
-  const response = await fetchImpl(OREGON_DAILY_INVENTORY_URL, {
-    headers: { accept: 'text/csv', 'user-agent': 'BourbonSignal/1.0 (+https://bourbonsignal.com)' },
-    signal: AbortSignal.timeout(120_000),
-    redirect: 'error',
-  });
-  if (!response.ok) throw new Error(`Oregon OLCC daily inventory returned HTTP ${response.status}`);
-  const declaredLength = Number(response.headers.get('content-length') || 0);
-  if (declaredLength > 150_000_000) throw new Error(`Oregon OLCC inventory exceeded 150 MB limit (${declaredLength}).`);
-  if (!response.body) throw new Error('Oregon OLCC daily inventory response had no readable stream.');
-  const fullBible = loaded.bible;
-  const accumulator = createInventoryAccumulator({ terms, generatedAt, bible: fullBible });
-  const sourceFingerprint = await parseOregonDailyInventoryStream(response.body, accumulator, 150_000_000);
-  const payload = accumulator.finish();
-  payload.sourceBytes = sourceFingerprint.bytes;
-  payload.sourceSha256 = sourceFingerprint.sha256;
-  payload.bible = loaded.metadata;
+function sha256(value) { return createHash('sha256').update(value).digest('hex'); }
+
+function addInventorySummaries(payload) {
   const positiveStoreRows = payload.products.flatMap((product) => product.stores.filter((store) => store.quantity > 0 && store.address && store.city && store.zip));
   payload.positiveQuantityStoreRowCount = positiveStoreRows.length;
   payload.uniqueRecentPremiseCount = new Set(positiveStoreRows.map((store) => store.storeNo)).size;
   payload.exactProductCountByRarity = Object.fromEntries([...new Set(payload.products.map((product) => product.rarityTier))]
     .map((tier) => [tier, payload.products.filter((product) => product.rarityTier === tier).length]));
   return payload;
+}
+
+function cacheDisposition(payload, disposition, updated, receipt, sourceBodyFetched = false) {
+  Object.defineProperty(payload, 'cacheDisposition', { value: disposition, enumerable: false });
+  Object.defineProperty(payload, 'cacheUpdated', { value: updated, enumerable: false });
+  Object.defineProperty(payload, 'sourceBodyFetched', { value: sourceBodyFetched, enumerable: false });
+  Object.defineProperty(payload, 'cacheReceipt', { value: receipt, enumerable: false });
+  return payload;
+}
+
+function withCacheReceipt(error, receipt) {
+  const failure = error instanceof Error ? error : new Error(String(error));
+  Object.defineProperty(failure, 'oregonCacheReceipt', { value: {
+    schemaVersion: 1, sourceUrl: OREGON_DAILY_INVENTORY_URL, ...receipt,
+  }, enumerable: false, configurable: true });
+  return failure;
+}
+
+function cachePaths(cacheDir) {
+  return {
+    directory: path.resolve(cacheDir),
+    body: path.resolve(cacheDir, 'source.csv'),
+    report: path.resolve(cacheDir, 'report.json'),
+    manifest: path.resolve(cacheDir, 'manifest.json'),
+  };
+}
+
+async function hashFileBounded(filePath) {
+  const digest = createHash('sha256');
+  let bytes = 0;
+  for await (const chunk of createReadStream(filePath)) {
+    bytes += chunk.length;
+    if (bytes > OREGON_DAILY_BODY_MAX_BYTES) throw new Error('Cached Oregon OLCC inventory exceeded 150 MB limit.');
+    digest.update(chunk);
+  }
+  return { bytes, sha256: digest.digest('hex') };
+}
+
+async function readOregonCache(cacheDir) {
+  if (!cacheDir) return null;
+  const paths = cachePaths(cacheDir);
+  try {
+    const [manifestBytes, reportBytes, bodyStat] = await Promise.all([
+      readFile(paths.manifest), readFile(paths.report), stat(paths.body),
+    ]);
+    const manifest = JSON.parse(manifestBytes.toString('utf8'));
+    const report = JSON.parse(reportBytes.toString('utf8'));
+    if (manifest.schema !== OREGON_CACHE_SCHEMA || manifest.sourceUrl !== OREGON_DAILY_INVENTORY_URL
+      || !/^(?:W\/)?"[^"\r\n]{1,512}"$/u.test(String(manifest.etag || ''))
+      || !Number.isSafeInteger(manifest.sourceBytes) || manifest.sourceBytes <= 0
+      || manifest.sourceBytes > OREGON_DAILY_BODY_MAX_BYTES || bodyStat.size !== manifest.sourceBytes
+      || manifest.contentLength !== manifest.sourceBytes
+      || !/^[a-f0-9]{64}$/u.test(String(manifest.sourceSha256 || ''))
+      || !/^[a-f0-9]{64}$/u.test(String(manifest.reportSha256 || ''))
+      || sha256(reportBytes) !== manifest.reportSha256
+      || report.sourceUrl !== OREGON_DAILY_INVENTORY_URL || report.sourceBytes !== manifest.sourceBytes
+      || report.sourceSha256 !== manifest.sourceSha256 || !Array.isArray(report.products)
+      || report.generatedAt !== manifest.fetchedAt
+      || report.bible?.sourceFileSha256 !== manifest.bible?.sourceFileSha256
+      || report.bible?.recordsSha256 !== manifest.bible?.recordsSha256
+      || JSON.stringify(report.terms || []) !== JSON.stringify(manifest.terms || [])
+      || !Number.isFinite(Date.parse(String(manifest.fetchedAt || '')))
+      || !/^[a-f0-9]{64}$/u.test(String(manifest.bible?.sourceFileSha256 || ''))
+      || !/^[a-f0-9]{64}$/u.test(String(manifest.bible?.recordsSha256 || ''))) return { paths, valid: false };
+    const fingerprint = await hashFileBounded(paths.body);
+    if (fingerprint.bytes !== manifest.sourceBytes || fingerprint.sha256 !== manifest.sourceSha256) return { paths, valid: false };
+    return { paths, valid: true, manifest, report, reportBytes };
+  } catch {
+    return { paths, valid: false };
+  }
+}
+
+function currentPacificDate(now) {
+  if (!Number.isFinite(now.getTime())) throw new Error('Oregon cache check time is invalid.');
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(now).map((part) => [part.type, part.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function ensureReportStillFresh(report, now) {
+  const match = String(report?.sourceReportDate || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/u);
+  if (!match) throw new Error('Cached Oregon OLCC report has no valid source report date.');
+  const sourceDate = new Date(Date.UTC(Number(match[3]), Number(match[1]) - 1, Number(match[2])));
+  if (sourceDate.getUTCMonth() !== Number(match[1]) - 1 || sourceDate.getUTCDate() !== Number(match[2])) throw new Error('Cached Oregon OLCC report has an invalid source report date.');
+  const [year, month, day] = currentPacificDate(now).split('-').map(Number);
+  const nowDay = Date.UTC(year, month - 1, day);
+  const ageDays = Math.round((nowDay - sourceDate.getTime()) / 86_400_000);
+  if (ageDays < 0 || ageDays > 2) throw new Error(`Cached Oregon OLCC report is stale (${report.sourceReportDate}); no source or inventory clocks were refreshed.`);
+}
+
+async function writeAtomic(filePath, data) {
+  await mkdir(path.dirname(filePath), { recursive: true });
+  const temp = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    await open(temp, 'wx').then(async (handle) => { try { await handle.writeFile(data); await handle.sync(); } finally { await handle.close(); } });
+    await rename(temp, filePath);
+  } catch (error) { await rm(temp, { force: true }).catch(() => {}); throw error; }
+}
+
+async function storeDownloadedOregonBody(response, { cacheDir, terms, bible, bibleMetadata, generatedAt }) {
+  const declaredLength = Number(response.headers.get('content-length') || 0);
+  if (declaredLength > OREGON_DAILY_BODY_MAX_BYTES) throw new Error(`Oregon OLCC inventory exceeded 150 MB limit (${declaredLength}).`);
+  if (!response.body) throw new Error('Oregon OLCC daily inventory response had no readable stream.');
+  const etag = response.headers.get('etag');
+  if (cacheDir && !etag) throw new Error('Oregon OLCC response omitted ETag; refusing to create an unvalidated reusable cache.');
+  const paths = cacheDir ? cachePaths(cacheDir) : null;
+  let bodyTemp = null, bodyHandle = null;
+  const writeChunk = cacheDir ? async (chunk) => bodyHandle.writeFile(chunk) : null;
+  try {
+    if (cacheDir) {
+      await mkdir(paths.directory, { recursive: true });
+      bodyTemp = `${paths.body}.${process.pid}.${Date.now()}.tmp`;
+      bodyHandle = await open(bodyTemp, 'wx');
+    }
+    const accumulator = createInventoryAccumulator({ terms, generatedAt, bible });
+    const fingerprint = await parseOregonDailyInventoryStream(response.body, accumulator, OREGON_DAILY_BODY_MAX_BYTES, writeChunk);
+    if (declaredLength && declaredLength !== fingerprint.bytes) throw new Error(`Oregon OLCC Content-Length mismatch (${declaredLength} declared, ${fingerprint.bytes} received).`);
+    const payload = addInventorySummaries(accumulator.finish());
+    payload.sourceBytes = fingerprint.bytes;
+    payload.sourceSha256 = fingerprint.sha256;
+    payload.bible = bibleMetadata;
+    const reportBytes = Buffer.from(JSON.stringify(payload, null, 2));
+    const responseEtag = response.headers.get('etag');
+    if (cacheDir) {
+      if (etag !== responseEtag) throw new Error('Oregon OLCC ETag changed while the report body was being read.');
+      await bodyHandle.sync(); await bodyHandle.close(); bodyHandle = null;
+      await rename(bodyTemp, paths.body); bodyTemp = null;
+      const manifest = {
+        schema: OREGON_CACHE_SCHEMA, sourceUrl: OREGON_DAILY_INVENTORY_URL, etag,
+        lastModified: response.headers.get('last-modified'), contentLength: fingerprint.bytes,
+        sourceBytes: fingerprint.bytes, sourceSha256: fingerprint.sha256, fetchedAt: generatedAt,
+        bible: bibleMetadata, terms: payload.terms, reportSha256: sha256(reportBytes),
+      };
+      await writeAtomic(paths.report, reportBytes);
+      await writeAtomic(paths.manifest, `${JSON.stringify(manifest, null, 2)}\n`);
+    }
+    return cacheDisposition(payload, 'downloaded', Boolean(cacheDir), {
+      schemaVersion: 1, sourceUrl: OREGON_DAILY_INVENTORY_URL, checkMethod: 'GET', httpStatus: response.status,
+      checkedAt: generatedAt, etag, lastModified: response.headers.get('last-modified'),
+      contentLength: fingerprint.bytes, sourceBytes: fingerprint.bytes, sourceSha256: fingerprint.sha256,
+      sourceReportDate: payload.sourceReportDate, sourceFetchedAt: generatedAt, reportSha256: sha256(reportBytes),
+      bible: bibleMetadata,
+    }, true);
+  } finally {
+    if (bodyHandle) await bodyHandle.close().catch(() => {});
+    if (bodyTemp) await rm(bodyTemp, { force: true }).catch(() => {});
+  }
+}
+
+async function reparseCachedOregonBody(cache, { terms, bible, bibleMetadata, checkedAt, checkStatus }) {
+  const stream = Readable.toWeb(createReadStream(cache.paths.body));
+  const accumulator = createInventoryAccumulator({ terms, generatedAt: cache.manifest.fetchedAt, bible });
+  const fingerprint = await parseOregonDailyInventoryStream(stream, accumulator, OREGON_DAILY_BODY_MAX_BYTES);
+  if (fingerprint.bytes !== cache.manifest.sourceBytes || fingerprint.sha256 !== cache.manifest.sourceSha256) throw new Error('Cached Oregon OLCC body changed during reparsing.');
+  const payload = addInventorySummaries(accumulator.finish());
+  payload.sourceBytes = fingerprint.bytes;
+  payload.sourceSha256 = fingerprint.sha256;
+  payload.bible = bibleMetadata;
+  const paths = cache.paths;
+  const reportBytes = Buffer.from(JSON.stringify(payload, null, 2));
+  const manifest = { ...cache.manifest, bible: bibleMetadata, terms: payload.terms, reportSha256: sha256(reportBytes) };
+  await writeAtomic(paths.report, reportBytes);
+  await writeAtomic(paths.manifest, `${JSON.stringify(manifest, null, 2)}\n`);
+  return cacheDisposition(payload, 'reparsed_for_bible', true, {
+    schemaVersion: 1, sourceUrl: OREGON_DAILY_INVENTORY_URL, checkMethod: 'HEAD', httpStatus: checkStatus,
+    checkedAt, etag: cache.manifest.etag, lastModified: cache.manifest.lastModified,
+    contentLength: cache.manifest.contentLength, sourceBytes: cache.manifest.sourceBytes,
+    sourceSha256: cache.manifest.sourceSha256, sourceReportDate: payload.sourceReportDate,
+    sourceFetchedAt: cache.manifest.fetchedAt, reportSha256: sha256(reportBytes), bible: bibleMetadata,
+  });
+}
+
+export async function collectOregonDailyInventory({ fetchImpl = fetch, terms = [], generatedAt = new Date().toISOString(), bible, cacheDir = process.env.OR_DAILY_CACHE_DIR || null } = {}) {
+  const loaded = bible ? { bible, metadata: {
+    mode: 'injected_test_fixture', generatedAt: null, canonicalRecordCount: bible.records?.length ?? null,
+    libraryIdentityCount: null,
+    sourceFileSha256: sha256(JSON.stringify(bible.records || [])),
+    recordsSha256: sha256(JSON.stringify(bible.records || [])),
+  } } : await loadFullAppBible();
+  const fullBible = loaded.bible;
+  const bibleMetadata = loaded.metadata;
+  const requestedTerms = terms.map((term) => String(term).trim().toLowerCase()).filter(Boolean);
+  const cache = await readOregonCache(cacheDir);
+  const baseHeaders = { accept: 'text/csv', 'accept-encoding': 'identity', 'user-agent': 'BourbonSignal/1.0 (+https://bourbonsignal.com)' };
+  const request = (method, etag) => fetchImpl(OREGON_DAILY_INVENTORY_URL, {
+    method, headers: { ...baseHeaders, ...(method === 'HEAD' && etag ? { 'if-none-match': etag } : {}) },
+    signal: AbortSignal.timeout(120_000), redirect: 'error',
+  });
+
+  if (cacheDir) {
+    const checkedAt = generatedAt;
+    let head;
+    try { head = await request('HEAD', cache?.valid ? cache.manifest.etag : null); }
+    catch (error) {
+      throw withCacheReceipt(error, { checkMethod: 'HEAD', httpStatus: null, checkedAt, etag: cache?.valid ? cache.manifest.etag : null,
+        cacheStatus: cache?.valid ? 'candidate' : 'missing_or_invalid' });
+    }
+    const headReceipt = {
+      checkMethod: 'HEAD', httpStatus: head.status, checkedAt, etag: head.headers.get('etag'),
+      lastModified: head.headers.get('last-modified'), sourceBytes: cache?.valid ? cache.manifest.sourceBytes : null,
+      sourceSha256: cache?.valid ? cache.manifest.sourceSha256 : null,
+      sourceReportDate: cache?.valid ? cache.report.sourceReportDate : null,
+      sourceFetchedAt: cache?.valid ? cache.manifest.fetchedAt : null,
+    };
+    if (head.status === 304) {
+      if (!cache?.valid || head.headers.get('etag') !== cache.manifest.etag) throw withCacheReceipt(new Error('OLCC returned 304 without a matching validated Oregon cache.'), { ...headReceipt, cacheStatus: 'invalid_304' });
+      try { ensureReportStillFresh(cache.report, new Date(generatedAt)); }
+      catch (error) { throw withCacheReceipt(error, { ...headReceipt, cacheStatus: 'stale_validated_cache' }); }
+      if (cache.manifest.bible.recordsSha256 !== bibleMetadata.recordsSha256
+        || JSON.stringify(cache.report.terms || []) !== JSON.stringify(requestedTerms)) {
+        try { return await reparseCachedOregonBody(cache, { terms, bible: fullBible, bibleMetadata, checkedAt: generatedAt, checkStatus: 304 }); }
+        catch (error) { throw withCacheReceipt(error, { ...headReceipt, cacheStatus: 'reparse_failed' }); }
+      }
+      return cacheDisposition(cache.report, 'reused_304', false, {
+        schemaVersion: 1, sourceUrl: OREGON_DAILY_INVENTORY_URL, checkMethod: 'HEAD', httpStatus: 304,
+        checkedAt: generatedAt, etag: cache.manifest.etag, lastModified: cache.manifest.lastModified,
+        contentLength: cache.manifest.contentLength, sourceBytes: cache.manifest.sourceBytes,
+        sourceSha256: cache.manifest.sourceSha256, sourceReportDate: cache.report.sourceReportDate,
+        sourceFetchedAt: cache.manifest.fetchedAt, reportSha256: cache.manifest.reportSha256, bible: cache.manifest.bible, verifiedBible: bibleMetadata,
+      });
+    }
+    if (head.status !== 200) throw withCacheReceipt(new Error(`Oregon OLCC conditional HEAD returned HTTP ${head.status}`), { ...headReceipt, cacheStatus: cache?.valid ? 'candidate_not_validated' : 'missing_or_invalid' });
+    const headLength = Number(head.headers.get('content-length') || 0);
+    if (headLength > OREGON_DAILY_BODY_MAX_BYTES) throw withCacheReceipt(new Error(`Oregon OLCC inventory exceeded 150 MB limit (${headLength}).`), { ...headReceipt, cacheStatus: 'rejected_oversize' });
+    const headEtag = head.headers.get('etag');
+    if (cache?.valid && headEtag && headEtag === cache.manifest.etag
+      && (!headLength || headLength === cache.manifest.sourceBytes)) {
+      try { ensureReportStillFresh(cache.report, new Date(generatedAt)); }
+      catch (error) { throw withCacheReceipt(error, { ...headReceipt, cacheStatus: 'stale_validated_cache' }); }
+      if (cache.manifest.bible.recordsSha256 !== bibleMetadata.recordsSha256
+        || JSON.stringify(cache.report.terms || []) !== JSON.stringify(requestedTerms)) {
+        try { return await reparseCachedOregonBody(cache, { terms, bible: fullBible, bibleMetadata, checkedAt: generatedAt, checkStatus: 200 }); }
+        catch (error) { throw withCacheReceipt(error, { ...headReceipt, cacheStatus: 'reparse_failed' }); }
+      }
+      return cacheDisposition(cache.report, 'reused_200_validator', false, {
+        schemaVersion: 1, sourceUrl: OREGON_DAILY_INVENTORY_URL, checkMethod: 'HEAD', httpStatus: 200,
+        checkedAt: generatedAt, etag: headEtag, lastModified: head.headers.get('last-modified'),
+        contentLength: cache.manifest.contentLength, sourceBytes: cache.manifest.sourceBytes,
+        sourceSha256: cache.manifest.sourceSha256, sourceReportDate: cache.report.sourceReportDate,
+        sourceFetchedAt: cache.manifest.fetchedAt, reportSha256: cache.manifest.reportSha256, bible: cache.manifest.bible, verifiedBible: bibleMetadata,
+      });
+    }
+    let response;
+    try { response = await request('GET', null); }
+    catch (error) { throw withCacheReceipt(error, { ...headReceipt, checkMethod: 'HEAD+GET', getStatus: null, cacheStatus: 'get_transport_failed' }); }
+    if (!response.ok) throw withCacheReceipt(new Error(`Oregon OLCC daily inventory returned HTTP ${response.status}`), { ...headReceipt, checkMethod: 'HEAD+GET', getStatus: response.status, cacheStatus: 'get_rejected' });
+    if (headEtag && response.headers.get('etag') !== headEtag) throw withCacheReceipt(new Error('Oregon OLCC ETag changed between HEAD and GET; cache was not updated.'), { ...headReceipt, checkMethod: 'HEAD+GET', getStatus: response.status, getEtag: response.headers.get('etag'), cacheStatus: 'revision_changed_during_get' });
+    try { return await storeDownloadedOregonBody(response, { cacheDir, terms, bible: fullBible, bibleMetadata, generatedAt }); }
+    catch (error) { throw withCacheReceipt(error, { ...headReceipt, checkMethod: 'HEAD+GET', getStatus: response.status, getEtag: response.headers.get('etag'), cacheStatus: 'get_parse_or_cache_failed' }); }
+  }
+
+  const response = await request('GET', null);
+  if (!response.ok) throw new Error(`Oregon OLCC daily inventory returned HTTP ${response.status}`);
+  return storeDownloadedOregonBody(response, { cacheDir: null, terms, bible: fullBible, bibleMetadata, generatedAt });
 }

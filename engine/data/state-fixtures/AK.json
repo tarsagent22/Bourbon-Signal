@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "state": "AK",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {"id":"ak-exact-eagle-rare","kind":"positive_bottle_match","input":{},"expected":{"qualified":true,"canonicalNames":["Eagle Rare 10 Year"]}},
+    {"id":"ak-ordinary-maker-not-rare","kind":"ordinary_vs_rare_negative","input":{"rawName":"Maker's Mark Bourbon 750 Ml"},"expected":{"rareMatch":false}},
+    {"id":"ak-cream-excluded","kind":"rye_cream_liqueur_rtd_exclusion","input":{"cream":true},"expected":{"qualifiedProduct":false}},
+    {"id":"ak-rtd-excluded","kind":"rye_cream_liqueur_rtd_exclusion","input":{"rtd":true},"expected":{"qualifiedProduct":false}},
+    {"id":"ak-multipack-excluded","kind":"size_or_multipack_exclusion","input":{"pack":true},"expected":{"qualifiedProduct":false}},
+    {"id":"ak-quantity-is-source-context","kind":"availability_semantics","input":{},"expected":{"quantity":4,"exactQuantity":true,"allAlertsDisabled":true}},
+    {"id":"ak-unknown-quantity-remains-zero","kind":"availability_semantics","input":{"missingInventory":true},"expected":{"quantity":0,"exactQuantity":false,"allAlertsDisabled":true}},
+    {"id":"ak-exact-store-identity","kind":"store_identity","input":{},"expected":{"storeIdentityVerified":true,"storeId":"carrsqc:720"}},
+    {"id":"ak-unreviewed-store-rejected","kind":"store_identity","input":{"wrongStore":true},"expected":{"qualified":false}},
+    {"id":"ak-original-capture-clock-preserved","kind":"timestamp_freshness","input":{"observedAt":"2026-11-14T06:18:55.653Z"},"expected":{"preservedClock":true,"previewOnly":true,"allAlertsDisabled":true}},
+    {"id":"ak-official-source-host","kind":"source_specific_sentinel","input":{"sourceUrl":"https://www.carrsqc.com/abs/pub/xapi/search/substitute"},"expected":{"officialHost":true,"sourceHost":"www.carrsqc.com"}}
+  ]
+}

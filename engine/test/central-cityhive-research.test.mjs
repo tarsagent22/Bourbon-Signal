@@ -19,10 +19,10 @@ for(const source of CENTRAL_CITYHIVE_EXPANSION_SOURCES)fixtures.set(source.hostn
 const html=fixture=>`<script type="application/json">${fixture}</script>`;
 const frozen=JSON.stringify(STATE_LIFECYCLE_CONFIG);
 
-test('scheduled shadow registers exact CT/MN/MO/MA candidates while production cohort remains WI/OK',()=>{
+test('scheduled shadow registers exact CT/DE/HI/KS/MD/MN/MO/MA candidates while production cohort remains WI/OK',()=>{
   assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
-  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['CT','MA','MN','MO']);
-  for(const state of ['CT','MN','MO','MA']){
+  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['CT','DE','HI','KS','MA','MD','MN','MO']);
+  for(const state of ['CT','DE','HI','KS','MD','MN','MO','MA']){
     const config=cityHiveResearchSourceForState(state);
     assert.equal(config.id,state);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
     assert.ok(config.sources.length>0);
@@ -30,6 +30,35 @@ test('scheduled shadow registers exact CT/MN/MO/MA candidates while production c
   const ct=cityHiveResearchSourceForState('CT');
   assert.equal(ct.sources.length,2);assert.ok(ct.sources.every(source=>source.precisionOnly&&source.label.includes('CT first-party pickup inventory')));
   assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('CT'),false);
+});
+
+test('Greenbelt product detail is isolated Maryland research with exact identity and no delivery',async()=>{
+  const original=process.env.BOURBON_SIGNAL_SHADOW_MODE,dir=await mkdtemp(path.join(tmpdir(),'md-greenbelt-shadow-'));
+  try{
+    process.env.BOURBON_SIGNAL_SHADOW_MODE='1';
+    const config=cityHiveResearchSourceForState('MD'),source=CENTRAL_CITYHIVE_RESEARCH_SOURCES.find(row=>row.state==='MD');
+    assert.ok(source);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
+    assert.equal(config.sources.length,1);assert.match(config.sources[0].url,/delivery\.greenbeltliquors\.com/);
+    assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
+    assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('MD'),false);
+    const fixture=JSON.parse(await readFile(new URL('./fixtures/md-cityhive/greenbelt-eagle-rare-12.json',import.meta.url),'utf8'));
+    const page=`<script type="application/json">${JSON.stringify(fixture)}</script>`;
+    const calls=[];
+    const report=await collectCityHiveResearchReport(config,bible,{reportDirectory:dir,captureRoot:null,
+      incidentFile:path.join(dir,'incidents.json'),cursorDir:path.join(dir,'cursor'),sleep:async()=>{},readAttempts:async()=>({}),writeAttempts:async()=>{},
+      fetchText:async url=>{calls.push(url);return{ok:true,status:200,url,text:page};}});
+    assert.ok(calls.length>0);assert.equal(report.metadata.complete,true,JSON.stringify({signals:report.signals.length,sources:report.sources,roadblocks:report.roadblocks,requests:report.metadata.requests}));assert.equal(report.metadata.shadowOnly,true);
+    const row=report.signals.find(item=>item.canonicalName==='Eagle Rare 12 Year');
+    assert.ok(row,JSON.stringify(report.signals.map(item=>({name:item.rawName,canonical:item.canonicalName,tier:item.tier}))));assert.equal(row.tier,'unicorn');
+    assert.equal(row.rawName,'Eagle Rare 12 Years Old Bourbon 750ml');
+    assert.equal(row.storeName,'Greenbelt Liquors');assert.equal(row.storeAddress,source.address);
+    assert.equal(row.sourceUrl,'https://delivery.greenbeltliquors.com/shop/product/eagle-rare-12-years-old-bourbon/682fc772b2b09825a9bfa4d9?option-id=8b2593031856f80d2e74abafdc940686302e1227092ce6bb69e52830f8768f42');
+    assert.equal(row.sourceAvailabilityVerified,true);assert.equal(row.sourceProductBinding.pickupOfferVerified,true);
+    assert.equal(row.sourceProductBinding.reportedQuantity,1);assert.equal(row.quantity,0);assert.equal(row.quantityIsExact,false);
+    for(const flag of ['alertable','canAlertAsInventory','canAlertAsWatch','eligibleForOnSite','eligibleForDropFeed','eligibleForWatch','eligibleForDelivery','eligibleForEmail','eligibleForSms'])assert.equal(row[flag],false);
+    assert.equal(report.metadata.customerDeliveryAllowed,false);assert.equal(report.metadata.productionActivationAllowed,false);
+    assert.equal(JSON.stringify(STATE_LIFECYCLE_CONFIG),frozen);
+  }finally{if(original===undefined)delete process.env.BOURBON_SIGNAL_SHADOW_MODE;else process.env.BOURBON_SIGNAL_SHADOW_MODE=original;await rm(dir,{recursive:true,force:true});}
 });
 
 test('Connecticut product-page shadow stays isolated and disables customer delivery',async()=>{

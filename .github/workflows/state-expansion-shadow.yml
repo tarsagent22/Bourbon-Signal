@@ -38,6 +38,7 @@ jobs:
       BROWSER_HEADLESS: "1"
       BOURBON_SIGNAL_LIBRARY_CATALOG_FILE: out/library-catalog.json
       BOURBON_SIGNAL_OR_BROWSER_PREREQUISITE_TIMEOUT_MS: "180000"
+      OR_DAILY_CACHE_DIR: out/cache/oregon-daily-inventory
     steps:
       - uses: actions/checkout@v4
 
@@ -93,12 +94,37 @@ jobs:
           echo "states=$RAW_STATES" >> "$GITHUB_OUTPUT"
           echo "limit=$RAW_LIMIT" >> "$GITHUB_OUTPUT"
 
-      - name: Collect bounded shadow evidence only
+      - name: Plan the exact shadow state selection
+        id: plan
         working-directory: engine
         env:
           STATES: ${{ steps.validate.outputs.states }}
           LIMIT: ${{ steps.validate.outputs.limit }}
-        run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT"
+        run: node src/run-expansion-shadow.mjs --plan-only --states="$STATES" --limit="$LIMIT"
+
+      - uses: actions/cache/restore@v4
+        if: steps.plan.outputs.or_selected == 'true'
+        id: oregon-daily-cache
+        with:
+          path: engine/out/cache/oregon-daily-inventory
+          key: oregon-daily-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: oregon-daily-${{ runner.os }}-${{ github.ref_name }}-
+
+      - name: Collect bounded shadow evidence only
+        id: collect-shadow
+        working-directory: engine
+        env:
+          STATES: ${{ steps.plan.outputs.states }}
+          LIMIT: ${{ steps.plan.outputs.limit }}
+          SCHEDULED_AT: ${{ steps.plan.outputs.scheduled_at }}
+        run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT" --scheduled-at="$SCHEDULED_AT"
+
+      - name: Preserve a new or Bible-reparsed Oregon source cache
+        if: always() && steps.collect-shadow.outputs.or_cache_updated == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/cache/oregon-daily-inventory
+          key: oregon-daily-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - uses: actions/cache/save@v4
         if: always()
@@ -131,6 +157,24 @@ jobs:
           name: oregon-inventory-source-${{ github.run_id }}
           retention-days: 30
           path: engine/out/browser/OR-product-availability.json
+
+      - name: Preserve the Oregon source validation receipt
+        if: always() && hashFiles('engine/out/browser/OR-source-cache-receipt.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: oregon-inventory-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 30
+          path: |
+            engine/out/browser/OR-source-cache-receipt.json
+            engine/out/cache/oregon-daily-inventory/manifest.json
+
+      - name: Preserve a newly fetched official Oregon CSV
+        if: always() && steps.collect-shadow.outputs.or_source_body_fetched == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: oregon-inventory-raw-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 30
+          path: engine/out/cache/oregon-daily-inventory/source.csv
 
   collect-nj-mi-research:
     if: ${{ inputs.states == 'NJ,MI' || inputs.states == 'NJ' || inputs.states == 'MI' }}

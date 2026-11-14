@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "state": "LA",
+  "lifecycle": {"customerLabel":"Louisiana","publicStatus":"active","coverageTier":"sparse_live_store_inventory","refinementLevel":"store"},
+  "collector": {"sourceIds":["research:la:grocery-xapi"],"registration":"Isolated Louisiana shadow collector replays bounded exact-store Albertsons XAPI captures. Candidate preparation reparses all original resolver and inventory response bodies against the current Bible, preserving source observation timestamps and disabling every alert and delivery path."},
+  "storeIdentity": {"mode":"registered_first_party_store_id_and_resolver_address","addressRequired":true,"proof":"Exact Albertsons merchant IDs are matched to first-party resolver rows and to the immutable report's premise-bound product captures."},
+  "sourceSemantics": {"availability":"First-party in-store orderable binary availability; unknown quantity remains zero and is not presented as an exact shelf count.","inventoryAlertable":false,"watchAlertable":false},
+  "customerPaths": {
+    "stateFilter":{"status":"verified","assertion":"Isolated canary contains the LA state partition while authoritative Louisiana lifecycle stays research-only."},
+    "areaFilter":{"status":"verified","assertion":"Canary stores retain exact resolver-confirmed addresses and cities."},
+    "preferences":{"status":"verified","assertion":"Preview lifecycle derives from current configuration without modifying authoritative lifecycle."},
+    "dashboard":{"status":"verified","assertion":"Preview snapshot includes only captured exact-store LA positives and derived coverage."},
+    "dropFeedApi":{"status":"verified","assertion":"Preview rows keep source identity, binary quantity semantics, original receipt timestamps, and disabled alerts."},
+    "finder":{"status":"verified","assertion":"Searchable LA locations are limited to reviewed premises in the replayed source cohort."},
+    "alerts":{"status":"verified","assertion":"Candidate rows and preview lifecycle disable inventory, watch, email, SMS, and delivery alerts."},
+    "monitoring":{"status":"verified","assertion":"Canary output counts are isolated from production monitoring and publication."},
+    "export":{"status":"verified","assertion":"Candidate export requires full digest-bound source capture replay and current Bible identity revalidation."}
+  },
+  "evidence": {
+    "shadow":{"status":"verified","runs":1,"artifact":"https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813","assertion":"Saved successful shadow report contains 43 verified bounded requests, 15 exact resolver premises, 63 current positive signals across all 15 stores, and no publication or alert delivery."},
+    "canary":{"status":"not_run","runs":0,"artifact":null,"reason":"Local replay and preview rehearsal are not a hosted canary or deployed preview."},
+    "production":{"status":"not_deployed","url":null,"assertion":"No production inventory or customer alerts were activated by this research canary preparation.","reason":"Louisiana remains research-only pending separate activation review."}
+  }
+}
