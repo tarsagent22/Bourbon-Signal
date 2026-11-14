@@ -38,6 +38,7 @@ export type UserFacingDropSignal = {
   canAlertAsWatch?: boolean;
   can_alert_as_watch?: boolean;
   sourceRuntimeId?: string;
+  sourceProductBinding?: Record<string, unknown>;
   sourceUrl?: string;
   productId?: string | number;
   storeNumber?: string | number;
