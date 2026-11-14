@@ -121,6 +121,10 @@ jobs:
           else
             echo "ma_paired_sources=0" >> "$GITHUB_OUTPUT"
           fi
+          if [[ "$RAW_STATES" == "MA" && "$RAW_MA_ESPLANDA_ONLY" != "true" && "$RAW_MA_PAIRED_SOURCES" != "true" ]]; then
+            echo "An explicit MA shadow run requires one of the reviewed source modes" >&2
+            exit 1
+          fi
           echo "states=$RAW_STATES" >> "$GITHUB_OUTPUT"
           echo "limit=$RAW_LIMIT" >> "$GITHUB_OUTPUT"
 
