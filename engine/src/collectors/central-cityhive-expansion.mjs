@@ -3,14 +3,14 @@ import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { stableId } from '../core/text.mjs';
 import { librarySourceSearchTerms } from '../library-search-runtime.mjs';
 import texasExpansion from '../../data/texas-cityhive-expansion-sources.json' with {type:'json'};
-import { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES, MARYLAND_CITYHIVE_RESEARCH_SOURCES, RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES, ARKANSAS_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
+import { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES, MARYLAND_CITYHIVE_RESEARCH_SOURCES, RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES, ARKANSAS_CITYHIVE_RESEARCH_SOURCES, MEGABEV_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
 export { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES } from './central-cityhive-research-premises.mjs';
 import {centralCityHiveAllocatedQueryFilter,centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 export {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 import {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export const TEXAS_CITYHIVE_EXPANSION_SOURCES=Object.freeze(texasExpansion.stores.map(Object.freeze));
-const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES,...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,...MIDWEST_CITYHIVE_EXPANSION_SOURCES,...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES,...MARYLAND_CITYHIVE_RESEARCH_SOURCES,...RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES,...ARKANSAS_CITYHIVE_RESEARCH_SOURCES]);
+const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES,...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,...MIDWEST_CITYHIVE_EXPANSION_SOURCES,...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES,...MARYLAND_CITYHIVE_RESEARCH_SOURCES,...RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES,...ARKANSAS_CITYHIVE_RESEARCH_SOURCES,...MEGABEV_CITYHIVE_RESEARCH_SOURCES]);
 
 export function centralCityHiveLibraryTier(signal,bible) {
  const source=ALL_SOURCES.find(s=>s.state===signal.state&&s.merchantId===signal.merchantId&&s.storeId===signal.storeId);

@@ -80,6 +80,22 @@
       "longitude": -86.115962
     }
   ],
-  "integrationBoundary": "Data-only. This file is intentionally not imported by collectors, the Michigan Liquors runtime, the Livonia Showerman runtime, research-state selection, or any scheduled workflow.",
-  "proposedSelector": "BOURBON_SIGNAL_MI_MEGABEV_RESEARCH=1"
+  "integrationBoundary": "Explicit MI shadow selector only. No production activation, delivery, or scheduled collection.",
+  "proposedSelector": "BOURBON_SIGNAL_MI_MEGABEV_RESEARCH=1",
+  "firstPassMerchantIds": [
+    "610b0409466a707ec29c26b1",
+    "610af6d1268b32168dfb99e1"
+  ],
+  "firstPassSearchTerms": [
+    "Blanton's"
+  ],
+  "collectionBounds": {
+    "firstPassPremiseLimit": 2,
+    "maxRequestsPerPremise": 2,
+    "maxRequestsPerHostPerPass": 4,
+    "accessDenialHostBackoffMs": 86400000,
+    "successPerPremiseBackoffMs": 1800000,
+    "denialStopsRemainingHostRequests": true,
+    "searchPlan": "One fixed indexed term plus one rotating library term per selected store through the existing CityHive adapter."
+  }
 }

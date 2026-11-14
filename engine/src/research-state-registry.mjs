@@ -22,6 +22,9 @@ const MASSACHUSETTS = Object.freeze({
 export function researchSourceForState(state, { shadowMode = process.env.BOURBON_SIGNAL_SHADOW_MODE === '1' } = {}) {
   if (!shadowMode) return null;
   if (state === 'MA') return MASSACHUSETTS;
+  if (state === 'MI' && process.env.BOURBON_SIGNAL_MI_MEGABEV_RESEARCH === '1'
+    && process.env.BOURBON_SIGNAL_MI_SHOWERMANS_RESEARCH === '1') throw new Error('Select exactly one isolated Michigan research source.');
+  if (state === 'MI' && process.env.BOURBON_SIGNAL_MI_MEGABEV_RESEARCH === '1') return cityHiveResearchSourceForState(state);
   if (state === 'MI' && process.env.BOURBON_SIGNAL_MI_SHOWERMANS_RESEARCH === '1') return showermansResearchSourceForState(state);
   return oregonResearchSourceForState(state)
     || michiganLiquorsResearchSourceForState(state)
