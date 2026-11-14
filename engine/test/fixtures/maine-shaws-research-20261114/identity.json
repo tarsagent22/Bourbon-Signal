@@ -1,0 +1,1243 @@
+{
+  "schemaVersion": 1,
+  "researchOnly": true,
+  "productionMutation": false,
+  "provenance": {
+    "locatorEvidence": {
+      "capturedAt": "2026-11-14T06:28:06.9763423-05:00",
+      "sha256": "56fc72665c294a717b301f4ec6b9175315ecafa5b143525964dfcc5e85032197",
+      "licenseUrl": "https://www.maine.gov/dafs/bablo/active_liquor/active_reseller_licenses.htm",
+      "licenseSha256": "8695a285cdf225bfd8097a6687154e21fa16139414e994c1417b8b210c43a76b"
+    },
+    "resolverCapture": {
+      "observedAt": "2026-11-14T11:44:27.451Z",
+      "receiptsSha256": "5b1bb968a7f24c01155d809e47a49d8b93fb37caf19821f101fc42c465283732",
+      "reportSha256": "b5e4c3e8bb6a880744728dbfcf7653bfc91bf35a5b1116644e56f91a824777c2"
+    },
+    "inventoryCapture": {
+      "observedAt": "2026-11-14T11:46:11.382Z",
+      "receiptsSha256": "3999863bbde9a22ec0a9e0b8f3dfa26d87961c279d39aaf223d4eb9c561af2fa",
+      "reportSha256": "142fd4753c19d5f879c6fadd61e3f0c49299ceb1fcc6c93cc8448b7160ae145e"
+    },
+    "bible": {
+      "generatedAt": "2026-11-14T11:26:01.076Z",
+      "count": 272,
+      "sha256": "c1f6eedb616c7d4d229291698105d6e45f89706c75bc87a977a043b28e714297"
+    }
+  },
+  "bibleRecords": [
+    {
+      "id": "bb_8924180d0cc2d853",
+      "canonical": "Blade and Bow Bourbon",
+      "normalizedKey": "blade and bow",
+      "aliases": [
+        "BLADE & BOW",
+        "Blade & Bow",
+        "Blade and Bow Bourbon",
+        "Blade and Bow Kentucky Straight Bourbon",
+        "Blade and Bow Straight Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Diageo",
+      "sources": [
+        "state-data-additions",
+        "state:IA",
+        "state:MS"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_8924180d0cc2d853",
+          "canonicalName": "Blade and Bow Bourbon",
+          "aliases": [
+            "BLADE & BOW",
+            "Blade & Bow",
+            "Blade and Bow Bourbon",
+            "Blade and Bow Kentucky Straight Bourbon",
+            "Blade and Bow Straight Bourbon"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        },
+        {
+          "id": "blade-and-bow",
+          "canonicalName": "Blade & Bow",
+          "aliases": [
+            "Blade & Bow"
+          ],
+          "nationalTier": "regular",
+          "stateOverrides": [],
+          "isAlertEligible": false
+        }
+      ]
+    },
+    {
+      "id": "bb_22604f9ddde2b6ba",
+      "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+      "normalizedKey": "wild turkey rare breed",
+      "aliases": [
+        "Wild Turkey Rare Breed Bourbon",
+        "Wild Turkey Rare Breed Straight Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Wild Turkey",
+      "sources": [
+        "state-data-additions",
+        "state:PA"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_22604f9ddde2b6ba",
+          "canonicalName": "Wild Turkey Rare Breed Straight Bourbon",
+          "aliases": [
+            "Wild Turkey Rare Breed Bourbon",
+            "Wild Turkey Rare Breed Straight Bourbon"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_473aba10a697b5fc",
+      "canonical": "Penelope Four Grain Bourbon",
+      "normalizedKey": "penelope four grain",
+      "aliases": [
+        "PENELOPE FOUR GRAIN STRAIT BBN",
+        "Penelope Four Grain",
+        "Penelope Four Grain Bourbon",
+        "Penelope Four Grain Straight Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Penelope Bourbon",
+      "sources": [
+        "state-data-additions",
+        "state:MI"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_473aba10a697b5fc",
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "aliases": [
+            "PENELOPE FOUR GRAIN STRAIT BBN",
+            "Penelope Four Grain",
+            "Penelope Four Grain Bourbon",
+            "Penelope Four Grain Straight Bourbon"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_ef203a18f5f98f23",
+      "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+      "normalizedKey": "heaven hill bottled in bond 7 year",
+      "aliases": [
+        "HEAVEN HILL BOTTLED-IN-BOND 7YR",
+        "Heaven Hill 7 Year Bottled in Bond",
+        "Heaven Hill 7YR BIB",
+        "Heaven Hill Bottled-in-Bond 7 Year"
+      ],
+      "tier": "limited",
+      "producer": "Heaven Hill",
+      "sources": [
+        "state-data-additions",
+        "state:IA"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_ef203a18f5f98f23",
+          "canonicalName": "Heaven Hill Bottled-in-Bond 7 Year",
+          "aliases": [
+            "HEAVEN HILL BOTTLED-IN-BOND 7YR",
+            "Heaven Hill 7 Year Bottled in Bond",
+            "Heaven Hill 7YR BIB",
+            "Heaven Hill Bottled-in-Bond 7 Year"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        },
+        {
+          "id": "heaven-hill-bottled-in-bond",
+          "canonicalName": "Heaven Hill 7 Year Bottled-in-Bond",
+          "aliases": [
+            "Heaven Hill 7 Year Bottled-in-Bond",
+            "Heaven Hill 7Y Bottled in Bond",
+            "heaven hill 7",
+            "heaven hill bib",
+            "hh bib"
+          ],
+          "nationalTier": "regular",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ],
+  "stores": [
+    {
+      "source": {
+        "id": "me:shaws:2541",
+        "name": "Shaw's",
+        "stateCode": "ME",
+        "merchantId": "2541",
+        "banner": "shaws",
+        "resolverDomainName": "Shaw's",
+        "host": "www.shaws.com",
+        "address": "91 Auburn St, Portland, ME 04103",
+        "city": "Portland",
+        "zip": "04103",
+        "storeId": "shaws:2541",
+        "lat": 43.70251281572265,
+        "lng": -70.28797142595545,
+        "locator": "https://local.shaws.com/me/portland/91-auburn-st/Beer-Wine-Liquor.html",
+        "researchOnly": true
+      },
+      "locator": {
+        "capturedAt": "2026-11-14T06:28:06.9763423-05:00",
+        "sha256": "c8f2599183394f23c70dcce23d45da479a228e31e6a2b82b215ac4126e705719",
+        "spirits": true
+      },
+      "resolver": {
+        "locationId": "2541",
+        "domainName": "Shaw's",
+        "polarisBannerName": "shaws",
+        "address": {
+          "line1": "91 Auburn St",
+          "city": "Portland",
+          "state": "ME",
+          "country": "US",
+          "zipcode": "04103"
+        }
+      },
+      "resolverReceipt": {
+        "file": "02.json",
+        "status": 206,
+        "capturedAt": "2026-11-14T11:44:12.078Z",
+        "sha256": "e9ab426686744910690f98af8b6cb02b7180c24ca486bbe07544f05e5026f4ce"
+      },
+      "productReceipt": {
+        "file": "03.json",
+        "status": 200,
+        "capturedAt": "2026-11-14T11:45:34.319Z",
+        "sha256": "71d38106c2bbbd724c66e6bf325b0a8a7283e102840a050e0c8c9d8d3e5236bf"
+      },
+      "products": [
+        {
+          "id": "960137024",
+          "pid": "960137024",
+          "storeId": "2541",
+          "name": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+          "upc": "0008200000498",
+          "price": 46.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "2541",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 51.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "2541",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 33.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "2541",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "canonicalName": "Blade and Bow Bourbon",
+          "productId": "960137024",
+          "price": 46.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:34.319Z",
+          "sourceSha256": "71d38106c2bbbd724c66e6bf325b0a8a7283e102840a050e0c8c9d8d3e5236bf"
+        },
+        {
+          "canonicalName": "Wild Turkey Rare Breed Straight Bourbon",
+          "productId": "289031989",
+          "price": 51.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:34.319Z",
+          "sourceSha256": "71d38106c2bbbd724c66e6bf325b0a8a7283e102840a050e0c8c9d8d3e5236bf"
+        },
+        {
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "productId": "970889019",
+          "price": 33.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:34.319Z",
+          "sourceSha256": "71d38106c2bbbd724c66e6bf325b0a8a7283e102840a050e0c8c9d8d3e5236bf"
+        },
+        {
+          "canonicalName": "Heaven Hill Bottled-in-Bond 7 Year",
+          "productId": "970022436",
+          "price": 44.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:34.319Z",
+          "sourceSha256": "71d38106c2bbbd724c66e6bf325b0a8a7283e102840a050e0c8c9d8d3e5236bf"
+        }
+      ]
+    },
+    {
+      "source": {
+        "id": "me:shaws:57",
+        "name": "Shaw's",
+        "stateCode": "ME",
+        "merchantId": "57",
+        "banner": "shaws",
+        "resolverDomainName": "Shaw's",
+        "host": "www.shaws.com",
+        "address": "175 High St, Ellsworth, ME 04605",
+        "city": "Ellsworth",
+        "zip": "04605",
+        "storeId": "shaws:57",
+        "lat": 44.53468333137616,
+        "lng": -68.41313656922021,
+        "locator": "https://local.shaws.com/me/ellsworth/175-high-st/Beer-Wine-Liquor.html",
+        "researchOnly": true
+      },
+      "locator": {
+        "capturedAt": "2026-11-14T06:28:06.9763423-05:00",
+        "sha256": "2a9458b992afa49860b3474b1b35c33d23b901fb2fe9ec9082b08b3ea4101246",
+        "spirits": true
+      },
+      "resolver": {
+        "locationId": "57",
+        "domainName": "Shaw's",
+        "polarisBannerName": "shaws",
+        "address": {
+          "line1": "175 High St",
+          "city": "Ellsworth",
+          "state": "ME",
+          "country": "US",
+          "zipcode": "04605"
+        }
+      },
+      "resolverReceipt": {
+        "file": "04.json",
+        "status": 206,
+        "capturedAt": "2026-11-14T11:44:16.172Z",
+        "sha256": "be3152c326146582626ec9b0317637e4d3408f00adb97fae6d16ee062db97176"
+      },
+      "productReceipt": {
+        "file": "07.json",
+        "status": 200,
+        "capturedAt": "2026-11-14T11:45:42.640Z",
+        "sha256": "d7fb2e5756daf1c3598785bcab3cd6cfb8111e491fe6cb4e10d47fd3d8f72133"
+      },
+      "products": [
+        {
+          "id": "960137024",
+          "pid": "960137024",
+          "storeId": "57",
+          "name": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+          "upc": "0008200000498",
+          "price": 46.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "57",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 51.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "57",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 33.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "57",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "canonicalName": "Blade and Bow Bourbon",
+          "productId": "960137024",
+          "price": 46.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:42.640Z",
+          "sourceSha256": "d7fb2e5756daf1c3598785bcab3cd6cfb8111e491fe6cb4e10d47fd3d8f72133"
+        },
+        {
+          "canonicalName": "Wild Turkey Rare Breed Straight Bourbon",
+          "productId": "289031989",
+          "price": 51.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:42.640Z",
+          "sourceSha256": "d7fb2e5756daf1c3598785bcab3cd6cfb8111e491fe6cb4e10d47fd3d8f72133"
+        },
+        {
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "productId": "970889019",
+          "price": 33.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:42.640Z",
+          "sourceSha256": "d7fb2e5756daf1c3598785bcab3cd6cfb8111e491fe6cb4e10d47fd3d8f72133"
+        },
+        {
+          "canonicalName": "Heaven Hill Bottled-in-Bond 7 Year",
+          "productId": "970022436",
+          "price": 44.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:42.640Z",
+          "sourceSha256": "d7fb2e5756daf1c3598785bcab3cd6cfb8111e491fe6cb4e10d47fd3d8f72133"
+        }
+      ]
+    },
+    {
+      "source": {
+        "id": "me:shaws:2552",
+        "name": "Shaw's",
+        "stateCode": "ME",
+        "merchantId": "2552",
+        "banner": "shaws",
+        "resolverDomainName": "Shaw's",
+        "host": "www.shaws.com",
+        "address": "150 Western Ave, Augusta, ME 04330",
+        "city": "Augusta",
+        "zip": "04330",
+        "storeId": "shaws:2552",
+        "lat": 44.31155230248716,
+        "lng": -69.79478235477926,
+        "locator": "https://local.shaws.com/me/augusta/150-western-ave/Beer-Wine-Liquor.html",
+        "researchOnly": true
+      },
+      "locator": {
+        "capturedAt": "2026-11-14T06:28:06.9763423-05:00",
+        "sha256": "5e06d6617fbd2e2350e86dbef0fdb762539cd70135feecbd93f72a133b0a65a5",
+        "spirits": true
+      },
+      "resolver": {
+        "locationId": "2552",
+        "domainName": "Shaw's",
+        "polarisBannerName": "shaws",
+        "address": {
+          "line1": "150 Western Ave",
+          "city": "Augusta",
+          "state": "ME",
+          "country": "US",
+          "zipcode": "04330"
+        }
+      },
+      "resolverReceipt": {
+        "file": "05.json",
+        "status": 206,
+        "capturedAt": "2026-11-14T11:44:17.919Z",
+        "sha256": "5b8f0ca45edfb2c68f69d51716941f20d743def16edc921d0ecae68aae32b421"
+      },
+      "productReceipt": {
+        "file": "09.json",
+        "status": 200,
+        "capturedAt": "2026-11-14T11:45:47.007Z",
+        "sha256": "00be08a1404675d6e7b6779429a564c0507e663a3bef54f834ad6b6557a675f7"
+      },
+      "products": [
+        {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "2552",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 51.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "2552",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "canonicalName": "Wild Turkey Rare Breed Straight Bourbon",
+          "productId": "289031989",
+          "price": 51.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:47.007Z",
+          "sourceSha256": "00be08a1404675d6e7b6779429a564c0507e663a3bef54f834ad6b6557a675f7"
+        },
+        {
+          "canonicalName": "Heaven Hill Bottled-in-Bond 7 Year",
+          "productId": "970022436",
+          "price": 44.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:47.007Z",
+          "sourceSha256": "00be08a1404675d6e7b6779429a564c0507e663a3bef54f834ad6b6557a675f7"
+        }
+      ]
+    },
+    {
+      "source": {
+        "id": "me:shaws:4559",
+        "name": "Shaw's",
+        "stateCode": "ME",
+        "merchantId": "4559",
+        "banner": "shaws",
+        "resolverDomainName": "Shaw's",
+        "host": "www.shaws.com",
+        "address": "27 E Ave, Lewiston, ME 04240",
+        "city": "Lewiston",
+        "zip": "04240",
+        "storeId": "shaws:4559",
+        "lat": 44.08611944682636,
+        "lng": -70.19991337138686,
+        "locator": "https://local.shaws.com/me/lewiston/27-e-ave/Beer-Wine-Liquor.html",
+        "researchOnly": true
+      },
+      "locator": {
+        "capturedAt": "2026-11-14T06:28:06.9763423-05:00",
+        "sha256": "f5d27375319fda96a364697c6afe1cb28f66b351883928073a1550429614fb83",
+        "spirits": true
+      },
+      "resolver": {
+        "locationId": "4559",
+        "domainName": "Shaw's",
+        "polarisBannerName": "shaws",
+        "address": {
+          "line1": "27 E Ave",
+          "city": "Lewiston",
+          "state": "ME",
+          "country": "US",
+          "zipcode": "04240"
+        }
+      },
+      "resolverReceipt": {
+        "file": "06.json",
+        "status": 206,
+        "capturedAt": "2026-11-14T11:44:19.647Z",
+        "sha256": "c31b2c5708bf5cbe2aa7c7880b40f302ebb03937901df866fd3464d09da0f37a"
+      },
+      "productReceipt": {
+        "file": "11.json",
+        "status": 200,
+        "capturedAt": "2026-11-14T11:45:51.217Z",
+        "sha256": "a9a572deaf820e9cd6e6e8fcf7f1dbcd8d12d6262b7cf2c6032a6b358e223488"
+      },
+      "products": [
+        {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "4559",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 51.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "4559",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 33.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "canonicalName": "Wild Turkey Rare Breed Straight Bourbon",
+          "productId": "289031989",
+          "price": 51.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:51.217Z",
+          "sourceSha256": "a9a572deaf820e9cd6e6e8fcf7f1dbcd8d12d6262b7cf2c6032a6b358e223488"
+        },
+        {
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "productId": "970889019",
+          "price": 33.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:51.217Z",
+          "sourceSha256": "a9a572deaf820e9cd6e6e8fcf7f1dbcd8d12d6262b7cf2c6032a6b358e223488"
+        }
+      ]
+    },
+    {
+      "source": {
+        "id": "me:shaws:4560",
+        "name": "Shaw's",
+        "stateCode": "ME",
+        "merchantId": "4560",
+        "banner": "shaws",
+        "resolverDomainName": "Shaw's",
+        "host": "www.shaws.com",
+        "address": "1364 Main St, Sanford, ME 04073",
+        "city": "Sanford",
+        "zip": "04073",
+        "storeId": "shaws:4560",
+        "lat": 43.413536029822595,
+        "lng": -70.74424635124973,
+        "locator": "https://local.shaws.com/me/sanford/1364-main-st/Beer-Wine-Liquor.html",
+        "researchOnly": true
+      },
+      "locator": {
+        "capturedAt": "2026-11-14T06:28:06.9763423-05:00",
+        "sha256": "2402beee6099813a6a1eb164c050701bf4c3546200d73208c5acbb4a1542a7d0",
+        "spirits": true
+      },
+      "resolver": {
+        "locationId": "4560",
+        "domainName": "Shaw's",
+        "polarisBannerName": "shaws",
+        "address": {
+          "line1": "1364 Main St",
+          "city": "Sanford",
+          "state": "ME",
+          "country": "US",
+          "zipcode": "04073"
+        }
+      },
+      "resolverReceipt": {
+        "file": "07.json",
+        "status": 206,
+        "capturedAt": "2026-11-14T11:44:21.485Z",
+        "sha256": "c04acc3c5b2e0823ac62ee1c8d119b3c12ed7670958f241870ac2aa5f7794eec"
+      },
+      "productReceipt": {
+        "file": "13.json",
+        "status": 200,
+        "capturedAt": "2026-11-14T11:45:55.550Z",
+        "sha256": "2f2ed5f5bc974c0327d3ace182b147b9ce605ef97ef06af63d381f93adac3553"
+      },
+      "products": [
+        {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "4560",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 33.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "4560",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "productId": "970889019",
+          "price": 33.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:55.550Z",
+          "sourceSha256": "2f2ed5f5bc974c0327d3ace182b147b9ce605ef97ef06af63d381f93adac3553"
+        },
+        {
+          "canonicalName": "Heaven Hill Bottled-in-Bond 7 Year",
+          "productId": "970022436",
+          "price": 44.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:45:55.550Z",
+          "sourceSha256": "2f2ed5f5bc974c0327d3ace182b147b9ce605ef97ef06af63d381f93adac3553"
+        }
+      ]
+    },
+    {
+      "source": {
+        "id": "me:shaws:3551",
+        "name": "Shaw's",
+        "stateCode": "ME",
+        "merchantId": "3551",
+        "banner": "shaws",
+        "resolverDomainName": "Shaw's",
+        "host": "www.shaws.com",
+        "address": "251 Kennedy Memorial Dr, Waterville, ME 04901",
+        "city": "Waterville",
+        "zip": "04901",
+        "storeId": "shaws:3551",
+        "lat": 44.5445203298343,
+        "lng": -69.66724271953993,
+        "locator": "https://local.shaws.com/me/waterville/251-kennedy-memorial-dr/Beer-Wine-Liquor.html",
+        "researchOnly": true
+      },
+      "locator": {
+        "capturedAt": "2026-11-14T06:28:06.9763423-05:00",
+        "sha256": "02f693bc09720e0470a642db51ea5115286a880bc7de4cdc50e8daa893842ab2",
+        "spirits": true
+      },
+      "resolver": {
+        "locationId": "3551",
+        "domainName": "Shaw's",
+        "polarisBannerName": "shaws",
+        "address": {
+          "line1": "251 Kennedy Memorial Dr",
+          "city": "Waterville",
+          "state": "ME",
+          "country": "US",
+          "zipcode": "04901"
+        }
+      },
+      "resolverReceipt": {
+        "file": "08.json",
+        "status": 206,
+        "capturedAt": "2026-11-14T11:44:23.302Z",
+        "sha256": "b9828a07008795d55d07cd1e3534cfef122eeeaddcf96057a85380728041c857"
+      },
+      "productReceipt": {
+        "file": "15.json",
+        "status": 200,
+        "capturedAt": "2026-11-14T11:46:00.021Z",
+        "sha256": "67654be9b52469283077ae7b068be721a8c7d6e93f35444655cd464d8d643688"
+      },
+      "products": [
+        {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "3551",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 51.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "3551",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 33.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "canonicalName": "Wild Turkey Rare Breed Straight Bourbon",
+          "productId": "289031989",
+          "price": 51.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:46:00.021Z",
+          "sourceSha256": "67654be9b52469283077ae7b068be721a8c7d6e93f35444655cd464d8d643688"
+        },
+        {
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "productId": "970889019",
+          "price": 33.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:46:00.021Z",
+          "sourceSha256": "67654be9b52469283077ae7b068be721a8c7d6e93f35444655cd464d8d643688"
+        }
+      ]
+    },
+    {
+      "source": {
+        "id": "me:shaws:1609",
+        "name": "Shaw's",
+        "stateCode": "ME",
+        "merchantId": "1609",
+        "banner": "shaws",
+        "resolverDomainName": "Shaw's",
+        "host": "www.shaws.com",
+        "address": "670 Bath Rd, Wiscasset, ME 04578",
+        "city": "Wiscasset",
+        "zip": "04578",
+        "storeId": "shaws:1609",
+        "lat": 43.97302858953805,
+        "lng": -69.7093306751248,
+        "locator": "https://local.shaws.com/me/wiscasset/670-bath-rd/Beer-Wine-Liquor.html",
+        "researchOnly": true
+      },
+      "locator": {
+        "capturedAt": "2026-11-14T06:28:06.9763423-05:00",
+        "sha256": "44dc20bf84a3e1a847a0bec6a9d28885faaa263cfd83e8b65fdf4e5448ef13f3",
+        "spirits": true
+      },
+      "resolver": {
+        "locationId": "1609",
+        "domainName": "Shaw's",
+        "polarisBannerName": "shaws",
+        "address": {
+          "line1": "670 Bath Rd",
+          "city": "Wiscasset",
+          "state": "ME",
+          "country": "US",
+          "zipcode": "04578"
+        }
+      },
+      "resolverReceipt": {
+        "file": "09.json",
+        "status": 206,
+        "capturedAt": "2026-11-14T11:44:25.037Z",
+        "sha256": "0ae68e964eb8cc7346242f2c44c569e97d362606457962f141861f69ed1f3b8d"
+      },
+      "productReceipt": {
+        "file": "17.json",
+        "status": 200,
+        "capturedAt": "2026-11-14T11:46:04.541Z",
+        "sha256": "d5e529c243ef36d42518587cce93a68d8336272e0c6588f9f729189eafa88f41"
+      },
+      "products": [
+        {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "1609",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 51.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "1609",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 33.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "1609",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "canonicalName": "Wild Turkey Rare Breed Straight Bourbon",
+          "productId": "289031989",
+          "price": 51.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:46:04.541Z",
+          "sourceSha256": "d5e529c243ef36d42518587cce93a68d8336272e0c6588f9f729189eafa88f41"
+        },
+        {
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "productId": "970889019",
+          "price": 33.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:46:04.541Z",
+          "sourceSha256": "d5e529c243ef36d42518587cce93a68d8336272e0c6588f9f729189eafa88f41"
+        },
+        {
+          "canonicalName": "Heaven Hill Bottled-in-Bond 7 Year",
+          "productId": "970022436",
+          "price": 44.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:46:04.541Z",
+          "sourceSha256": "d5e529c243ef36d42518587cce93a68d8336272e0c6588f9f729189eafa88f41"
+        }
+      ]
+    },
+    {
+      "source": {
+        "id": "me:shaws:608",
+        "name": "Shaw's",
+        "stateCode": "ME",
+        "merchantId": "608",
+        "banner": "shaws",
+        "resolverDomainName": "Shaw's",
+        "host": "www.shaws.com",
+        "address": "200 Lower Main St, Freeport, ME 04032",
+        "city": "Freeport",
+        "zip": "04032",
+        "storeId": "shaws:608",
+        "lat": 43.845043345050144,
+        "lng": -70.11839112985183,
+        "locator": "https://local.shaws.com/me/freeport/200-lower-main-st/Beer-Wine-Liquor.html",
+        "researchOnly": true
+      },
+      "locator": {
+        "capturedAt": "2026-11-14T06:28:06.9763423-05:00",
+        "sha256": "514c2639066efd1d0d15033955b1d3218bd15be3b8742394ab6983ebe05cd314",
+        "spirits": true
+      },
+      "resolver": {
+        "locationId": "608",
+        "domainName": "Shaw's",
+        "polarisBannerName": "shaws",
+        "address": {
+          "line1": "200 Lower Main St",
+          "city": "Freeport",
+          "state": "ME",
+          "country": "US",
+          "zipcode": "04032"
+        }
+      },
+      "resolverReceipt": {
+        "file": "10.json",
+        "status": 206,
+        "capturedAt": "2026-11-14T11:44:26.836Z",
+        "sha256": "33af85aa50968f670387aa578fa1011e2c4e69413943d773ba960a5e8ea3e635"
+      },
+      "productReceipt": {
+        "file": "19.json",
+        "status": 200,
+        "capturedAt": "2026-11-14T11:46:08.710Z",
+        "sha256": "42e9c035379786d65069d095d1bc53a045176c2ba21e93fda59e501a2a2771ce"
+      },
+      "products": [
+        {
+          "id": "960137024",
+          "pid": "960137024",
+          "storeId": "608",
+          "name": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+          "upc": "0008200000498",
+          "price": 46.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "608",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 51.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "608",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 33.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "608",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750.0",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "canonicalName": "Blade and Bow Bourbon",
+          "productId": "960137024",
+          "price": 46.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:46:08.710Z",
+          "sourceSha256": "42e9c035379786d65069d095d1bc53a045176c2ba21e93fda59e501a2a2771ce"
+        },
+        {
+          "canonicalName": "Wild Turkey Rare Breed Straight Bourbon",
+          "productId": "289031989",
+          "price": 51.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:46:08.710Z",
+          "sourceSha256": "42e9c035379786d65069d095d1bc53a045176c2ba21e93fda59e501a2a2771ce"
+        },
+        {
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "productId": "970889019",
+          "price": 33.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:46:08.710Z",
+          "sourceSha256": "42e9c035379786d65069d095d1bc53a045176c2ba21e93fda59e501a2a2771ce"
+        },
+        {
+          "canonicalName": "Heaven Hill Bottled-in-Bond 7 Year",
+          "productId": "970022436",
+          "price": 44.99,
+          "quantityIsExact": false,
+          "observedAt": "2026-11-14T11:46:08.710Z",
+          "sourceSha256": "42e9c035379786d65069d095d1bc53a045176c2ba21e93fda59e501a2a2771ce"
+        }
+      ]
+    }
+  ]
+}
