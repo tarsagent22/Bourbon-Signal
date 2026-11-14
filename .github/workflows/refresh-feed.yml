@@ -194,6 +194,14 @@ jobs:
           restore-keys: |
             inventory-central-cityhive-incidents-${{ runner.os }}-
 
+      - name: Restore Minnesota CityHive rotation cursor independently
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/cache/minnesota-cityhive-production/MN.cursor.json
+          key: inventory-mn-cityhive-cursor-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-mn-cityhive-cursor-${{ runner.os }}-
+
       - name: Restore metro attempt cooldowns independently of published inventory
         uses: actions/cache/restore@v4
         with:
@@ -696,6 +704,13 @@ jobs:
         with:
           path: engine/out/source-incidents/central-cityhive
           key: inventory-central-cityhive-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save Minnesota CityHive rotation cursor independently of publication
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/cache/minnesota-cityhive-production/MN.cursor.json
+          key: inventory-mn-cityhive-cursor-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save metro attempt cooldowns independently of publication
         if: always()
