@@ -16,10 +16,15 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
       'fifth-ward-liquor:546babb03932330002100300':'fifth-ward-eagle-rare-10.json',
       'california-liquors-ri:6114919961187149b8241cdd':'california-liquors-eagle-rare-10.json',
     }[source.id]):null;
-    const fixturePath=researchFixture
-      ? new URL(`../test/fixtures/ri-cityhive/${researchFixture}`,import.meta.url)
-      : new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url);
-    const fixture=JSON.parse(await readFile(fixturePath,'utf8'));
+    const connecticutFixture = source.state === 'CT' && source.chainId === 'bottle-house-ct'
+      ? '../test/fixtures/ct-cityhive-product-pages/bottle-house-blanton.json' : null;
+    const fixtureFile = connecticutFixture || (researchFixture
+      ? `../test/fixtures/ri-cityhive/${researchFixture}`
+      : `../test/fixtures/central-cityhive/${source.id}.json`);
+    const fixture = JSON.parse(await readFile(new URL(fixtureFile, import.meta.url), 'utf8'));
+    if (connecticutFixture) {
+      fixture.products = fixture.products.filter(product => product.id === '5521ceef6561310003530000');
+    }
     const products=fixture.products|| (fixture.product?[fixture.product]:[]);
     for(const product of products){
       if(input.rawName)product.name=input.rawName;
@@ -28,7 +33,7 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
         for(const option of merchant.product_options||[]){
           if(input.rawName)option.option_display_data.name=input.rawName;
           if(input.size)option.option_display_data.size.quantity=String(input.size);
-          if(input.shippingOnly)option.allowed_offer_types=['shipping'];
+          if(input.shippingOnly){option.allowed_offer_types=['shipping'];option.offer_types=['shipping'];}
           if(input.wrongMerchant)option.merchant_id='unreviewed-merchant';
           if(input.wrongHost)option.product_url=option.product_url.replace(source.baseUrl,'https://unreviewed.example');
         }

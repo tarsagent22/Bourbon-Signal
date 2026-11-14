@@ -1,0 +1,89 @@
+{
+  "evidence": {
+    "production": {
+      "reason": "Research and canary only; no active lifecycle.",
+      "status": "not_deployed",
+      "assertion": "No production snapshot or delivery state was changed.",
+      "url": null
+    },
+    "canary": {
+      "runs": 0,
+      "status": "not_run",
+      "artifact": null,
+      "reason": "Canary workflow pending."
+    },
+    "shadow": {
+      "runs": 1,
+      "status": "verified",
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43601110460",
+      "originalSourceClocksPreserved": true
+    }
+  },
+  "lifecycle": {
+    "refinementLevel": "store",
+    "publicStatus": "active",
+    "coverageTier": "live_store_inventory",
+    "customerLabel": "Connecticut"
+  },
+  "storeIdentity": {
+    "proof": "Current first-party merchant configuration, address, product option, same-host source URL and positive pickup offer must agree.",
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true
+  },
+  "state": "CT",
+  "schemaVersion": 1,
+  "customerPaths": {
+    "preferences": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    }
+  },
+  "sourceSemantics": {
+    "watchAlertable": false,
+    "availability": "Binary retailer-published pickup availability; exact shelf quantity is not published.",
+    "inventoryAlertable": false
+  },
+  "collector": {
+    "sourceIds": [
+      "sunrise-liquor:68e7b4f7ddc9964680a31a6f",
+      "beverage-king:5ff8d3a20831fc26a1ac15d1",
+      "universal-wine-liquor-ct:69e9228fdcbd600066ee5aff",
+      "bottle-house-ct:654ea77f27845d7ca6476608",
+      "new-london-wine-spirits:5d16b2c002a20e15787d923c",
+      "big-discount-wine-liquor-ct:62fd4d7f483e882938c96fc1"
+    ],
+    "registration": "Closed reviewed research-only CityHive premises; immutable source replay requires merchant and address proof."
+  }
+}

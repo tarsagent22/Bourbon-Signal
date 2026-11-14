@@ -15,13 +15,14 @@ import {withResearchLifecycle} from './research-state-registry.mjs';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const canonical=value=>{const url=new URL(value);url.searchParams.sort();return url.href;};
 const ALL_CITYHIVE_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]);
-const CANARY_STATES=new Set(['WI','OK','MN','MO','MA','RI']);
-const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA','RI']);
+const CANARY_STATES=new Set(['WI','OK','MN','MO','MA','RI','CT']);
+const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA','RI','CT']);
 const sourceRegistryDigest=sources=>sha(Buffer.from(JSON.stringify([...sources].map(source=>({
   id:source.id,state:source.state,storeId:source.storeId,chainId:source.chainId||null,name:source.name,chainName:source.chainName||null,
   platform:source.platform,merchantId:source.merchantId,hostname:source.hostname,
   baseUrl:source.baseUrl,address:source.address,city:source.city,zip:source.zip,lat:source.lat??null,lng:source.lng??null,
   sourceLabel:source.sourceLabel,categoryUrl:source.categoryUrl,
+  ...(source.scopeProductUrlToMerchant ? {scopeProductUrlToMerchant:true} : {}),
 })).sort((a,b)=>a.id.localeCompare(b.id)))));
 
 // Only workflow-issued portable raw bodies can produce isolated canary input.

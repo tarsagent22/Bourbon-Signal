@@ -2,6 +2,7 @@ import { CENTRAL_CITYHIVE_EXPANSION_SOURCES,CENTRAL_CITYHIVE_PRODUCTION_COHORTS 
 import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
 
 export const CENTRAL_CITYHIVE_STATE_IDS = new Set(CENTRAL_CITYHIVE_EXPANSION_SOURCES.map(source=>source.state));
+export const CENTRAL_CITYHIVE_RESEARCH_STATE_IDS = new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state));
 const ALL_RECOGNIZED_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]);
 export function isCentralCityHiveRetailerEvent(row){
   return (CENTRAL_CITYHIVE_STATE_IDS.has(row?.state)
@@ -22,7 +23,8 @@ export function isCentralCityHiveSignalIdentity(row){
     &&row.city===source.city&&(row.zip||row.postalCode)===source.zip&&row.locationPrecision==='store_level'
     &&url.origin===source.baseUrl&&!url.username&&!url.password&&!url.hash
     &&parts.length===4&&parts[0]==='shop'&&parts[1]==='product'&&parts[3]===productId
-    &&/^[a-z0-9][a-z0-9-]*$/i.test(parts[2])&&query.length===1&&query[0][0]==='option-id'&&query[0][1]===optionId
+    &&/^[a-z0-9][a-z0-9-]*$/i.test(parts[2])&&query.length===(source.scopeProductUrlToMerchant?2:1)
+    &&url.searchParams.get('option-id')===optionId&&(!source.scopeProductUrlToMerchant||url.searchParams.get('merchant-id')===source.merchantId)
     &&Boolean(productId)&&Boolean(optionId)&&proof?.schemaVersion===1&&proof.source==='central-cityhive'
     &&proof.merchantId===source.merchantId&&proof.storeId===source.storeId&&proof.storeAddress===source.address
     &&proof.productId===productId&&proof.optionId===optionId&&proof.rawName===row.rawName
