@@ -10,6 +10,8 @@ import { isLouisianaAlaskaGroceryShadowInventory } from './research-louisiana-al
 import { isOregonDailyInventoryObservation, OREGON_DAILY_INVENTORY_URL } from './or-daily-inventory.mjs';
 import { promisify } from 'node:util';
 
+import { isMontanaShadowPickup } from './research-montana-ecwid.mjs';
+
 const execFileAsync = promisify(execFile);
 const SHADOW_INVENTORY_MAX_AGE_MS = 2 * 60 * 60_000;
 const OREGON_PREREQUISITE_TIMEOUT_MS = 3 * 60_000;
@@ -61,7 +63,7 @@ function trustedCurrentInventorySignals(report = {}, { now = new Date().toISOStr
   return asArray(report.signals).filter((row) => (row?.canAlertAsInventory === true
     || (report.state === 'OR' && row?.sourceUrl === OREGON_DAILY_INVENTORY_URL)
     || report.metadata?.complete===true&&report.metadata.shadowOnly===true&&report.metadata.productionActivationAllowed===false
-      &&report.metadata.customerDeliveryAllowed===false&&(isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})||isLouisianaAlaskaGroceryShadowInventory(row)))
+      &&report.metadata.customerDeliveryAllowed===false&&(isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})||isLouisianaAlaskaGroceryShadowInventory(row)||isMontanaShadowPickup(row)))
     && row?.stale !== true
     && row?.locationPrecision === 'store_level'
     && String(row?.storeId ?? '').trim()

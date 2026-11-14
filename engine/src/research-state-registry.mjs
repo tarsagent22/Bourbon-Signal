@@ -8,6 +8,8 @@ import {njMiResearchSourceForState,njMiResearchLifecycleEntries,collectNjMiResea
 import {michiganLiquorsResearchSourceForState,michiganLiquorsResearchLifecycleEntries,collectMichiganLiquorsResearchReport} from './research-michigan-liquors-runtime.mjs';
 import { louisianaAlaskaResearchSourceForState, louisianaAlaskaResearchLifecycleEntries, collectLouisianaAlaskaResearchReport } from './research-louisiana-alaska-grocery-runtime.mjs';
 
+import { montanaRetailerSource, montanaRetailerLifecycle, collectMontanaRetailer } from './research-montana-ecwid.mjs';
+
 // Research registrations never rewrite production lifecycle/source files or
 // historical promotion evidence. Activation requires a separate reviewed change.
 const MASSACHUSETTS = Object.freeze({
@@ -21,7 +23,8 @@ const MASSACHUSETTS = Object.freeze({
 export function researchSourceForState(state, { shadowMode = process.env.BOURBON_SIGNAL_SHADOW_MODE === '1' } = {}) {
   if (!shadowMode) return null;
   if (state === 'MA') return MASSACHUSETTS;
-  return oregonResearchSourceForState(state)
+  return montanaRetailerSource(state)
+    || oregonResearchSourceForState(state)
     || michiganLiquorsResearchSourceForState(state)
     || louisianaAlaskaResearchSourceForState(state)
     || njMiResearchSourceForState(state)
@@ -34,7 +37,7 @@ export function withResearchLifecycle(production) {
   if (production.activeStates.includes('MA') || production.states.MA) throw new Error('MA production/research registration requires reconciliation.');
   const additions = {
     ...cityHiveResearchLifecycleEntries(), ...groceryResearchLifecycleEntries(), ...njMiResearchLifecycleEntries(),
-    ...michiganLiquorsResearchLifecycleEntries(), ...louisianaAlaskaResearchLifecycleEntries(),
+    ...michiganLiquorsResearchLifecycleEntries(), ...louisianaAlaskaResearchLifecycleEntries(), ...montanaRetailerLifecycle(),
   };
   for(const state of Object.keys(additions))if(production.activeStates.includes(state)||production.states[state]?.publicStatus==='active') {
     delete additions[state];
@@ -51,6 +54,7 @@ export function withResearchLifecycle(production) {
 }
 
 export async function collectResearchStateReport(config, bible, options = {}) {
+  if (config && config === montanaRetailerSource(config.id)) return collectMontanaRetailer(config, bible, options);
   if (config && config === oregonResearchSourceForState(config.id)) return collectOregonResearchReport(config, bible, options);
   if(config&&config===michiganLiquorsResearchSourceForState(config.id))return collectMichiganLiquorsResearchReport(config,bible,options);
   if (config && config === louisianaAlaskaResearchSourceForState(config.id)) return collectLouisianaAlaskaResearchReport(config, bible, options);
