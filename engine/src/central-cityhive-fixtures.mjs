@@ -22,10 +22,12 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
       'verns-liquor:61ae46168baad441363308b0':'verns-larceny-barrel-proof.json',
       'rj-liquor:6060f6496aaeeb555664ca4f':'rj-elijah-and-larceny-barrel-proof.json',
     }[source.id]):null;
-    const fixturePath=researchFixture
+    const fixturePath=source.state==='AR'&&source.id==='crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0'
+      ? new URL('../test/fixtures/ar-cityhive/crossover-fayetteville-elijah-craig.json',import.meta.url) : researchFixture
       ? new URL(`../test/fixtures/${source.state==='RI'?'ri-cityhive':source.state==='KS'?'ks-cityhive':'central-cityhive'}/${researchFixture}`,import.meta.url)
       : new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url);
-    const fixture=JSON.parse(await readFile(fixturePath,'utf8'));
+    const contents=JSON.parse(await readFile(fixturePath,'utf8'));
+    const fixture=contents.payloads?.[0]??contents;
     const products=fixture.products|| (fixture.product?[fixture.product]:[]);
     for(const product of products){
       if(input.rawName)product.name=input.rawName;

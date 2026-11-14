@@ -150,6 +150,16 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const arkansasEntry=/^    "AR": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if (arkansasEntry || text.includes('    "AR"\n  ],\n  "reliabilityPolicy"')) {
+      assert.equal(createHash('sha256').update(arkansasEntry || '').digest('hex'),
+        'f78516d4a82fa49c7625cac1b82054da266033f6f612dbe95303ddfee7cfd3f9', `${name}: exact attested AR lifecycle entry`);
+      text = replaceUnique(text, arkansasEntry, '', `${name}: exact attested AR lifecycle entry`);
+      text = replaceUnique(text, ',\n    "AR"\n  ],\n  "reliabilityPolicy"',
+        '\n  ],\n  "reliabilityPolicy"', `${name}: exact AR active list tail`);
+      text = replaceUnique(text, '    "stateExpectedRunMs": {\n      "AR": 30000,\n',
+        '    "stateExpectedRunMs": {\n', `${name}: exact AR expected runtime`);
+    }
     const activeKansasTail=/^    \},\n    "KS": \{[\s\S]+?^    \}\n  \}/mu.exec(text)?.[0];
     const kansasTailSha='e58074869dfcb88cc8f7dce74e9e00a1c636559a05824c61cc3a3a4b6a3c3c8a';
     if(activeKansasTail&&createHash('sha256').update(activeKansasTail).digest('hex')===kansasTailSha){
