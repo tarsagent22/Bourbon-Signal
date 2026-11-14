@@ -10,7 +10,7 @@ import {buildDelawareBanksStaticCanarySignal,isDelawareBanksStaticCanarySignal} 
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const nowMs=Date.now();
-const evidencePath=path.resolve('data/state-expansion-evidence/DE-banks-millville-20261114.json');
+const evidencePath=path.resolve('data/state-expansion-evidence/DE-banks-millville-repeat-20261114.json');
 const reportDirectory=process.env.DE_KRESTON_REPORT_DIR;
 const outputPath=path.resolve('out/canary-preparation/DE-mixed/combined-input.json');
 if(!reportDirectory)throw new Error('Set DE_KRESTON_REPORT_DIR to the retained current local Kreston capture directory.');
@@ -46,10 +46,16 @@ for(const [file,key] of [[evidence.source.evidence.premiseCapturePath,'premiseCa
   const bytes=await readFile(file);if(sha(bytes)!==banks[key])throw new Error(`Banks static capture integrity failed: ${key}`);
 }
 const premiseHeaders=await readFile(evidence.source.evidence.premiseHeadersPath);
-const productHeaders=await readFile(evidence.source.evidence.productHeadersPath);
-if(sha(premiseHeaders)!==banks.premiseHeadersSha256||sha(productHeaders)!==banks.productHeadersSha256
-  ||!/^HTTP\/1\.1 200\b/m.test(premiseHeaders.toString('utf8'))||!/^HTTP\/1\.1 200\b/m.test(productHeaders.toString('utf8'))){
-  throw new Error('Banks retained public GET receipts are missing or not HTTP 200.');
+const productResponseReceiptBytes=await readFile(evidence.source.evidence.productResponseReceiptPath);
+const productResponseReceipt=JSON.parse(productResponseReceiptBytes.toString('utf8'));
+if(sha(premiseHeaders)!==banks.premiseHeadersSha256
+  ||!/^HTTP\/1\.1 200\b/m.test(premiseHeaders.toString('utf8'))
+  ||sha(productResponseReceiptBytes)!==banks.productResponseReceiptSha256
+  ||productResponseReceipt.status!==200
+  ||productResponseReceipt.uri!==evidence.source.productUrl
+  ||productResponseReceipt.sha256!==banks.productCaptureSha256
+  ||productResponseReceipt.responseFinishedAt!==evidence.source.productObservedAt){
+  throw new Error('Banks retained public premise/product response receipts are missing or not bound to the captured HTTP 200 product.');
 }
 const banksSignal=buildDelawareBanksStaticCanarySignal(evidence,bible,{nowMs});
 const inventory=[...candidateRows.values(),banksSignal];

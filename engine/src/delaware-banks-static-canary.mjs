@@ -18,10 +18,10 @@ const BANKS = Object.freeze({
   canonicalBottleId: 'old-forester-single-barrel-barrel-proof',
   canonicalName: 'Old Forester Single Barrel Barrel Proof',
   tier: 'allocated',
-  observedAt: '2026-11-14T15:21:52Z',
+  observedAt: '2026-11-14T17:23:59.2121139Z',
   premisesObservedAt: '2026-11-14T16:36:54Z',
   premiseCaptureSha256: 'ff542751cffdb8780e453e67f2463218664d3c5361dfc8de20a036511ef59307',
-  productCaptureSha256: '9ea494195dcba4825d20b9ca3ed0eaaba84d819ebc5e1b04e0b7e4350d81213f',
+  productCaptureSha256: '8fcca6ff535abf1cb55d6f3ff01384f34ce5e356a64defbd2c56b04cf9fd6925',
   libraryRecordsSha256: '2f98c28c23a9f20f10e68777e158aff1539075e60a448d32700fdd574a46c0cc',
 });
 
@@ -55,7 +55,7 @@ function exactEvidence(evidence) {
     && product?.sizeMl === 750 && product?.priceUsd === BANKS.price
     && product?.schemaAvailability === 'https://schema.org/InStock'
     && product?.visibleAvailability === 'In stock: 22 available'
-    && product?.pickupWindow === 'today, 12:30 PM–09:30 PM' && product?.addToBagVisible === true
+    && product?.pickupWindow === 'today, 02:30 PM–09:30 PM' && product?.addToBagVisible === true
     && mapping?.matchText === BANKS.identityName && mapping?.canonicalId === BANKS.canonicalBottleId
     && mapping?.canonicalName === BANKS.canonicalName && mapping?.tier === BANKS.tier
     && mapping?.libraryMethod === 'exact-library-identity'
