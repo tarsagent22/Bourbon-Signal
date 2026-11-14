@@ -13,9 +13,9 @@
       "reason": "Canary workflow pending."
     },
     "shadow": {
-      "runs": 0,
-      "status": "pending",
-      "artifact": null,
+      "status": "verified",
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43605205518",
       "originalSourceClocksPreserved": true
     }
   },
