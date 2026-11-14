@@ -1,0 +1,97 @@
+{
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "64f6226b7537422b95e04824",
+        "name": "Rhode Island Liquor Delivery",
+        "address": {
+          "full_address": "342 Broad St, Providence, RI 02907, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -71.4212627,
+              41.8138408
+            ]
+          }
+        },
+        "accept_orders": true
+      }
+    }
+  ],
+  "product": {
+    "id": "5e21e94d0320ad0f80403af4",
+    "name": "Larceny Barrel Proof Brourbon",
+    "basic_category": [
+      "bourbon",
+      "whiskey"
+    ],
+    "size": {
+      "measure": "ml",
+      "quantity": "750"
+    },
+    "additional_properties": {
+      "brands": "Larceny",
+      "content": "62.5%"
+    },
+    "merchants": [
+      {
+        "merchant_id": "64f6226b7537422b95e04824",
+        "offer_types": [
+          "pick_up",
+          "delivery",
+          "shipping"
+        ],
+        "product_options": [
+          {
+            "merchant_id": "64f6226b7537422b95e04824",
+            "merchant_name": "Rhode Island Liquor Delivery",
+            "full_address": "342 Broad St, Providence, RI 02907, USA",
+            "coordinates": [
+              -71.4212627,
+              41.8138408
+            ],
+            "product_id": "5e21e94d0320ad0f80403af4",
+            "option_id": "f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+            "option_params": {
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              }
+            },
+            "product_url": "https://riliquordelivery.com/shop/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+            "price": 79.99,
+            "quantity": 1,
+            "option_display_data": {
+              "name": "Larceny Barrel Proof Brourbon",
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              },
+              "properties": {
+                "product_views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "product_basic_categories": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "basic_category": "Whiskey American",
+                "brands": [
+                  "Larceny"
+                ],
+                "country": "United States",
+                "state": "Kentucky",
+                "content": "62.5%"
+              },
+              "basic_category": [
+                "bourbon",
+                "whiskey"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

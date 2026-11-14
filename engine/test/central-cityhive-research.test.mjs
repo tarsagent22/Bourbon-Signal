@@ -9,6 +9,7 @@ import { STATE_LIFECYCLE_CONFIG } from '../src/state-lifecycle.mjs';
 import { buildShadowEvidence } from '../src/run-expansion-shadow.mjs';
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES } from '../src/collectors/central-cityhive-expansion.mjs';
 import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from '../src/collectors/central-cityhive-research-premises.mjs';
+import { parseCentralCityHiveInventory } from '../src/collectors/central-cityhive-expansion.mjs';
 import { CENTRAL_CITYHIVE_STATE_IDS } from '../src/central-cityhive-policy.mjs';
 import {cityHiveResearchSourceForState,collectCityHiveResearchReport} from '../src/research-cityhive-runtime.mjs';
 import {persistCityHiveIncidentJournal} from '../src/collectors/central-cityhive-transport.mjs';
@@ -19,10 +20,10 @@ for(const source of CENTRAL_CITYHIVE_EXPANSION_SOURCES)fixtures.set(source.hostn
 const html=fixture=>`<script type="application/json">${fixture}</script>`;
 const frozen=JSON.stringify(STATE_LIFECYCLE_CONFIG);
 
-test('scheduled shadow registers exact CT/DE/HI/KS/MD/MN/MO/MA candidates while production cohort remains WI/OK',()=>{
+test('scheduled shadow registers exact CT/DE/HI/KS/MD/MN/MO/MA/RI candidates while production cohort remains WI/OK',()=>{
   assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
-  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['CT','DE','HI','KS','MA','MD','MN','MO']);
-  for(const state of ['CT','DE','HI','KS','MD','MN','MO','MA']){
+  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['CT','DE','HI','KS','MA','MD','MN','MO','RI']);
+  for(const state of ['CT','DE','HI','KS','MD','MN','MO','MA','RI']){
     const config=cityHiveResearchSourceForState(state);
     assert.equal(config.id,state);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
     assert.ok(config.sources.length>0);
@@ -30,6 +31,71 @@ test('scheduled shadow registers exact CT/DE/HI/KS/MD/MN/MO/MA candidates while 
   const ct=cityHiveResearchSourceForState('CT');
   assert.equal(ct.sources.length,2);assert.ok(ct.sources.every(source=>source.precisionOnly&&source.label.includes('CT first-party pickup inventory')));
   assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('CT'),false);
+});
+
+test('Rhode Island CityHive detail captures prove exact pickup variants and remain shadow only',async()=>{
+  const original=process.env.BOURBON_SIGNAL_SHADOW_MODE,dir=await mkdtemp(path.join(tmpdir(),'ri-cityhive-shadow-'));
+  try{
+    process.env.BOURBON_SIGNAL_SHADOW_MODE='1';
+    const config=cityHiveResearchSourceForState('RI'),riSources=CENTRAL_CITYHIVE_RESEARCH_SOURCES.filter(row=>row.state==='RI'),source=riSources[0];
+    assert.ok(source);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
+    assert.equal(riSources.length,3);assert.equal(config.sources.length,3);assert.ok(config.sources.every(row=>/merchant-id=/.test(row.url)));
+    assert.deepEqual(source.prioritySearchTerms,['eagle rare','stagg']);
+    assert.equal(riSources.find(row=>row.name==='Fifth Ward Liquor').address,'695 Thames St, Newport, RI 02840, USA');
+    assert.equal(riSources.find(row=>row.name==='California Liquors').address,'84 Union Ave, Providence, RI 02909, USA');
+    assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
+    assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('RI'),false);
+    const pageByTerm=new Map([
+      ['eagle rare',await readFile(new URL('./fixtures/ri-cityhive/eagle-rare-10-year-kentucky-straight-bourbon.json',import.meta.url),'utf8')],
+      ['stagg',await readFile(new URL('./fixtures/ri-cityhive/stagg-jr-kentucky-straight-bourbon-whiskey.json',import.meta.url),'utf8')],
+      ['fallback',await readFile(new URL('./fixtures/ri-cityhive/larceny-barrel-proof-brourbon.json',import.meta.url),'utf8')],
+    ]);
+    const additionalFixtures=new Map([
+      ['546babb03932330002100300',await readFile(new URL('./fixtures/ri-cityhive/fifth-ward-eagle-rare-10.json',import.meta.url),'utf8')],
+      ['6114919961187149b8241cdd',await readFile(new URL('./fixtures/ri-cityhive/california-liquors-eagle-rare-10.json',import.meta.url),'utf8')],
+    ]);
+    const calls=[];
+    const report=await collectCityHiveResearchReport(config,bible,{reportDirectory:dir,captureRoot:null,
+      incidentFile:path.join(dir,'incidents.json'),cursorDir:path.join(dir,'cursor'),sleep:async()=>{},readAttempts:async()=>({}),writeAttempts:async()=>{},
+      fetchText:async url=>{calls.push(url);const request=new URL(url),term=request.searchParams.get('ch-query'),merchantId=request.searchParams.get('merchant-id');
+        const fixture=merchantId===source.merchantId?pageByTerm.get(term)||pageByTerm.get('fallback'):additionalFixtures.get(merchantId);
+        return{ok:true,status:200,url,text:`<script type="application/json">${fixture}</script>`};}});
+    assert.equal(report.metadata.complete,true);assert.equal(report.metadata.shadowOnly,true);
+    const shadowEvidence=buildShadowEvidence('RI',report,{now:report.finishedAt});assert.equal(shadowEvidence.complete,true);
+    assert.ok(calls.some(url=>new URL(url).searchParams.get('ch-query')==='eagle rare'));
+    assert.ok(calls.some(url=>new URL(url).searchParams.get('ch-query')==='stagg'));
+    assert.deepEqual(new Set(calls.map(url=>new URL(url).searchParams.get('merchant-id'))),new Set(riSources.map(row=>row.merchantId)));
+    const expected=new Map([['Eagle Rare 10 Year','allocated'],['Stagg','unicorn'],['Larceny Barrel Proof','limited']]);
+    const expectedPrices=new Map([['Eagle Rare 10 Year',69.99],['Stagg',129.99],['Larceny Barrel Proof',79.99]]);
+    for(const [name,tier] of expected){const row=report.signals.find(item=>item.canonicalName===name);assert.ok(row,`${name} missing: ${JSON.stringify(report.signals.map(item=>item.canonicalName))}`);
+      assert.equal(row.tier,tier);assert.equal(row.state,'RI');assert.equal(row.storeAddress,source.address);assert.equal(row.sourceAvailabilityVerified,true);
+      assert.equal(row.price,expectedPrices.get(name));assert.ok(row.sourceProductBinding.reportedQuantity>0);
+      assert.equal(row.sourceProductBinding.pickupOfferVerified,true);assert.equal(row.quantity,0);assert.equal(row.quantityIsExact,false);
+      assert.equal(row.raw.shadowOnly,true);assert.equal(row.sourceProductBinding.shadowOnly,true);
+      for(const flag of ['alertable','canAlertAsInventory','canAlertAsWatch','eligibleForOnSite','eligibleForDropFeed','eligibleForWatch','eligibleForDelivery','eligibleForEmail','eligibleForSms'])assert.equal(row[flag],false);
+    }
+    for(const storeName of ['Fifth Ward Liquor','California Liquors']){const row=report.signals.find(item=>item.storeName===storeName&&item.canonicalName==='Eagle Rare 10 Year');
+      assert.ok(row,`${storeName} Eagle Rare signal missing`);assert.equal(row.tier,'allocated');assert.equal(row.sourceUrl.includes('option-id=2019723d4bc388a1636a0e8333f6cab54fb3b7f582d026c6e3b19cb398a6e87c'),true);
+      assert.equal(row.price,storeName==='Fifth Ward Liquor'?75.99:72);assert.ok(row.sourceProductBinding.reportedQuantity>0);
+      assert.equal(row.quantity,0);assert.equal(row.quantityIsExact,false);assert.equal(row.sourceProductBinding.pickupOfferVerified,true);assert.equal(row.raw.shadowOnly,true);
+    }
+    const productFixtures=['eagle-rare-10-year-kentucky-straight-bourbon','stagg-jr-kentucky-straight-bourbon-whiskey','larceny-barrel-proof-brourbon','bookers-bourbon-small-batch'];
+    const parsedNames=[];
+    for(const fixtureName of productFixtures){const text=await readFile(new URL(`./fixtures/ri-cityhive/${fixtureName}.json`,import.meta.url),'utf8');
+      parsedNames.push(...parseCentralCityHiveInventory(`<script type="application/json">${text}</script>`,source,bible,{observedAt:'2026-11-14T00:00:00.000Z'}).map(item=>item.canonicalName));}
+    for(const extra of riSources.slice(1)){const fixtureName=extra.name==='Fifth Ward Liquor'?'fifth-ward-eagle-rare-10':'california-liquors-eagle-rare-10';
+      const text=await readFile(new URL(`./fixtures/ri-cityhive/${fixtureName}.json`,import.meta.url),'utf8');
+      parsedNames.push(...parseCentralCityHiveInventory(`<script type="application/json">${text}</script>`,extra,bible,{observedAt:'2026-11-14T00:00:00.000Z'}).map(item=>item.canonicalName));}
+    assert.deepEqual(new Set(parsedNames),new Set(['Eagle Rare 10 Year','Stagg','Larceny Barrel Proof',"Booker's Bourbon"]));
+    const strictFixture=JSON.parse(await readFile(new URL('./fixtures/ri-cityhive/eagle-rare-10-year-kentucky-straight-bourbon.json',import.meta.url),'utf8'));
+    strictFixture.product.merchants[0].product_options[0].full_address='1 Unreviewed Rd, Providence, RI 02907, USA';
+    assert.deepEqual(parseCentralCityHiveInventory(`<script type="application/json">${JSON.stringify(strictFixture)}</script>`,source,bible,{observedAt:'2026-11-14T00:00:00.000Z'}),[]);
+    const wrongCoordinates=JSON.parse(await readFile(new URL('./fixtures/ri-cityhive/eagle-rare-10-year-kentucky-straight-bourbon.json',import.meta.url),'utf8'));
+    wrongCoordinates.merchant_configs[0].merchant.address.location.coordinates[0]+=.001;
+    assert.deepEqual(parseCentralCityHiveInventory(`<script type="application/json">${JSON.stringify(wrongCoordinates)}</script>`,source,bible,{observedAt:'2026-11-14T00:00:00.000Z'}),[]);
+    assert.equal(report.metadata.customerDeliveryAllowed,false);assert.equal(report.metadata.productionActivationAllowed,false);
+    assert.equal(JSON.stringify(STATE_LIFECYCLE_CONFIG),frozen);
+  }finally{if(original===undefined)delete process.env.BOURBON_SIGNAL_SHADOW_MODE;else process.env.BOURBON_SIGNAL_SHADOW_MODE=original;await rm(dir,{recursive:true,force:true});}
 });
 
 test('Greenbelt product detail is isolated Maryland research with exact identity and no delivery',async()=>{
