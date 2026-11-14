@@ -440,6 +440,17 @@ if (state === 'DE') files.push(
 );
 
 if (state === 'ND') files.push(
+  'engine/src/collectors/north-dakota-retail-production.mjs',
+  'engine/src/verify-nd-first-publication.mjs',
+  'engine/test/north-dakota-retail-production.test.mjs',
+  'engine/data/state-integration/ND.json',
+  'engine/data/state-fixtures/ND.json',
+  'src/config/state-lifecycle.json',
+  'engine/data/state-expansion-candidates.json',
+  'engine/src/state-sources.mjs',
+  'engine/src/collectors/generic-state.mjs',
+  'engine/src/operational-report.mjs',
+  'engine/src/run.mjs',
   'engine/src/research-north-dakota-runtime.mjs',
   'engine/src/north-dakota-retail-policy.mjs',
   'engine/src/north-dakota-fixtures.mjs',
