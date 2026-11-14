@@ -22,8 +22,8 @@ const frozen=JSON.stringify(STATE_LIFECYCLE_CONFIG);
 
 test('scheduled shadow registers exact retailer candidates while production cohort remains WI/OK',()=>{
   assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
-  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['CT','DE','HI','KS','MA','MD','MN','MO','RI','WY']);
-  for(const state of ['CT','DE','HI','KS','MD','MN','MO','MA','RI','WY']){
+  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['CT','DC','DE','HI','KS','MA','MD','MN','MO','RI','WY']);
+  for(const state of ['CT','DC','DE','HI','KS','MD','MN','MO','MA','RI','WY']){
     const config=cityHiveResearchSourceForState(state);
     assert.equal(config.id,state);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
     assert.ok(config.sources.length>0);
@@ -122,7 +122,7 @@ test('Greenbelt product detail is isolated Maryland research with exact identity
     process.env.BOURBON_SIGNAL_SHADOW_MODE='1';
     const config=cityHiveResearchSourceForState('MD'),source=CENTRAL_CITYHIVE_RESEARCH_SOURCES.find(row=>row.state==='MD');
     assert.ok(source);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
-    assert.equal(config.sources.length,1);assert.match(config.sources[0].url,/delivery\.greenbeltliquors\.com/);
+    assert.equal(config.sources.length,3);assert.match(config.sources[0].url,/delivery\.greenbeltliquors\.com/);
     assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
     assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('MD'),false);
     const fixture=JSON.parse(await readFile(new URL('./fixtures/md-cityhive/greenbelt-eagle-rare-12.json',import.meta.url),'utf8'));
@@ -130,7 +130,10 @@ test('Greenbelt product detail is isolated Maryland research with exact identity
     const calls=[];
     const report=await collectCityHiveResearchReport(config,bible,{reportDirectory:dir,captureRoot:null,
       incidentFile:path.join(dir,'incidents.json'),cursorDir:path.join(dir,'cursor'),sleep:async()=>{},readAttempts:async()=>({}),writeAttempts:async()=>{},
-      fetchText:async url=>{calls.push(url);return{ok:true,status:200,url,text:page};}});
+      fetchText:async url=>{calls.push(url);const merchant= CENTRAL_CITYHIVE_RESEARCH_SOURCES.find(entry=>entry.hostname===new URL(url).hostname);
+        const pageForMerchant=merchant===source?page:html(JSON.stringify({merchant_configs:[{merchant:{id:merchant.merchantId,address:{full_address:merchant.address,
+          location:{type:'Point',coordinates:[merchant.lng,merchant.lat]}}}}],products:[]}));
+        return{ok:true,status:200,url,text:pageForMerchant};}});
     assert.ok(calls.length>0);assert.equal(report.metadata.complete,true,JSON.stringify({signals:report.signals.length,sources:report.sources,roadblocks:report.roadblocks,requests:report.metadata.requests}));assert.equal(report.metadata.shadowOnly,true);
     const row=report.signals.find(item=>item.canonicalName==='Eagle Rare 12 Year');
     assert.ok(row,JSON.stringify(report.signals.map(item=>({name:item.rawName,canonical:item.canonicalName,tier:item.tier}))));assert.equal(row.tier,'unicorn');
