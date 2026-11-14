@@ -23,7 +23,8 @@ export function isCentralCityHiveSignalIdentity(row){
     &&row.city===source.city&&(row.zip||row.postalCode)===source.zip&&row.locationPrecision==='store_level'
     &&url.origin===source.baseUrl&&!url.username&&!url.password&&!url.hash
     &&parts.length===4&&parts[0]==='shop'&&parts[1]==='product'&&parts[3]===productId
-    &&/^[a-z0-9][a-z0-9-]*$/i.test(parts[2])&&query.length===1&&query[0][0]==='option-id'&&query[0][1]===optionId
+    &&/^[a-z0-9][a-z0-9-]*$/i.test(parts[2])&&query.length===(source.scopeProductUrlToMerchant?2:1)
+    &&url.searchParams.get('option-id')===optionId&&(!source.scopeProductUrlToMerchant||url.searchParams.get('merchant-id')===source.merchantId)
     &&Boolean(productId)&&Boolean(optionId)&&proof?.schemaVersion===1&&proof.source==='central-cityhive'
     &&proof.merchantId===source.merchantId&&proof.storeId===source.storeId&&proof.storeAddress===source.address
     &&proof.productId===productId&&proof.optionId===optionId&&proof.rawName===row.rawName

@@ -22,6 +22,7 @@ export const CENTRAL_CITYHIVE_PRODUCTION_SOURCES = Object.freeze([
   ...CENTRAL_CITYHIVE_EXPANSION_SOURCES,
   ...RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES,
   ...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state==='KS'),
+  ...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state==='CT'),
 ]);
 
 // Reviewed cohort pins, recomputed by server-side admission and tested against
@@ -31,4 +32,5 @@ export const CENTRAL_CITYHIVE_PRODUCTION_COHORTS=Object.freeze({
   OK:'6dde5f60f9bca6e0450fa8509cbd5074899c1dc453f9e45b3f43fd9a46d790c1',
   RI:'09e296469e2067fcb39ecd501b2b2e43eecd41e54f400590d7cb4245e7539219',
   KS:'234805b62e662b95e0b4c9bbea79f01075349753b56865eef9b475558853ede5',
+  CT:'9bd65e90aab05981ab376dfb46250b02d34ce976b63cccfdffb79b42624bdefb',
 });
