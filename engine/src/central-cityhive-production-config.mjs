@@ -5,7 +5,7 @@ export const CENTRAL_CITYHIVE_PRODUCTION_BUDGETS=Object.freeze({
   WI:Object.freeze({sourceMs:90_000,stateMs:150_000,maxRequests:5}),
   OK:Object.freeze({sourceMs:180_000,stateMs:240_000,maxRequests:10}),
   RI:Object.freeze({sourceMs:90_000,stateMs:150_000,maxRequests:7}),
-  KS:Object.freeze({sourceMs:90_000,stateMs:180_000,maxRequests:6}),
+  KS:Object.freeze({sourceMs:25_000,stateMs:30_000,maxRequests:6,requestTimeoutMs:3_000}),
 });
 export const centralCityHiveProductionRuntimeId=state=>`${state.toLowerCase()}:central-cityhive`;
 export function centralCityHiveProductionCohortKey(state){

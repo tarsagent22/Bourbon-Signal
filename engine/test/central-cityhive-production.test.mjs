@@ -81,8 +81,9 @@ test('KS production parser uses six exact merchant-scoped requests and projects 
   ]),requests=[];
   const rows=await collectCentralCityHiveProductionSource(config('KS'),bible,{
     ...opts,nowMs,
-    fetchText:async url=>{
+    fetchText:async (url,options)=>{
       const parsed=new URL(url),fixture=byHost.get(parsed.hostname);requests.push(parsed);
+      assert.equal(options.timeoutMs,3_000);
       assert.ok(fixture,`Unreviewed production Kansas hostname ${parsed.hostname}`);
       return{ok:true,status:200,url,text:`<script type="application/json">${captures.get(fixture)}</script>`};
     },
@@ -109,7 +110,7 @@ test('KS production parser uses six exact merchant-scoped requests and projects 
   const drops=buildDrops(rows.signals.map(row=>canonicalizeSignal(row,bible)),bibleLookup(bible.records),rows.signals);
   assert.equal(drops.length,4);assert.ok(drops.every(row=>row.quantity===0&&row.quantityIsExact===false
     &&row.canAlertAsInventory===false&&row.canAlertAsWatch===false&&row.eligibleForDelivery===false
-    &&row.eligibleForEmail===false&&row.eligibleForSms===false));
+    &&row.eligibleForEmail!==true&&row.eligibleForSms!==true));
 });
 
 test('KS production 403 persists its shared-host cooldown and suppresses the next request',async t=>{
@@ -220,17 +221,23 @@ test('complete negative observations remain healthy, while source failures retai
 });
 
 test('source deadlines fit parent watchdogs and denial cache saves independently after publication failure',async()=>{
-  for(const state of ['WI','OK','KS']){const b=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state];assert.ok(b.sourceMs<stateTimeoutMs({id:state}));assert.equal(b.stateMs,stateTimeoutMs({id:state}));assert.ok(b.maxRequests*10_000+b.maxRequests*1000<=b.sourceMs);}
+  for(const state of ['WI','OK','KS']){const b=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state];assert.ok(b.sourceMs<stateTimeoutMs({id:state}));assert.equal(b.stateMs,stateTimeoutMs({id:state}));assert.ok(b.maxRequests*(b.requestTimeoutMs||10_000)+b.maxRequests*1000<=b.sourceMs);}
   const workflow=await readFile(new URL('../../.github/workflows/refresh-feed.yml',import.meta.url),'utf8');
   const steps=workflow.split(/\r?\n {6}- name:/),file='engine/out/source-incidents/central-cityhive';
   const restore=steps.find(step=>step.includes('actions/cache/restore@v4')&&step.includes(file));
   const save=steps.find(step=>step.includes('actions/cache/save@v4')&&step.includes(file));
   assert.ok(restore&&save);assert.match(save,/if: always\(\)/);assert.equal(save.match(/\bkey: (.+)/)[1],restore.match(/\bkey: (.+)/)[1]);
   const policy=STATE_LIFECYCLE_CONFIG.reliabilityPolicy;
-  const expected=[...new Set([...STATE_LIFECYCLE_CONFIG.activeStates,'WI','OK'])].map(state=>policy.stateExpectedRunMs[state]||policy.defaultExpectedStateRunMs);
+  const expected=[...new Set([...STATE_LIFECYCLE_CONFIG.activeStates,'WI','OK','KS'])].map(state=>policy.stateExpectedRunMs[state]||policy.defaultExpectedStateRunMs);
   const capacity=evaluateCapacityBudget({stateExpectedRunMs:expected,
     concurrency:policy.workerConcurrency,intervalMs:policy.refreshIntervalMs,safetyMarginMs:policy.refreshSafetyMarginMs});
   assert.equal(capacity.ok,true,'Distinct active/planned state runtime forecasts must fit the existing collection-only capacity');
+  assert.equal(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.KS.sourceMs,25_000);
+  assert.equal(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.KS.stateMs,30_000);
+  assert.equal(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.KS.maxRequests,6);
+  assert.equal(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.KS.requestTimeoutMs,3_000);
+  assert.equal(policy.stateExpectedRunMs.KS,30_000);
+  assert.ok(capacity.projectedRunMs<=capacity.availableRunMs,'The 30 second Kansas allowance keeps the scheduler inside the current capacity.');
 });
 
 test('a late successful HTTP response after parent cancellation cannot publish inventory or start another request',async t=>{

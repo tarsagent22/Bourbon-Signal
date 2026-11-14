@@ -131,7 +131,8 @@ export async function collectCentralCityHiveProductionSource(config,bible,{lifec
     return response;
   };
   try{
-    const result=await collectCentralCityHiveExpansion(config,bible,{fetchText:measured,observedAt:new Date(nowMs).toISOString(),nowMs,signal:bounded,sleep,cursorDir});
+    const result=await collectCentralCityHiveExpansion(config,bible,{fetchText:measured,observedAt:new Date(nowMs).toISOString(),nowMs,signal:bounded,sleep,cursorDir,
+      requestTimeoutMs:CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].requestTimeoutMs||10_000});
     bounded.throwIfAborted();if(!completeCohort(result.metadata,state))throw Error('Production CityHive collection did not verify its complete reviewed cohort');
     const cohort=centralCityHiveProductionCohortKey(state),rows=result.signals.map(row=>silent({...row,sourceRuntimeId:centralCityHiveProductionRuntimeId(state),
       sourceProductBinding:{...row.sourceProductBinding,productionOnSiteOnly:true,productionCohortSha256:cohort}}));
