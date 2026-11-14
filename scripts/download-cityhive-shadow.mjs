@@ -15,7 +15,7 @@ const preparationOnly=file=>[
   'scripts/test-central-cityhive-public-canary.mjs','scripts/build-promotion-provenance.mjs',
   'engine/src/build-state-canary-preview.mjs','next.config.ts','src/lib/site-engine-contract.ts',
 ].includes(file)||/^engine\/data\/(?:state-fixtures|state-integration)\/(?:MN|MO|WI|OK|KS|DE|WY)\.json$/.test(file)
-  ||/^engine\/test\/fixtures\/ks-de-cityhive\/(?:KS|DE)\/[A-Za-z0-9._-]+$/.test(file);
+  ||/^engine\/test\/fixtures\/ks-de-cityhive\/(?:KS|DE)\/(?:[A-Za-z0-9._-]+\/)*[A-Za-z0-9._-]+$/.test(file);
 
 export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison}){
   if(!['MN','MO','WI','OK','KS','DE','WY'].includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed CityHive research state or repository');
