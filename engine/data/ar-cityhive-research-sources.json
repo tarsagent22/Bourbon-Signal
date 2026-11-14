@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "research_only",
-  "source": "Sodie's first-party CityHive product detail capture (2026-11-14T10:00:23.370Z; SHA-256 D9F7E66AC79E7CAB01BF0B16C61BAD3A1E494D866DBB9881043270B711879F29), Warehouse Liquor Market Cantrell first-party CityHive category capture (2026-11-14T12:48:33.543Z; SHA-256 0459c47f879560799655b6c6273eec5d005bd4ae2c6d9757449684fe4cdd1088), and Riverpointe Wine and Spirits Fort Smith first-party CityHive category capture (2026-11-14T11:08:09.202Z; SHA-256 3b73ba139397fb9c8ee08c3b34f935fce28cd63a2ba0d236d8902d51aa0a683b). Full captures remain outside Git.",
+  "source": "Sodie's first-party CityHive product detail capture (2026-11-14T10:00:23.370Z; SHA-256 D9F7E66AC79E7CAB01BF0B16C61BAD3A1E494D866DBB9881043270B711879F29), Warehouse Liquor Market Cantrell first-party CityHive category capture (2026-11-14T12:48:33.543Z; SHA-256 0459c47f879560799655b6c6273eec5d005bd4ae2c6d9757449684fe4cdd1088), and Riverpointe Wine and Spirits Fort Smith first-party CityHive category capture (2026-11-14T11:08:09.202Z; SHA-256 3b73ba139397fb9c8ee08c3b34f935fce28cd63a2ba0d236d8902d51aa0a683b). Includes the Crossover Liquor first-party CityHive category capture (2026-11-14T15:50:12Z; SHA-256 d15b352bffe1b482c62b54e93d27e0e151b4029746dbb7c3463e7ed971a1bd48). Full captures remain outside Git.",
   "stores": [
     {
       "id": "sodies-ar-fort-smith:594311b6c90f94622d026e1e",
@@ -78,6 +78,35 @@
       "evidenceCapturedAt": "2026-11-14T11:08:09.202Z",
       "evidenceCaptureSha256": "3b73ba139397fb9c8ee08c3b34f935fce28cd63a2ba0d236d8902d51aa0a683b",
       "inventoryUpdatedAt": "2026-11-13T12:18:49.421-05:00"
+    },
+    {
+      "id": "crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0",
+      "chainId": "crossover-liquor-ar-fayetteville",
+      "chainName": "Crossover Liquor",
+      "name": "Crossover Liquor",
+      "state": "AR",
+      "stateCode": "AR",
+      "platform": "cityhive",
+      "baseUrl": "https://crossove7c7e7dcd.sites.cityhive.app",
+      "hostname": "crossove7c7e7dcd.sites.cityhive.app",
+      "merchantId": "5e73e18f355a61249a9dd7c0",
+      "address": "1890 N Crossover Rd, Fayetteville, AR 72701, USA",
+      "city": "Fayetteville",
+      "zip": "72701",
+      "storeId": "crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0",
+      "sourceLabel": "Crossover Liquor Fayetteville AR first-party pickup inventory",
+      "categoryUrl": "https://crossove7c7e7dcd.sites.cityhive.app/shop/?merchant-id=5e73e18f355a61249a9dd7c0",
+      "lat": 36.0868459,
+      "lng": -94.1207147,
+      "prioritySearchTerms": [
+        "elijah craig",
+        "barrel proof"
+      ],
+      "evidenceDate": "2026-11-14",
+      "evidenceUrl": "https://crossove7c7e7dcd.sites.cityhive.app/shop/product/elijah-craig-rye-whiskey/5e5569e019112825aeaa81dc?option-id=44f14c1f505fbb595d109ef61f526d5ce8e8d9d076069eced1f75da29b7e2099",
+      "evidenceCapturedAt": "2026-11-14T15:50:12Z",
+      "evidenceCaptureSha256": "d15b352bffe1b482c62b54e93d27e0e151b4029746dbb7c3463e7ed971a1bd48",
+      "inventoryUpdatedAt": "2026-11-14T09:56:28.706-05:00"
     }
   ]
 }

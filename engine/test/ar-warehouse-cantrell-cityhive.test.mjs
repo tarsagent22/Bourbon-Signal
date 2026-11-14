@@ -13,9 +13,11 @@ import { CENTRAL_CITYHIVE_STATE_IDS } from '../src/central-cityhive-policy.mjs';
 
 const warehouseFixture=JSON.parse(await readFile(new URL('./fixtures/ar-cityhive/warehouse-cantrell-barrel-proof.json',import.meta.url),'utf8'));
 const riverpointeFixture=JSON.parse(await readFile(new URL('./fixtures/ar-cityhive/riverpointe-fort-smith-rare-breed.json',import.meta.url),'utf8'));
+const crossoverFixture=JSON.parse(await readFile(new URL('./fixtures/ar-cityhive/crossover-fayetteville-elijah-craig.json',import.meta.url),'utf8'));
 const source=ARKANSAS_CITYHIVE_RESEARCH_SOURCES.find(row=>row.merchantId==='66b0f6cbfafb100f08637872');
 const riverpointeSource=ARKANSAS_CITYHIVE_RESEARCH_SOURCES.find(row=>row.merchantId==='6009ef4967fa8c268106ede9');
-const bible=new BourbonBible(integrateLibraryCatalog(riverpointeFixture.legacyRecords,
+const crossoverSource=ARKANSAS_CITYHIVE_RESEARCH_SOURCES.find(row=>row.merchantId==='5e73e18f355a61249a9dd7c0');
+const bible=new BourbonBible(integrateLibraryCatalog([...riverpointeFixture.legacyRecords,crossoverFixture.bibleRecord],
   {records:[...warehouseFixture.libraryCatalog.records,...riverpointeFixture.libraryCatalog.records]}));
 const wrap=payload=>`<script>JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(payload))}"))</script>`;
 const captureHtml=(payloads)=>payloads.map(wrap).join('');
@@ -110,6 +112,24 @@ test('Riverpointe Rare Breed evidence fails closed on shipping-only, address dri
   assert.deepEqual(mutateAndParse(payload=>payload.products[0].merchants[0].product_options[0].option_id='unreviewed-option'),[]);
 });
 
+test('Crossover Fayetteville binds the 750 mL Elijah Craig rye option to its exact pickup address',()=>{
+  assert.equal(crossoverFixture.capture.sha256,crossoverSource.evidenceCaptureSha256);
+  const rows=parseCentralCityHiveInventory(captureHtml(crossoverFixture.payloads),crossoverSource,bible,
+    {observedAt:crossoverFixture.capture.capturedAt});
+  assert.equal(rows.length,1);
+  const [row]=rows;
+  assert.equal(row.storeAddress,'1890 N Crossover Rd, Fayetteville, AR 72701, USA');
+  assert.equal(row.canonicalName,'Elijah Craig Straight Rye Whiskey');
+  assert.equal(row.tier,'limited');
+  assert.equal(row.sourceUrl,crossoverSource.evidenceUrl);
+  assert.equal(row.sourceProductBinding.reportedQuantity,8);
+  assert.equal(centralCityHiveLibraryTier(row,bible),'limited');
+  const drifted=structuredClone(crossoverFixture.payloads);
+  drifted[0].merchant_configs[0].merchant.address.location.coordinates[0]=-94;
+  assert.deepEqual(parseCentralCityHiveInventory(captureHtml(drifted),crossoverSource,bible,
+    {observedAt:crossoverFixture.capture.capturedAt}),[]);
+});
+
 test('Arkansas shadow adapter collects the held report offline and keeps every signal out of customer delivery',async()=>{
   const dir=await mkdtemp(path.join(tmpdir(),'ar-cityhive-offline-shadow-'));
   const previousShadowMode=process.env.BOURBON_SIGNAL_SHADOW_MODE;
@@ -123,14 +143,15 @@ test('Arkansas shadow adapter collects the held report offline and keeps every s
       fetchText:async url=>{
         calls.push(url);const merchantId=new URL(url).searchParams.get('merchant-id');
         const payloads=merchantId===source.merchantId?warehouseFixture.payloads
-          :merchantId===riverpointeSource.merchantId?riverpointeFixture.payloads:sodie.payloads;
+          :merchantId===riverpointeSource.merchantId?riverpointeFixture.payloads
+          :merchantId===crossoverSource.merchantId?crossoverFixture.payloads:sodie.payloads;
         return{ok:true,status:200,url,text:captureHtml(payloads)};
       }});
     assert.ok(calls.length>0);assert.equal(report.metadata.complete,true);assert.equal(report.metadata.shadowOnly,true);
     assert.equal(report.metadata.customerDeliveryAllowed,false);assert.equal(report.metadata.productionActivationAllowed,false);
-    assert.deepEqual(report.signals.map(row=>row.canonicalName).sort(),['1792 Full Proof','Elijah Craig Barrel Proof','Wild Turkey Rare Breed Straight Bourbon']);
+    assert.deepEqual(report.signals.map(row=>row.canonicalName).sort(),['1792 Full Proof','Elijah Craig Barrel Proof','Elijah Craig Straight Rye Whiskey','Wild Turkey Rare Breed Straight Bourbon']);
     for(const row of report.signals){
-      assert.equal(row.state,'AR');assert.ok([source.storeId,riverpointeSource.storeId].includes(row.storeId));assert.equal(row.raw.shadowOnly,true);
+      assert.equal(row.state,'AR');assert.ok([source.storeId,riverpointeSource.storeId,crossoverSource.storeId].includes(row.storeId));assert.equal(row.raw.shadowOnly,true);
       assert.equal(row.sourceProductBinding.shadowOnly,true);assert.equal(row.quantity,0);assert.equal(row.quantityIsExact,false);
       for(const flag of ['alertable','canAlertAsInventory','canAlertAsWatch','eligibleForOnSite','eligibleForDropFeed','eligibleForWatch','eligibleForDelivery','eligibleForEmail','eligibleForSms'])assert.equal(row[flag],false);
     }
