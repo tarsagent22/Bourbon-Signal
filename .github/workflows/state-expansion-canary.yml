@@ -66,13 +66,13 @@ jobs:
             echo "Candidate path must be a repository-controlled engine/data/canary-inputs JSON file" >&2
             exit 1
           fi
-          if [[ "$RAW_STATE" == "OR" || "$RAW_STATE" == "WA" || "$RAW_STATE" == "NM" || "$RAW_STATE" == "WI" || "$RAW_STATE" == "OK" || "$RAW_STATE" == "NJ" || "$RAW_STATE" == "MI" || "$RAW_STATE" == "AK" || "$RAW_STATE" == "LA" || "$RAW_STATE" == "RI" || "$RAW_STATE" == "MN" ]]; then
+          if [[ "$RAW_STATE" == "OR" || "$RAW_STATE" == "WA" || "$RAW_STATE" == "NM" || "$RAW_STATE" == "WI" || "$RAW_STATE" == "OK" || "$RAW_STATE" == "NJ" || "$RAW_STATE" == "MI" || "$RAW_STATE" == "AK" || "$RAW_STATE" == "LA" || "$RAW_STATE" == "RI" || "$RAW_STATE" == "MN" || "$RAW_STATE" == "SD" ]]; then
             if [[ ! "$RAW_SHADOW_RUN" =~ ^[0-9]+$ ]] || [[ "$RAW_CANDIDATE_DROPS" != "data/canary-inputs/$RAW_STATE.json" ]]; then
-              echo "OR/WA/NM/WI/OK/NJ/MI/AK/LA/RI/MN require an actual shadow run and the fixed state canary path" >&2
+              echo "OR/WA/NM/WI/OK/NJ/MI/AK/LA/RI/MN/SD require an actual shadow run and the fixed state canary path" >&2
               exit 1
             fi
           elif [[ -n "$RAW_SHADOW_RUN" ]]; then
-            echo "Artifact replay is reviewed only for OR/WA/NM/WI/OK/NJ/MI/AK/LA/RI/MN" >&2
+            echo "Artifact replay is reviewed only for OR/WA/NM/WI/OK/NJ/MI/AK/LA/RI/MN/SD" >&2
             exit 1
           fi
           echo "shadow_run=$RAW_SHADOW_RUN" >> "$GITHUB_OUTPUT"
@@ -100,8 +100,18 @@ jobs:
           BOURBON_SIGNAL_LIBRARY_CATALOG_FILE: out/library-catalog.json
         run: npm run sync:library && npm run bible
 
+      - name: Reparse the exact South Dakota retailer receipt
+        if: steps.validate.outputs.state == 'SD'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHADOW_RUN: ${{ steps.validate.outputs.shadow_run }}
+        run: |
+          node scripts/download-south-dakota-shadow.mjs "$SHADOW_RUN" engine/out/sd-shadow-input
+          (cd engine && node src/prepare-sd-pickup-canary.mjs out/sd-shadow-input "$SHADOW_RUN")
+          node --import tsx scripts/test-sd-public-canary.mjs --state=SD
+
       - name: Verify and download workflow-issued first-party shadow artifact
-        if: steps.validate.outputs.shadow_run != ''
+        if: steps.validate.outputs.shadow_run != '' && steps.validate.outputs.state != 'SD'
         env:
           GH_TOKEN: ${{ github.token }}
           STATE: ${{ steps.validate.outputs.state }}
@@ -110,7 +120,7 @@ jobs:
           case "$STATE" in OR) node scripts/download-oregon-shadow.mjs --run="$SHADOW_RUN" --out-dir="engine/out/oregon-shadow-input/OR" ;; AK|LA) node scripts/download-laak-shadow.mjs --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/laak-shadow-input/$STATE" ;; NJ|MI) node scripts/download-njmi-shadow.mjs --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/njmi-shadow-input/$STATE" ;; WI|OK|RI|MN) node scripts/download-cityhive-shadow.mjs --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/cityhive-shadow-input/$STATE" ;; WA|NM) node scripts/download-grocery-shadow.mjs --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/grocery-shadow-input/$STATE" ;; *) exit 1 ;; esac
 
       - name: Reparse immutable raw source captures without resetting clocks
-        if: steps.validate.outputs.shadow_run != ''
+        if: steps.validate.outputs.shadow_run != '' && steps.validate.outputs.state != 'SD'
         working-directory: engine
         env:
           STATE: ${{ steps.validate.outputs.state }}
@@ -119,6 +129,7 @@ jobs:
           if [[ "$STATE" != "OR" && "$STATE" != "AK" && "$STATE" != "LA" ]]; then node "src/$preparer" --state="$STATE" --artifact-dir="out/$family-shadow-input/$STATE/extracted" --provenance="out/$family-shadow-input/$STATE/provenance.json" --out="data/canary-inputs/$STATE.json" --config-out="out/canary-preparation/$STATE/lifecycle-research.json"; fi
 
       - name: Build coherent nationwide canary snapshot without alerts
+        if: steps.validate.outputs.state != 'SD'
         working-directory: engine
         env:
           STATE: ${{ steps.validate.outputs.state }}
@@ -137,12 +148,14 @@ jobs:
         run: node src/prepare-central-cityhive-canary-manifest.mjs --state=MN --preview-config=out/canary/MN/site/lifecycle-preview.json --preview-policy=out/canary/MN/site/canary-preview-policy.json --source-provenance=out/cityhive-shadow-input/MN/provenance.json --canary-run-url="$CANARY_RUN_URL" --out-dir=out/canary-preparation/MN/state-integration
 
       - name: Verify candidate golden fixture contract
+        if: steps.validate.outputs.state != 'SD'
         working-directory: engine
         env:
           STATE: ${{ steps.validate.outputs.state }}
         run: npm run verify:state-fixtures -- --state="$STATE" --canary
 
       - name: Verify candidate vertical slice against canary snapshot
+        if: steps.validate.outputs.state != 'SD'
         working-directory: engine
         env:
           STATE: ${{ steps.validate.outputs.state }}
@@ -152,7 +165,7 @@ jobs:
           npm run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json" "${manifest_args[@]}"
 
       - name: Verify actual app projection and binary on-site isolation
-        if: steps.validate.outputs.shadow_run != ''
+        if: steps.validate.outputs.shadow_run != '' && steps.validate.outputs.state != 'SD'
         env:
           STATE: ${{ steps.validate.outputs.state }}
         run: |
