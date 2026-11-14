@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { fetchWithMeta } from './core/fetcher.mjs';
 
 const CAPTURE_PATH = new URL('../data/research-captures/plains-retail-20261114.json', import.meta.url);
-const CAPTURE_SHA256 = '39c8899e95e996dedf1f3b3cebe1c5eb5c54d4ab1b1ca35e69ed47f4659ecf00';
+const CAPTURE_SHA256 = '411175182d7a497b4dcf6e36410efcb015c278ac4e78c0d654d0436d03825a89';
 const FRESHNESS_MS = 2 * 60 * 60 * 1000;
 
 const sourceConfigs = new Map([
@@ -15,11 +16,12 @@ const sourceConfigs = new Map([
     apiCandidates: [],
   })],
   ['MT', Object.freeze({
-    id: 'MT', label: 'Montana Liquor Billings retained pickup research', tier: 'B', active: false,
-    strategy: 'retailer_store_inventory', cadence: 'offline-retained-capture-replay',
-    value: 'One exact Billings storefront premise with retained in-stock and pickup evidence; research only.',
-    sources: Object.freeze([Object.freeze({ kind: 'retained_capture', url: 'https://montanaliquor.com/', precisionOnly: true })]),
+    id: 'MT', label: 'Montana Liquor Billings shadow pickup research', tier: 'B', active: false,
+    strategy: 'retailer_store_inventory', cadence: 'single-product-page-shadow',
+    value: 'One exact Billings storefront premise, one read-only product-page request per shadow run; research only.',
+    sources: Object.freeze([Object.freeze({ kind: 'html', url: 'https://montanaliquor.com/products/undammed-thief-creek-straight-bourbon-750ml', precisionOnly: true })]),
     premise: Object.freeze({ storeId: 'montana-liquor-billings-1019', name: 'Montana Liquor Inc', address: '1019 1st Ave North', city: 'Billings', state: 'MT', zip: '59101' }),
+    pickupPolicy: Object.freeze({ mode: 'reviewed_single_store_pickup', proofObservedAt: '2026-11-14T11:58:20.269Z' }),
     apiCandidates: [],
   })],
 ]);
@@ -133,13 +135,134 @@ export function parsePlainsRetailResearchCapture(capture, source, bible, { now =
   return signals;
 }
 
-export async function collectPlainsRetailResearchReport(config, bible, { env = process.env, now = Date.now(), capturePath = CAPTURE_PATH } = {}) {
+function productJsonLd(html) {
+  for (const match of String(html || '').matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+    try {
+      const value = JSON.parse(match[1]);
+      const products = Array.isArray(value) ? value : [value];
+      const product = products.find(item => item?.['@type'] === 'Product' && item?.offers);
+      if (product) return product;
+    } catch {}
+  }
+  return null;
+}
+
+function visibleHtmlText(html) {
+  return String(html || '')
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function canonicalPageUrl(html) {
+  const tag = String(html || '').match(/<link\b[^>]*rel=["']canonical["'][^>]*>/i)?.[0] || '';
+  return tag.match(/\bhref=["']([^"']+)["']/i)?.[1] || null;
+}
+
+export function parseMontanaBillingsProductPage(html, source, bible, { observedAt, finalUrl = source?.sources?.[0]?.url, now = Date.now() } = {}) {
+  if (sourceConfigs.get('MT') !== source || !source.pickupPolicy || !Number.isFinite(Date.parse(observedAt || ''))
+    || finalUrl !== source.sources[0].url) return [];
+  const product = productJsonLd(html);
+  const text = visibleHtmlText(html);
+  const canonicalUrl = canonicalPageUrl(html);
+  const inStock = [...text.matchAll(/\bIn stock:\s*(\d+)\s+available\b/gi)];
+  const offer = product?.offers;
+  const productUrl = source.sources[0].url;
+  const premise = source.premise;
+  if (!product || product.name !== 'UNDAMMED THIEF CREEK STRAIGHT BOURBON 750ML'
+    || String(product.gtin12 || product.sku || '') !== '860006244521'
+    || canonicalUrl !== productUrl || offer?.url !== productUrl
+    || Number(offer?.price) !== 51 || offer?.priceCurrency !== 'USD'
+    || offer?.availability !== 'http://schema.org/InStock'
+    || offer?.seller?.name !== 'Montana Liquor'
+    || inStock.length !== 1 || !Number.isInteger(Number(inStock[0][1]))
+    || Number(inStock[0][1]) <= 0 || Number(inStock[0][1]) > 99) return [];
+  const identity = recordFor(bible, { state: 'MT', canonicalName: 'Undammed Thief Creek Straight Bourbon', canonicalBottleId: 'bb_9c8cf2d251d5db7e' });
+  if (!identity) return [];
+  const stale = now - Date.parse(observedAt) > FRESHNESS_MS || Date.parse(observedAt) - now > 5 * 60_000;
+  const quantity = Number(inStock[0][1]);
+  return [{
+    id: `research:mt:${premise.storeId}:860006244521`,
+    state: 'MT',
+    sourceLabel: source.label,
+    sourceUrl: productUrl,
+    sourceChain: 'research:mt:montana-liquor-billings-html',
+    storeId: `mt:${premise.storeId}`,
+    storeName: premise.name,
+    storeAddress: `${premise.address}, ${premise.city}, MT ${premise.zip}`,
+    city: premise.city,
+    zip: premise.zip,
+    productId: '860006244521',
+    rawName: product.name,
+    canonicalBottleId: identity.record.id,
+    canonicalName: identity.record.canonical,
+    tier: identity.tier,
+    eventType: 'retailer_store_inventory_result',
+    locationPrecision: 'store_level',
+    quantity,
+    quantityIsExact: true,
+    price: Number(offer.price),
+    observedAt,
+    fetchedAt: observedAt,
+    availabilityStatus: 'in_stock',
+    availabilityLabel: `Montana Liquor reports ${quantity} available for pickup`,
+    inventorySemantics: 'exact_retailer_quantity',
+    stale,
+    sourceStale: stale,
+    researchOnly: true,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    eligibleForDelivery: false,
+    eligibleForOnSite: false,
+    sourceProductBinding: { host: 'montanaliquor.com', storeId: premise.storeId, upc: '860006244521', sizeMl: 750, pickupVerified: true, observedAt, shadowOnly: true },
+    raw: { product: { name: product.name, gtin12: product.gtin12, price: Number(offer.price), availability: offer.availability }, reportedQuantity: quantity, pickupPolicy: source.pickupPolicy.mode, shadowOnly: true },
+  }];
+}
+
+async function collectMontanaBillingsShadowReport(config, bible, { fetchText = fetchWithMeta, now, signal } = {}) {
+  const nowMs = Number.isFinite(now) ? now : Date.now();
+  const startedAt = new Date(nowMs).toISOString();
+  const url = config.sources[0].url;
+  const result = await fetchText(url, { timeoutMs: 15_000, maxBytes: 1_000_000, maxRedirects: 0, signal });
+  const observedAt = Number.isFinite(Date.parse(result?.observedAt || '')) ? result.observedAt : new Date().toISOString();
+  const body = Buffer.from(result?.text || '');
+  const digest = createHash('sha256').update(body).digest('hex');
+  const exactUrl = result?.url === url && result?.requestedUrl !== undefined ? result.requestedUrl === url : result?.url === url;
+  const contentTypeOk = /^text\/html\b/i.test(String(result?.contentType || ''));
+  const healthy = result?.ok === true && result?.status === 200 && exactUrl && contentTypeOk && body.length <= 1_000_000;
+  const signals = healthy ? parseMontanaBillingsProductPage(body.toString('utf8'), config, bible, { observedAt, finalUrl: result.url, now: nowMs }) : [];
+  const sourceId = 'research:mt:montana-liquor-billings-html';
+  const source = { sourceRuntimeId: sourceId, label: config.label, url, ok: healthy, status: healthy ? 200 : Number(result?.status) || 0,
+    signalType: 'retailer_store_inventory_result', matchedBottleCount: signals.length, inventoryAlertable: false, watchAlertable: false,
+    error: healthy ? null : result?.error || 'Billings product page failed exact source/status/content binding' };
+  const receipt = { requestedUrl: url, finalUrl: result?.url || null, status: Number(result?.status) || 0,
+    contentType: result?.contentType || '', bytes: body.length, sha256: digest, observedAt };
+  return {
+    state: 'MT', label: config.label, tier: config.tier, strategy: config.strategy, cadence: config.cadence,
+    startedAt, finishedAt: observedAt, lastGoodAt: signals[0]?.observedAt || null,
+    status: signals.length ? 'partial_useful' : healthy ? 'no_trusted_inventory' : 'source_blocked',
+    stale: signals.length > 0 && signals.every(row => row.stale),
+    signals: signals.map(row => ({ ...row, sourceRuntimeId: sourceId })), sources: [source],
+    sourceResults: [{ sourceId, sourceLabel: config.label, sourceUrl: url, ok: healthy, status: healthy ? 'success' : 'failed',
+      checkedAt: observedAt, lastGoodAt: signals[0]?.observedAt || null, alertable: false, inventoryAlertable: false, watchAlertable: false }],
+    roadblocks: healthy ? [] : [{ state: 'MT', source: config.label, status: source.status, error: source.error }],
+    metadata: { shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false,
+      requests: [receipt], origin: { kind: 'local_shadow_not_workflow_issued' } },
+  };
+}
+
+export async function collectPlainsRetailResearchReport(config, bible, { env = process.env, now = Date.now(), capturePath = CAPTURE_PATH, fetchText, signal } = {}) {
   if (env.BOURBON_SIGNAL_SHADOW_MODE !== '1' || sourceConfigs.get(config?.id) !== config) {
     throw new Error('Plains retailer replay requires its registered isolated shadow source.');
   }
+  if (config.id === 'MT') return collectMontanaBillingsShadowReport(config, bible, { now, fetchText, signal });
   const bytes = await readFile(capturePath);
-  if (createHash('sha256').update(bytes).digest('hex') !== CAPTURE_SHA256) throw new Error('Retained retailer capture digest mismatch.');
   const fixture = JSON.parse(bytes.toString('utf8'));
+  if (createHash('sha256').update(JSON.stringify(fixture)).digest('hex') !== CAPTURE_SHA256) throw new Error('Retained retailer capture digest mismatch.');
   if (fixture.schemaVersion !== 1 || fixture.researchOnly !== true || fixture.productionMutation !== false) {
     throw new Error('Retained retailer capture is not research-only.');
   }
