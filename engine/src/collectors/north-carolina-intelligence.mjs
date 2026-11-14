@@ -1,6 +1,7 @@
 import { parseNcDatedAnnouncements } from './nc-dated-announcements.mjs';
 import { optionalSuspendedFetch } from './optional-source-suspensions.mjs';
 import { ncShipmentWatchEligible } from '../nc-shipment-policy.mjs';
+import { DROP_TIERS, isLibraryDetectionTarget } from '../core/library-catalog.mjs';
 import { mkdir, readFile, readdir } from 'node:fs/promises';
 import { collectionRequestSignal, throwIfCollectionAborted, withCollectionContext, writeCollectionFile as writeFile } from '../core/collection-context.mjs';
 import { readBoundedCollectionBody, fetchCollectionResponse } from '../core/collection-http.mjs';
@@ -352,8 +353,19 @@ function strictTrackedProduct(name) {
   return STRICT_TRACKED_RE.test(text) && !STRICT_TRACKED_EXCLUDE_RE.test(text);
 }
 
-function signalBase(config, sourceLabel, sourceUrl, rawName, bible, confidence = 0.72) {
-  const match = bible.match(rawName);
+// Structured official rows can use the reviewed catalog without inheriting its
+// fuzzy fallback. NC's trailing .75L packaging is not part of the expression.
+export function ncReviewedProductMatch(name, bible) {
+  if (STRICT_TRACKED_EXCLUDE_RE.test(String(name || ''))) return null;
+  const product = String(name || '').trim().replace(/\s+(?:\.75|0\.75|1\.00|1\.75)\s*l$/i, '');
+  const match = bible.match(product);
+  if (!match || match.confidence !== 1
+    || !['exact-normalized-alias', 'exact-library-identity'].includes(match.method)) return null;
+  const record = match.record;
+  return DROP_TIERS.has(record.tier) || record.libraryIdentities?.some(isLibraryDetectionTarget) ? match : null;
+}
+
+function signalBase(config, sourceLabel, sourceUrl, rawName, bible, confidence = 0.72, match = bible.match(rawName)) {
   const record = match?.record || null;
   return {
     state: config.id,
@@ -892,6 +904,7 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
   }
 
   const trackedRows = [];
+  const reviewedProducts = new Map();
   for (const row of json.records || []) {
     const boardName = row.boardName || 'Unknown NC ABC Board';
     const board = boards.get(boardName) || createBoardRecord(boardName);
@@ -903,7 +916,9 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
     }
     boards.set(boardName, board);
 
-    if (!strictTrackedProduct(row.ProductName)) continue;
+    if (!reviewedProducts.has(row.ProductName)) reviewedProducts.set(row.ProductName, ncReviewedProductMatch(row.ProductName, bible));
+    const reviewedMatch = reviewedProducts.get(row.ProductName);
+    if (!strictTrackedProduct(row.ProductName) && !reviewedMatch) continue;
     const ncCode = normalizeNcCode(row.NCcode);
     const quantity = Number(row.NUMUNITS || 0) || 0;
     const controlled = controlledContext(controlledByCode, ncCode);
@@ -916,7 +931,7 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
     const sourceUrl = row.item_id ? `https://abc2.nc.gov/Pricing/ViewItemDetails/${row.item_id}` : NC_STOCK_SHIPPED_PAGE_URL;
     const signal = applyNcBoardShipmentPolicy({
       id: stableId([config.id, 'stock-shipped', row.NCcode, row.item_id, boardName, quantity, observedAt]),
-      ...signalBase(config, 'NC ABC Stock Shipped Data', sourceUrl, row.ProductName, bible, 0.82),
+      ...signalBase(config, 'NC ABC Stock Shipped Data', sourceUrl, row.ProductName, bible, 0.82, reviewedMatch || bible.match(row.ProductName)),
       eventType: 'nc_board_shipment_snapshot',
       locationPrecision: 'board_county',
       locationName: boardName,
@@ -947,7 +962,7 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
     trackedSignalCount: trackedRows.length,
     controlledDistributionSignalCount: trackedRows.filter((signal) => signal.controlledDistributionType).length,
     priceEnrichedSignalCount: trackedRows.filter((signal) => signal.price || signal.proof || signal.size || signal.supplier).length,
-    strictProductPolicy: 'Only explicit tracked names are accepted for shipment rows to avoid false positives from loose bottle-name matching.'
+    strictProductPolicy: 'Explicit tracked names or exact reviewed catalog targets; fuzzy catalog matches cannot admit new shipment products.'
   };
   if (persist) await mkdir(NC_BOARD_HISTORY_DIR, { recursive: true });
   if (persist) await writeFile(path.join(NC_BOARD_HISTORY_DIR, `${tsSlug(new Date())}.json`), JSON.stringify({ generatedAt: new Date().toISOString(), observedAt, signals: trackedRows }, null, 2));
@@ -984,7 +999,7 @@ async function collectWarehouse(config, bible, signals, roadblocks, dossier, con
   const rows = parseWarehouseRows(res.text);
   const previous = await readLatestJson(NC_WAREHOUSE_HISTORY_DIR);
   const previousByCode = new Map((previous?.rows || []).map((row) => [row.ncCode, row]));
-  const trackedRows = rows.filter((row) => strictTrackedProduct(row.productName));
+  const trackedRows = rows.filter((row) => strictTrackedProduct(row.productName) || ncReviewedProductMatch(row.productName, bible));
   const observedAt = new Date().toISOString();
   const warehouseSignals = [];
 
@@ -996,7 +1011,7 @@ async function collectWarehouse(config, bible, signals, roadblocks, dossier, con
     const price = priceContext(priceByCode, ncCode);
     const signal = {
       id: stableId([config.id, 'warehouse-stock', row.ncCode, row.totalAvailable, row.itemId]),
-      ...signalBase(config, 'NC ABC Warehouse Stock Status', sourceUrl, row.productName, bible, 0.74),
+      ...signalBase(config, 'NC ABC Warehouse Stock Status', sourceUrl, row.productName, bible, 0.74, ncReviewedProductMatch(row.productName, bible) || bible.match(row.productName)),
       eventType: row.totalAvailable > 0 ? 'nc_statewide_warehouse_stock' : 'nc_statewide_warehouse_out_of_stock',
       locationPrecision: 'board_warehouse',
       locationName: 'NC ABC state warehouse',
