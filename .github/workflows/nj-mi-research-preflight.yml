@@ -30,6 +30,7 @@ jobs:
       ALERT_EMAIL_DELIVERY_ENABLED: "0"
       ALERT_SMS_DELIVERY_ENABLED: "0"
       NJ_MI_RESEARCH_STATES: ${{ inputs.states || 'NJ,MI' }}
+      BOURBON_SIGNAL_NJ_SILVERTON_SHADOW: ${{ github.ref == 'refs/heads/research/nj-silverton-shadow-20261114' && inputs.states == 'NJ' && '1' || '0' }}
     steps:
       - uses: actions/checkout@v4
         with:

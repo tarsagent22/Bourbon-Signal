@@ -2,6 +2,7 @@ import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {BourbonBible} from '../engine/src/core/bible.mjs';
 import {collectNjMiResearchReport,njMiResearchSourceForState} from '../engine/src/nj-mi-research-runtime.mjs';
+import {collectCityHiveResearchReport,cityHiveResearchSourceForState} from '../engine/src/research-cityhive-runtime.mjs';
 import {classifyShadowReadiness,buildShadowEvidence} from '../engine/src/run-expansion-shadow.mjs';
 
 if(process.env.BOURBON_SIGNAL_SHADOW_MODE!=='1')throw Error('Isolated shadow mode is required');
@@ -10,10 +11,13 @@ const states=String(process.env.NJ_MI_RESEARCH_STATES||'NJ,MI').split(',');
 if(!states.length||states.some(state=>!['NJ','MI'].includes(state)))throw Error('Only NJ and MI research are registered');
 const summary=[];
 for(const state of states){
-  const reportDirectory=path.join(root,state),config=njMiResearchSourceForState(state);
+  const silvertonShadow=state==='NJ'&&process.env.BOURBON_SIGNAL_NJ_SILVERTON_SHADOW==='1';
+  const reportDirectory=path.join(root,state),config=silvertonShadow?cityHiveResearchSourceForState(state):njMiResearchSourceForState(state);
   await mkdir(reportDirectory,{recursive:true});
-  const report=await collectNjMiResearchReport(config,bible,{reportDirectory,
-    journalFile:path.resolve('engine/out/research-source-attempts/nj-mi-incidents.json')});
+  const report=silvertonShadow
+    ?await collectCityHiveResearchReport(config,bible,{reportDirectory,env:process.env})
+    :await collectNjMiResearchReport(config,bible,{reportDirectory,
+      journalFile:path.resolve('engine/out/research-source-attempts/nj-mi-incidents.json')});
   await writeFile(path.join(reportDirectory,'report.json'),JSON.stringify(report,null,2)+'\n');
   await writeFile(path.join(reportDirectory,'evidence.json'),JSON.stringify(buildShadowEvidence(state,report),null,2)+'\n');
   summary.push({state,sourceRequests:report.metadata.receipts.length,qualifiedRows:report.signals.length,
