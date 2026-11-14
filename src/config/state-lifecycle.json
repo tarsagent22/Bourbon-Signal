@@ -30,8 +30,7 @@
     "OK",
     "AK",
     "LA",
-    "RI",
-    "MN"
+    "RI"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -954,7 +953,7 @@
     "MN": {
       "customerLabel": "Minnesota",
       "sourceLabel": "Minnesota reviewed Top Ten Liquors pickup inventory",
-      "publicStatus": "active",
+      "publicStatus": "research_only",
       "shadowEligible": true,
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "sparse_live_store_inventory",
