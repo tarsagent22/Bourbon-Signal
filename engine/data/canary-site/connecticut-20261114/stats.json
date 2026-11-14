@@ -1,0 +1,3319 @@
+{
+  "contractVersion": "bourbon-signal-site-v0.1",
+  "runId": "cb3e68e80d1e3918",
+  "generatedAt": "2026-11-14T14:55:15.064Z",
+  "engineGeneratedAt": "2026-11-14T14:52:23.281Z",
+  "stateCount": 33,
+  "signalCount": 69123,
+  "historicalSignalCount": 1187797,
+  "historyDays": 30,
+  "snapshotCount": 40,
+  "bottleCount": 272,
+  "bibleRecordCount": 272,
+  "storeCount": 5468,
+  "locationCount": 6512,
+  "officialLocationCount": 645,
+  "preloadedLocationCount": 4794,
+  "dropCount": 14039,
+  "eventCount": 4006,
+  "historicalTrendCount": 100,
+  "alertCandidateCount": 0,
+  "roadblockCount": 326,
+  "refreshHealth": {
+    "contractVersion": "bourbon-signal-state-operating-v1",
+    "degradedStateCount": 21,
+    "staleStateCount": 5,
+    "failedStateCount": 0,
+    "healthCounts": {
+      "healthy": 11,
+      "stale_useful": 5,
+      "degraded": 16,
+      "blocked": 0
+    },
+    "retryStateIds": [
+      "AZ",
+      "CA",
+      "CO",
+      "GA",
+      "ID",
+      "IL",
+      "IN",
+      "LA",
+      "MS",
+      "NC",
+      "NM",
+      "NV",
+      "NY",
+      "OH",
+      "PA",
+      "RI",
+      "SC",
+      "TN",
+      "VA",
+      "WA",
+      "WI"
+    ],
+    "blockedStateIds": [],
+    "budgetOmittedFallbackStateIds": [],
+    "states": [
+      {
+        "state": "AK",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 1,
+          "lastSuccessAt": "2026-11-14T14:52:21.855Z"
+        },
+        "signalCount": 28,
+        "customerVisibleDropCount": 28,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T14:55:15.064Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T14:51:18.304Z",
+          "ageHours": 0.1
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 28,
+            "freshCount": 28,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": 0.06576666666666667,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "ak:grocery-xapi",
+              "totalCount": 28,
+              "freshCount": 28,
+              "overdueCount": 0,
+              "unknownCount": 0,
+              "status": "fresh"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [],
+        "recoveryAction": "none"
+      },
+      {
+        "state": "AL",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 7,
+          "lastSuccessAt": "2026-11-14T13:06:21.971Z"
+        },
+        "signalCount": 1573,
+        "customerVisibleDropCount": 1056,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T13:06:17.923Z",
+          "ageHours": 1.8
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 0,
+            "freshCount": 0,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": null,
+            "deadlineHours": 2
+          },
+          "informationalCount": 1056,
+          "sources": []
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [],
+        "recoveryAction": "none"
+      },
+      {
+        "state": "AZ",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 2,
+          "lastSuccessAt": "2026-11-14T13:04:10.402Z"
+        },
+        "signalCount": 1189,
+        "customerVisibleDropCount": 820,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T12:46:09.419Z",
+          "ageHours": 2.2
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 820,
+            "freshCount": 0,
+            "overdueCount": 820,
+            "unknownCount": 0,
+            "maxAgeHours": 2.1515680555555554,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:az",
+              "totalCount": 820,
+              "freshCount": 0,
+              "overdueCount": 820,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "CA",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 2461,
+          "lastSuccessAt": "2026-11-14T12:58:51.986Z"
+        },
+        "signalCount": 2460,
+        "customerVisibleDropCount": 1663,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T12:46:09.504Z",
+          "ageHours": 2.2
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 1663,
+            "freshCount": 0,
+            "overdueCount": 1663,
+            "unknownCount": 0,
+            "maxAgeHours": 2.1515444444444443,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "ca:grocery-xapi",
+              "totalCount": 1663,
+              "freshCount": 0,
+              "overdueCount": 1663,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "CO",
+        "health": "stale_useful",
+        "collection": {
+          "status": "stale_useful_quality_fallback",
+          "count": 1,
+          "lastSuccessAt": "2026-10-29T17:09:37.509Z"
+        },
+        "signalCount": 30,
+        "customerVisibleDropCount": 16,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-10-29T17:31:26.846Z",
+        "freshness": {
+          "status": "stale",
+          "observedAt": "2026-10-29T16:06:28.680Z",
+          "ageHours": 382.8
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 16,
+            "freshCount": 0,
+            "overdueCount": 16,
+            "unknownCount": 0,
+            "maxAgeHours": 382.8128844444444,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:co",
+              "totalCount": 16,
+              "freshCount": 0,
+              "overdueCount": 16,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "last_published",
+          "reason": "Quality guard preserved the last good report because signal count collapsed from 30 to 0."
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "FL",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 3,
+          "lastSuccessAt": "2026-11-14T13:05:54.086Z"
+        },
+        "signalCount": 3429,
+        "customerVisibleDropCount": 776,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T13:05:42.253Z",
+          "ageHours": 1.8
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 776,
+            "freshCount": 776,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": 1.8257808333333334,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:fl",
+              "totalCount": 776,
+              "freshCount": 776,
+              "overdueCount": 0,
+              "unknownCount": 0,
+              "status": "fresh"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [],
+        "recoveryAction": "none"
+      },
+      {
+        "state": "GA",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 4,
+          "lastSuccessAt": "2026-10-29T20:45:00.985Z"
+        },
+        "signalCount": 113,
+        "customerVisibleDropCount": 22,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-10-29T21:01:49.629Z",
+        "freshness": {
+          "status": "stale",
+          "observedAt": "2026-10-29T20:43:41.108Z",
+          "ageHours": 378.2
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 22,
+            "freshCount": 0,
+            "overdueCount": 22,
+            "unknownCount": 0,
+            "maxAgeHours": 378.1927655555556,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:ga",
+              "totalCount": 22,
+              "freshCount": 0,
+              "overdueCount": 22,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "IA",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 5,
+          "lastSuccessAt": "2026-11-14T13:05:59.270Z"
+        },
+        "signalCount": 1279,
+        "customerVisibleDropCount": 1092,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T13:05:54.681Z",
+          "ageHours": 1.8
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 0,
+            "freshCount": 0,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": null,
+            "deadlineHours": 2
+          },
+          "informationalCount": 1092,
+          "sources": []
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [],
+        "recoveryAction": "none"
+      },
+      {
+        "state": "ID",
+        "health": "stale_useful",
+        "collection": {
+          "status": "stale_useful",
+          "count": 3,
+          "lastSuccessAt": "2026-11-14T13:03:07.038Z"
+        },
+        "signalCount": 218,
+        "customerVisibleDropCount": 158,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T10:12:24.144Z",
+        "freshness": {
+          "status": "stale",
+          "observedAt": "2026-11-14T09:29:44.461Z",
+          "ageHours": 5.4
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 158,
+            "freshCount": 0,
+            "overdueCount": 158,
+            "unknownCount": 0,
+            "maxAgeHours": 5.4251675,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:id",
+              "totalCount": 158,
+              "freshCount": 0,
+              "overdueCount": 158,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "last_published",
+          "reason": "Source precision:id exceeded 120000ms"
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "IL",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 3644,
+          "lastSuccessAt": "2026-11-14T13:10:53.975Z"
+        },
+        "signalCount": 3643,
+        "customerVisibleDropCount": 1511,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T12:46:11.982Z",
+          "ageHours": 2.2
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 1511,
+            "freshCount": 0,
+            "overdueCount": 1511,
+            "unknownCount": 0,
+            "maxAgeHours": 2.1508563888888887,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "il:grocery-xapi",
+              "totalCount": 1112,
+              "freshCount": 0,
+              "overdueCount": 1112,
+              "unknownCount": 0,
+              "status": "overdue"
+            },
+            {
+              "sourceId": "precision:il",
+              "totalCount": 399,
+              "freshCount": 0,
+              "overdueCount": 399,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "IN",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 2,
+          "lastSuccessAt": "2026-11-14T13:01:02.081Z"
+        },
+        "signalCount": 2017,
+        "customerVisibleDropCount": 48,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T12:59:12.606Z",
+          "ageHours": 1.9
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 48,
+            "freshCount": 18,
+            "overdueCount": 30,
+            "unknownCount": 0,
+            "maxAgeHours": 11.928228055555556,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:in",
+              "totalCount": 48,
+              "freshCount": 18,
+              "overdueCount": 30,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "KY",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 6,
+          "lastSuccessAt": "2026-11-14T13:06:13.394Z"
+        },
+        "signalCount": 13,
+        "customerVisibleDropCount": 1,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-13T09:44:35.763Z",
+        "freshness": {
+          "status": "aging",
+          "observedAt": "2026-11-13T08:56:16.741Z",
+          "ageHours": 30
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 0,
+            "freshCount": 0,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": null,
+            "deadlineHours": 2
+          },
+          "informationalCount": 1,
+          "sources": []
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [],
+        "recoveryAction": "none"
+      },
+      {
+        "state": "LA",
+        "health": "stale_useful",
+        "collection": {
+          "status": "stale_useful_quality_fallback",
+          "count": 1,
+          "lastSuccessAt": "2026-11-14T13:05:52.153Z"
+        },
+        "signalCount": 59,
+        "customerVisibleDropCount": 59,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "stale",
+          "observedAt": "2026-11-14T13:05:08.801Z",
+          "ageHours": 1.8
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 59,
+            "freshCount": 0,
+            "overdueCount": 59,
+            "unknownCount": 0,
+            "maxAgeHours": 3.374575,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "la:grocery-xapi",
+              "totalCount": 59,
+              "freshCount": 0,
+              "overdueCount": 59,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "last_published",
+          "reason": "Quality guard preserved the last good report because signal count collapsed from 59 to 0."
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "MD-MONTGOMERY",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 3,
+          "lastSuccessAt": "2026-11-14T13:05:38.334Z"
+        },
+        "signalCount": 344,
+        "customerVisibleDropCount": 0,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "unknown",
+          "observedAt": null,
+          "ageHours": null
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 0,
+            "freshCount": 0,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": null,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": []
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [],
+        "recoveryAction": "none"
+      },
+      {
+        "state": "MN",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 1,
+          "lastSuccessAt": "2026-11-14T14:39:51.833Z"
+        },
+        "signalCount": 2,
+        "customerVisibleDropCount": 2,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T14:42:42.123Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T14:39:34.308Z",
+          "ageHours": 0.3
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 2,
+            "freshCount": 2,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": 0.2613211111111111,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "mn:central-cityhive",
+              "totalCount": 2,
+              "freshCount": 2,
+              "overdueCount": 0,
+              "unknownCount": 0,
+              "status": "fresh"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [],
+        "recoveryAction": "none"
+      },
+      {
+        "state": "MS",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 29,
+          "lastSuccessAt": "2026-11-14T13:05:41.841Z"
+        },
+        "signalCount": 32,
+        "customerVisibleDropCount": 8,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T13:05:16.815Z",
+          "ageHours": 1.8
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 8,
+            "freshCount": 0,
+            "overdueCount": 8,
+            "unknownCount": 0,
+            "maxAgeHours": 1697.7085191666667,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "retailer:ms:tupelo2go:1187",
+              "totalCount": 5,
+              "freshCount": 0,
+              "overdueCount": 5,
+              "unknownCount": 0,
+              "status": "overdue"
+            },
+            {
+              "sourceId": "retailer:ms:tupelo2go:1237",
+              "totalCount": 2,
+              "freshCount": 0,
+              "overdueCount": 2,
+              "unknownCount": 0,
+              "status": "overdue"
+            },
+            {
+              "sourceId": "retailer:ms:tupelo2go:1544",
+              "totalCount": 1,
+              "freshCount": 0,
+              "overdueCount": 1,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "NC",
+        "health": "stale_useful",
+        "collection": {
+          "status": "partial_useful_quality_fallback",
+          "count": 5,
+          "lastSuccessAt": "2026-11-14T13:05:09.537Z"
+        },
+        "signalCount": 8621,
+        "customerVisibleDropCount": 1664,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-10-24T19:48:12.305Z",
+        "freshness": {
+          "status": "stale",
+          "observedAt": "2026-11-14T10:41:02.945Z",
+          "ageHours": 4.2
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 60,
+            "freshCount": 0,
+            "overdueCount": 60,
+            "unknownCount": 0,
+            "maxAgeHours": 4.236699722222222,
+            "deadlineHours": 2
+          },
+          "informationalCount": 1604,
+          "sources": [
+            {
+              "sourceId": "precision:nc",
+              "totalCount": 60,
+              "freshCount": 0,
+              "overdueCount": 60,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "partial",
+          "reason": "Current evidence is combined with safe last-published context."
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "NM",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 1,
+          "lastSuccessAt": "2026-11-14T13:04:54.022Z"
+        },
+        "signalCount": 22,
+        "customerVisibleDropCount": 23,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T13:04:10.860Z",
+          "ageHours": 1.9
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 23,
+            "freshCount": 22,
+            "overdueCount": 1,
+            "unknownCount": 0,
+            "maxAgeHours": 8.6386,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "nm:grocery-xapi",
+              "totalCount": 23,
+              "freshCount": 22,
+              "overdueCount": 1,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "NV",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 2,
+          "lastSuccessAt": "2026-11-14T13:30:31.642Z"
+        },
+        "signalCount": 273,
+        "customerVisibleDropCount": 121,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:34:45.441Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T13:27:13.531Z",
+          "ageHours": 1.5
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 121,
+            "freshCount": 116,
+            "overdueCount": 5,
+            "unknownCount": 0,
+            "maxAgeHours": 4.079094166666667,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:nv",
+              "totalCount": 121,
+              "freshCount": 116,
+              "overdueCount": 5,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "NY",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 1,
+          "lastSuccessAt": "2026-11-14T13:06:18.560Z"
+        },
+        "signalCount": 109,
+        "customerVisibleDropCount": 52,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T13:06:03.766Z",
+          "ageHours": 1.8
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 52,
+            "freshCount": 47,
+            "overdueCount": 5,
+            "unknownCount": 0,
+            "maxAgeHours": 5.233829166666666,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:ny",
+              "totalCount": 52,
+              "freshCount": 47,
+              "overdueCount": 5,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "OH",
+        "health": "stale_useful",
+        "collection": {
+          "status": "stale_useful",
+          "count": 3,
+          "lastSuccessAt": "2026-08-15T19:00:55.602Z"
+        },
+        "signalCount": 1340,
+        "customerVisibleDropCount": 1204,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-08-16T05:47:22.172Z",
+        "freshness": {
+          "status": "stale",
+          "observedAt": "2026-08-15T19:00:55.602Z",
+          "ageHours": 2179.9
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 1204,
+            "freshCount": 0,
+            "overdueCount": 1204,
+            "unknownCount": 0,
+            "maxAgeHours": 2179.905406111111,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:oh",
+              "totalCount": 1204,
+              "freshCount": 0,
+              "overdueCount": 1204,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "last_published",
+          "reason": "OHLQ browser artifact older than 12h"
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "OK",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 1,
+          "lastSuccessAt": "2026-11-14T13:05:52.099Z"
+        },
+        "signalCount": 9,
+        "customerVisibleDropCount": 8,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T13:05:38.628Z",
+          "ageHours": 1.8
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 8,
+            "freshCount": 8,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": 1.8267877777777777,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "ok:central-cityhive",
+              "totalCount": 8,
+              "freshCount": 8,
+              "overdueCount": 0,
+              "unknownCount": 0,
+              "status": "fresh"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [],
+        "recoveryAction": "none"
+      },
+      {
+        "state": "PA",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 1,
+          "lastSuccessAt": "2026-11-14T13:06:12.540Z"
+        },
+        "signalCount": 23086,
+        "customerVisibleDropCount": 1664,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T12:37:12.453Z",
+          "ageHours": 2.3
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 1664,
+            "freshCount": 0,
+            "overdueCount": 1664,
+            "unknownCount": 0,
+            "maxAgeHours": 2.3007252777777776,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:pa",
+              "totalCount": 1664,
+              "freshCount": 0,
+              "overdueCount": 1664,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "RI",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 1,
+          "lastSuccessAt": "2026-11-14T14:50:32.864Z"
+        },
+        "signalCount": 6,
+        "customerVisibleDropCount": 8,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T14:55:15.064Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T14:50:24.562Z",
+          "ageHours": 0.1
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 8,
+            "freshCount": 6,
+            "overdueCount": 2,
+            "unknownCount": 0,
+            "maxAgeHours": 1.8223155555555555,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "ri:central-cityhive",
+              "totalCount": 8,
+              "freshCount": 6,
+              "overdueCount": 2,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "SC",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 5,
+          "lastSuccessAt": "2026-10-29T17:09:30.676Z"
+        },
+        "signalCount": 79,
+        "customerVisibleDropCount": 32,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-10-29T17:31:26.846Z",
+        "freshness": {
+          "status": "stale",
+          "observedAt": "2026-10-29T17:08:47.070Z",
+          "ageHours": 381.8
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 32,
+            "freshCount": 0,
+            "overdueCount": 32,
+            "unknownCount": 0,
+            "maxAgeHours": 382.8325697222222,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "sc:cityhive",
+              "totalCount": 22,
+              "freshCount": 0,
+              "overdueCount": 22,
+              "unknownCount": 0,
+              "status": "overdue"
+            },
+            {
+              "sourceId": "sc:taste-liquors",
+              "totalCount": 4,
+              "freshCount": 0,
+              "overdueCount": 4,
+              "unknownCount": 0,
+              "status": "overdue"
+            },
+            {
+              "sourceId": "sc:southern-spirits",
+              "totalCount": 3,
+              "freshCount": 0,
+              "overdueCount": 3,
+              "unknownCount": 0,
+              "status": "overdue"
+            },
+            {
+              "sourceId": "sc:dunes",
+              "totalCount": 3,
+              "freshCount": 0,
+              "overdueCount": 3,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "TN",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 3,
+          "lastSuccessAt": "2026-11-14T13:05:08.459Z"
+        },
+        "signalCount": 272,
+        "customerVisibleDropCount": 49,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T13:04:12.393Z",
+          "ageHours": 1.9
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 49,
+            "freshCount": 15,
+            "overdueCount": 34,
+            "unknownCount": 0,
+            "maxAgeHours": 8.894180833333333,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:tn",
+              "totalCount": 49,
+              "freshCount": 15,
+              "overdueCount": 34,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "TX",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 5,
+          "lastSuccessAt": "2026-11-14T13:06:16.104Z"
+        },
+        "signalCount": 490,
+        "customerVisibleDropCount": 2,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T13:06:15.659Z",
+          "ageHours": 1.8
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 2,
+            "freshCount": 2,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": 1.8165013888888888,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "tx:hot-spot-austin",
+              "totalCount": 2,
+              "freshCount": 2,
+              "overdueCount": 0,
+              "unknownCount": 0,
+              "status": "fresh"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [],
+        "recoveryAction": "none"
+      },
+      {
+        "state": "UT",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 6,
+          "lastSuccessAt": "2026-11-14T13:06:03.480Z"
+        },
+        "signalCount": 45,
+        "customerVisibleDropCount": 0,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "unknown",
+          "observedAt": null,
+          "ageHours": null
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 0,
+            "freshCount": 0,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": null,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": []
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [],
+        "recoveryAction": "none"
+      },
+      {
+        "state": "VA",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 4,
+          "lastSuccessAt": "2026-11-14T12:59:10.558Z"
+        },
+        "signalCount": 17863,
+        "customerVisibleDropCount": 1030,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-04T15:31:17.985Z",
+        "freshness": {
+          "status": "stale",
+          "observedAt": "2026-11-04T14:54:51.527Z",
+          "ageHours": 240
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 1030,
+            "freshCount": 0,
+            "overdueCount": 1030,
+            "unknownCount": 0,
+            "maxAgeHours": 240.14776444444445,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "precision:va",
+              "totalCount": 1030,
+              "freshCount": 0,
+              "overdueCount": 1030,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "WA",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 1,
+          "lastSuccessAt": "2026-11-14T13:01:06.517Z"
+        },
+        "signalCount": 135,
+        "customerVisibleDropCount": 233,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T12:58:53.038Z",
+          "ageHours": 1.9
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 233,
+            "freshCount": 135,
+            "overdueCount": 98,
+            "unknownCount": 0,
+            "maxAgeHours": 367.90645694444447,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "wa:grocery-xapi",
+              "totalCount": 233,
+              "freshCount": 135,
+              "overdueCount": 98,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "WI",
+        "health": "degraded",
+        "collection": {
+          "status": "useful",
+          "count": 1,
+          "lastSuccessAt": "2026-11-14T13:06:06.289Z"
+        },
+        "signalCount": 2,
+        "customerVisibleDropCount": 8,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T13:05:59.599Z",
+          "ageHours": 1.8
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 8,
+            "freshCount": 2,
+            "overdueCount": 6,
+            "unknownCount": 0,
+            "maxAgeHours": 239.8067536111111,
+            "deadlineHours": 2
+          },
+          "informationalCount": 0,
+          "sources": [
+            {
+              "sourceId": "wi:central-cityhive",
+              "totalCount": 8,
+              "freshCount": 2,
+              "overdueCount": 6,
+              "unknownCount": 0,
+              "status": "overdue"
+            }
+          ]
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [
+          "inventory_confirmation_overdue"
+        ],
+        "recoveryAction": "retry_state_collection"
+      },
+      {
+        "state": "WV",
+        "health": "healthy",
+        "collection": {
+          "status": "useful",
+          "count": 3,
+          "lastSuccessAt": "2026-11-14T13:06:09.840Z"
+        },
+        "signalCount": 342,
+        "customerVisibleDropCount": 165,
+        "alertCandidateCount": 0,
+        "lastPublicationAt": "2026-11-14T13:18:51.506Z",
+        "freshness": {
+          "status": "fresh",
+          "observedAt": "2026-11-14T13:06:03.181Z",
+          "ageHours": 1.8
+        },
+        "evidenceFreshness": {
+          "inventory": {
+            "totalCount": 0,
+            "freshCount": 0,
+            "overdueCount": 0,
+            "unknownCount": 0,
+            "maxAgeHours": null,
+            "deadlineHours": 2
+          },
+          "informationalCount": 165,
+          "sources": []
+        },
+        "fallback": {
+          "status": "none",
+          "reason": null
+        },
+        "anomalyCodes": [],
+        "recoveryAction": "none"
+      }
+    ],
+    "degradedStates": [
+      {
+        "state": "AZ",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:04:10.402Z",
+        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+      },
+      {
+        "state": "CA",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T12:58:51.986Z",
+        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+      },
+      {
+        "state": "CO",
+        "status": "stale_useful",
+        "stale": true,
+        "staleReason": "Quality guard preserved the last good report because signal count collapsed from 30 to 0.",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-10-29T17:09:37.509Z",
+        "staleFallbackAt": "2026-10-29T17:31:26.846Z"
+      },
+      {
+        "state": "GA",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-10-29T20:45:00.985Z",
+        "staleFallbackAt": "2026-10-29T21:01:49.629Z"
+      },
+      {
+        "state": "ID",
+        "status": "stale_useful",
+        "stale": true,
+        "staleReason": "Source precision:id exceeded 120000ms",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:03:07.038Z",
+        "staleFallbackAt": "2026-11-14T10:12:24.144Z"
+      },
+      {
+        "state": "IL",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:10:53.975Z",
+        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+      },
+      {
+        "state": "IN",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:01:02.081Z",
+        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+      },
+      {
+        "state": "LA",
+        "status": "stale_useful",
+        "stale": true,
+        "staleReason": "Quality guard preserved the last good report because signal count collapsed from 59 to 0.",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:05:52.153Z",
+        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+      },
+      {
+        "state": "MS",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:05:41.841Z",
+        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+      },
+      {
+        "state": "NC",
+        "status": "stale_useful",
+        "stale": true,
+        "staleReason": "Current evidence is combined with safe last-published context.",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:05:09.537Z",
+        "staleFallbackAt": "2026-10-24T19:48:12.305Z"
+      },
+      {
+        "state": "NM",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:04:54.022Z",
+        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+      },
+      {
+        "state": "NV",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:30:31.642Z",
+        "staleFallbackAt": "2026-11-14T13:34:45.441Z"
+      },
+      {
+        "state": "NY",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:06:18.560Z",
+        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+      },
+      {
+        "state": "OH",
+        "status": "stale_useful",
+        "stale": true,
+        "staleReason": "OHLQ browser artifact older than 12h",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-08-15T19:00:55.602Z",
+        "staleFallbackAt": "2026-08-16T05:47:22.172Z"
+      },
+      {
+        "state": "PA",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:06:12.540Z",
+        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+      },
+      {
+        "state": "RI",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T14:50:32.864Z",
+        "staleFallbackAt": "2026-11-14T14:55:15.064Z"
+      },
+      {
+        "state": "SC",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-10-29T17:09:30.676Z",
+        "staleFallbackAt": "2026-10-29T17:31:26.846Z"
+      },
+      {
+        "state": "TN",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:05:08.459Z",
+        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+      },
+      {
+        "state": "VA",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T12:59:10.558Z",
+        "staleFallbackAt": "2026-11-04T15:31:17.985Z"
+      },
+      {
+        "state": "WA",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:01:06.517Z",
+        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+      },
+      {
+        "state": "WI",
+        "status": "degraded",
+        "stale": false,
+        "staleReason": "inventory_confirmation_overdue",
+        "reasons": [
+          "inventory_confirmation_overdue"
+        ],
+        "previousFinishedAt": "2026-11-14T13:06:06.289Z",
+        "staleFallbackAt": "2026-11-14T13:18:51.506Z"
+      }
+    ]
+  },
+  "statesAtTargetPrecision": 32,
+  "rareStatesVerified": 30,
+  "stateCoverage": {
+    "counts": {
+      "live_store_inventory": 16,
+      "store_delivery_leads": 1,
+      "store_availability_status": 1,
+      "shipment_drop_intelligence": 2,
+      "aggregate_inventory_watch": 2,
+      "distillery_release_watch": 1,
+      "sparse_live_store_inventory": 9
+    },
+    "states": [
+      {
+        "state": "CT",
+        "status": "canary_preview",
+        "signalCount": 23,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Connecticut",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Connecticut first-party retailer research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      }
+    ]
+  },
+  "stateQuality": {
+    "stateCount": 32,
+    "releaseEligibleStates": 7,
+    "releaseBlockedStates": 25,
+    "averageScore": 73,
+    "weakestStates": [
+      "MS",
+      "KY",
+      "OK",
+      "MD-MONTGOMERY",
+      "MN"
+    ]
+  },
+  "southeastReadiness": {
+    "generatedAt": "2026-11-14T14:55:15.150Z",
+    "focusStates": [
+      "NC",
+      "VA",
+      "AL",
+      "TN",
+      "SC",
+      "KY",
+      "FL",
+      "GA",
+      "MS",
+      "WV"
+    ],
+    "counts": {
+      "live_store_inventory": 6,
+      "shipment_drop_intelligence": 2,
+      "distillery_release_watch": 1,
+      "sparse_live_store_inventory": 1
+    },
+    "stateNotes": {
+      "NC": {
+        "label": "North Carolina",
+        "status": "partial_useful_quality_fallback",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 8621,
+        "bestLocationPrecision": "store_level",
+        "testerValue": "Live/store inventory where public source permits.",
+        "customerAreaLabel": "North Carolina ABC boards",
+        "customerSummary": "ABC board, warehouse, and selected county-board store signals where public sources support them. The Charlotte metro option expands deterministically to eight reviewed official boards; board-level rows remain leads, not exact shelf inventory."
+      },
+      "VA": {
+        "label": "Virginia",
+        "status": "useful",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 17863,
+        "bestLocationPrecision": "store_level",
+        "testerValue": "Live/store inventory where public source permits.",
+        "customerAreaLabel": null,
+        "customerSummary": "Virginia ABC store availability for normal products, with limited-availability caveats."
+      },
+      "AL": {
+        "label": "Alabama",
+        "status": "useful",
+        "coverageTier": "shipment_drop_intelligence",
+        "signalCount": 1573,
+        "bestLocationPrecision": "store_level",
+        "testerValue": "Shipment, warehouse, board, or release intelligence; useful leads but not exact shelf stock.",
+        "customerAreaLabel": null,
+        "customerSummary": "Official limited-release schedule and store/drop intelligence. Scheduled release leads, not live shelf inventory. Costco warehouse bourbon signals are included where verified for Alabama warehouses."
+      },
+      "TN": {
+        "label": "Tennessee",
+        "status": "useful",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 272,
+        "bestLocationPrecision": "store_level",
+        "testerValue": "Live/store inventory where public source permits.",
+        "customerAreaLabel": "Nashville Metro",
+        "customerSummary": "Whitelisted Tennessee retailer e-commerce inventory with exact host, merchant, address, product, safe-format, and current orderability binding. Binary availability never becomes an exact quantity; stable Nashville metro store identities remain discoverable even when no current row qualifies."
+      },
+      "SC": {
+        "label": "South Carolina",
+        "status": "useful",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 79,
+        "bestLocationPrecision": "store_level",
+        "testerValue": "Live/store inventory where public source permits.",
+        "customerAreaLabel": "South Carolina retailer areas",
+        "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only. Costco warehouse bourbon signals are included alongside South Carolina retailer inventory where verified."
+      },
+      "KY": {
+        "label": "Kentucky",
+        "status": "useful",
+        "coverageTier": "distillery_release_watch",
+        "signalCount": 13,
+        "bestLocationPrecision": "distillery",
+        "testerValue": "Official distillery gift-shop drops and release-watch pages; distinct from retailer store inventory.",
+        "customerAreaLabel": null,
+        "customerSummary": "Official Kentucky distillery gift-shop/drop and release-watch signals from Buffalo Trace, Old Forester, Four Roses, Heaven Hill, Maker's Mark, and Wild Turkey. Distillery pickup/release leads are clearly separated from retailer store shipment or inventory alerts. Costco warehouse bourbon signals are included where verified for Kentucky warehouses."
+      },
+      "FL": {
+        "label": "Florida",
+        "status": "useful",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 3429,
+        "bestLocationPrecision": "store_level",
+        "testerValue": "Live/store inventory where public source permits.",
+        "customerAreaLabel": "Florida retailer areas",
+        "customerSummary": "Guarded first-party Florida retailer inventory across Tampa Bay, Central Florida, South Florida, Jacksonville, Sarasota, Gainesville, and the Panhandle, with exact merchant/store identity, current retailer-reported quantity or binary orderability when observed, and verify-before-driving caveats."
+      },
+      "GA": {
+        "label": "Georgia",
+        "status": "useful",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 113,
+        "bestLocationPrecision": "store_level",
+        "testerValue": "Live/store inventory where public source permits.",
+        "customerAreaLabel": "Atlanta Metro",
+        "customerSummary": "Guarded first-party retailer signals from exact Georgia storefront identities, including a stable Atlanta metro store universe, plus Costco warehouse bourbon watch where verified. Binary orderability is kept distinct from retailer-reported quantity, and every store signal includes a verify before driving caveat."
+      },
+      "MS": {
+        "label": "Mississippi",
+        "status": "useful",
+        "coverageTier": "sparse_live_store_inventory",
+        "signalCount": 32,
+        "bestLocationPrecision": "store_level",
+        "testerValue": "Sparse exact-store orderability from reviewed first-party retailers; verify before driving.",
+        "customerAreaLabel": null,
+        "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson–Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving."
+      },
+      "WV": {
+        "label": "West Virginia",
+        "status": "useful",
+        "coverageTier": "shipment_drop_intelligence",
+        "signalCount": 342,
+        "bestLocationPrecision": "store_level",
+        "testerValue": "Shipment, warehouse, board, or release intelligence; useful leads but not exact shelf stock.",
+        "customerAreaLabel": null,
+        "customerSummary": "Exact-store West Virginia retailer purchase leads from WVABCA's trailing three-month window, plus official barrel-selection updates and searchable licensed stores. Purchase leads are call-first shipment intelligence, not live shelf inventory or quantity, and do not enable restock alerts."
+      }
+    },
+    "bestCurrentSignals": {
+      "vaStoreInventory": [
+        {
+          "id": "aec444206881fe61",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/stores/40",
+          "bottle": "Baker's High Rye Bourbon",
+          "rawName": "Baker's High Rye Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 40",
+          "quantity": 22,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC reports 22 bottle(s) of Baker's High Rye Bourbon at Store 40 in Sterling. This is a normal-product inventory reading. Verify before driving."
+        },
+        {
+          "id": "c5bec036d64fcc4e",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/stores/362",
+          "bottle": "Baker's High Rye Bourbon",
+          "rawName": "Baker's High Rye Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 362",
+          "quantity": 13,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC reports 13 bottle(s) of Baker's High Rye Bourbon at Store 362 in Sterling. This is a normal-product inventory reading. Verify before driving."
+        },
+        {
+          "id": "cda720249dfd0be8",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/stores/82",
+          "bottle": "Baker's High Rye Bourbon",
+          "rawName": "Baker's High Rye Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 82",
+          "quantity": 11,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC reports 11 bottle(s) of Baker's High Rye Bourbon at Store 82 in Sterling. This is a normal-product inventory reading. Verify before driving."
+        },
+        {
+          "id": "cc26b0b058f1831d",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/stores/82",
+          "bottle": "Green River Full Proof Bourbon",
+          "rawName": "Green River Full Proof Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 82",
+          "quantity": 9,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC reports 9 bottle(s) of Green River Full Proof Bourbon at Store 82 in Sterling. This is a normal-product inventory reading. Verify before driving."
+        },
+        {
+          "id": "b9db4b9d20b0e027",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/stores/362",
+          "bottle": "Green River Full Proof Bourbon",
+          "rawName": "Green River Full Proof Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 362",
+          "quantity": 8,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC reports 8 bottle(s) of Green River Full Proof Bourbon at Store 362 in Sterling. This is a normal-product inventory reading. Verify before driving."
+        },
+        {
+          "id": "c31d83f687a237cd",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/stores/82",
+          "bottle": "Wild Turkey Rare Breed Straight Bourbon",
+          "rawName": "Wild Turkey Rare Breed Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 82",
+          "quantity": 8,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC reports 8 bottle(s) of Wild Turkey Rare Breed Bourbon at Store 82 in Sterling. This is a normal-product inventory reading. Verify before driving."
+        },
+        {
+          "id": "9fffe202b6eacac5",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/stores/362",
+          "bottle": "Wild Turkey Rare Breed Straight Bourbon",
+          "rawName": "Wild Turkey Rare Breed Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 362",
+          "quantity": 7,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC reports 7 bottle(s) of Wild Turkey Rare Breed Bourbon at Store 362 in Sterling. This is a normal-product inventory reading. Verify before driving."
+        },
+        {
+          "id": "d0fbaf174937a98e",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/stores/40",
+          "bottle": "Green River Full Proof Bourbon",
+          "rawName": "Green River Full Proof Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 40",
+          "quantity": 6,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC reports 6 bottle(s) of Green River Full Proof Bourbon at Store 40 in Sterling. This is a normal-product inventory reading. Verify before driving."
+        }
+      ],
+      "ncShipmentAndWarehouse": [
+        {
+          "id": "5fe622929530be5a",
+          "state": "NC",
+          "type": "nc_statewide_warehouse_stock",
+          "source": "NC ABC Warehouse Stock Status",
+          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/162395",
+          "bottle": "Buffalo Trace Bourbon",
+          "rawName": "Buffalo Trace KY Straight Bourbon",
+          "locationPrecision": "board_warehouse",
+          "locationName": "NC ABC state warehouse",
+          "quantity": 3410,
+          "confidence": 0.9,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "NC ABC warehouse stock page shows 3410 unit(s) available statewide for Buffalo Trace KY Straight Bourbon. This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
+        },
+        {
+          "id": "5d4e59fef4a7a9c8",
+          "state": "NC",
+          "type": "nc_board_shipment_snapshot",
+          "source": "NC ABC Stock Shipped Data",
+          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/178251",
+          "bottle": "Buffalo Trace Bourbon",
+          "rawName": "Buffalo Trace KY Straight Bourbon 1.00L",
+          "locationPrecision": "board_county",
+          "locationName": "Mecklenburg County ABC Board",
+          "quantity": 2544,
+          "confidence": 0.9,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "NC ABC Stock Shipped Data reports 2544 unit(s) of Buffalo Trace KY Straight Bourbon 1.00L shipped to Mecklenburg County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlle"
+        },
+        {
+          "id": "5fe622929530be5a",
+          "state": "NC",
+          "type": "nc_statewide_warehouse_stock",
+          "source": "NC ABC Warehouse Stock Status",
+          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/178251",
+          "bottle": "Buffalo Trace Bourbon",
+          "rawName": "Buffalo Trace KY Straight Bourbon",
+          "locationPrecision": "board_warehouse",
+          "locationName": "NC ABC state warehouse",
+          "quantity": 2431,
+          "confidence": 0.9,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "NC ABC warehouse stock page shows 2431 unit(s) available statewide for Buffalo Trace KY Straight Bourbon. This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
+        },
+        {
+          "id": "1cc6776715ab90c1",
+          "state": "NC",
+          "type": "nc_statewide_warehouse_stock",
+          "source": "NC ABC Warehouse Stock Status",
+          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/152758",
+          "bottle": "Eagle Rare 10 Year",
+          "rawName": "Eagle Rare 10Y",
+          "locationPrecision": "board_warehouse",
+          "locationName": "NC ABC state warehouse",
+          "quantity": 2034,
+          "confidence": 0.9,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "NC ABC warehouse stock page shows 2034 unit(s) available statewide for Eagle Rare 10Y. This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
+        },
+        {
+          "id": "3e198913c7aed618",
+          "state": "NC",
+          "type": "nc_board_shipment_snapshot",
+          "source": "NC ABC Stock Shipped Data",
+          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/178251",
+          "bottle": "Buffalo Trace Bourbon",
+          "rawName": "Buffalo Trace KY Straight Bourbon 1.00L",
+          "locationPrecision": "board_county",
+          "locationName": "Wake County ABC Board",
+          "quantity": 1896,
+          "confidence": 0.9,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "NC ABC Stock Shipped Data reports 1896 unit(s) of Buffalo Trace KY Straight Bourbon 1.00L shipped to Wake County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-produ"
+        },
+        {
+          "id": "5c9fb7bec8a8d86b",
+          "state": "NC",
+          "type": "nc_board_shipment_snapshot",
+          "source": "NC ABC Stock Shipped Data",
+          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/157372",
+          "bottle": "Willett Pot Still Reserve Small Batch Straight Bourbon",
+          "rawName": "Willett Pot Still Reserve .75L",
+          "locationPrecision": "board_county",
+          "locationName": "Mecklenburg County ABC Board",
+          "quantity": 1698,
+          "confidence": 0.9,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "NC ABC Stock Shipped Data reports 1698 unit(s) of Willett Pot Still Reserve .75L shipped to Mecklenburg County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity."
+        },
+        {
+          "id": "9c8d32b68d8488c5",
+          "state": "NC",
+          "type": "nc_board_shipment_snapshot",
+          "source": "NC ABC Stock Shipped Data",
+          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/156578",
+          "bottle": "Willett Family Estate",
+          "rawName": "Willett Family Estate Rye 4Y .75L",
+          "locationPrecision": "board_county",
+          "locationName": "Mecklenburg County ABC Board",
+          "quantity": 1500,
+          "confidence": 0.9,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "NC ABC Stock Shipped Data reports 1500 unit(s) of Willett Family Estate Rye 4Y .75L shipped to Mecklenburg County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity."
+        },
+        {
+          "id": "65d6b634d2f6a61f",
+          "state": "NC",
+          "type": "nc_statewide_warehouse_stock",
+          "source": "NC ABC Warehouse Stock Status",
+          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/175928",
+          "bottle": "Woodford Reserve Double Oaked Bourbon",
+          "rawName": "Woodford Reserve Double Oaked",
+          "locationPrecision": "board_warehouse",
+          "locationName": "NC ABC state warehouse",
+          "quantity": 1474,
+          "confidence": 0.9,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "NC ABC warehouse stock page shows 1474 unit(s) available statewide for Woodford Reserve Double Oaked. This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+        }
+      ],
+      "alReleaseIntel": [
+        {
+          "id": "05902fe6f9697dbd",
+          "state": "AL",
+          "type": "alabc_limited_release_store_drop",
+          "source": "Alabama ABC monthly additional distribution list",
+          "sourceUrl": "https://alabcboard.gov/sites/default/files/inline-files/WEB%20DO%20NOT%20HOLD.pdf",
+          "bottle": "Blanton's Original Single Barrel",
+          "rawName": "BLANTONS BOURBON 93 PR. 750 ML",
+          "locationPrecision": "store_level",
+          "locationName": "Alabama ABC Store #001",
+          "quantity": 0,
+          "confidence": 0.68,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": true,
+          "summary": "Alabama ABC lists BLANTONS BOURBON 93 PR. 750 ML at ABC Store #001 in Montgomery for $81.99. Verify availability and line rules before driving."
+        },
+        {
+          "id": "de856277a24bfdc0",
+          "state": "AL",
+          "type": "alabc_limited_release_store_drop",
+          "source": "Alabama ABC monthly additional distribution list",
+          "sourceUrl": "https://alabcboard.gov/sites/default/files/inline-files/WEB%20DO%20NOT%20HOLD.pdf",
+          "bottle": "Buffalo Trace Bourbon",
+          "rawName": "BUFFALO TRACE BOURBON 90 PR. 750 ML",
+          "locationPrecision": "store_level",
+          "locationName": "Alabama ABC Store #001",
+          "quantity": 0,
+          "confidence": 0.68,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": true,
+          "summary": "Alabama ABC lists BUFFALO TRACE BOURBON 90 PR. 750 ML at ABC Store #001 in Montgomery for $28.99. Verify availability and line rules before driving."
+        },
+        {
+          "id": "1da07fd9d3ad033a",
+          "state": "AL",
+          "type": "alabc_limited_release_store_drop",
+          "source": "Alabama ABC monthly additional distribution list",
+          "sourceUrl": "https://alabcboard.gov/sites/default/files/inline-files/WEB%20DO%20NOT%20HOLD.pdf",
+          "bottle": "Blanton's Original Single Barrel",
+          "rawName": "BLANTONS BOURBON 93 PR. 750 ML",
+          "locationPrecision": "store_level",
+          "locationName": "Alabama ABC Store #002",
+          "quantity": 0,
+          "confidence": 0.68,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": true,
+          "summary": "Alabama ABC lists BLANTONS BOURBON 93 PR. 750 ML at ABC Store #002 in Montgomery for $81.99. Verify availability and line rules before driving."
+        },
+        {
+          "id": "c8abd4849a69b7ce",
+          "state": "AL",
+          "type": "alabc_limited_release_store_drop",
+          "source": "Alabama ABC monthly additional distribution list",
+          "sourceUrl": "https://alabcboard.gov/sites/default/files/inline-files/WEB%20DO%20NOT%20HOLD.pdf",
+          "bottle": "Buffalo Trace Bourbon",
+          "rawName": "BUFFALO TRACE BOURBON 90 PR. 750 ML",
+          "locationPrecision": "store_level",
+          "locationName": "Alabama ABC Store #002",
+          "quantity": 0,
+          "confidence": 0.68,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": true,
+          "summary": "Alabama ABC lists BUFFALO TRACE BOURBON 90 PR. 750 ML at ABC Store #002 in Montgomery for $28.99. Verify availability and line rules before driving."
+        },
+        {
+          "id": "ba8395db72b26c24",
+          "state": "AL",
+          "type": "alabc_limited_release_store_drop",
+          "source": "Alabama ABC monthly additional distribution list",
+          "sourceUrl": "https://alabcboard.gov/sites/default/files/inline-files/WEB%20DO%20NOT%20HOLD.pdf",
+          "bottle": "Wild Turkey 101 8Y .75l",
+          "rawName": "WILD TURKEY 101 BOURBON 8YR 101PR 750ML",
+          "locationPrecision": "store_level",
+          "locationName": "Alabama ABC Store #002",
+          "quantity": 0,
+          "confidence": 0.68,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": true,
+          "summary": "Alabama ABC lists WILD TURKEY 101 BOURBON 8YR 101PR 750ML at ABC Store #002 in Montgomery for $44.99. Verify availability and line rules before driving."
+        }
+      ],
+      "wvBarrelPicks": [
+        {
+          "id": "6f5801aeaf0f1742",
+          "state": "WV",
+          "type": "barrel_pick_signal",
+          "source": "West Virginia ABCA current barrel selections",
+          "sourceUrl": "https://abca.wv.gov/spirits/wv-bourbon-whiskey-barrel-picks",
+          "bottle": "Ezra Brooks Stave Finish Spice & Clove",
+          "rawName": null,
+          "locationPrecision": "statewide_catalog",
+          "locationName": "West Virginia",
+          "quantity": 0,
+          "confidence": 0.38,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "Ezra Brooks Stave Finish Spice & Clove is listed by West Virginia ABCA as a current barrel selection. Retailers may be able to order it; this does not confirm shelf stock at any store."
+        },
+        {
+          "id": "7edc1633297c6a0f",
+          "state": "WV",
+          "type": "barrel_pick_signal",
+          "source": "West Virginia ABCA current barrel selections",
+          "sourceUrl": "https://abca.wv.gov/spirits/wv-bourbon-whiskey-barrel-picks",
+          "bottle": "Rebel Full Proof Selection",
+          "rawName": null,
+          "locationPrecision": "statewide_catalog",
+          "locationName": "West Virginia",
+          "quantity": 0,
+          "confidence": 0.38,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "Rebel Full Proof Selection is listed by West Virginia ABCA as a current barrel selection. Retailers may be able to order it; this does not confirm shelf stock at any store."
+        },
+        {
+          "id": "e566c5425b9605f0",
+          "state": "WV",
+          "type": "barrel_pick_signal",
+          "source": "West Virginia ABCA current barrel selections",
+          "sourceUrl": "https://abca.wv.gov/spirits/wv-bourbon-whiskey-barrel-picks",
+          "bottle": "Yellowstone Handpicked 109 Proof",
+          "rawName": null,
+          "locationPrecision": "statewide_catalog",
+          "locationName": "West Virginia",
+          "quantity": 0,
+          "confidence": 0.38,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "Yellowstone Handpicked 109 proof is listed by West Virginia ABCA as a current barrel selection. Retailers may be able to order it; this does not confirm shelf stock at any store."
+        },
+        {
+          "id": "bba56e7d21034335",
+          "state": "WV",
+          "type": "barrel_pick_signal",
+          "source": "West Virginia ABCA current barrel selections",
+          "sourceUrl": "https://abca.wv.gov/spirits/wv-bourbon-whiskey-barrel-picks",
+          "bottle": "Yellowstone Handpicked 119 Proof",
+          "rawName": null,
+          "locationPrecision": "statewide_catalog",
+          "locationName": "West Virginia",
+          "quantity": 0,
+          "confidence": 0.38,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "Yellowstone Handpicked 119 proof is listed by West Virginia ABCA as a current barrel selection. Retailers may be able to order it; this does not confirm shelf stock at any store."
+        },
+        {
+          "id": "c53ae2ea2d316422",
+          "state": "WV",
+          "type": "barrel_pick_signal",
+          "source": "West Virginia ABCA current barrel selections",
+          "sourceUrl": "https://abca.wv.gov/spirits/wv-bourbon-whiskey-barrel-picks",
+          "bottle": "Rebel Stave Finish Collection Rich Mocha",
+          "rawName": null,
+          "locationPrecision": "statewide_catalog",
+          "locationName": "West Virginia",
+          "quantity": 0,
+          "confidence": 0.38,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "Rebel Stave Finish Collection Rich Mocha is listed by West Virginia ABCA as a current barrel selection. Retailers may be able to order it; this does not confirm shelf stock at any store."
+        }
+      ],
+      "tnStoreInventory": [
+        {
+          "id": "21a9bfc1b29cb37b",
+          "state": "TN",
+          "type": "retailer_store_inventory_result",
+          "source": "Cool Springs Wine & Spirits public catalog API",
+          "sourceUrl": "https://shop.coolspringswine.com/s/1000-1057/i/INV-1005-196019",
+          "bottle": "Willett Family Estate",
+          "rawName": "WILLETT FAMILY ESTATE BOURBON 750 ML",
+          "locationPrecision": "store_level",
+          "locationName": "Cool Springs Wine & Spirits",
+          "quantity": 103,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Cool Springs Wine & Spirits public catalog currently reports 103 available WILLETT FAMILY ESTATE BOURBON 750 ML at $69.99 for 1935 Mallory Lane, Franklin, TN 37067."
+        },
+        {
+          "id": "430a95a1cb1aeb35",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "One Stop Wines & Spirits Johnson City TN CityHive store inventory",
+          "sourceUrl": "https://onestopwines.net/product/woodford-reserve-kentucky-straight-bourbon-whiskey/5521cef765613100037c0200?option-id=2dbf56b552fa6693ffe30bb2eceb6b78d932a5c6562ab4524d51ddd6b222dcbf",
+          "bottle": "Woodford Reserve Bourbon",
+          "rawName": "Woodford Reserve Kentucky Straight Bourbon Whiskey",
+          "locationPrecision": "store_level",
+          "locationName": "One Stop Wines & Spirits - Franklin Rd",
+          "quantity": 96,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "One Stop Wines & Spirits - Franklin Rd currently reports 96 Woodford Reserve Kentucky Straight Bourbon Whiskey at 1735 W State of Franklin Rd #11, Johnson City, TN 37604, USA for $36.99."
+        },
+        {
+          "id": "7878ad12adea0d00",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Corkdorks CityHive store inventory",
+          "sourceUrl": "https://corkdorkswine.com/shop/product/woodford-reserve-kentucky-straight-bourbon-whiskey/56c28bca756275139da00100?option-id=a05f0c8c36508b498ccb63656d5610942ec242026b054dda7ab1911bb24a2d24",
+          "bottle": "Woodford Reserve Bourbon",
+          "rawName": "Woodford Reserve Kentucky Straight Bourbon Whiskey",
+          "locationPrecision": "store_level",
+          "locationName": "Corkdorks Wine Spirits Beer - Green Hills",
+          "quantity": 93,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Corkdorks Wine Spirits Beer - Green Hills currently reports 93 Woodford Reserve Kentucky Straight Bourbon Whiskey at 4009 Hillsboro Pike, Nashville, TN 37215, USA for $9.99."
+        },
+        {
+          "id": "0f6074486780e2a7",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Pour Vous Wine, Spirits & Beer CityHive store inventory",
+          "sourceUrl": "https://pourvous.us/shop/product/woodford-reserve-kentucky-straight-bourbon-whiskey/56c28bca756275139da00100?option-id=a521d0bd70f80abd657f2323f52b48393dd6e57f20de9bffbc01c86d45ae7cac",
+          "bottle": "Woodford Reserve Bourbon",
+          "rawName": "Woodford Reserve Kentucky Straight Bourbon Whiskey",
+          "locationPrecision": "store_level",
+          "locationName": "Pour Vous Wine, Spirits & Beer",
+          "quantity": 93,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Pour Vous Wine, Spirits & Beer currently reports 93 Woodford Reserve Kentucky Straight Bourbon Whiskey at 263 Indian Lake Blvd, Hendersonville, TN 37075, USA for $10.99."
+        },
+        {
+          "id": "6a50354577f1eea6",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Four Sixes Liquors & Wines CityHive store inventory",
+          "sourceUrl": "https://foursixesliquors.com/shop/product/woodford-reserve-kentucky-straight-bourbon-whiskey/56dd1c6d69702d1873510400?option-id=b1a863024b4494c09dfdbd9d52e7bbbad63b87a4c1d373c36a95d525fe34e69d",
+          "bottle": "Woodford Reserve Bourbon",
+          "rawName": "Woodford Reserve Kentucky Straight Bourbon Whiskey",
+          "locationPrecision": "store_level",
+          "locationName": "Four Sixes Liquors & Wines",
+          "quantity": 87,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Four Sixes Liquors & Wines currently reports 87 Woodford Reserve Kentucky Straight Bourbon Whiskey at 715 S Main St, Mt Pleasant, TN 38474, USA for $3.99."
+        },
+        {
+          "id": "b06112da1f369517",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Frugal MacDoogal CityHive store inventory",
+          "sourceUrl": "https://www.frugalmacdoogal.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+          "bottle": "Buffalo Trace Bourbon",
+          "rawName": "Buffalo Trace Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Frugal MacDoogal",
+          "quantity": 84,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Frugal MacDoogal currently reports 84 Buffalo Trace Bourbon at 701 Division St, Nashville, TN 37203, USA for $33.99."
+        },
+        {
+          "id": "cd05c798d9531329",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Germantown Wine & Liquor CityHive store inventory",
+          "sourceUrl": "https://germantownwineandliquor.com/shop/product/woodford-reserve-kentucky-straight-bourbon/56c3370469702d27ed880100?option-id=63d42064fe352cac1f2f936361bb06d2b5ab9fc8e7eea13e900059cfbba9a75c",
+          "bottle": "Woodford Reserve Bourbon",
+          "rawName": "Woodford Reserve Kentucky Straight Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Germantown Wine & Liquor",
+          "quantity": 80,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Germantown Wine & Liquor currently reports 80 Woodford Reserve Kentucky Straight Bourbon at 7730 Poplar Ave STE 5, Germantown, TN 38138, USA for $59.99."
+        },
+        {
+          "id": "0f6074486780e2a7",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Pour Vous Wine, Spirits & Beer CityHive store inventory",
+          "sourceUrl": "https://pourvous.us/shop/product/woodford-reserve-kentucky-straight-bourbon-whiskey/56c28bc7756275139d9f0100?option-id=e572faa99b10592679561189d8bcc813aaff608eb9c2e0cc08b41db7f5335f1a",
+          "bottle": "Woodford Reserve Bourbon",
+          "rawName": "Woodford Reserve Kentucky Straight Bourbon Whiskey",
+          "locationPrecision": "store_level",
+          "locationName": "Pour Vous Wine, Spirits & Beer",
+          "quantity": 77,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Pour Vous Wine, Spirits & Beer currently reports 77 Woodford Reserve Kentucky Straight Bourbon Whiskey at 263 Indian Lake Blvd, Hendersonville, TN 37075, USA for $20.99."
+        }
+      ],
+      "tnSourceDiscovery": [
+        {
+          "id": "17e3db8aa2f769b0",
+          "state": "TN",
+          "type": "license_document_signal",
+          "source": "Tennessee ABC public information and forms",
+          "sourceUrl": "https://www.tn.gov/abc/public-information-and-forms.html",
+          "bottle": null,
+          "rawName": null,
+          "locationPrecision": "statewide_catalog",
+          "locationName": "Tennessee retailer inventory watch",
+          "quantity": 0,
+          "confidence": 0.48,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
+        },
+        {
+          "id": "17e3db8aa2f769b0",
+          "state": "TN",
+          "type": "license_document_signal",
+          "source": "Tennessee ABC public information and forms",
+          "sourceUrl": "https://www.tn.gov/abc/public-information-and-forms.html",
+          "bottle": null,
+          "rawName": null,
+          "locationPrecision": "statewide_catalog",
+          "locationName": "Tennessee retailer inventory watch",
+          "quantity": 0,
+          "confidence": 0.48,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat official pages as source-discovery/license intelligence only; retailer CityHive/e-commerce rows may separately qualify as caveated store inventory."
+        },
+        {
+          "id": "17d8353b868ac3be",
+          "state": "TN",
+          "type": "policy_signal",
+          "source": "Tennessee ABC public site",
+          "sourceUrl": "https://www.tn.gov/abc.html",
+          "bottle": null,
+          "rawName": null,
+          "locationPrecision": "statewide_catalog",
+          "locationName": "Tennessee retailer inventory watch",
+          "quantity": 0,
+          "confidence": 0.33,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": false,
+          "summary": "Tennessee ABC official pages are licensing, public information, and regulatory guidance for a private retail market; no official bottle/store availability feed found."
+        }
+      ]
+    },
+    "caveat": "Southeast readiness distinguishes live inventory from shipment/release leads and catalog/license context. Non-inventory sources must not be presented as exact bottle/store availability."
+  },
+  "ncBoardIntelligence": {
+    "boardCount": 174,
+    "officialStoreCount": 471,
+    "representedAreaCount": 285,
+    "boardsWithTrackedShipments": 157,
+    "singleStoreShipmentBoardCount": 90,
+    "unresolvedShipmentBoardIdentityCount": 1,
+    "boardsWithWebsites": 41,
+    "boardsWithReleasePages": 15,
+    "boardsWithInventoryPages": 8,
+    "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports.",
+    "sourceHealth": {
+      "checkedAt": "2026-11-14T10:41:06.149Z",
+      "statusCounts": {
+        "no_public_website_registered": 131,
+        "healthy": 36,
+        "unreachable": 5,
+        "partial": 2
+      },
+      "statewideFailures": [],
+      "affectedBoards": [
+        {
+          "boardName": "Asheville ABC Board",
+          "website": "http://www.ashevilleabcboard.com",
+          "status": "unreachable",
+          "attemptedPageCount": 12,
+          "successfulPageCount": 0,
+          "failedPageCount": 12,
+          "failedKnownRoutes": [
+            {
+              "url": "http://www.ashevilleabcboard.com",
+              "status": 0,
+              "error": "fetch failed",
+              "consecutiveFailures": 54
+            }
+          ],
+          "consecutiveFailures": 54,
+          "lastSuccessfulPageAt": null,
+          "trackedShipmentRows": 34,
+          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
+          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "shipmentStatus": "current",
+          "parserWarnings": []
+        },
+        {
+          "boardName": "Concord ABC Board",
+          "website": "http://concordabcboard.com",
+          "status": "unreachable",
+          "attemptedPageCount": 12,
+          "successfulPageCount": 0,
+          "failedPageCount": 12,
+          "failedKnownRoutes": [
+            {
+              "url": "http://concordabcboard.com",
+              "status": 403,
+              "error": "HTTP 403",
+              "consecutiveFailures": 332
+            },
+            {
+              "url": "https://concordabcboard.com/preparing-for-bourbon-lottery/",
+              "status": 403,
+              "error": "HTTP 403",
+              "consecutiveFailures": 332
+            }
+          ],
+          "consecutiveFailures": 332,
+          "lastSuccessfulPageAt": null,
+          "trackedShipmentRows": 23,
+          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
+          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "shipmentStatus": "current",
+          "parserWarnings": []
+        },
+        {
+          "boardName": "Dunn ABC Board",
+          "website": null,
+          "status": "unreachable",
+          "attemptedPageCount": 3,
+          "successfulPageCount": 0,
+          "failedPageCount": 3,
+          "failedKnownRoutes": [
+            {
+              "url": "https://dunnabc.com/",
+              "status": 403,
+              "error": "HTTP 403",
+              "consecutiveFailures": 332
+            },
+            {
+              "url": "https://dunnabc.com/allocation-policy/",
+              "status": 403,
+              "error": "HTTP 403",
+              "consecutiveFailures": 332
+            },
+            {
+              "url": "https://dunnabc.com/store-locations-hours/",
+              "status": 403,
+              "error": "HTTP 403",
+              "consecutiveFailures": 332
+            }
+          ],
+          "consecutiveFailures": 332,
+          "lastSuccessfulPageAt": null,
+          "trackedShipmentRows": 0,
+          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
+          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "shipmentStatus": "current",
+          "parserWarnings": []
+        },
+        {
+          "boardName": "Mecklenburg County ABC Board",
+          "website": "http://www.meckabc.com",
+          "status": "partial",
+          "attemptedPageCount": 12,
+          "successfulPageCount": 9,
+          "failedPageCount": 3,
+          "failedKnownRoutes": [
+            {
+              "url": "https://www.meckabc.com/news_detail_T4_R74.php",
+              "status": 404,
+              "error": "HTTP 404",
+              "consecutiveFailures": 27
+            }
+          ],
+          "consecutiveFailures": 27,
+          "lastSuccessfulPageAt": "2026-11-14T10:39:13.434Z",
+          "trackedShipmentRows": 31,
+          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
+          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "shipmentStatus": "current",
+          "parserWarnings": []
+        },
+        {
+          "boardName": "New Hanover County ABC Board",
+          "website": "http://newhanovercountyabc.com",
+          "status": "partial",
+          "attemptedPageCount": 13,
+          "successfulPageCount": 5,
+          "failedPageCount": 8,
+          "failedKnownRoutes": [
+            {
+              "url": "https://www.newhanovercountyabc.com/bourbon-blast/",
+              "status": "source_policy_disabled",
+              "error": "This optional source is suspended after captured HTTP 403; no request was made.",
+              "consecutiveFailures": 127
+            },
+            {
+              "url": "https://www.newhanovercountyabc.com/sales/",
+              "status": "source_policy_disabled",
+              "error": "This optional source is suspended after captured HTTP 403; no request was made.",
+              "consecutiveFailures": 127
+            },
+            {
+              "url": "https://www.newhanovercountyabc.com/barrels/",
+              "status": "source_policy_disabled",
+              "error": "The primary barrel page was skipped under its captured denial policy; no HTTP request was made. The independent first-party WordPress REST search returned a valid empty array. No product cards or stock are confirmed.",
+              "consecutiveFailures": 228
+            }
+          ],
+          "consecutiveFailures": 228,
+          "lastSuccessfulPageAt": "2026-11-14T10:39:14.517Z",
+          "trackedShipmentRows": 24,
+          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
+          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "shipmentStatus": "current",
+          "parserWarnings": [
+            {
+              "url": "https://www.newhanovercountyabc.com/barrels/",
+              "status": "source_policy_disabled",
+              "parserStatus": "unreachable",
+              "reason": "The primary barrel page was skipped under its captured denial policy; no HTTP request was made. The independent first-party WordPress REST search returned a valid empty array. No product cards or stock are confirmed."
+            }
+          ]
+        },
+        {
+          "boardName": "Rowan/Kannapolis ABC Board",
+          "website": "https://rowankannapolisabc.com/wordpress/",
+          "status": "unreachable",
+          "attemptedPageCount": 12,
+          "successfulPageCount": 0,
+          "failedPageCount": 12,
+          "failedKnownRoutes": [
+            {
+              "url": "https://rowankannapolisabc.com/wordpress/",
+              "status": 503,
+              "error": "HTTP 503",
+              "consecutiveFailures": 200
+            },
+            {
+              "url": "https://rowankannapolisabc.com/wordpress/?page_id=23",
+              "status": 503,
+              "error": "HTTP 503",
+              "consecutiveFailures": 200
+            }
+          ],
+          "consecutiveFailures": 200,
+          "lastSuccessfulPageAt": null,
+          "trackedShipmentRows": 12,
+          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
+          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "shipmentStatus": "current",
+          "parserWarnings": []
+        },
+        {
+          "boardName": "Wayne County ABC Board",
+          "website": "http://www.wayneabc.com",
+          "status": "unreachable",
+          "attemptedPageCount": 12,
+          "successfulPageCount": 0,
+          "failedPageCount": 12,
+          "failedKnownRoutes": [
+            {
+              "url": "http://www.wayneabc.com",
+              "status": 403,
+              "error": "HTTP 403",
+              "consecutiveFailures": 332
+            },
+            {
+              "url": "https://wayneabc.com/allocation-policy/",
+              "status": 403,
+              "error": "HTTP 403",
+              "consecutiveFailures": 332
+            }
+          ],
+          "consecutiveFailures": 332,
+          "lastSuccessfulPageAt": null,
+          "trackedShipmentRows": 23,
+          "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
+          "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z",
+          "shipmentStatus": "current",
+          "parserWarnings": []
+        }
+      ],
+      "shipmentObservedAt": "2026-11-13T14:06:54.000Z",
+      "shipmentRetrievedAt": "2026-11-14T10:39:10.766Z"
+    }
+  },
+  "locationBibleSources": [
+    {
+      "id": "NC_ABC_STORE_LOCATOR",
+      "state": "NC",
+      "status": "ok",
+      "count": 640,
+      "boards": 174,
+      "locatorBoards": 173,
+      "failures": 0,
+      "sourceUrl": "https://abc2.nc.gov/Search/ABCStoreLocator",
+      "observedAt": "2026-11-14T12:27:57.868Z"
+    }
+  ],
+  "historicalTrends": [
+    {
+      "state": "IA",
+      "bottleName": "Bulleit Bourbon",
+      "source": "Iowa ABD statewide product snapshot",
+      "locationPrecision": "board_warehouse",
+      "inventoryObservations": 0,
+      "watchObservations": 168,
+      "positiveQuantities": 168,
+      "firstObservedAt": "2026-11-10T07:59:22.565Z",
+      "lastObservedAt": "2026-11-14T13:05:54.681Z",
+      "sampleSignalIds": [
+        "9b24ddebf3e1e87f",
+        "9b24ddebf3e1e87f",
+        "9b24ddebf3e1e87f",
+        "9b24ddebf3e1e87f",
+        "9b24ddebf3e1e87f"
+      ],
+      "observationCount": 168,
+      "current": true,
+      "trendLabel": "repeated_release_watch_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #191 - Atlantic Beach",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "28e77ff34ff923a2",
+        "28e77ff34ff923a2",
+        "28e77ff34ff923a2",
+        "28e77ff34ff923a2",
+        "28e77ff34ff923a2"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #217 - Apalachee Parkway",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "a097d35a08f25efc",
+        "a097d35a08f25efc",
+        "a097d35a08f25efc",
+        "a097d35a08f25efc",
+        "a097d35a08f25efc"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #073 - Lehigh Acres",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "91aca92a5e7c53f6",
+        "91aca92a5e7c53f6",
+        "91aca92a5e7c53f6",
+        "91aca92a5e7c53f6",
+        "91aca92a5e7c53f6"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #042 - Vero East",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "7dc4955556016c86",
+        "7dc4955556016c86",
+        "7dc4955556016c86",
+        "7dc4955556016c86",
+        "7dc4955556016c86"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #203 - Navarre",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "bba971250b1a2c01",
+        "bba971250b1a2c01",
+        "bba971250b1a2c01",
+        "bba971250b1a2c01",
+        "bba971250b1a2c01"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #092 - College Rd",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "7656cbeb2e65be44",
+        "7656cbeb2e65be44",
+        "7656cbeb2e65be44",
+        "7656cbeb2e65be44",
+        "7656cbeb2e65be44"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #086 - Apollo Beach",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "357bb2b4cac8bd12",
+        "357bb2b4cac8bd12",
+        "357bb2b4cac8bd12",
+        "357bb2b4cac8bd12",
+        "357bb2b4cac8bd12"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #209 - Glades Road",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "191fe41f107b1c27",
+        "191fe41f107b1c27",
+        "191fe41f107b1c27",
+        "191fe41f107b1c27",
+        "191fe41f107b1c27"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #137 - Lake Mary",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "80ccf20010d213d1",
+        "80ccf20010d213d1",
+        "80ccf20010d213d1",
+        "80ccf20010d213d1",
+        "80ccf20010d213d1"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #162 - Jupiter",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "6f81efe69e2fd260",
+        "6f81efe69e2fd260",
+        "6f81efe69e2fd260",
+        "6f81efe69e2fd260",
+        "6f81efe69e2fd260"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #182 - Fleming Island",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "ed9358c8953fc412",
+        "ed9358c8953fc412",
+        "ed9358c8953fc412",
+        "ed9358c8953fc412",
+        "ed9358c8953fc412"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #081 - Oviedo",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "1ae65b5412ed1853",
+        "1ae65b5412ed1853",
+        "1ae65b5412ed1853",
+        "1ae65b5412ed1853",
+        "1ae65b5412ed1853"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #114 - Boynton Beach West",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "806bc30eebcde589",
+        "806bc30eebcde589",
+        "806bc30eebcde589",
+        "806bc30eebcde589",
+        "806bc30eebcde589"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #054 - Doral",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "a04dd6fdd72e06c1",
+        "a04dd6fdd72e06c1",
+        "a04dd6fdd72e06c1",
+        "a04dd6fdd72e06c1",
+        "a04dd6fdd72e06c1"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #145 - Orange/Michigan",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "977711e0dd9751e2",
+        "977711e0dd9751e2",
+        "977711e0dd9751e2",
+        "977711e0dd9751e2",
+        "977711e0dd9751e2"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #199 - Pensacola",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "cf62a0cc1f4468a9",
+        "cf62a0cc1f4468a9",
+        "cf62a0cc1f4468a9",
+        "cf62a0cc1f4468a9",
+        "cf62a0cc1f4468a9"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #040 - Port St. Lucie",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "ff1f8f732b3c6af8",
+        "ff1f8f732b3c6af8",
+        "ff1f8f732b3c6af8",
+        "ff1f8f732b3c6af8",
+        "ff1f8f732b3c6af8"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #112 - Newberry Rd",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "dcd29d7bb024c319",
+        "dcd29d7bb024c319",
+        "dcd29d7bb024c319",
+        "dcd29d7bb024c319",
+        "dcd29d7bb024c319"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #215 - Thomasville/Kerry Fores",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "178e4598ea2458c6",
+        "178e4598ea2458c6",
+        "178e4598ea2458c6",
+        "178e4598ea2458c6",
+        "178e4598ea2458c6"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #175 - Town Center",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "1e10f50cc0780844",
+        "1e10f50cc0780844",
+        "1e10f50cc0780844",
+        "1e10f50cc0780844",
+        "1e10f50cc0780844"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #190 - St. Augustine",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "c8a19aa8316dab10",
+        "c8a19aa8316dab10",
+        "c8a19aa8316dab10",
+        "c8a19aa8316dab10",
+        "c8a19aa8316dab10"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #181 - World Golf Village",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "7c4b7a9496575673",
+        "7c4b7a9496575673",
+        "7c4b7a9496575673",
+        "7c4b7a9496575673",
+        "7c4b7a9496575673"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #174 - Durbin Creek Crossing",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "146669edb5bc1bbf",
+        "146669edb5bc1bbf",
+        "146669edb5bc1bbf",
+        "146669edb5bc1bbf",
+        "146669edb5bc1bbf"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "FL",
+      "bottleName": "Woodford Reserve Bourbon",
+      "source": "ABC #004 - Lake Buena Vista",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 126,
+      "watchObservations": 126,
+      "positiveQuantities": 126,
+      "firstObservedAt": "2026-11-10T08:21:00.626Z",
+      "lastObservedAt": "2026-11-14T13:05:42.253Z",
+      "sampleSignalIds": [
+        "ffbe7e29717dcab9",
+        "ffbe7e29717dcab9",
+        "ffbe7e29717dcab9",
+        "ffbe7e29717dcab9",
+        "ffbe7e29717dcab9"
+      ],
+      "observationCount": 252,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    }
+  ],
+  "sourceCaveat": "Standalone engine export only. Candidate alerts are not sent to users until app integration and alert policy are explicitly enabled."
+}

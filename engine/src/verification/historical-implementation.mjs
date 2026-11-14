@@ -150,6 +150,16 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const releasedConnecticut = /^    "CT": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if (releasedConnecticut || text.includes('    "CT"\n  ],\n  "reliabilityPolicy"')) {
+      assert.equal(createHash('sha256').update(releasedConnecticut || '').digest('hex'),
+        'a35e86108fa7eab0396f3e6fb854674db698f6e0ef7862a3879a5553bf049a21', `${name}: exact attested CT lifecycle entry`);
+      text = replaceUnique(text, releasedConnecticut, '', `${name}: exact attested CT lifecycle entry`);
+      text = replaceUnique(text, '    "KS",\n    "CT"\n  ],\n  "reliabilityPolicy"',
+        '    "KS"\n  ],\n  "reliabilityPolicy"', `${name}: exact CT active list tail`);
+      text = replaceUnique(text, '    "stateExpectedRunMs": {\n      "CT": 45000,\n',
+        '    "stateExpectedRunMs": {\n', `${name}: exact CT expected runtime`);
+    }
     const activeKansasTail=/^    \},\n    "KS": \{[\s\S]+?^    \}\n  \}/mu.exec(text)?.[0];
     const kansasTailSha='e58074869dfcb88cc8f7dce74e9e00a1c636559a05824c61cc3a3a4b6a3c3c8a';
     if(activeKansasTail&&createHash('sha256').update(activeKansasTail).digest('hex')===kansasTailSha){
