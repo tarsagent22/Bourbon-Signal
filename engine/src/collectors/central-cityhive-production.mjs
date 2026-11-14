@@ -5,6 +5,7 @@ import wiManifest from '../../data/state-integration/WI.json' with {type:'json'}
 import okManifest from '../../data/state-integration/OK.json' with {type:'json'};
 import riManifest from '../../data/state-integration/RI.json' with {type:'json'};
 import moManifest from '../../data/state-integration/MO.json' with {type:'json'};
+import ctManifest from '../../data/state-integration/CT.json' with {type:'json'};
 import {STATE_LIFECYCLE_CONFIG} from '../state-lifecycle.mjs';
 import {validateImmutablePromotionEvidence,evaluateStateControl} from '../reliability-policy.mjs';
 import {collectionSignal,writeCollectionFile} from '../core/collection-context.mjs';
@@ -19,7 +20,7 @@ import {isCentralCityHiveProductionOnSiteSignal} from '../central-cityhive-polic
 import {CENTRAL_CITYHIVE_PRODUCTION_STATES,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,centralCityHiveProductionCohortKey,centralCityHiveProductionRuntimeId} from '../central-cityhive-production-config.mjs';
 
 export const CENTRAL_CITYHIVE_CACHE_MAX_AGE_MS=30*60_000;
-const manifests={WI:wiManifest,OK:okManifest,RI:riManifest,MO:moManifest},DAY=86_400_000,DENIALS=new Set([401,403,429,435]);
+const manifests={WI:wiManifest,OK:okManifest,RI:riManifest,MO:moManifest,CT:ctManifest},DAY=86_400_000,DENIALS=new Set([401,403,429,435]);
 const sha=value=>createHash('sha256').update(value).digest('hex');
 export function centralCityHiveSourceConfigHash(state,manifest=manifests[state]){
   if(!CENTRAL_CITYHIVE_PRODUCTION_STATES.includes(state)||!manifest)throw new Error('Unreviewed production CityHive state');
@@ -67,19 +68,21 @@ function completeCohort(metadata,state){
       });
     });
   }
-  if(state!=='RI')return sources.every(source=>metadata.requests.some(row=>row.url===source.categoryUrl));
-  if (metadata.requests.length !== CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.RI.maxRequests
+  if(!['RI','CT'].includes(state))return sources.every(source=>metadata.requests.some(row=>row.url===source.categoryUrl));
+  if (metadata.requests.length !== CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].maxRequests
     || new Set(metadata.requests.map(row => row.url)).size !== metadata.requests.length) return false;
   return sources.every(source => {
     const requests = metadata.requests.filter(row => row.sourceId === source.id);
-    if (requests.length !== source.prioritySearchTerms.length + 1) return false;
+    const priorityTerms = source.prioritySearchTerms || [source.prioritySearchTerm];
+    if (requests.length !== priorityTerms.length + 1) return false;
     const terms = requests.map(row => {
       const url = URL.parse(row.url);
       if (url?.origin !== source.baseUrl || url.pathname !== '/shop/' || url.hash || url.username || url.password
         || [...url.searchParams].length !== 2 || url.searchParams.get('merchant-id') !== source.merchantId) return null;
       return url.searchParams.get('ch-query');
     });
-    return terms.every(Boolean) && source.prioritySearchTerms.every(term => terms.includes(term));
+    return terms.every(term => typeof term === 'string' && term.trim() && term.length <= 120)
+      && priorityTerms.every(term => terms.includes(term));
   });
 }
 const silent=row=>({...row,canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
