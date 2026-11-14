@@ -126,7 +126,10 @@ test('dormant production wrapper does not probe OLCC while lifecycle and source 
 test('generic Oregon production route remains dormant and makes zero requests before immutable promotion', async () => {
   let requests = 0;
   const config = ALL_STATE_SOURCES.find(row => row.id === 'OR');
-  const result = await collectOregonDailyProductionState(config, bible, { fetchImpl: async () => { requests++; throw new Error('must stay closed'); } });
+  const result = await collectOregonDailyProductionState(config, bible, {
+    lifecycleConfig: { activeStates: [], states: { OR: { publicStatus: 'research_only' } } },
+    fetchImpl: async () => { requests++; throw new Error('must stay closed'); },
+  });
   assert.equal(result.status, 'not_promoted');
   assert.equal(result.metadata.blockedByPromotion, true);
   assert.equal(result.metadata.requestCount, 0);
