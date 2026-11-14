@@ -5,13 +5,16 @@ import { stableId } from './core/text.mjs';
 import { parseBoundGroceryXapiInventory } from './collectors/grocery-xapi-identity.mjs';
 import { groceryProductSnapshot, publicSearchKey } from './collectors/grocery-xapi-expansion.mjs';
 import { centralCityHiveRecordMarketTier } from './collectors/central-cityhive-market-policy.mjs';
+import { librarySourceSearchPlan } from './library-search-runtime.mjs';
+import { buildLibrarySourceSearchPlan, libraryDetectionQueries } from './library-query-plan.mjs';
+import { arizonaXapiLibraryQueryAssignments } from './collectors/arizona-xapi.mjs';
 import { WYOMING_GROCERY_HOST as hostname, WYOMING_GROCERY_LABEL as label,
   WYOMING_GROCERY_RESEARCH_RUNTIME as runtimeId, WYOMING_GROCERY_STORES as stores } from './wyoming-grocery-policy.mjs';
 import { fetchReviewedFirstPartyText, readCityHiveIncidentJournal, persistCityHiveIncidentJournal,
   CITYHIVE_DENIAL_STATUSES, CITYHIVE_DENIAL_MINIMUM_MS } from './collectors/central-cityhive-transport.mjs';
 
 const endpoint = 'https://' + hostname + '/abs/pub/xapi/search/substitute';
-const terms = ['bourbon', 'eagle rare'];
+const legacyTerms = ['bourbon', 'eagle rare'];
 const visibleTiers = new Set(['limited', 'allocated', 'unicorn']);
 
 const config = Object.freeze({ id: 'WY', label, tier: 'B', active: false, strategy: 'retailer_store_inventory',
@@ -38,10 +41,12 @@ function matchesLocator(text, store) {
 function parseWyomingGrocerySearch(payload, store, term, bible, observedAt) {
   const response = payload?.response;
   const filter = response?.miscInfo?.filter;
-  if (!stores.includes(store) || !terms.includes(term) || !Number.isFinite(Date.parse(observedAt))
-    || payload?.appCode !== 'GR200 :: A-CT: 200' || response?.miscInfo?.query !== term || response?.start !== 0
-    || typeof filter !== 'string' || !filter.includes(`(inventory(${store.merchantId}, price) >0)`)
-    || !filter.includes(`(inventory(${store.merchantId},attributes.custom_type_2) = 1)`)
+  const exactSearch = response?.miscInfo?.query === term && response.start === 0 && typeof filter === 'string'
+    && filter.includes(`(inventory(${store.merchantId}, price) >0)`)
+    && filter.includes(`(inventory(${store.merchantId},attributes.custom_type_2) = 1)`);
+  if (payload?.appCode === 'GR204' && exactSearch && response.numFound === 0 && !Object.hasOwn(response, 'docs')) return [];
+  if (!stores.includes(store) || !Number.isFinite(Date.parse(observedAt))
+    || payload?.appCode !== 'GR200 :: A-CT: 200' || !exactSearch
     || !Array.isArray(response.docs) || response.docs.length < 1 || response.docs.length > 100
     || response.docs.some(row => String(row.storeId) !== store.merchantId)) throw Error('Wyoming grocery response lost its exact store/query binding');
   return parseBoundGroceryXapiInventory(payload, store, bible).flatMap(hit => {
@@ -88,6 +93,22 @@ export function isWyomingGroceryResearchInventory(row) {
     && row.eligibleForDelivery === false && row.eligibleForEmail === false && row.eligibleForSms === false);
 }
 
+function indexedSearchOptions(bible) {
+  const terms = new Set(libraryDetectionQueries(bible).map(name => name.toLowerCase()));
+  return { sourceKey: 'WY:albertsons-xapi', budget: stores.length,
+    queryFilter: term => terms.has(term.toLowerCase()) && !legacyTerms.includes(term.toLowerCase()) };
+}
+
+function indexedQueriesByStore(plan) {
+  return new Map(arizonaXapiLibraryQueryAssignments(stores.length, plan)
+    .map(({ storeIndex, term }) => [storeIndex, term.toLowerCase()]));
+}
+
+function isUnconfirmedEmptySearch(payload) {
+  return payload?.appCode === 'GR204' && payload.appMsg === 'GR : Google Retail returned empty response..'
+    && Object.keys(payload).length === 2;
+}
+
 export async function replayWyomingGroceryReport(report, reportDirectory, bible, {nowMs = Date.now()} = {}) {
   const metadata = report?.metadata;
   const expectedStores = stores.map(store => store.storeId);
@@ -97,11 +118,24 @@ export async function replayWyomingGroceryReport(report, reportDirectory, bible,
     || JSON.stringify(metadata.verifiedPremises) !== JSON.stringify(expectedStores)
     || metadata.bibleRecordsSha256 !== digest(JSON.stringify(bible.records))
     || !Number.isFinite(start) || !Number.isFinite(end) || start > end || end > nowMs
-    || !Array.isArray(metadata.receipts) || metadata.receipts.length !== stores.length * (1 + terms.length)) {
+    || !Array.isArray(metadata.receipts) || metadata.receipts.length !== stores.length * 3) {
     throw Error('Incomplete or mismatched Wyoming shadow report');
+  }
+  const indexedPlan = metadata.indexedSearchPlan;
+  const unconfirmedQueries = metadata.unconfirmedQueries || [];
+  let indexedQueries;
+  if (indexedPlan) {
+    const expected = buildLibrarySourceSearchPlan(bible, { ...indexedSearchOptions(bible), cursor: indexedPlan.cursor });
+    if (!Number.isSafeInteger(indexedPlan.cursor) || indexedPlan.cursor < 0 || indexedPlan.cursor >= expected.poolSize
+      || expected.poolSize !== indexedPlan.poolSize || expected.terms.length !== stores.length
+      || JSON.stringify(expected.terms) !== JSON.stringify(indexedPlan.terms)) {
+      throw Error('Wyoming indexed searches do not reconcile with the reviewed catalog');
+    }
+    indexedQueries = indexedQueriesByStore(indexedPlan);
   }
   const rows = new Map();
   const paths = new Set();
+  const replayedUnconfirmedQueries = [];
   let index = 0;
   async function readCapture(store, term) {
     const receipt = metadata.receipts[index++];
@@ -121,18 +155,25 @@ export async function replayWyomingGroceryReport(report, reportDirectory, bible,
     paths.add(receipt.artifactPath);
     return bytes.toString('utf8');
   }
-  for (const store of stores) {
+  for (const [storeIndex, store] of stores.entries()) {
     if (!matchesLocator(await readCapture(store, null), store)) throw Error('Wyoming captured locator lost its premises');
-    for (const term of terms) {
+    const queryTerms = indexedQueries ? ['bourbon', indexedQueries.get(storeIndex)].filter(Boolean) : legacyTerms;
+    for (const term of queryTerms) {
       const observedAt = metadata.receipts[index].observedAt;
       const captured = await readCapture(store, term);
-      for (const row of parseWyomingGrocerySearch(JSON.parse(captured), store, term, bible, observedAt)) {
+      const payload = JSON.parse(captured);
+      if (indexedQueries && term !== 'bourbon' && isUnconfirmedEmptySearch(payload)) {
+        replayedUnconfirmedQueries.push({ storeId: store.storeId, term });
+        continue;
+      }
+      for (const row of parseWyomingGrocerySearch(payload, store, term, bible, observedAt)) {
         if (!rows.has(row.id)) rows.set(row.id, row);
       }
     }
   }
   const replay = [...rows.values()];
-  if (!Array.isArray(report.signals) || !report.signals.every(isWyomingGroceryResearchInventory)
+  if (JSON.stringify(replayedUnconfirmedQueries) !== JSON.stringify(unconfirmedQueries)
+    || !Array.isArray(report.signals) || !report.signals.every(isWyomingGroceryResearchInventory)
     || JSON.stringify(replay) !== JSON.stringify(report.signals)) throw Error('Wyoming replay changed an exact product observation');
   return replay;
 }
@@ -142,6 +183,7 @@ export async function collectWyomingGroceryResearchReport(candidate, bible, {
   sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
   reportDirectory = process.env.BOURBON_SIGNAL_STATE_OUT_FILE ? path.dirname(process.env.BOURBON_SIGNAL_STATE_OUT_FILE) : path.resolve('out/research-grocery/WY'),
   incidentFile = path.resolve('out/research-source-attempts/wy-albertsons.json'),
+  cursorDir,
 } = {}) {
   if (candidate !== config || env.BOURBON_SIGNAL_SHADOW_MODE !== '1') throw Error('Wyoming requires its registered shadow collector');
   const reviewedHosts = [...stores, {state: 'WY', hostname: 'local.albertsons.com'}];
@@ -153,6 +195,13 @@ export async function collectWyomingGroceryResearchReport(candidate, bible, {
   const startedAt = new Date(now).toISOString(), receipts = [], verified = [], collected = new Map();
   const timeout = AbortSignal.timeout(150_000);
   const bounded = signal ? AbortSignal.any([signal, timeout]) : timeout;
+  const options = indexedSearchOptions(bible);
+  const indexedPlan = await librarySourceSearchPlan(bible, { ...options, cursorDir });
+  if (indexedPlan.terms.length !== stores.length) throw Error('Wyoming requires one indexed search per exact premise');
+  const cursor = (indexedPlan.nextCursor - indexedPlan.terms.length + indexedPlan.poolSize) % indexedPlan.poolSize;
+  const indexedQueries = indexedQueriesByStore(indexedPlan);
+  const unconfirmedQueries = [];
+  if (indexedQueries.size !== stores.length) throw Error('Wyoming indexed queries must cover the reviewed roster');
   journal = {...journal, inFlight: {attemptId: randomUUID(), startedAt}};
   persistCityHiveIncidentJournal(incidentFile, journal);
   async function capture(url, store, term) {
@@ -181,17 +230,22 @@ export async function collectWyomingGroceryResearchReport(candidate, bible, {
       artifactPath, storeId: store.storeId, term});
     return {text: result.text, observedAt};
   }
-  for (const store of stores) {
+  for (const [storeIndex, store] of stores.entries()) {
     const locator = await capture(store.locator, store, null);
     if (!matchesLocator(locator.text, store)) throw Error('Wyoming first-party locator lost its address binding for ' + store.storeId);
     verified.push(store.storeId);
-    for (const term of terms) {
+    for (const term of ['bourbon', indexedQueries.get(storeIndex)].filter(Boolean)) {
       const url = new URL(endpoint);
       url.search = new URLSearchParams({'request-id': String(Date.now()), url: url.origin, pageurl: url.origin,
         pagename: 'search', rows: '100', start: '0', 'search-type': 'keyword', storeid: store.merchantId,
         featured: 'true', 'search-uid': '', q: term, channel: 'instore', banner: 'albertsons'});
       const captured = await capture(url.href, store, term);
-      for (const row of parseWyomingGrocerySearch(JSON.parse(captured.text), store, term, bible, captured.observedAt)) {
+      const payload = JSON.parse(captured.text);
+      if (term !== 'bourbon' && isUnconfirmedEmptySearch(payload)) {
+        unconfirmedQueries.push({ storeId: store.storeId, term });
+        continue;
+      }
+      for (const row of parseWyomingGrocerySearch(payload, store, term, bible, captured.observedAt)) {
         if (!collected.has(row.id)) collected.set(row.id, row);
       }
     }
@@ -210,5 +264,7 @@ export async function collectWyomingGroceryResearchReport(candidate, bible, {
       alertable: false, inventoryAlertable: false, watchAlertable: false}],
     metadata: {complete: true, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false,
       selectedStores: stores.map(store => store.storeId), verifiedPremises: verified, receipts, origin,
+      indexedSearchPlan: { cursor, terms: indexedPlan.terms, poolSize: indexedPlan.poolSize, invocation: indexedPlan.invocation },
+      unconfirmedQueries,
       bibleRecordsSha256: digest(JSON.stringify(bible.records))}};
 }
