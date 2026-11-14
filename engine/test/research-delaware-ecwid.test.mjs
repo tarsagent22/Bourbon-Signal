@@ -50,7 +50,7 @@ test('Delaware Ecwid collector remains shadow-only and reports binary orderabili
   const calls=[];
   const result=await collectDelawareEcwidResearch(delawareEcwidResearchSource('DE'),bible,{
     env:{BOURBON_SIGNAL_SHADOW_MODE:'1'},clocksFile:path.join(directory,'clock.json'),
-    fetchText:async url=>{calls.push(url);return{status:200,url,text:url===sourceData.source.homeUrl?home:productPage};},
+      fetchText:async (url,options)=>{calls.push(url);assert.equal(options.maxBytes,2*1024*1024);return{status:200,url,text:url===sourceData.source.homeUrl?home:productPage};},
   });
   assert.equal(calls.length,2);
   assert.deepEqual(calls,[sourceData.source.homeUrl,sourceData.product.url]);
