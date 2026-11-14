@@ -25,9 +25,13 @@ test('Delaware recurring cohort is pinned to both Kreston premises and Banks exa
 
 test('Delaware remains default-deny before every source request and fails closed without promotion evidence',async()=>{
   const calls=[];const config=ALL_STATE_SOURCES.find(row=>row.id==='DE');
-  const report=await collectCentralCityHiveProductionState(config,{records:[]},{fetchText:async url=>{calls.push(url);throw Error('network forbidden');}});
+  const inactive=structuredClone(STATE_LIFECYCLE_CONFIG);
+  inactive.activeStates=inactive.activeStates.filter(state=>state!=='DE');
+  delete inactive.states.DE;
+  const report=await collectCentralCityHiveProductionState(config,{records:[]},{lifecycleConfig:inactive,fetchText:async url=>{calls.push(url);throw Error('network forbidden');}});
   assert.equal(report.status,'not_promoted');assert.equal(report.metadata.requestCount,0);assert.deepEqual(calls,[]);
-  assert.equal(centralCityHiveProductionAllowed('DE',STATE_LIFECYCLE_CONFIG),false);
+  assert.equal(centralCityHiveProductionAllowed('DE',inactive),false);
+  assert.equal(centralCityHiveProductionAllowed('DE',STATE_LIFECYCLE_CONFIG),true);
 });
 
 test('Delaware Banks visibility accepts only the reviewed exact, fresh, binary pickup binding',()=>{

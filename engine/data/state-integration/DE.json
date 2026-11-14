@@ -20,9 +20,18 @@
     "addressRequired": true,
     "expectedKnownStores": 3,
     "stores": [
-      {"storeId":"kreston-wines:618406f81a9efe0452444e07","address":"904 Concord Ave, Wilmington, DE 19802, USA"},
-      {"storeId":"kreston-wines:6054cfaae7d3073507c4ee0b","address":"448 E Main St, Middletown, DE 19709, USA"},
-      {"storeId":"ecwid:de:130511528","address":"38014 Town Center Drive, Millville, DE 19967"}
+      {
+        "storeId": "kreston-wines:618406f81a9efe0452444e07",
+        "address": "904 Concord Ave, Wilmington, DE 19802, USA"
+      },
+      {
+        "storeId": "kreston-wines:6054cfaae7d3073507c4ee0b",
+        "address": "448 E Main St, Middletown, DE 19709, USA"
+      },
+      {
+        "storeId": "ecwid:de:130511528",
+        "address": "38014 Town Center Drive, Millville, DE 19967"
+      }
     ],
     "proof": "Current first-party responses must reparse the exact merchant and physical premise; a source row must bind the reviewed product identity and pickup offer. Shelf count is never inferred from retailer-reported stock."
   },
@@ -32,38 +41,129 @@
     "watchAlertable": false
   },
   "customerPaths": {
-    "stateFilter": {"status":"verified","assertion":"The protected DE preview Coverage route reported three searchable pickup premises across Wilmington, Middletown and Millville."},
-    "areaFilter": {"status":"verified","assertion":"Protected Finder queries for all three reviewed Delaware cities returned their exact pickup premises."},
-    "preferences": {"status":"not_applicable","reason":"The isolated no-delivery source replay does not exercise user preference persistence."},
-    "dashboard": {"status":"not_applicable","reason":"The isolated source replay does not claim dashboard or production readiness."},
-    "dropFeedApi": {"status":"not_applicable","reason":"The membership-gated Feed API was not verified in the protected preview."},
-    "finder": {"status":"verified","assertion":"The protected Finder results matched the three reviewed Wilmington, Middletown and Millville addresses."},
-    "alerts": {"status":"verified","assertion":"Inventory, Watch, email, SMS and delivery eligibility remain disabled in the isolated preview."},
-    "monitoring": {"status":"verified","assertion":"Protected preview Coverage reported three current stores in three cities, five signals and zero alert-eligible stores."},
-    "export": {"status":"verified","assertion":"The canary input is reparsed from six bounded first-party receipts while preserving the source clocks."}
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "The protected DE preview Coverage route reported three searchable pickup premises across Wilmington, Middletown and Millville."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Protected Finder queries for all three reviewed Delaware cities returned their exact pickup premises."
+    },
+    "preferences": {
+      "status": "not_applicable",
+      "reason": "The isolated no-delivery source replay does not exercise user preference persistence."
+    },
+    "dashboard": {
+      "status": "not_applicable",
+      "reason": "The isolated source replay does not claim dashboard or production readiness."
+    },
+    "dropFeedApi": {
+      "status": "not_applicable",
+      "reason": "The membership-gated Feed API was not verified in the protected preview."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "The protected Finder results matched the three reviewed Wilmington, Middletown and Millville addresses."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Inventory, Watch, email, SMS and delivery eligibility remain disabled in the isolated preview."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Authenticated protected Coverage at 2026-11-14T22:59:25Z reported 3 current inventory stores in 3 cities, 5 fresh public signals and 0 alert-eligible stores."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "The source replay is bound to exactly six distinct first-party requests across two Kreston CityHive merchants and the Banks Ecwid premise, with original source clocks preserved."
+    }
   },
   "evidence": {
     "shadow": {
       "status": "verified",
       "runs": 3,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43645903085#artifact-14133781797",
-      "artifactDigest": "42ea8a6f2cd180e5aae27953af86a44ba17674deb8d47a2bb2ae5aa892c67e59",
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43648744907#artifact-14135036178",
+      "artifactDigest": "ea3f27b22c78e80fa0af2b51af63aa1c8f23930e5519b0e30eeb61de4057f1bd",
       "originalSourceClocksPreserved": true
     },
     "canary": {
       "status": "verified",
       "runs": 2,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43646026417#artifact-14133876873",
-      "artifactDigest": "896b16fced2ad5841180f0757ac7260eac9b600338e94c9559e6b06ec3fae596",
-      "assertion": "The second source-replayed canary projected six current rows across three searchable stores, with two allocated rows and all alert and delivery flags disabled.",
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43648899554#artifact-14135431680",
+      "artifactDigest": "ebe32e4e51f7bf8bc55675435c6d432e7a889c0f0a04a9af82c6a43d52a45ecd",
+      "assertion": "Source-replayed canary produced five current first-party pickup signals across the exact three-store cohort; all delivery channels remained disabled and production snapshot untouched.",
       "allDeliveryChannelsDisabled": true,
       "productionSnapshotTouched": false
     },
     "production": {
       "status": "not_deployed",
       "url": null,
-      "assertion": "The Delaware adapter remains dormant and customer production has not been changed.",
-      "reason": "Production lifecycle admission and immutable first-publication evidence are not approved or present."
+      "assertion": "Delaware is staged only in this isolated admission candidate; customer production has not been changed.",
+      "reason": "No production release or deployment has been run."
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "DE",
+      "generatedAt": "2026-11-14T22:59:25.576Z",
+      "sourceConfigHash": "1af818d4943471b88f47a65659f89edbe6676a9945a6268fc6f9fcc384ed2c30",
+      "sourceRuntimeId": "de:central-cityhive",
+      "cohortSha256": "2ff60687569747c6aa829f62cc371a894591b1fba53b4ff76e426650eed98e21",
+      "previewUrl": "https://bourbonsignal-33fc2x88a-tarsagent22s-projects.vercel.app",
+      "shadowRuns": [
+        {
+          "runId": "43642999828",
+          "status": "success",
+          "artifactId": "14133165988",
+          "artifactHash": "89c9b729e2d7e01c98162d8e3d80e2b6296938490cd1fab18cf738c5c263f439",
+          "commitSha": "2aa390d08f22cd4bbfc0e073b4bf7004cb58c4e8",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43642999828"
+        },
+        {
+          "runId": "43645903085",
+          "status": "success",
+          "artifactId": "14133781797",
+          "artifactHash": "42ea8a6f2cd180e5aae27953af86a44ba17674deb8d47a2bb2ae5aa892c67e59",
+          "commitSha": "e9483872cd4d304e0016f4e95c8e70f2726edb1d",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43645903085"
+        },
+        {
+          "runId": "43648744907",
+          "status": "success",
+          "artifactId": "14135036178",
+          "artifactHash": "ea3f27b22c78e80fa0af2b51af63aa1c8f23930e5519b0e30eeb61de4057f1bd",
+          "commitSha": "e9483872cd4d304e0016f4e95c8e70f2726edb1d",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43648744907"
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "43646026417",
+          "status": "success",
+          "artifactId": "14133876873",
+          "artifactHash": "896b16fced2ad5841180f0757ac7260eac9b600338e94c9559e6b06ec3fae596",
+          "commitSha": "e9483872cd4d304e0016f4e95c8e70f2726edb1d",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43646026417"
+        },
+        {
+          "runId": "43648899554",
+          "status": "success",
+          "artifactId": "14135431680",
+          "artifactHash": "ebe32e4e51f7bf8bc55675435c6d432e7a889c0f0a04a9af82c6a43d52a45ecd",
+          "commitSha": "e9483872cd4d304e0016f4e95c8e70f2726edb1d",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43648899554"
+        }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "43649097005",
+        "artifactId": "14134804782",
+        "commitSha": "e9483872cd4d304e0016f4e95c8e70f2726edb1d",
+        "artifactDigest": "de6a61ba072afad2466fb969cc07308c46d8f404ce784b83f3cc216b3ed32904",
+        "bundleDigest": "af39ff0f0316e09297f3da528635b9bf913e9660899d3662e75c3661dceb56b5",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43649097005",
+        "artifactName": "state-promotion-provenance-DE-43649097005"
+      }
     }
   }
 }
