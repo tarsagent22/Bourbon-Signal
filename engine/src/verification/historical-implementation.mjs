@@ -80,7 +80,9 @@ function replaceUnique(text, current, original, label) {
 
 export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (name === 'engine/src/operational-report.mjs') {
-    let oregonText = replaceUnique(bytes.toString('utf8'), oregonProductionProofImport, '', `${name}: Oregon proof import`);
+    // Normalize checkout line endings before exact historical proof reversals;
+    // Git-hosted baseline bytes are LF even when a Windows checkout is CRLF.
+    let oregonText = replaceUnique(bytes.toString('utf8').replace(/\r\n/gu, '\n'), oregonProductionProofImport, '', `${name}: Oregon proof import`);
     oregonText = replaceUnique(oregonText, oregonProductionProofBoundary, '', `${name}: Oregon on-site proof`);
     let implementation = oregonText;
     implementation=replaceUnique(implementation,"import {isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';\n",'',`${name}: AK/LA production projection import`);

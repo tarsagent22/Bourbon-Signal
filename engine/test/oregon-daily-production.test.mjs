@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 import fixture from './fixtures/oregon-daily-production-replay.json' with { type: 'json' };
+import msExtensionEvidence from '../data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json' with { type: 'json' };
 import { collectOregonDailyProduction, collectOregonDailyProductionState, OREGON_DAILY_PRODUCTION_CONFIG, OREGON_DAILY_PRODUCTION_RUNTIME_ID, oregonDailyProductionAllowed, oregonDailyProductionSourceConfigHash, projectOregonDailyProduction } from '../src/collectors/oregon-daily-production.mjs';
 import { OREGON_DAILY_PRODUCTION_COHORT_SHA256 } from '../src/oregon-daily-production-policy.mjs';
 import { OREGON_DAILY_INVENTORY_URL } from '../src/or-daily-inventory.mjs';
@@ -10,6 +12,7 @@ import { buildDrops, bibleLookup } from '../src/export-site-contract.mjs';
 import { STATE_LIFECYCLE, CUSTOMER_ACTIVE_STATE_IDS } from '../src/state-lifecycle.mjs';
 import { isOregonDailyProductionEvidence } from '../src/oregon-daily-production-policy.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
+import { normalizeHistoricalImplementationBytes } from '../src/verification/historical-implementation.mjs';
 
 const report = {
   schemaVersion: 'bourbon-signal-or-product-availability-v1', status: 'ready', sourceUrl: OREGON_DAILY_INVENTORY_URL,
@@ -129,6 +132,14 @@ test('generic Oregon production route remains dormant and makes zero requests be
   assert.equal(result.metadata.requestCount, 0);
   assert.equal(result.signals.length, 0);
   assert.equal(requests, 0);
+});
+
+test('Oregon and AK/LA proof overlays normalize back to the pinned Mississippi implementation on CRLF checkouts', async () => {
+  const source = await readFile(new URL('../src/operational-report.mjs', import.meta.url));
+  const crlf = Buffer.from(source.toString('utf8').replace(/\r?\n/gu, '\r\n'));
+  const normalized = normalizeHistoricalImplementationBytes('engine/src/operational-report.mjs', crlf);
+  assert.equal(createHash('sha256').update(normalized).digest('hex'), msExtensionEvidence.implementationFilesSha256['engine/src/operational-report.mjs']);
+  assert.doesNotMatch(normalized.toString('utf8'), /oregon-daily-production-policy\.mjs|louisiana-alaska-grocery-policy\.mjs/u);
 });
 
 test('replay excludes stale, future, inexact, and identity-drifted source rows', () => {
