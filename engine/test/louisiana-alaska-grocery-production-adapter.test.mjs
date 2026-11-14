@@ -9,6 +9,7 @@ import { LOUISIANA_ALASKA_GROCERY_SOURCES, LOUISIANA_ALASKA_RESOLVER_ZIPS } from
 import { LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS, LOUISIANA_ALASKA_GROCERY_BUDGETS } from '../src/louisiana-alaska-grocery-production-config.mjs';
 import { collectLouisianaAlaskaGroceryProductionState, validateLouisianaAlaskaProductionResult } from '../src/collectors/louisiana-alaska-grocery-production-adapter.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal, toLouisianaAlaskaGroceryOnSiteSignal } from '../src/louisiana-alaska-grocery-policy.mjs';
+import { syntheticLaakAdmission } from './helpers/synthetic-laak-admission.mjs';
 
 const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
 const identity = JSON.parse(await readFile(new URL('./fixtures/louisiana-alaska/identity.json', import.meta.url), 'utf8'));
@@ -113,18 +114,21 @@ test('durable 403 journal blocks replay before another source request', async ()
   try {
     let calls = 0;
     const config = LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS.find(item => item.id === 'AK');
+    const {lifecycle,manifest:promotionManifest}=syntheticLaakAdmission('AK');
     const fetchText = async (url, options) => {
       calls += 1;
       const response = { ok: false, status: 403, url, text: '', retryAfterSeconds: 0 };
       await options.onResponse(response);
       return response;
     };
-    await assert.rejects(collectLouisianaAlaskaGroceryProductionState(config, bible, { fetchText, incidentDirectory: directory }), /production profile rejected/);
+    const first=await collectLouisianaAlaskaGroceryProductionState(config, bible, { fetchText, incidentDirectory: directory,lifecycleConfig:lifecycle,promotionManifest,env:{} });
+    assert.equal(first.status,'blocked');assert.deepEqual(first.signals,[]);
     assert.equal(calls, 1);
     const journal = JSON.parse(await readFile(path.join(directory, 'AK.json'), 'utf8'));
     assert.equal(journal['host:www.safeway.com'].status, 'access_denied');
     assert.equal(journal['host:www.safeway.com'].reviewRequired, true);
-    await assert.rejects(collectLouisianaAlaskaGroceryProductionState(config, bible, { fetchText, incidentDirectory: directory }), /durable host cooldown/);
+    const second=await collectLouisianaAlaskaGroceryProductionState(config, bible, { fetchText, incidentDirectory: directory,lifecycleConfig:lifecycle,promotionManifest,env:{} });
+    assert.equal(second.status,'blocked');assert.deepEqual(second.signals,[]);
     assert.equal(calls, 1);
   } finally {
     await rm(directory, { recursive: true, force: true });

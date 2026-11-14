@@ -1,4 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
+import akManifest from '../../data/state-integration/AK.json' with {type:'json'};
+import laManifest from '../../data/state-integration/LA.json' with {type:'json'};
 import { mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { collectLouisianaAlaskaGrocery } from './louisiana-alaska-grocery-expansion.mjs';
@@ -7,7 +9,15 @@ import {
   LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES,
   LOUISIANA_ALASKA_GROCERY_REQUEST_TIMEOUT_MS,
   LOUISIANA_ALASKA_GROCERY_BUDGETS,
+  louisianaAlaskaGroceryCohortKey,
+  louisianaAlaskaGroceryRuntimeId,
 } from '../louisiana-alaska-grocery-production-config.mjs';
+import { STATE_LIFECYCLE_CONFIG } from '../state-lifecycle.mjs';
+import { evaluateStateControl, validateImmutablePromotionEvidence } from '../reliability-policy.mjs';
+import { collectionSignal } from '../core/collection-context.mjs';
+import { createSourceAdapter } from '../sources/source-adapter.mjs';
+import { runSourceAdapters } from '../sources/source-runner.mjs';
+import { summarizeSourceResult } from '../sources/source-result.mjs';
 import {
   isLouisianaAlaskaGroceryInventory,
   louisianaAlaskaGroceryLibraryTier,
@@ -22,10 +32,42 @@ import {
 
 const DAY_MS = 86_400_000;
 const DENIED = new Set([401, 403, 429, 435]);
+const manifests={AK:akManifest,LA:laManifest};
 
 function fail(message) { throw new Error(`Louisiana/Alaska production profile rejected: ${message}`); }
 function unique(values) { return [...new Set(values)]; }
 function sorted(values) { return [...values].sort(); }
+
+export function louisianaAlaskaSourceConfigHash(state,manifest=manifests[state]){
+  if(!LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(state)||!manifest)throw new Error('Unreviewed Louisiana/Alaska promotion manifest');
+  const config=Object.fromEntries(['lifecycle','collector','storeIdentity','sourceSemantics','customerPaths'].map(key=>[key,manifest[key]]));
+  return createHash('sha256').update(JSON.stringify(config)).digest('hex');
+}
+
+export function louisianaAlaskaProductionAllowed(state,config=STATE_LIFECYCLE_CONFIG,{manifest=manifests[state],env=process.env}={}){
+  const entry=config?.states?.[state],evidence=entry?.promotionEvidence;
+  const policy={...config?.reliabilityPolicy?.promotionPolicy,
+    minShadowRuns:Math.max(3,Number(config?.reliabilityPolicy?.promotionPolicy?.minShadowRuns)||3),
+    minCanaryRuns:Math.max(2,Number(config?.reliabilityPolicy?.promotionPolicy?.minCanaryRuns)||2)};
+  const control=evaluateStateControl(state,env);
+  return Boolean(LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(state)&&config?.activeStates?.includes(state)
+    &&entry?.publicStatus==='active'&&entry?.lifecycle==='retailer_store_inventory'
+    &&entry?.coverageTier==='sparse_live_store_inventory'&&entry?.refinementLevel==='store'
+    &&entry?.promotionStage==='active'&&entry?.inventoryAlertable===false&&entry?.watchAlertable===false
+    &&entry?.productionAdapter==='louisiana_alaska_grocery_onsite_v1'
+    &&manifest?.schemaVersion===1&&manifest?.state===state&&manifest.lifecycle?.publicStatus==='active'
+    &&manifest.lifecycle?.refinementLevel==='store'&&manifest.sourceSemantics?.inventoryAlertable===false&&manifest.sourceSemantics?.watchAlertable===false
+    &&manifest.collector?.cohortSha256===louisianaAlaskaGroceryCohortKey(state)
+    &&JSON.stringify(manifest.collector.sourceIds)===JSON.stringify([louisianaAlaskaGroceryRuntimeId(state)])
+    &&Number(evidence?.shadowRuns)>=policy.minShadowRuns&&Number(evidence?.canaryRuns)>=policy.minCanaryRuns
+    &&Number.isFinite(Date.parse(evidence?.verifiedAt||''))
+    &&evidence.verticalSliceManifest===`engine/data/state-integration/${state}.json`
+    &&evidence.fixtureContract===`engine/data/state-fixtures/${state}.json`
+    &&control.collect&&control.publishCandidate&&validateImmutablePromotionEvidence(state,evidence,policy)
+    &&evidence.immutableEvidence.provenance.repository==='tarsagent22/Bourbon-Signal'
+    &&JSON.stringify(manifest.evidence?.immutablePromotionEvidence)===JSON.stringify(evidence.immutableEvidence)
+    &&evidence.immutableEvidence.sourceConfigHash===louisianaAlaskaSourceConfigHash(state,manifest));
+}
 
 export function validateLouisianaAlaskaProductionResult(state, bible, result) {
   if (!LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(state)) fail(`unreviewed state ${state}`);
@@ -110,14 +152,22 @@ function isCoolingDown(journal, nowMs) {
     || entry?.status === 'in_flight' || Date.parse(entry?.nextAllowedAt || '') > nowMs);
 }
 
-export async function collectLouisianaAlaskaGroceryProductionState(config, bible, {
+async function collectLouisianaAlaskaGroceryProductionSource(config, bible, {
   fetchText = fetchReviewedLouisianaAlaskaText,
-  incidentDirectory = path.resolve('out/production-source-attempts/louisiana-alaska-grocery'),
+  incidentDirectory = path.resolve('out/source-incidents/louisiana-alaska-grocery'),
   nowMs = Date.now(),
+  lifecycleConfig=STATE_LIFECYCLE_CONFIG,promotionManifest,env=process.env,signal,timeoutMs,
   ...options
 } = {}) {
   const state = config?.id;
   if (!LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(state)) fail(`unreviewed state ${state}`);
+  const manifest=promotionManifest||manifests[state];
+  if(!louisianaAlaskaProductionAllowed(state,lifecycleConfig,{manifest,env}))return{
+    state,label:config.label,tier:config.tier,strategy:config.strategy,cadence:config.cadence,
+    signals:[],roadblocks:[],sources:[],sourceResults:[],status:'not_promoted',stale:false,
+    metadata:{blockedByPromotion:true,requestCount:0,sourceRuntimeId:louisianaAlaskaGroceryRuntimeId(state)},
+    accounting:{requestCount:0,bytes:0,elapsedMs:0,completeSnapshot:false},
+  };
   if (typeof fetchText !== 'function') fail('bounded fetch transport is required');
   const journals = {};
   const files = {};
@@ -131,9 +181,13 @@ export async function collectLouisianaAlaskaGroceryProductionState(config, bible
   const guardedFetch = async (url, requestOptions = {}) => {
     const kind = louisianaAlaskaRequestIdentity(url);
     const host = new URL(url).hostname;
+    const journal = journals[state];
+    const prior=journal[`host:${host}`];
+    if(prior?.status==='access_denied'||prior?.status==='in_flight')return{
+      ok:false,status:Number(prior.httpStatus)||0,url,text:'',error:'Request suppressed by durable in-run host denial/cooldown state.',
+    };
     const timestamp = new Date().toISOString();
     const timestampMs = Date.parse(timestamp);
-    const journal = journals[state];
     journal[`host:${host}`] = { status: 'in_flight', httpStatus: null, lastAttemptAt: timestamp,
       nextAllowedAt: new Date(timestampMs + DAY_MS).toISOString(), requestId: randomUUID(),
       urlSha256: createHash('sha256').update(url).digest('hex') };
@@ -161,12 +215,47 @@ export async function collectLouisianaAlaskaGroceryProductionState(config, bible
   };
 
   await mkdir(incidentDirectory, { recursive: true });
-  const result = await collectLouisianaAlaskaGrocery(config, bible, { ...options, fetchText: guardedFetch, nowMs });
+  const inherited=collectionSignal(signal),budget=LOUISIANA_ALASKA_GROCERY_BUDGETS[state];
+  const boundedMs=Number.isFinite(timeoutMs)&&timeoutMs>0?Math.min(timeoutMs,budget.sourceMs):budget.sourceMs;
+  const deadline=AbortSignal.timeout(boundedMs),bounded=inherited?AbortSignal.any([inherited,deadline]):deadline;
+  const sourceObservedAt=new Date(nowMs).toISOString();
+  bounded.throwIfAborted();
+  const result = await collectLouisianaAlaskaGrocery(config, bible, { ...options, fetchText: guardedFetch, nowMs,observedAt:sourceObservedAt,signal:bounded });
   const admission = validateLouisianaAlaskaProductionResult(state, bible, result);
   const signals = result.signals.map(row => {
     const projected = toLouisianaAlaskaGroceryOnSiteSignal(row);
     if (!projected) fail(`binary on-site projection rejected ${row.storeId}/${row.productId}`);
-    return projected;
+    return { ...projected, sourceRuntimeId:louisianaAlaskaGroceryRuntimeId(state) };
   });
-  return { ...result, signals, metadata: { ...result.metadata, productionAdmission: admission } };
+  return { ...result, signals, metadata: { ...result.metadata, sourceObservedAt, productionAdmission: admission } };
+}
+
+export async function collectLouisianaAlaskaGroceryProductionState(config,bible,options={}){
+  const state=config?.id,startedAt=new Date().toISOString(),sourceRuntimeId=LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(state)
+    ?louisianaAlaskaGroceryRuntimeId(state):null;
+  if(!sourceRuntimeId)fail(`unreviewed state ${state}`);
+  const base={state,label:config.label,tier:config.tier,strategy:config.strategy,cadence:config.cadence,value:config.value,startedAt,
+    finishedAt:null,lastGoodAt:null,stale:false,signals:[],sources:[],sourceResults:[],roadblocks:[],metadata:{requestCount:0,allDeliveryDisabled:true}};
+  const allowed=louisianaAlaskaProductionAllowed(state,options.lifecycleConfig||STATE_LIFECYCLE_CONFIG,
+    {manifest:options.promotionManifest||manifests[state],env:options.env||process.env});
+  if(!allowed)return{...base,finishedAt:new Date().toISOString(),status:'not_promoted',metadata:{...base.metadata,blockedByPromotion:true,sourceRuntimeId}};
+  const budget=LOUISIANA_ALASKA_GROCERY_BUDGETS[state],url='https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all';
+  const adapter=createSourceAdapter({id:sourceRuntimeId,label:config.label,url,metadata:{stateId:state,lane:'promoted_grocery_onsite'},
+    execute:(_context,{signal})=>collectLouisianaAlaskaGroceryProductionSource(config,bible,{...options,
+      signal:collectionSignal(options.signal?AbortSignal.any([options.signal,signal]):signal),timeoutMs:budget.sourceMs}),
+    validate:value=>value?.metadata?.productionAdmission?.status==='closed_profile_verified'&&Array.isArray(value.signals)
+      ?true:'AK/LA production source did not complete its admitted closed profile',recordCount:value=>value.signals.length});
+  const isolated=await runSourceAdapters([adapter],{}, {...options.sourceRunnerOptions,
+    previousResults:options.previousSourceResults,circuitBreaker:options.sourceCircuitBreaker,
+    concurrency:1,perDomain:1,schedule:false,timeoutMs:Math.min(Number(options.sourceRunnerOptions?.timeoutMs)||budget.stateMs,budget.stateMs),maxAttempts:1});
+  const result=isolated.results[0],value=result.ok?result.value:null,finishedAt=new Date().toISOString();
+  const source={sourceRuntimeId,label:config.label,url:result.sourceUrl||url,ok:result.ok,status:result.error?.status||(result.ok?200:result.status),
+    contentType:'application/json',signalType:'retailer_store_inventory_result',matchedBottleCount:value?.signals.length||0,locationPrecision:'store_level',error:result.error?.message||null};
+  const sourceObservedAt=value?.metadata?.sourceObservedAt||null;
+  return{...base,finishedAt,lastGoodAt:sourceObservedAt,status:result.ok?(value.signals.length?'useful':'monitored_no_current_inventory'):'blocked',
+    signals:value?.signals||[],sources:[source],sourceResults:[{...summarizeSourceResult(result),lastGoodAt:sourceObservedAt,alertable:false}],
+    roadblocks:result.ok?[]:[{state,source:config.label,sourceRuntimeId,url:source.url,status:source.status,
+      error:source.error||'AK/LA source failed',nextRoute:'Review the preserved source denial journal and retry only after its cooldown or source-policy gate allows it.'}],
+    sourceCircuitState:isolated.circuitState,metadata:{...(value?.metadata||base.metadata),sourceRuntimeId,allDeliveryDisabled:true,
+      requestCount:value?.metadata?.requests?.length||0,blockedByPromotion:false}};
 }

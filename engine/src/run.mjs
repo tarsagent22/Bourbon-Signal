@@ -17,6 +17,7 @@ import { resolveAggregateStateReports } from './state-report-aggregation.mjs';
 import { markStaleReport } from './state-report-fallback.mjs';
 import { withStateRunLock } from './state-run-lock.mjs';
 import { evaluateStateControl } from './reliability-policy.mjs';
+import { LOUISIANA_ALASKA_GROCERY_BUDGETS } from './louisiana-alaska-grocery-production-config.mjs';
 import {
   appendSourceSloObservations,
   buildSevenDaySourceSloReport,
@@ -71,6 +72,8 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // Closed grocery children are bounded at600s/180s; keep parent cleanup room.
   WA: Number(process.env.BOURBON_SIGNAL_WA_STATE_TIMEOUT_MS || 720_000),
   NM: Number(process.env.BOURBON_SIGNAL_NM_STATE_TIMEOUT_MS || 300_000),
+  LA: Number(process.env.BOURBON_SIGNAL_LA_STATE_TIMEOUT_MS || LOUISIANA_ALASKA_GROCERY_BUDGETS.LA.stateMs),
+  AK: Number(process.env.BOURBON_SIGNAL_AK_STATE_TIMEOUT_MS || LOUISIANA_ALASKA_GROCERY_BUDGETS.AK.stateMs),
   // NC board intelligence + county inventory probes can cross the generic
   // timeout during normal successful runs. Give it the same scheduled-run
   // budget as other broad inventory states so stale fallback only indicates a
