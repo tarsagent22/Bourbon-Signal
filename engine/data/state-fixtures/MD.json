@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "state": "MD",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "md-reviewed-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c"
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 1,
+        "canonicalNames": [
+          "Michter's 10 Year Rye"
+        ]
+      }
+    },
+    {
+      "id": "md-unidentified",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c",
+        "rawName": "Unidentified Straight Bourbon 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "md-cream",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c",
+        "rawName": "Bourbon Cream Liqueur 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "md-miniature",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c",
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "md-binary-availability",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "semantics": "binary_retailer_orderable_no_exact_count"
+      }
+    },
+    {
+      "id": "md-wrong-merchant",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "md-stale",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c",
+        "ageMinutes": 300
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 0,
+        "candidateCount": 0,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "md-foreign-source",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c",
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "md-shadow-never-public",
+      "kind": "shadow_isolation",
+      "input": {
+        "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c",
+        "shadowOnly": true
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 0,
+        "deliveryEligible": false,
+        "confidenceInventoryAllowed": false
+      }
+    },
+    {
+      "id": "md-shipping-only",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c",
+        "shippingOnly": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    }
+  ]
+}

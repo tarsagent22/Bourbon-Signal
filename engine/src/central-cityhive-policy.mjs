@@ -2,6 +2,7 @@ import { CENTRAL_CITYHIVE_EXPANSION_SOURCES,CENTRAL_CITYHIVE_PRODUCTION_COHORTS 
 import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
 
 export const CENTRAL_CITYHIVE_STATE_IDS = new Set(CENTRAL_CITYHIVE_EXPANSION_SOURCES.map(source=>source.state));
+export const CENTRAL_CITYHIVE_RESEARCH_STATE_IDS = new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state));
 const ALL_RECOGNIZED_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]);
 export function isCentralCityHiveRetailerEvent(row){
   return (CENTRAL_CITYHIVE_STATE_IDS.has(row?.state)

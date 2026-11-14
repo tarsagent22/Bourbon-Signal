@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { BourbonBible } from './core/bible.mjs';
 import { executeMassachusettsResearchFixtures } from './massachusetts-research-fixtures.mjs';
 import { executeCentralCityHiveFixtures } from './central-cityhive-fixtures.mjs';
-import { CENTRAL_CITYHIVE_STATE_IDS } from './central-cityhive-policy.mjs';
+import { CENTRAL_CITYHIVE_STATE_IDS, CENTRAL_CITYHIVE_RESEARCH_STATE_IDS } from './central-cityhive-policy.mjs';
 import { ALL_STATE_SOURCES } from './state-sources.mjs';
 import { lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 import { transformUtahAggregateRow } from './collectors/precision-probes.mjs';
@@ -493,7 +493,7 @@ export async function executeStateFixtures(payload, { bibleFile = path.resolve('
   if(['NJ','MI'].includes(payload.state))return executeNjMiResearchFixtures(payload,{bible});
   if (payload.state === 'MA') return executeMassachusettsResearchFixtures(payload, { bible });
   if(['WA','NM'].includes(payload.state))return executeGroceryResearchFixtures(payload,{bible});
-  if(CENTRAL_CITYHIVE_STATE_IDS.has(payload.state))return executeCentralCityHiveFixtures(payload,{bible});
+  if(CENTRAL_CITYHIVE_STATE_IDS.has(payload.state)||['MD','DC'].includes(payload.state)&&CENTRAL_CITYHIVE_RESEARCH_STATE_IDS.has(payload.state))return executeCentralCityHiveFixtures(payload,{bible});
   const registeredHosts = registeredHostsForState(payload.state);
   for (const item of payload.cases || []) {
     const actual = evaluateCase(item, { state: payload.state, bible, registeredHosts, candidateActive });

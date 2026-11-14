@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES,parseCentralCityHiveInventory } from './collectors/central-cityhive-expansion.mjs';
+import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
 import { isCentralCityHiveInventory } from './central-cityhive-policy.mjs';
 import { confidenceForSignal } from './confidence-policy.mjs';
 import { bibleLookup,buildDrops,isActiveCustomerStateRow } from './export-site-contract.mjs';
@@ -7,9 +8,17 @@ import { bibleLookup,buildDrops,isActiveCustomerStateRow } from './export-site-c
 export async function executeCentralCityHiveFixtures(payload,{bible}={}){
   const failures=[];
   for(const item of payload.cases||[]){
-    const input=item.input||{},source=CENTRAL_CITYHIVE_EXPANSION_SOURCES.find(source=>source.state===payload.state&&source.id===input.sourceId);
+    const input=item.input||{},source=[...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES].find(source=>source.state===payload.state&&source.id===input.sourceId);
     if(!source){failures.push(`${item.id}: no reviewed source for state and source ID.`);continue;}
-    const fixture=JSON.parse(await readFile(new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url),'utf8'));
+    const fixtureName=CENTRAL_CITYHIVE_EXPANSION_SOURCES.includes(source)?source.id:'liquorguys-wauwatosa';
+    const fixture=JSON.parse(await readFile(new URL(`../test/fixtures/central-cityhive/${fixtureName}.json`,import.meta.url),'utf8'));
+    if(!CENTRAL_CITYHIVE_EXPANSION_SOURCES.includes(source)){
+      const priorMerchant='634464e2ec82c44b45abf3ef',priorAddress='11728 W North Ave, Wauwatosa, WI 53226, USA',priorHost='https://liquorguys.com';
+      const serialized=JSON.stringify(fixture).replaceAll(priorMerchant,source.merchantId).replaceAll(priorAddress,source.address).replaceAll(priorHost,source.baseUrl);
+      Object.assign(fixture,JSON.parse(serialized));
+      for(const row of fixture.merchant_configs||[])if(row.merchant){row.merchant.name=source.name;row.merchant.display_name=source.name;
+        if(Number.isFinite(source.lat)&&Number.isFinite(source.lng))row.merchant.address.location={type:'Point',coordinates:[source.lng,source.lat]};}
+    }
     for(const product of fixture.products||[]){
       if(input.rawName)product.name=input.rawName;
       for(const merchant of product.merchants||[]){
