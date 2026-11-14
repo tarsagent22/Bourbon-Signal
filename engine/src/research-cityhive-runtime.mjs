@@ -53,6 +53,14 @@ export async function collectCityHiveResearchReport(config,bible,options={}){
   }
   return collectCityHiveStateReport(config,bible,options,true);
 }
+// North Dakota's production adapter reuses the same registered premise,
+// query plan, exact parser, and durable host journal after its own promotion
+// gate succeeds. Keep direct callers closed unless that adapter opts in.
+export async function collectNorthDakotaCityHiveProductionObservation(bible,options={}){
+  const config=configurations.get('ND');
+  if(!config||options.productionAuthorized!==true)throw new Error('North Dakota CityHive collection requires its production promotion gate');
+  return collectCityHiveStateReport(config,bible,options,false);
+}
 export async function collectPromotedCentralCityHiveState(config,bible,options={}){
   const canonical=configurations.get(config?.id);
   if(!canonical||!centralCityHiveProductionAllowed(config.id,options.lifecycleConfig,{manifest:options.promotionManifest,env:options.env}))return{
