@@ -45,6 +45,6 @@ test('promotion gate binds lifecycle, immutable runs, source hash, exact cohort 
   }
 });
 
-test('checked-in AK/LA research manifests do not authorize production',()=>{
-  for(const state of ['AK','LA'])assert.equal(louisianaAlaskaProductionAllowed(state),false);
+test('checked-in AK/LA configuration and evidence admit the reviewed production adapters',()=>{
+  for(const state of ['AK','LA'])assert.equal(louisianaAlaskaProductionAllowed(state, undefined, { env: {} }),true);
 });

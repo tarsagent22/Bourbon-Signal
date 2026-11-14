@@ -141,6 +141,73 @@
       "physicalDeviceExercised": false,
       "allDeliveryChannelsDisabled": true,
       "partitionSha256": "a687f10259fc010eaec4bacb8be668bd5eef96f7dd9e6f6fa1bbf1ed40024aa8"
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "LA",
+      "generatedAt": "2026-11-14T09:06:12.807Z",
+      "sourceConfigHash": "b23b935869485dd129e9df7b9d75c47f2898fdbb1cdb7108988772925a373bab",
+      "previewUrl": "https://bourbonsignal-3drkx2fps-tarsagent22s-projects.vercel.app",
+      "shadowRuns": [
+        {
+          "runId": "43565682813",
+          "status": "success",
+          "artifactHash": "be685c255dddd4d9010f5dd80fa1a0ceaba469c9c396178c33a5a58dcf320404",
+          "artifactId": "14101879455",
+          "commitSha": "e3fc259d5723af5034e240c2dc5ad1d112b67573",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813",
+          "artifactName": "state-expansion-shadow-43565682813"
+        },
+        {
+          "runId": "43573194351",
+          "status": "success",
+          "artifactHash": "4e8794f5ccf0f34bbc3640f9a8347ddf5932bd1e26ebcd6b8f10d3bfee9b98b8",
+          "artifactId": "14105063250",
+          "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573194351",
+          "artifactName": "state-expansion-shadow-43573194351"
+        },
+        {
+          "runId": "43575218820",
+          "status": "success",
+          "artifactHash": "1a12bce4a50ec32329c56e335844587308b6fbc9a439aae95a7b77463e8882be",
+          "artifactId": "14105613292",
+          "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43575218820",
+          "artifactName": "state-expansion-shadow-43575218820"
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "43572885476",
+          "status": "success",
+          "artifactHash": "0679e6d5e9d2c8676e1cfd544670863fbd9dab0ebf78a9524fa30ddeea0fa88f",
+          "artifactId": "14104842945",
+          "commitSha": "4ed1f2314a4821163699af5272bcf2c22d8b6f39",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43572885476",
+          "artifactName": "state-expansion-canary-LA-43572885476"
+        },
+        {
+          "runId": "43573428800",
+          "status": "success",
+          "artifactHash": "3dce40633c5e15316333e8c309b55b9a836c485f3ccf70dc95d0300585f9fc7a",
+          "artifactId": "14105835112",
+          "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573428800",
+          "artifactName": "state-expansion-canary-LA-43573428800"
+        }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "43578841033",
+        "artifactId": "14107218967",
+        "commitSha": "af72ca62d120f7e63e84c31ef76f916758df1f84",
+        "artifactDigest": "74687cdb08ebe20f6d8b04e6b3690583bb2286d94a70ac39bd8bf788c4fb74eb",
+        "bundleDigest": "89d7dfbc4295d8551d79a390a24aa30d6e250f7c92f65eb0e734093539452196",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43578841033",
+        "artifactName": "state-promotion-provenance-LA-43578841033"
+      }
     }
   },
   "rollback": {

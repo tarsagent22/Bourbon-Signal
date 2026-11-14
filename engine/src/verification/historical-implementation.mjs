@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 
 const sharedBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/metro-depth-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const arizonaBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/arizona-expansion-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
@@ -134,8 +135,14 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const releasedAkLa = /^    \},\n    "AK": \{[\s\S]+?^  \}/mu.exec(text)?.[0];
+    if (releasedAkLa && createHash('sha256').update(releasedAkLa).digest('hex') === 'c24a52ecfe4ae25f399301a87fc8aea11c1a8a786774e77b5b78a925edfe6f90') {
+      text=replaceUnique(text,releasedAkLa,'    }\n  }',`${name}: exact attested AK/LA lifecycle entries`);
+      text=replaceUnique(text,'    "OK",\n    "AK",\n    "LA"\n  ],\n  "reliabilityPolicy"','    "OK"\n  ],\n  "reliabilityPolicy"',`${name}: exact AK/LA active list tail`);
+    } else {
     const akLaLifecycle=`    },\n    "AK": {\n      "customerLabel": "Alaska",\n      "sourceLabel": "Alaska reviewed exact-store grocery inventory",\n      "publicStatus": "research_only",\n      "lifecycle": "retailer_inventory_research",\n      "coverageTier": "sparse_live_store_inventory",\n      "refinementLevel": "store",\n      "inventoryAlertable": false,\n      "watchAlertable": false,\n      "productionAdapter": "louisiana_alaska_grocery_onsite_v1",\n      "customerSummary": "Inactive Alaska grocery inventory research. Production collection, customer display, alerts, and delivery remain blocked pending admission."\n    },\n    "LA": {\n      "customerLabel": "Louisiana",\n      "sourceLabel": "Louisiana reviewed exact-store grocery inventory",\n      "publicStatus": "research_only",\n      "lifecycle": "retailer_inventory_research",\n      "coverageTier": "sparse_live_store_inventory",\n      "refinementLevel": "store",\n      "inventoryAlertable": false,\n      "watchAlertable": false,\n      "productionAdapter": "louisiana_alaska_grocery_onsite_v1",\n      "customerSummary": "Inactive Louisiana grocery inventory research. Production collection, customer display, alerts, and delivery remain blocked pending admission."\n    }\n  }`;
-    text=replaceUnique(text,akLaLifecycle,'    }\n  }',`${name}: AK/LA inactive lifecycle entries`);
+      text=replaceUnique(text,akLaLifecycle,'    }\n  }',`${name}: AK/LA inactive lifecycle entries`);
+    }
   }
   assert.equal(phoenixIllinoisBaseline.contractVersion,'bourbon-signal/phoenix-illinois-shared-metadata-ms-boundary@1');
   // Reverse only the literal reviewed AZ source addition and IL source/city
