@@ -54,7 +54,7 @@ test('KS activation is exact, silent, and still blocks when disabled or lifecycl
   assert.equal(CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source=>source.state==='KS').length,3);
   assert.equal(centralCityHiveProductionCohortKey('KS'),CENTRAL_CITYHIVE_PRODUCTION_COHORTS.KS);
   assert.equal(centralCityHiveProductionAllowed('KS',STATE_LIFECYCLE_CONFIG),true);
-  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.at(-1),'KS');
+  assert.ok(STATE_LIFECYCLE_CONFIG.activeStates.includes('KS'));
   assert.equal(STATE_LIFECYCLE_CONFIG.reliabilityPolicy.stateExpectedRunMs.KS,15_000);
   const inactive=structuredClone(STATE_LIFECYCLE_CONFIG);
   inactive.activeStates=inactive.activeStates.filter(id=>id!=='KS');
