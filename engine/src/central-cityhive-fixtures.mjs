@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES,parseCentralCityHiveInventory } from './collectors/central-cityhive-expansion.mjs';
+import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
 import { isCentralCityHiveInventory } from './central-cityhive-policy.mjs';
 import { confidenceForSignal } from './confidence-policy.mjs';
 import { bibleLookup,buildDrops,isActiveCustomerStateRow } from './export-site-contract.mjs';
@@ -7,10 +8,20 @@ import { bibleLookup,buildDrops,isActiveCustomerStateRow } from './export-site-c
 export async function executeCentralCityHiveFixtures(payload,{bible}={}){
   const failures=[];
   for(const item of payload.cases||[]){
-    const input=item.input||{},source=CENTRAL_CITYHIVE_EXPANSION_SOURCES.find(source=>source.state===payload.state&&source.id===input.sourceId);
+    const input=item.input||{},source=[...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]
+      .find(source=>source.state===payload.state&&source.id===input.sourceId);
     if(!source){failures.push(`${item.id}: no reviewed source for state and source ID.`);continue;}
-    const fixture=JSON.parse(await readFile(new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url),'utf8'));
-    for(const product of fixture.products||[]){
+    const researchFixture=source.state==='RI'?({
+      'rhode-island-liquor-delivery:64f6226b7537422b95e04824':'eagle-rare-10-year-kentucky-straight-bourbon.json',
+      'fifth-ward-liquor:546babb03932330002100300':'fifth-ward-eagle-rare-10.json',
+      'california-liquors-ri:6114919961187149b8241cdd':'california-liquors-eagle-rare-10.json',
+    }[source.id]):null;
+    const fixturePath=researchFixture
+      ? new URL(`../test/fixtures/ri-cityhive/${researchFixture}`,import.meta.url)
+      : new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url);
+    const fixture=JSON.parse(await readFile(fixturePath,'utf8'));
+    const products=fixture.products|| (fixture.product?[fixture.product]:[]);
+    for(const product of products){
       if(input.rawName)product.name=input.rawName;
       for(const merchant of product.merchants||[]){
         if(input.shippingOnly)merchant.offer_types=['shipping'];
