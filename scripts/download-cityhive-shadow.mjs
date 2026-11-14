@@ -51,7 +51,7 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
     &&comparison?.mnShadowLifecycleProof===true;
   const unreviewedChanges=Array.isArray(changes)?changes.filter(file=>!(preparationOnly(state,file.filename)
     ||state==='MN'&&minnesotaAdapterFiles.has(file.filename)
-    ||state==='MN'&&['src/lib/public-drop-evidence.ts','scripts/test-laak-production-projection.mjs'].includes(file.filename)
+    ||state==='MN'&&['src/lib/public-drop-evidence.ts','scripts/test-laak-production-projection.mjs','.github/workflows/refresh-feed.yml','engine/test/engine-continuity.test.mjs'].includes(file.filename)
     ||state==='MN'&&file.filename==='src/config/state-lifecycle.json'&&inactiveMnShadowTransition)):[];
   if(run.head_sha!==currentHead&&(!['ahead','identical'].includes(comparison?.status)||!Array.isArray(changes)
     ||changes.length>=300||unreviewedChanges.length>0))

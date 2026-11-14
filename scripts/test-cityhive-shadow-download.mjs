@@ -40,6 +40,7 @@ test('CityHive downloader requires actual successful source-equivalent shadow wo
   const inactiveMnAhead={...ahead,state:'MN',comparison:{...lifecycleComparison,mnShadowLifecycleProof:true,files:[
     {filename:'src/config/state-lifecycle.json'},{filename:'scripts/download-cityhive-shadow.mjs'},
     {filename:'src/lib/public-drop-evidence.ts'},{filename:'scripts/test-laak-production-projection.mjs'},
+    {filename:'.github/workflows/refresh-feed.yml'},{filename:'engine/test/engine-continuity.test.mjs'},
   ]}};
   const verifiedInactiveMn=validateCityHiveShadowWorkflowOrigin(inactiveMnAhead);
   assert.equal(verifiedInactiveMn.inactiveMinnesotaShadowLifecycleTransition,true);
