@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "state": "WY",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {"id":"wy-jackson-liquor-positive","kind":"positive_bottle_match","input":{"sourceId":"liquor-store-jackson-hole"},"expected":{"sourceRows":1,"inventoryProofRows":1,"candidateCount":1,"canonicalNames":["Michter's 10 Year Rye"],"customerActive":false}},
+    {"id":"wy-marketplace-positive","kind":"positive_bottle_match","input":{"sourceId":"jackson-hole-marketplace"},"expected":{"sourceRows":1,"inventoryProofRows":1,"candidateCount":1,"canonicalNames":["Michter's 10 Year Rye"],"customerActive":false}},
+    {"id":"wy-albany-positive","kind":"positive_bottle_match","input":{"sourceId":"albany-liquormart"},"expected":{"sourceRows":1,"inventoryProofRows":1,"candidateCount":1,"canonicalNames":["Michter's 10 Year Rye"],"customerActive":false}},
+    {"id":"wy-unidentified-bourbon-rejected","kind":"ordinary_vs_rare_negative","input":{"sourceId":"liquor-store-jackson-hole","rawName":"Unidentified Straight Bourbon 750ml"},"expected":{"sourceRows":0,"candidateCount":0}},
+    {"id":"wy-cream-liqueur-rejected","kind":"rye_cream_liqueur_rtd_exclusion","input":{"sourceId":"liquor-store-jackson-hole","rawName":"Bourbon Cream Liqueur 750ml"},"expected":{"sourceRows":0,"candidateCount":0}},
+    {"id":"wy-miniature-rejected","kind":"size_or_multipack_exclusion","input":{"sourceId":"albany-liquormart","size":50},"expected":{"sourceRows":0,"candidateCount":0}},
+    {"id":"wy-pickup-is-binary","kind":"availability_semantics","input":{"sourceId":"liquor-store-jackson-hole"},"expected":{"quantity":0,"quantityIsExact":false,"semantics":"binary_retailer_orderable_no_exact_count"}},
+    {"id":"wy-wrong-premise-merchant-rejected","kind":"store_identity","input":{"sourceId":"liquor-store-jackson-hole","wrongMerchant":true},"expected":{"sourceRows":0,"candidateCount":0}},
+    {"id":"wy-stale-observation-retained-but-excluded","kind":"timestamp_freshness","input":{"sourceId":"liquor-store-jackson-hole","ageMinutes":300},"expected":{"sourceRows":1,"inventoryProofRows":0,"candidateCount":0,"preservesOriginalTimestamp":true}},
+    {"id":"wy-foreign-host-rejected","kind":"source_specific_sentinel","input":{"sourceId":"liquor-store-jackson-hole","wrongHost":true},"expected":{"sourceRows":0,"candidateCount":0}},
+    {"id":"wy-shadow-never-delivers","kind":"shadow_isolation","input":{"sourceId":"liquor-store-jackson-hole","shadowOnly":true},"expected":{"sourceRows":1,"inventoryProofRows":1,"candidateCount":0,"deliveryEligible":false,"confidenceInventoryAllowed":false}}
+  ]
+}

@@ -19,6 +19,7 @@ const RETAINED_KS_DE_CAPTURES=Object.freeze({
 
 async function fixtureForSource(state,source){
   const retained=RETAINED_KS_DE_CAPTURES[state]?.[source.storeId];
+  if(state==='WY')return JSON.parse(await readFile(new URL('../test/fixtures/central-cityhive/liquorguys-wauwatosa.json',import.meta.url),'utf8'));
   if(!retained)return JSON.parse(await readFile(new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url),'utf8'));
   const html=await readFile(new URL(`../test/fixtures/ks-de-cityhive/${retained}`,import.meta.url),'utf8');
   const embedded=html.match(/<script\b[^>]*type=["']application\/json["'][^>]*>([\s\S]*?)<\/script>/iu);
