@@ -194,6 +194,14 @@ jobs:
           restore-keys: |
             inventory-central-cityhive-incidents-${{ runner.os }}-
 
+      - name: Restore South Dakota pickup incident journal independently of publication
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/south-dakota
+          key: inventory-south-dakota-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-south-dakota-incidents-${{ runner.os }}-
+
       - name: Restore Minnesota CityHive rotation cursor independently
         uses: actions/cache/restore@v4
         with:
@@ -573,6 +581,11 @@ jobs:
         working-directory: engine
         run: node src/verify-ar-first-publication.mjs
 
+      - name: Verify the first South Dakota production publication before release
+        if: ${{ startsWith(inputs.incident_key, 'south-dakota-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-sd-first-publication.mjs
+
       - name: Audit every scarce library bottle across all states
         working-directory: engine
         run: node src/library-coverage-audit.mjs
@@ -725,6 +738,13 @@ jobs:
           path: engine/out/source-incidents/central-cityhive
           key: inventory-central-cityhive-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
+      - name: Save South Dakota pickup incident journal on every attempt
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/source-incidents/south-dakota
+          key: inventory-south-dakota-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
       - name: Save Minnesota CityHive rotation cursor independently of publication
         if: always()
         uses: actions/cache/save@v4
@@ -801,6 +821,9 @@ jobs:
             engine/out/states/AR.json
             engine/out/site/states/AR/drops.json
             engine/out/first-publication/AR.json
+            engine/out/states/SD.json
+            engine/out/site/states/SD/drops.json
+            engine/out/first-publication/SD.json
             engine/out/verification/library-coverage.json
             engine/out/verification/library-coverage.md
             engine/out/verification/production-engine-verification.log

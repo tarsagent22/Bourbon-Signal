@@ -16,6 +16,7 @@ import { COLORADO_RETAILER_SOURCES, NEW_YORK_RETAILER_SOURCES } from './collecto
 import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
 import { CENTRAL_CITYHIVE_STATE_CONFIGS } from './central-cityhive-state-config.mjs';
 import { MINNESOTA_CITYHIVE_PRODUCTION_CONFIG } from './minnesota-cityhive-production-config.mjs';
+import { origin as SD_MR_LIQUOR_ORIGIN, batchPath as SD_MR_LIQUOR_PATH } from './south-dakota-pickup-policy.mjs';
 
 const GEORGIA_RETAILER_SOURCES = [
   ...GEORGIA_CITYHIVE_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
@@ -453,6 +454,12 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   ...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id==='MO'),
+  {
+    id: 'SD', label: 'South Dakota first-party pickup inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30m',
+    value: 'Research-bounded exact Mr. Liquor Santé pickup at two reviewed Rapid City premises; statewide coverage is not established.',
+    sources: [{ kind: 'api', url: SD_MR_LIQUOR_ORIGIN + SD_MR_LIQUOR_PATH, label: 'Mr. Liquor Rapid City first-party pickup', precisionOnly: true }],
+    apiCandidates: []
+  },
   {
     id: 'NV', label: 'Nevada first-party retailer inventory and Costco watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
     value: 'Exact-store first-party pickup/orderability from Liquor World, Liquor Box, Albertsons, Vons, and Safeway across Las Vegas Valley and Reno–Sparks. Binary availability remains distinct from exact quantity; Costco stays a separate warehouse watch lane.',

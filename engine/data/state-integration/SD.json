@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "state": "SD",
+  "sourceLabel": "South Dakota Mr. Liquor pickup inventory",
+  "lifecycle": {
+    "publicStatus": "research_only",
+    "refinementLevel": "store",
+    "coverageTier": "sparse_live_store_inventory"
+  },
+  "collector": {
+    "sourceIds": ["sd:mr-liquor-sante"],
+    "cohortSha256": "58126b3ed90799fe6e8f45f254bbc85fcb5404a2f79c1c03c4bdf1db27bdbf11",
+    "sourceConfigHash": "962136ef78a73eb6959a5e84e8c226c7970f21e329004cff94622a9058e61e21"
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_store_pickup",
+    "expectedKnownStores": 2,
+    "storeIds": ["sante:sd:mr-liquor:5187", "sante:sd:mr-liquor:5220"],
+    "quantitySemantics": "binary_retailer_orderable_no_exact_count"
+  },
+  "sourceSemantics": {
+    "inventoryAlertable": false,
+    "watchAlertable": false,
+    "deliveryEnabled": false,
+    "quantitySemantics": "binary_retailer_orderable_no_exact_count",
+    "geographicScope": ["Rapid City"]
+  },
+  "customerPaths": {
+    "storePrecision": true,
+    "inventoryAlerts": false,
+    "watchAlerts": false,
+    "delivery": false
+  },
+  "evidence": {
+    "status": "dormant_research_candidate",
+    "shadowObservations": [
+      {
+        "runId": "43622872651",
+        "commitSha": "2810e125021ce0b400c8940d4f78b414ac087d23",
+        "observedAt": "2026-11-14T17:46:30.625Z",
+        "reportSha256": "de247b8993528261ce23e0edd1a11fefb6ccaa7ffc35a7d7f4defc4361e9f73c",
+        "positiveRows": 3
+      },
+      {
+        "runId": "43643508900",
+        "commitSha": "8ef80bb81d53eb43be52910769af486b13537239",
+        "observedAt": "2026-11-14T21:34:33.792Z",
+        "reportSha256": "a411637098127bcbd525e65d8e84c83fda26c36251f91a7ac2b73f27db36428b",
+        "positiveRows": 3
+      }
+    ],
+    "lastFreshShadowRunId": "43643508900",
+    "lastFreshShadowObservedAt": "2026-11-14T21:34:33.792Z",
+    "verifiedPremiseCount": 2,
+    "verifiedCityCount": 1,
+    "positiveRows": 3,
+    "firstPublicationRequired": true
+  }
+}

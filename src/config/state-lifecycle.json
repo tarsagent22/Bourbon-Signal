@@ -1235,6 +1235,17 @@
         }
       }
     },
+    "SD": {
+      "customerLabel": "South Dakota",
+      "sourceLabel": "South Dakota Mr. Liquor pickup inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false
+    },
     "MO": {
       "customerLabel": "Missouri",
       "sourceLabel": "Missouri reviewed CityHive pickup inventory",

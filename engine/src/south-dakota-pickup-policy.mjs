@@ -19,6 +19,7 @@ export const silent = Object.freeze({
 export const city = 'Rapid City';
 export const storeId = source => `sante:sd:mr-liquor:${source.id}`;
 export const sourceId = source => `research:sd:mr-liquor:${source.id}`;
+export const southDakotaProductionRuntimeId = 'sd:mr-liquor-sante';
 export const fullAddress = source => `${source.address}, ${city}, SD ${source.zip}`;
 
 export function southDakotaRetailerRequest(term) {
