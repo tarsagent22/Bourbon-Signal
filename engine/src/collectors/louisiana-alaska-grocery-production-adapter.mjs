@@ -16,6 +16,7 @@ import { STATE_LIFECYCLE_CONFIG } from '../state-lifecycle.mjs';
 import { evaluateStateControl, validateImmutablePromotionEvidence } from '../reliability-policy.mjs';
 import { collectionSignal } from '../core/collection-context.mjs';
 import { createSourceAdapter } from '../sources/source-adapter.mjs';
+import { SourceAdapterError } from '../sources/source-error.mjs';
 import { runSourceAdapters } from '../sources/source-runner.mjs';
 import { summarizeSourceResult } from '../sources/source-result.mjs';
 import {
@@ -34,7 +35,7 @@ const DAY_MS = 86_400_000;
 const DENIED = new Set([401, 403, 429, 435]);
 const manifests={AK:akManifest,LA:laManifest};
 
-function fail(message) { throw new Error(`Louisiana/Alaska production profile rejected: ${message}`); }
+function fail(message, details) { throw new SourceAdapterError(`Louisiana/Alaska production profile rejected: ${message}`, { details }); }
 function unique(values) { return [...new Set(values)]; }
 function sorted(values) { return [...values].sort(); }
 
@@ -80,7 +81,14 @@ export function validateLouisianaAlaskaProductionResult(state, bible, result) {
     && Array.isArray(metadata.unconfirmedNegativeQueries) && metadata.unconfirmedNegativeQueries.length === 0;
   const positiveEvidenceOnly = !closedProfile && hasLouisianaAlaskaPositiveEvidenceOnly(metadata, result.signals, state);
   if (!closedProfile && !positiveEvidenceOnly) {
-    fail('the complete closed positive and negative query profile is required');
+    fail('the reviewed query profile did not verify exact inventory', {
+      requestProfileComplete: metadata.requestProfileComplete === true,
+      negativeComplete: metadata.negativeComplete === true,
+      unconfirmedNegativeQueries: Number(metadata.unconfirmedNegativeQueryCount) || 0,
+      candidateRows: result.signals.length,
+      reviewedRequests: Array.isArray(metadata.requests) ? metadata.requests.length : 0,
+      sourceResponseStatuses: Array.isArray(metadata.requests) ? unique(metadata.requests.map(request => request?.status)) : [],
+    });
   }
   if (metadata.maxRequestCount !== budget.maxRequests || !Array.isArray(metadata.requests)
     || metadata.requests.length !== budget.maxRequests) fail('request count does not match the reviewed closed profile');
