@@ -65,6 +65,7 @@ export async function collectMassachusettsJulios(config, bible, {
         });
       }
     } catch (failure) {
+      if (Number.isInteger(Number(failure?.status))) status = Number(failure.status);
       error = /^(source_http_\d{3}|missing_body|source_size_limit)$/.test(failure.message)
         ? failure.message : 'public_source_request_or_parse_failed';
       roadblocks.push({ state: 'MA', source: "Julio's Liquors public pickup", sourceRuntimeId: sourceId,

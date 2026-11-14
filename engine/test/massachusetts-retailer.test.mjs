@@ -109,6 +109,7 @@ test('a failed sibling request remains visible and cannot produce complete shado
     fetchImpl: async () => ++count === 1 ? new Response(fixture()) : new Response('Forbidden', { status: 403 }) });
   assert.equal(result.signals.length, 1);
   assert.equal(result.roadblocks[0].error, 'source_http_403');
+  assert.equal(result.sourceReports[1].status, 403);
   assert.equal(result.sourceReports[1].ok, false);
   const evidence = buildShadowEvidence('MA', { state: 'MA', strategy: 'retailer_store_inventory', status: 'useful',
     startedAt, finishedAt: new Date().toISOString(), ...result, sources: result.sourceReports });

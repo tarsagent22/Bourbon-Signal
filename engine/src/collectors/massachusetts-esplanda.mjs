@@ -207,6 +207,7 @@ export async function collectMassachusettsEsplanda(config, bible, {
         throw new Error('untrusted_product_or_store_binding');
       }
     } catch (failure) {
+      if (Number.isInteger(Number(failure?.status))) status = Number(failure.status);
       error = /^(source_http_\d{3}|source_page_binding_failed|missing_source_date|missing_body|source_size_limit|untrusted_product_or_store_binding)$/.test(failure.message)
         ? failure.message : 'public_source_request_or_parse_failed';
       roadblocks.push({ state: 'MA', source: source.storeName, sourceRuntimeId, url: source.requestUrl,
