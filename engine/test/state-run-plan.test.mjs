@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { updateStateRunMetric, selectScheduledStates, inventoryStateCadenceMs } from '../src/optimization/state-run-plan.mjs';
+import { updateStateRunMetric, selectScheduledStates, inventoryStateCadenceMs, prioritizeScheduledStateRuns } from '../src/optimization/state-run-plan.mjs';
 import { legacyPrecisionRuntimeOptions } from '../src/collectors/precision-probes.mjs';
 
 test('all inventory states stay due at the collection cadence even after unchanged or failed passes', () => {
@@ -50,4 +50,20 @@ test('state runtime metrics prefer the current worker attempt envelope over reta
   assert.equal(metrics.PA.lastRuntimeMs, 60_000);
   assert.equal(metrics.PA.totalRuntimeMs, 60_000);
   assert.equal(metrics.PA.failures, 1);
+});
+
+test('scheduled collection gives recent successful long-running states an earlier worker slot', () => {
+  const states = ['OH', 'AZ', 'SC', 'IL', 'CA', 'VA', 'AK'].map(id => ({ id }));
+  const success = { consecutiveFailures: 0, lastProbeAt: '2026-11-14T10:58:00Z' };
+  const metrics = {
+    AZ: { ...success, lastRuntimeMs: 1_100_000 },
+    SC: { ...success, lastRuntimeMs: 1_900_000, consecutiveFailures: 1 },
+    IL: { ...success, lastRuntimeMs: 1_600_000 },
+    CA: { ...success, lastRuntimeMs: 1_100_000 },
+    VA: { ...success, lastRuntimeMs: 1_800_000, lastProbeAt: '2026-11-14T01:10:00Z' },
+    AK: { ...success, lastRuntimeMs: 300_000, lastProbeAt: '2026-11-14T12:10:00Z' },
+  };
+  assert.deepEqual(prioritizeScheduledStateRuns(states, metrics, Date.parse('2026-11-14T11:00:00Z')).map(({ id }) => id),
+    ['IL', 'AZ', 'CA', 'OH', 'SC', 'VA', 'AK']);
+  assert.deepEqual(states.map(({ id }) => id), ['OH', 'AZ', 'SC', 'IL', 'CA', 'VA', 'AK']);
 });

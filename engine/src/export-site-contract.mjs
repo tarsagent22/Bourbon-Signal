@@ -1115,12 +1115,27 @@ function buildBottles(signals, bible, bibleRecords = []) {
 export function buildStores(signals) {
   const storeSignals = signals.filter((s) => s.locationProjectionDisabled !== true && s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
   const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal) || isReviewedResearchGrocery(signal)||isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal)));
-  const sameStore = (left, right) => {
-    if (left.storeId && right.storeId) return String(left.storeId) === String(right.storeId);
-    return left.state === right.state
-      && (left.storeName || left.locationName) === (right.storeName || right.locationName)
-      && (left.storeAddress || '') === (right.storeAddress || '');
+  const fallbackStoreKey = (signal) => JSON.stringify([
+    [typeof signal.state, signal.state],
+    [typeof (signal.storeName || signal.locationName), signal.storeName || signal.locationName],
+    [typeof (signal.storeAddress || ''), signal.storeAddress || ''],
+  ]);
+  const inventoryById = new Map();
+  const inventoryByFallback = new Map();
+  const inventoryWithoutIdByFallback = new Map();
+  const addToIndex = (index, key, signal) => {
+    const rows = index.get(key);
+    if (rows) rows.push(signal);
+    else index.set(key, [signal]);
   };
+  for (const signal of inventorySignals) {
+    addToIndex(inventoryByFallback, fallbackStoreKey(signal), signal);
+    if (signal.storeId) {
+      addToIndex(inventoryById, String(signal.storeId), signal);
+    } else {
+      addToIndex(inventoryWithoutIdByFallback, fallbackStoreKey(signal), signal);
+    }
+  }
   const configuredStores = registeredDemandMetroStores().map((store) => ({
     id: store.storeId,
     sourceStoreId: store.storeId,
@@ -1141,8 +1156,10 @@ export function buildStores(signals) {
     sourceAvailabilityVerified: false,
   }));
   const signalStores = storeSignals.map((s) => {
-    const matchingInventorySignals = inventorySignals.filter((candidate) => sameStore(candidate, s));
-    const signalCount = matchingInventorySignals.length;
+    const fallbackKey = fallbackStoreKey(s);
+    const signalCount = s.storeId
+      ? (inventoryById.get(String(s.storeId))?.length || 0) + (inventoryWithoutIdByFallback.get(fallbackKey)?.length || 0)
+      : (inventoryByFallback.get(fallbackKey)?.length || 0);
     const directoryOnly = String(s.eventType || s.type || '') === 'retailer_store_location'
       || s.raw?.configuredStoreIdentity === true;
     return {
@@ -2324,7 +2341,7 @@ export function buildRegionalWatchAlertsFromDrops(drops) {
     }));
 }
 
-function buildHistoricalTrends(historicalSignals, currentSignals, bible) {
+export function buildHistoricalTrends(historicalSignals, currentSignals, bible) {
   const byKey = new Map();
   for (const signal of historicalSignals || []) {
     if (signal?.archivedSourceAlertBlocked === true || signal?.raw?.archivedSourceAlertBlocked === true) continue;
@@ -2357,14 +2374,16 @@ function buildHistoricalTrends(historicalSignals, currentSignals, bible) {
   }
   return [...byKey.values()]
     .filter((trend) => trend.inventoryObservations + trend.watchObservations >= 2 || trend.positiveQuantities >= 2)
+    .sort((a, b) => b.positiveQuantities - a.positiveQuantities
+      || (b.inventoryObservations + b.watchObservations) - (a.inventoryObservations + a.watchObservations)
+      || String(b.lastObservedAt || '').localeCompare(String(a.lastObservedAt || '')))
+    .slice(0, 100)
     .map((trend) => ({
       ...trend,
       observationCount: trend.inventoryObservations + trend.watchObservations,
       current: (currentSignals || []).some((signal) => signal.state === trend.state && (signal.canonicalName === trend.bottleName || signal.rawName === trend.bottleName) && (signal.storeName || signal.locationName || signal.sourceLabel) === trend.source),
-      trendLabel: trend.inventoryObservations >= 2 ? 'repeated_inventory_or_shipment_signal' : 'repeated_release_watch_signal'
-    }))
-    .sort((a, b) => b.positiveQuantities - a.positiveQuantities || b.observationCount - a.observationCount || String(b.lastObservedAt || '').localeCompare(String(a.lastObservedAt || '')))
-    .slice(0, 100);
+      trendLabel: trend.inventoryObservations >= 2 ? 'repeated_inventory_or_shipment_signal' : 'repeated_release_watch_signal',
+    }));
 }
 
 function stateCoverageTier(state) {

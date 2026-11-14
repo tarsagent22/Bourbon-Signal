@@ -30,6 +30,21 @@ export function selectScheduledStates(configs, metrics = {}, options = {}) {
   });
 }
 
+export function prioritizeScheduledStateRuns(configs, metrics, nowMs) {
+  const maximumMetricAgeMs = 6 * 60 * 60_000;
+  const measuredRuntime = ({ id }) => {
+    const metric = metrics[id];
+    const age = nowMs - Date.parse(metric?.lastProbeAt || '');
+    const elapsed = metric?.lastRuntimeMs;
+    return age >= 0 && age <= maximumMetricAgeMs
+      && metric.consecutiveFailures === 0 && Number.isFinite(elapsed) && elapsed > 0
+      ? elapsed : 0;
+  };
+  return configs.map(config => ({ config, runtime: measuredRuntime(config) }))
+    .sort((left, right) => right.runtime - left.runtime)
+    .map(({ config }) => config);
+}
+
 export function updateStateRunMetric(metrics = {}, result) {
   const previous = metrics[result.id] || {};
   const changed = Boolean(result.ok) && result.contentHash !== previous.contentHash;
