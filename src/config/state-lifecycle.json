@@ -1618,6 +1618,30 @@
       "inventoryAlertable": false,
       "watchAlertable": false,
       "customerSummary": "Inactive research at 4 reviewed New Jersey stores; production coverage and all alerts remain blocked pending promotion."
+    },
+    "AK": {
+      "customerLabel": "Alaska",
+      "sourceLabel": "Alaska reviewed exact-store grocery inventory",
+      "publicStatus": "research_only",
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "productionAdapter": "louisiana_alaska_grocery_onsite_v1",
+      "customerSummary": "Inactive Alaska grocery inventory research. Production collection, customer display, alerts, and delivery remain blocked pending admission."
+    },
+    "LA": {
+      "customerLabel": "Louisiana",
+      "sourceLabel": "Louisiana reviewed exact-store grocery inventory",
+      "publicStatus": "research_only",
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "productionAdapter": "louisiana_alaska_grocery_onsite_v1",
+      "customerSummary": "Inactive Louisiana grocery inventory research. Production collection, customer display, alerts, and delivery remain blocked pending admission."
     }
   }
 }
