@@ -160,7 +160,12 @@ export function parseCityHiveProducts(html, candidateSource, {
       ];
       for (const merchant of merchants) {
         const parentId = merchantId(merchant);
-        if (parentId !== source.merchantId || !exactPremises(entityAddress(merchant), source)) continue;
+        const merchantAddress=entityAddress(merchant);
+        // These RI product detail captures omit the duplicate address on the
+        // offer merchant; allow only that source shape when its exact merchant
+        // configuration has already passed address/coordinate verification.
+        const merchantPremisesVerified=merchantAddress?exactPremises(merchantAddress,source):source.state==='RI'&&exactConfig;
+        if (parentId !== source.merchantId || !merchantPremisesVerified) continue;
         const options = [
           ...(Array.isArray(merchant.product_options) ? merchant.product_options : []),
           ...(Array.isArray(merchant.productOptions) ? merchant.productOptions : []),
@@ -169,7 +174,9 @@ export function parseCityHiveProducts(html, candidateSource, {
         for (const option of options) {
           if (!isAllowedOption(option, product)) continue;
           const optionMerchantId = String(option.merchant_id || option.merchantId || parentId);
-          if (optionMerchantId !== source.merchantId || !exactPremises(entityAddress(option), source)) continue;
+          const optionAddress=entityAddress(option);
+          const optionPremisesVerified=optionAddress?exactPremises(optionAddress,source):source.state==='RI'&&Boolean(merchantAddress&&exactPremises(merchantAddress,source));
+          if (optionMerchantId !== source.merchantId || !optionPremisesVerified) continue;
           if (!pickup(merchant.offer_types, merchant.offerTypes, merchant.fulfillment, option.offer_types, option.offerTypes, option.fulfillment)) continue;
           const reportedQuantity = Number(option.quantity);
           if (!Number.isInteger(reportedQuantity) || reportedQuantity <= 0) continue;
