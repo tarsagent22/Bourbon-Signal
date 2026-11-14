@@ -1,6 +1,8 @@
 export const MAX_CONTEXT_DROP_ROWS = 10_000;
-// Keep the snapshot reader's existing64MiB plaintext bound, with wrapper room.
+// The customer drops payload is minified at write time. Reserve wrapper room
+// within the 60 MiB payload target; the snapshot reader still caps at 64 MiB.
 export const MAX_CUSTOMER_DROP_BYTES = 60 * 1024 * 1024;
+export const MAX_CUSTOMER_DROP_CONTENT_BYTES = MAX_CUSTOMER_DROP_BYTES - 4 * 1024;
 const stateOf = row => String(row?.state || row?.state_code || '').toUpperCase();
 const LEGACY_NULL_FIELDS = new Set(['eventAt','eventDate','releaseDate','staleSourceCaveat']);
 
@@ -12,11 +14,19 @@ export function compactCustomerDrop(row) {
   return Object.fromEntries(Object.entries(row).filter(([key, value]) => value !== null || LEGACY_NULL_FIELDS.has(key)));
 }
 
+export function serializeCustomerDropPayload(payload) {
+  const serialized = JSON.stringify(payload);
+  if (Buffer.byteLength(serialized) > MAX_CUSTOMER_DROP_BYTES) {
+    throw new Error('Serialized customer drops payload exceeds the 60 MiB file budget.');
+  }
+  return serialized;
+}
+
 /** Never truncate current evidence or a complete retained partition for history.
  * The caller supplies already-admitted rows. Optional context is bounded;
  * required evidence exceeding the byte budget fails the export explicitly. */
 export function selectFleetDropBudget(rows, { isRequired = () => true,
-  maxContextRows = MAX_CONTEXT_DROP_ROWS, maxBytes = MAX_CUSTOMER_DROP_BYTES } = {}) {
+  maxContextRows = MAX_CONTEXT_DROP_ROWS, maxBytes = MAX_CUSTOMER_DROP_CONTENT_BYTES } = {}) {
   if (!Number.isSafeInteger(maxContextRows) || maxContextRows < 0 || !Number.isSafeInteger(maxBytes) || maxBytes < 2) throw new Error('Invalid customer drop budget');
   const selected = new Set(), optional = new Map();
   let bytes = 2;

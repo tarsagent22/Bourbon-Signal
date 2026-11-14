@@ -1,22 +1,11 @@
 import { isGroceryExpansionInventory } from '../../engine/src/grocery-xapi-policy.mjs';
 import { isLouisianaAlaskaGroceryCanaryPreview } from '../../engine/src/laak-canary-preview-policy.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal } from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
-import { dropFreshnessTime } from "./drop-feed-policy.ts";
+import { currentInventoryMaxAgeMs, customerDropTimestamp, inventoryConfirmationTimestamp, publicDropMaxAgeMs } from '../../engine/src/customer-drop-freshness.mjs';
 import { isUserFacingDropSignal } from "./drop-feed-visibility.ts";
 import { resolveDropQuantitySemantics } from "./drop-quantity-semantics.ts";
 import { isArizonaRetailerInventory } from "../../engine/src/arizona-retailer-policy.mjs";
 
-const HOUR_MS = 60 * 60 * 1000;
-const DAY_MS = 24 * HOUR_MS;
-const MAX_INVENTORY_DROP_AGE_MS = 72 * HOUR_MS;
-// Retention keeps useful history; current inventory follows the engine's
-// two-hour confirmation policy. Publication never extends this clock.
-const CURRENT_INVENTORY_AGE_MS = 2 * HOUR_MS;
-const OREGON_DAILY_INVENTORY_SOURCE = "https://www.olcc.state.or.us/pdfs/DailyStoreInventory.csv";
-const OREGON_CANARY_INVENTORY_AGE_MS = 48 * HOUR_MS;
-const MAX_OH_STALE_FEED_AGE_MS = 14 * DAY_MS;
-const MAX_DELIVERY_DROP_AGE_MS = 14 * DAY_MS;
-const MAX_CONTEXT_DROP_AGE_MS = 30 * DAY_MS;
 const FUTURE_CLOCK_SKEW_MS = 15 * 60 * 1000;
 const DROP_FEED_TIERS = new Set(["unicorn", "highly_allocated", "allocated", "limited"]);
 
@@ -580,18 +569,7 @@ function componentize(nodes: readonly ExactStoreNode[]) {
 }
 
 function maxAgeForPublicDrop(drop: PublicDropEvidenceInput) {
-  const type = text(drop.event_type ?? drop.type, 120).toLowerCase();
-  const category = text(drop.signal_category ?? drop.signalCategory, 120).toLowerCase();
-  const scope = text(drop.availability_scope ?? drop.availabilityScope, 120).toLowerCase();
-  const precision = text(drop.location_precision ?? drop.locationPrecision, 120).toLowerCase();
-  const canAlert = drop.can_alert_as_inventory === true || drop.canAlertAsInventory === true;
-
-  if (stateCode(drop) === "OH" && sourceStale(drop)) return MAX_OH_STALE_FEED_AGE_MS;
-  if (category === "delivery" || /shipment|delivery|allocation_snapshot/.test(type)) return MAX_DELIVERY_DROP_AGE_MS;
-  if (canAlert || category === "inventory" || scope === "store_reported" || precision === "store_level" || type.includes("in_stock") || type.includes("inventory_result")) {
-    return MAX_INVENTORY_DROP_AGE_MS;
-  }
-  return MAX_CONTEXT_DROP_AGE_MS;
+  return publicDropMaxAgeMs(drop);
 }
 
 function asTimestamp(value: string | number | Date | undefined) {
@@ -612,7 +590,7 @@ export function publicDropFreshnessWindow(input: PublicDropEvidenceInput) {
       : Date.parse(String(drop.expiresAt ?? ""));
     return { startsAt: Number.NEGATIVE_INFINITY, endsAt: end, inclusiveEnd: false };
   }
-  const timestamp = dropFreshnessTime(drop);
+  const timestamp = customerDropTimestamp(drop);
   return { startsAt: timestamp - FUTURE_CLOCK_SKEW_MS, endsAt: timestamp + maxAgeForPublicDrop(drop), inclusiveEnd: true };
 }
 
@@ -628,19 +606,9 @@ export function isCurrentInventoryEvidence(input: PublicDropEvidenceInput, asOf?
   if (sourceStale(drop) || !isFreshPublicDrop(drop, asOf)) return false;
   // Ohio's existing presentation policy is outside this recovery's scope.
   if (stateCode(drop) === "OH" || isVerifiedRetailerDrop(drop)) return true;
-  const confirmed = drop.lastConfirmedAt ?? drop.last_confirmed_at ?? drop.inventoryCheckedAt
-    ?? drop.observedAt ?? drop.observed_at;
-  const timestamp = typeof confirmed === "string" ? Date.parse(confirmed) : Number.NaN;
+  const timestamp = inventoryConfirmationTimestamp(drop);
   const age = asTimestamp(asOf) - timestamp;
-  const binding = drop.sourceProductBinding;
-  const exactTexasPickup = stateCode(drop) === "TX" && binding && typeof binding === "object"
-    && (binding as Record<string, unknown>).source === "texas-shopify-pickup";
-  const exactOregonCanary = stateCode(drop) === "OR" && drop.previewOnly === true
-    && drop.sourceUrl === OREGON_DAILY_INVENTORY_SOURCE && drop.sourceAvailabilityVerified === true
-    && drop.canAlertAsInventory === false && drop.canAlertAsWatch === false
-    && drop.locationPrecision === "store_level" && Boolean(drop.storeId && drop.storeAddress && drop.canonicalBottleId)
-    && Number.isSafeInteger(drop.quantity) && Number(drop.quantity) > 0;
-  const maxAge = exactTexasPickup ? HOUR_MS : exactOregonCanary ? OREGON_CANARY_INVENTORY_AGE_MS : CURRENT_INVENTORY_AGE_MS;
+  const maxAge = currentInventoryMaxAgeMs(drop);
   return Number.isFinite(age) && age >= -FUTURE_CLOCK_SKEW_MS && age <= maxAge;
 }
 
