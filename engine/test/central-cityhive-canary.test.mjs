@@ -110,7 +110,7 @@ async function makePerStoreReport(state,directory){
   return{sources,report,at};
 }
 
-for(const state of ['MN','MO','MA'])test(`${state} per-store CityHive artifacts replay only complete exact-premise raw source receipts`,async t=>{
+for(const state of ['MN','MO','MA','WY'])test(`${state} per-store CityHive artifacts replay only complete exact-premise raw source receipts`,async t=>{
   const directory=await mkdtemp(path.join(tmpdir(),`cityhive-${state.toLowerCase()}-canary-`));
   t.after(()=>rm(directory,{recursive:true,force:true}));
   const {sources,report}=await makePerStoreReport(state,directory);
