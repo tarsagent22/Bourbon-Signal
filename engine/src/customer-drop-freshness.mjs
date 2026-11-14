@@ -1,3 +1,5 @@
+import { isOregonDailyProductionEvidence } from './collectors/oregon-daily-production.mjs';
+
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
@@ -66,6 +68,7 @@ export function currentInventoryMaxAgeMs(drop = {}) {
     && drop.canAlertAsInventory === false && drop.canAlertAsWatch === false
     && drop.locationPrecision === 'store_level' && Boolean(drop.storeId && drop.storeAddress && drop.canonicalBottleId)
     && Number.isSafeInteger(drop.quantity) && Number(drop.quantity) > 0) return OREGON_CANARY_INVENTORY_AGE_MS;
+  if (state === 'OR' && isOregonDailyProductionEvidence(drop)) return OREGON_CANARY_INVENTORY_AGE_MS;
   return CURRENT_INVENTORY_AGE_MS;
 }
 

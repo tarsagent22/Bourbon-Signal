@@ -1,0 +1,30 @@
+{
+  "provenance": {
+    "workflowRunId": "43570640561",
+    "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43570640561",
+    "headSha": "f077471df1646c99339296a52b4cc17dab73c7f3",
+    "sourceReportDate": "11/13/2026",
+    "sourceReportGeneratedAt": "2026-11-14T06:17:18.980Z",
+    "sourceReportSha256": "7f3358819f99f036fb3b7594a25f0c0ec331588d680aa16773d71f4084bd6775",
+    "canaryGeneratedAt": "2026-11-14T07:09:12.480Z",
+    "store1001ShadowSignalId": "561d9753e0ebe0a0"
+  },
+  "product": {
+    "itemCode": "2170B",
+    "newItemCode": "99900217075",
+    "canonicalBottleId": "bb_5afa9241206ab963",
+    "canonicalName": "Blanton's Original Single Barrel",
+    "name": "BLANTON'S SINGLE BARREL BB",
+    "identityCandidate": "Blanton's Single Barrel",
+    "identityMatchMethod": "exact-library-identity",
+    "rarityTier": "allocated",
+    "size": "750 ML",
+    "proof": 93,
+    "bottlePrice": 82.95
+  },
+  "stores": [
+    { "storeNo": "1001", "storeName": "Condon", "address": "225 S Main Street", "city": "Condon", "zip": "97823", "quantity": 3, "inventoryDate": "11/12", "inventoryObservedAt": "2026-11-12T08:00:00.000Z" },
+    { "storeNo": "1003", "storeName": "Prineville", "address": "555 NE Main St", "city": "Prineville", "zip": "97754", "quantity": 12, "inventoryDate": "11/12", "inventoryObservedAt": "2026-11-12T08:00:00.000Z" },
+    { "storeNo": "1004", "storeName": "Redmond South", "address": "1705 Odem Medo Rd", "city": "Redmond", "zip": "97756", "quantity": 2, "inventoryDate": "11/12", "inventoryObservedAt": "2026-11-12T08:00:00.000Z" }
+  ]
+}
