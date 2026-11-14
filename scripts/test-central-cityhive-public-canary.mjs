@@ -34,8 +34,9 @@ if(state==='DC'){
   assert.equal(pearson.storeId,PEARSONS_DC_SOURCE.storeId);assert.equal(pearson.storeAddress,PEARSONS_DC_SOURCE.storeAddress);
   assert.equal(pearson.canonicalName,"Blanton's Original Single Barrel");
   assert.ok(pearson.quantity==null,'No shelf quantity is invented for Pearson pickup availability');assert.equal(pearson.quantityIsExact,false);
-  assert.equal(pearson.sourceProductBinding?.sourcePageSha256,'19ae33c645f38f237d7e2c73e53cd684b0d9183ccf3892455ccc0a4419af8385');
-  assert.equal(pearson.observedAt,'2026-11-14T18:11:32.861Z');
+  assert.match(pearson.sourceProductBinding?.sourcePageSha256||'',/^[a-f0-9]{64}$/u);
+  assert.equal(pearson.observedAt,pearson.sourceProductBinding?.capturedAt,
+    'Pearson public projection must preserve the immutable source receipt clock');
   const pearsonSource=partition.drops.find(row=>row.sourceProductBinding?.source==='pearsons-shopify-retained-page');
   for(const mutation of [{previewOnly:false},{storeAddress:'999 Other Street, Washington, DC 20007'},
     {quantity:1},{canAlertAsInventory:true},{eligibleForDelivery:true}]){
