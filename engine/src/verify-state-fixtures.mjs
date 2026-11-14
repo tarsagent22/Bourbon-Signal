@@ -21,6 +21,7 @@ import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-
 import { buildMississippiRetailerSignal } from './collectors/mississippi-retailer-collector.mjs';
 import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
 import {executeOregonResearchFixtures} from './oregon-research-fixtures.mjs';
+import { OREGON_DAILY_INVENTORY_URL } from './or-daily-inventory.mjs';
 import {
   enrichWestVirginiaBarrelSelections,
   parseWestVirginiaBarrelSelections,
@@ -483,7 +484,10 @@ function sameValue(left, right) { return JSON.stringify(left) === JSON.stringify
 export async function executeStateFixtures(payload, { bibleFile = path.resolve('out/bourbon-bible.json'), candidateActive = false } = {}) {
   const failures = [];
   const bible = await BourbonBible.load(bibleFile);
-  if(payload.state==='OR')return executeOregonResearchFixtures(payload,{bible,registeredHosts:registeredHostsForState('OR')});
+  if (payload.state === 'OR') {
+    const registeredHosts = new Set([new URL(OREGON_DAILY_INVENTORY_URL).hostname]);
+    return executeOregonResearchFixtures(payload, { bible, registeredHosts });
+  }
   if(['NJ','MI'].includes(payload.state))return executeNjMiResearchFixtures(payload,{bible});
   if (payload.state === 'MA') return executeMassachusettsResearchFixtures(payload, { bible });
   if(['WA','NM'].includes(payload.state))return executeGroceryResearchFixtures(payload,{bible});
