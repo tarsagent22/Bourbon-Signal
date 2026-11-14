@@ -1061,7 +1061,8 @@ function buildState(args: {
   const countyEntry = secondaryKey ? args.lifecycle.states[secondaryKey] : undefined;
   const countyRow = secondaryKey ? rowFor(secondaryKey) : undefined;
   const useCountyFallback = Boolean(secondaryKey && countyRow?.publicStatus === "active" && !rowSourceIsBlocked(countyRow)
-    && !stateSourceIsBlocked(secondaryKey, args.degradedStates) && (primaryBlocked || primaryRow?.publicStatus !== "active"));
+    && !stateSourceIsBlocked(secondaryKey, args.degradedStates)
+    && (primaryBlocked || primaryRow?.publicStatus !== "active" || primaryRow.status === "ci_not_collected"));
   const internalStateKey = useCountyFallback ? secondaryKey : primaryKey;
   const lifecycleEntry = args.lifecycle.states[internalStateKey];
   const row = useCountyFallback ? countyRow : primaryRow;
