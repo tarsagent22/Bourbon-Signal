@@ -22,7 +22,7 @@
   "lifecycle": {
     "refinementLevel": "store",
     "publicStatus": "active",
-    "coverageTier": "live_store_inventory",
+    "coverageTier": "sparse_live_store_inventory",
     "customerLabel": "Connecticut"
   },
   "storeIdentity": {
