@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { stableId } from './core/text.mjs';
 import { parseBoundGroceryXapiInventory } from './collectors/grocery-xapi-identity.mjs';
@@ -46,7 +46,7 @@ function matchesLocator(text, store) {
     && text.includes(`"geocodedCoordinate":{"lat":${store.lat},"long":${store.lng}}`);
 }
 
-export function parseWyomingGrocerySearch(payload, store, term, bible, observedAt) {
+function parseWyomingGrocerySearch(payload, store, term, bible, observedAt) {
   const response = payload?.response;
   const filter = response?.miscInfo?.filter;
   if (!stores.includes(store) || !terms.includes(term) || !Number.isFinite(Date.parse(observedAt))
@@ -97,6 +97,55 @@ export function isWyomingGroceryResearchInventory(row) {
     && String(proof.productSnapshot?.channelInventory?.instore ?? proof.productSnapshot?.channelInventory?.inStore) === '1'
     && row.canAlertAsInventory === false && row.canAlertAsWatch === false && row.eligibleForOnSite === false
     && row.eligibleForDelivery === false && row.eligibleForEmail === false && row.eligibleForSms === false);
+}
+
+export async function replayWyomingGroceryReport(report, reportDirectory, bible, {nowMs = Date.now()} = {}) {
+  const metadata = report?.metadata;
+  const expectedStores = stores.map(store => store.storeId);
+  const start = Date.parse(report?.startedAt), end = Date.parse(report?.finishedAt);
+  if (report?.state !== 'WY' || report.status !== 'useful' || report.stale !== false || metadata?.complete !== true
+    || metadata.shadowOnly !== true || metadata.productionActivationAllowed !== false || metadata.customerDeliveryAllowed !== false
+    || JSON.stringify(metadata.verifiedPremises) !== JSON.stringify(expectedStores)
+    || metadata.bibleRecordsSha256 !== digest(JSON.stringify(bible.records))
+    || !Number.isFinite(start) || !Number.isFinite(end) || start > end || end > nowMs
+    || !Array.isArray(metadata.receipts) || metadata.receipts.length !== stores.length * (1 + terms.length)) {
+    throw Error('Incomplete or mismatched Wyoming shadow report');
+  }
+  const rows = new Map();
+  const paths = new Set();
+  let index = 0;
+  async function readCapture(store, term) {
+    const receipt = metadata.receipts[index++];
+    const observed = Date.parse(receipt.observedAt), url = URL.parse(receipt.url);
+    const routeMatches = term ? url?.origin === 'https://' + hostname && url.pathname === '/abs/pub/xapi/search/substitute'
+      && url.searchParams.get('storeid') === store.merchantId && url.searchParams.get('q') === term
+      && url.searchParams.get('banner') === 'albertsons' && url.searchParams.get('channel') === 'instore'
+      && url.searchParams.get('start') === '0' && url.searchParams.get('rows') === '100' : url?.href === store.locator;
+    if (!routeMatches || url.username || url.password || url.hash || receipt.finalUrl !== url.href || receipt.status !== 200
+      || receipt.storeId !== store.storeId || receipt.term !== term || !Number.isFinite(observed) || observed < start || observed > end
+      || nowMs - observed > 2 * 60 * 60_000 || !/^source-captures\/[\d]+-[a-f\d]{12}\.(html|json)$/.test(receipt.artifactPath)
+      || paths.has(receipt.artifactPath)) throw Error('Wyoming capture route, location or clock does not reconcile');
+    const bytes = await readFile(path.join(reportDirectory, receipt.artifactPath));
+    if (bytes.length !== receipt.bytes || bytes.length > 4 * 1024 * 1024 || digest(bytes) !== receipt.sha256) {
+      throw Error('Wyoming raw capture hash does not match');
+    }
+    paths.add(receipt.artifactPath);
+    return bytes.toString('utf8');
+  }
+  for (const store of stores) {
+    if (!matchesLocator(await readCapture(store, null), store)) throw Error('Wyoming captured locator lost its premises');
+    for (const term of terms) {
+      const observedAt = metadata.receipts[index].observedAt;
+      const captured = await readCapture(store, term);
+      for (const row of parseWyomingGrocerySearch(JSON.parse(captured), store, term, bible, observedAt)) {
+        if (!rows.has(row.id)) rows.set(row.id, row);
+      }
+    }
+  }
+  const replay = [...rows.values()];
+  if (!Array.isArray(report.signals) || !report.signals.every(isWyomingGroceryResearchInventory)
+    || JSON.stringify(replay) !== JSON.stringify(report.signals)) throw Error('Wyoming replay changed an exact product observation');
+  return replay;
 }
 
 export async function collectWyomingGroceryResearchReport(candidate, bible, {
