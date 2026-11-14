@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "state": "MA",
+  "lifecycle": {
+    "customerLabel": "Massachusetts",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": ["ma:cityhive", "ma:esplanda", "ma:julios"],
+    "registration": "Five exact premises are represented only by the reviewed MA-specific isolated preview preparer; no production source or alert registration is enabled."
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_retailer_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 5,
+    "proof": "Every preview location is a reviewed address attached to a first-party source report. Current positives are replayed from retained receipts and matched against the current app Bible."
+  },
+  "sourceSemantics": {
+    "availability": "Retailer-published pickup availability with binary quantity semantics; the store reports positive availability, not an exact shelf count.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": { "status": "verified", "assertion": "The isolated MA lifecycle preview exercises the existing lifecycle-backed Coverage and Drop Feed state filters." },
+    "areaFilter": { "status": "verified", "assertion": "The isolated preview includes only the five exact MA premises attached to the retained source evidence." },
+    "preferences": { "status": "verified", "assertion": "The existing lifecycle-backed preference contract can select MA in the isolated canary configuration." },
+    "dashboard": { "status": "verified", "assertion": "The isolated lifecycle preview presents Massachusetts as a canary-only active coverage choice." },
+    "dropFeedApi": { "status": "verified", "assertion": "The canary partition contains seven current customer-tier rows, all with alert and delivery flags disabled." },
+    "finder": { "status": "verified", "assertion": "Finder receives five named and addressed premises in Boston, Stoneham, West Springfield, Westborough, and Westford." },
+    "alerts": { "status": "verified", "assertion": "Preview rows keep inventory alerts, Watch, email, SMS, and delivery disabled." },
+    "monitoring": { "status": "verified", "assertion": "The isolated preview records five searchable premises and current exact pickup rows at four premises." },
+    "export": { "status": "verified", "assertion": "The canary preparer replays official retained source captures and preserves their original observed timestamps." }
+  },
+  "evidence": {
+    "shadow": { "status": "verified", "runs": 2, "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43627853806", "originalSourceClocksPreserved": true },
+    "canary": { "status": "not_run", "runs": 0, "artifact": null, "reason": "A private isolated canary deployment has not yet been produced." },
+    "production": { "status": "not_deployed", "url": null, "assertion": "MA remains research-only and is absent from the production active-state list.", "reason": "No production admission or publication is authorized by this canary manifest." }
+  }
+}
