@@ -89,7 +89,7 @@ export async function collectDelawareEcwidResearch(incoming,bible,{
     for(const [index,url] of urls.entries()){
       signal?.throwIfAborted();const receipt={url};requests.push(receipt);
       try{
-        const response=await fetchText(url,{signal,maxBytes:1024*1024,isAllowedUrl:candidate=>candidate.href===url,
+        const response=await fetchText(url,{signal,maxBytes:2*1024*1024,isAllowedUrl:candidate=>candidate.href===url,
           onResponse:status=>{receipt.status=status.status;if(CITYHIVE_DENIAL_STATUSES.has(status.status)){
             return recordClock(Date.now(),Math.min(30*denialMs,Math.max(denialMs,(status.retryAfterSeconds||0)*1000)));
           }}});
