@@ -178,7 +178,9 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
   if (state === 'ND' && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) {
     return drop.previewOnly === true
       ? isNorthDakotaGroceryCanaryPreview(drop) || isCentralCityHiveCanaryOnSiteSignal(drop)
-      : isNorthDakotaProductionOnSiteInventory(drop);
+      : isNorthDakotaProductionOnSiteInventory({ ...drop,
+        state: drop.state ?? drop.stateCode ?? drop.state_code ?? state,
+        eventType: drop.eventType ?? drop.event_type ?? type });
   }
   if (['NJ','MI'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isNjMiOnSiteSignal(drop);
   if (state === 'MD' && drop.engineStateCode !== 'MD-MONTGOMERY'

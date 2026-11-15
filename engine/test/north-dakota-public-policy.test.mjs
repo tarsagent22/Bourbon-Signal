@@ -7,15 +7,17 @@ import { NORTH_DAKOTA_PUBLIC_COHORT_SHA256, isNorthDakotaProductionOnSiteInvento
 import { NORTH_DAKOTA_RETAIL_COHORT_SHA256 } from '../src/collectors/north-dakota-retail-production.mjs';
 
 const held = JSON.parse(await readFile(new URL('./fixtures/north-dakota/joint-run-43647207025.json', import.meta.url), 'utf8'));
-const nowMs = Date.parse(held.reportFinishedAt) + 30_000;
+const nowMs = Date.now() - 1_000;
 
 function productionRows() {
   return held.reportSignals.map(signal => {
     const row = structuredClone(signal);
+    row.observedAt = new Date(nowMs).toISOString();
+    row.fetchedAt = row.observedAt;
     const cityHive = row.sourceProductBinding.source === 'central-cityhive';
     row.sourceRuntimeId = cityHive ? 'nd:rock-cityhive' : 'nd:albertsons-xapi';
     row.sourceProductBinding = { ...row.sourceProductBinding, shadowOnly: false, productionOnSiteOnly: true,
-      productionCohortSha256: NORTH_DAKOTA_PUBLIC_COHORT_SHA256 };
+      productionCohortSha256: NORTH_DAKOTA_PUBLIC_COHORT_SHA256, observedAt: row.observedAt };
     row.raw = { ...row.raw, shadowOnly: false };
     row.eligibleForOnSite = true;
     row.eligibleForDropFeed = true;

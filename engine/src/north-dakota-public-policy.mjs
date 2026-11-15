@@ -34,11 +34,8 @@ function hasProductionBinding(row) {
     && hasNoAlertOrDelivery(row));
 }
 
-const signalState = row => row?.state ?? row?.stateCode ?? row?.state_code;
-const signalType = row => row?.eventType ?? row?.event_type ?? row?.type;
-
 function isGrandForksProductionInventory(row, nowMs) {
-  return Boolean(signalState(row) === 'ND' && signalType(row) === 'retailer_store_inventory_result'
+  return Boolean(row?.state === 'ND' && row.eventType === 'retailer_store_inventory_result'
     && row.sourceRuntimeId === NORTH_DAKOTA_PUBLIC_RUNTIME_IDS.cityHive
     && row.storeId === 'rock-bottle-shop:67c8a2e465e7a028cb538073'
     && row.sourceLabel === 'The Rock Bottle Shop first-party pickup inventory'
@@ -51,7 +48,7 @@ function isWillistonProductionInventory(row, nowMs) {
   const item = proof?.productSnapshot;
   const reviewShape = { ...row, sourceRuntimeId: 'research:nd:albertsons-xapi', eligibleForOnSite: false,
     eligibleForDropFeed: false, sourceProductBinding: { ...proof, shadowOnly: true } };
-  return Boolean(signalState(row) === 'ND' && signalType(row) === 'retailer_store_inventory_result'
+  return Boolean(row?.state === 'ND' && row.eventType === 'retailer_store_inventory_result'
     && row.sourceRuntimeId === NORTH_DAKOTA_PUBLIC_RUNTIME_IDS.albertsons
     && row.storeId === williston.storeId && row.merchantId === williston.merchantId
     && row.storeAddress === williston.address && row.city === williston.city && row.zip === williston.zip
