@@ -2,14 +2,13 @@ import { nearestMappedBoardMember, nearestMappedReport } from '../../../src/near
 import { rememberReport } from '../../../src/signals/report-preview';
 import { reportDateTime } from '../../../src/signals/store-contact';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { BottleProfile } from '../../../../../shared/bottle-profile';
 import type { MemberPreferences, Signal } from '../../../src/api/types';
 import { useMobileApi } from '../../../src/hooks/useMobileApi';
 import { useScreenRevalidation } from '../../../src/hooks/useScreenRevalidation';
 import { BottleProfileHero, BottleProfileRating } from '../../../src/components/BottleProfileHero';
-import { ProfileHeader } from '../../../src/components/ProfileBackButton';
 import { BottlePriceCheck } from '../../../src/components/BottlePriceCheck';
 import { ErrorState } from '../../../src/components/MemberScreen';
 import { bottleProfileState, collectionBottleForIdentity } from '../../../src/signals/bottle-profile';
@@ -78,7 +77,6 @@ export default function BottleProfileScreen() {
     finally { setSaving(false); }
   }
   return <ScrollView style={s.page} contentContainerStyle={s.content} refreshControl={<RefreshControl refreshing={refreshing && Boolean(identity)} onRefresh={() => { void load(true); void loadReports(); }} tintColor={colors.accent} />}>
-    <Stack.Screen options={{ title: 'Bottle Profile', header: () => <ProfileHeader /> }} />
     {!identity && !error ? <View style={s.reports}><Text style={s.note}>Loading bottle profile…</Text><ActivityIndicator color={colors.accent} /></View> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {identity ? <>

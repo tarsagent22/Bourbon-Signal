@@ -6,12 +6,11 @@ import { CommunityTermsGate } from "../../../src/components/CommunityTermsGate";
 import { readReportPreview } from "../../../src/signals/report-preview";
 import type { BottleProfile } from '../../../../../shared/bottle-profile';
 import { BottleProfileHero, BottleProfileRating } from '../../../src/components/BottleProfileHero';
-import { ProfileHeader } from '../../../src/components/ProfileBackButton';
 import { BottlePriceCheck } from '../../../src/components/BottlePriceCheck';
 import { reportAge } from "../../../src/signals/report-age";
 import { ErrorState } from "../../../src/components/MemberScreen";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { reportDateTime, signalStoreContact } from "../../../src/signals/store-contact";
@@ -235,7 +234,6 @@ export default function SignalDetailScreen() {
 
 
   return <ScrollView contentContainerStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing && Boolean(signal)} onRefresh={() => void load(true)} tintColor={colors.accent} />}>
-    <Stack.Screen options={{ title: "Bottle Profile", header: () => <ProfileHeader /> }} />
     {!signal && !error ? <View style={styles.signalSection}><Text style={styles.disclaimer}>Loading bottle report…</Text><ActivityIndicator color={colors.accent} /></View> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {safetyNotice ? <Text accessibilityRole="alert" style={styles.disclaimer}>{safetyNotice}</Text> : null}

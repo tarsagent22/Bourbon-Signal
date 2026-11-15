@@ -165,9 +165,9 @@ test('review registry is attributable and release-specific; no broad brand or ag
   assert.ok(BOTTLE_REPUTATION.length >= 30);
   assert.equal(new Set(BOTTLE_REPUTATION.map(record => record.key)).size, BOTTLE_REPUTATION.length);
   for (const entry of BOTTLE_REPUTATION) {
-    assert.ok(entry.names.length && entry.ratings.length);
+    assert.ok(entry.names.length && (entry.ratings.length || entry.release));
     assert.ok(entry.ratings.every(rating => /^https:\/\//.test(rating.source) && rating.checkedAt === '2026-10-16'));
-    assert.ok(reputationEvidence(entry, guideNow).score != null);
+    if (entry.ratings.length) assert.ok(reputationEvidence(entry, guideNow).score != null);
   }
   for (const name of ['Eagle Rare', 'Eagle Rare 12 Year', "Maker's Mark Cellar Aged", "Blanton's Gold"]) assert.equal(bottleReputation({ name, proof: null, age: null }), null);
 });

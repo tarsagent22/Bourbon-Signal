@@ -33,6 +33,7 @@ export const BOTTLE_CHECK_STATE_PRICES = {
       'old-forester-1910': ['27-282', 55.95],
       'old-forester-1920': ['27-283', 59.95],
       'russells-reserve-single-barrel': ['27-201', 64.95],
+      'penelope-architect-bourbon': ['24-735', 59.95],
       'old-forester-birthday-bourbon-2026': ['17-122', 199.95, 700],
     } satisfies Record<string, ListRow>,
   },

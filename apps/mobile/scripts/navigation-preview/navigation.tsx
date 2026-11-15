@@ -5,13 +5,14 @@ import { Screen as ExpoScreen } from 'expo-router/build/views/Screen';
 import Home from '../../app/(app)/(tabs)/index';
 import { HomeHeaderActions } from '../../app/(app)/(tabs)/_layout';
 import Check from '../../app/(app)/bottle-check';
+import BottleProfile from '../../app/(app)/bottle/[id]';
 import ScanPost from '../../app/(app)/scan-post';
 import ScanShelf from '../../app/(app)/scan-shelf';
 import Post from '../../app/(app)/(tabs)/post';
 import Shelf from '../../app/(app)/cellar/add';
 export { useFocusEffect };
 const ref = createNavigationContainerRef<any>();
-const to = (input: any) => { const path = typeof input === 'string' ? input : input.pathname; const params = typeof input === 'string' ? {} : input.params || {}; return path === '/(app)/(tabs)/post' ? { name: '(tabs)', params: { ...params, tab: 'post' } } : { name: ['/bottle-check', '/scan-post', '/scan-shelf', '/cellar/add'].some(suffix => path.endsWith(suffix)) ? path.slice('/(app)/'.length) : '(tabs)', params }; };
+const to = (input: any) => { const path = typeof input === 'string' ? input : input.pathname; const params = typeof input === 'string' ? {} : input.params || {}; return path === '/(app)/(tabs)/post' ? { name: '(tabs)', params: { ...params, tab: 'post' } } : { name: ['/bottle-check', '/scan-post', '/scan-shelf', '/cellar/add', '/bottle/[id]'].some(suffix => path.endsWith(suffix)) ? path.slice('/(app)/'.length) : '(tabs)', params }; };
 export const router = { push(input: any) { ref.dispatch(StackActions.push(to(input).name, to(input).params)); }, back() { ref.goBack(); }, dismissTo(input: any) { const target = to(input); ref.dispatch(StackActions.popTo(target.name, target.params)); }, setParams(params: any) { ref.setParams(params); }, replace(input: any) { const target = to(input); ref.dispatch(StackActions.replace(target.name, target.params)); }, canGoBack: () => ref.canGoBack() };
 (window as any).navigationPreview = { push: router.push };
 export function useRouter() { return router; }
@@ -21,7 +22,8 @@ function HomeRoute() { return (useRoute().params as any)?.tab === 'post' ? <Post
 // Model that host boundary while retaining Expo Screen and the real navigation core.
 const ChromeOptionsContext = React.createContext<any>(null);
 function CheckRoute() { React.use(ChromeOptionsContext); return <Check />; }
-const components: any = { '(tabs)': HomeRoute, 'bottle-check': CheckRoute, 'scan-post': ScanPost, 'scan-shelf': ScanShelf, 'cellar/add': Shelf };
+function ProfileRoute() { React.use(ChromeOptionsContext); return <BottleProfile />; }
+const components: any = { 'bottle/[id]': ProfileRoute, '(tabs)': HomeRoute, 'bottle-check': CheckRoute, 'scan-post': ScanPost, 'scan-shelf': ScanShelf, 'cellar/add': Shelf };
 function NativeBoundaryNavigator(props: any) {
   const { state, descriptors, NavigationContent } = useNavigationBuilder(StackRouter, props);
   (window as any).navigationRenders = ((window as any).navigationRenders || 0) + 1;
