@@ -5,6 +5,7 @@ import {centralCityHiveProductionCohortKey} from '../src/central-cityhive-produc
 import {verifyDelawareFirstPublication} from '../src/verify-de-first-publication.mjs';
 import {bibleLookup,buildDrops,buildStores} from '../src/export-site-contract.mjs';
 import {canonicalizeSignal} from '../src/operational-report.mjs';
+import {derivePublicDropEvidence,isPublicDropFeedEligible} from '../../src/lib/public-drop-evidence.ts';
 import sourceData from '../data/de-ecwid-research-source.json' with {type:'json'};
 
 function fixture(nowMs=Date.now()){
@@ -61,6 +62,11 @@ test('Delaware operational and site exports preserve exact Ecwid pickup through 
   const partition={state:'DE',count:drops.length,drops};
   const checked=verifyDelawareFirstPublication({...input,partition,workflowRunId:'123456'});
   assert.equal(checked.ok,true,checked.failures.join('; '));
+  assert.equal(isPublicDropFeedEligible(drops[0],{asOf:input.nowMs}),true);
+  const coverage=derivePublicDropEvidence(drops,input.nowMs).get('DE');
+  assert.deepEqual(coverage?.currentInventoryStores.map(store=>store.address),[source.storeAddress]);
+  assert.equal(coverage?.alertableInventoryStores.length,0);
+  assert.equal(isPublicDropFeedEligible({...drops[0],productId:'unexpected'}),false);
   assert.deepEqual(buildDrops([operational],lookup,[]),[]);
   const shadow={...operational,raw:{shadowOnly:true}};
   assert.deepEqual(buildDrops([shadow],lookup,[shadow]),[]);
