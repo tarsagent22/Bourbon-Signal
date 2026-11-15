@@ -24,6 +24,7 @@ import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-
 import { buildMississippiRetailerSignal } from './collectors/mississippi-retailer-collector.mjs';
 import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
 import {executeOregonResearchFixtures} from './oregon-research-fixtures.mjs';
+import {origin as SD_MR_LIQUOR_ORIGIN, sources as SD_MR_LIQUOR_SOURCES, storeId as sdStoreId, fullAddress as sdFullAddress} from './south-dakota-pickup-policy.mjs';
 import {executeLaakResearchFixtures} from './laak-research-fixtures.mjs';
 import { OREGON_DAILY_INVENTORY_URL } from './or-daily-inventory.mjs';
 import {
@@ -483,6 +484,36 @@ function evaluateCase(item, { state, bible, registeredHosts, candidateActive = f
   return {};
 }
 
+function evaluateSouthDakotaCase(item, bible, registeredHosts) {
+  const input = item.input || {};
+  const matched = input.canonicalName ? bible.match(input.canonicalName)?.record || null : null;
+  const productAllowed = Boolean(matched && !/\b\d+\s*x\s*\d+/i.test(String(input.size || '')));
+  if (item.kind === 'positive_bottle_match') return {
+    canonicalName: productAllowed ? matched.canonical : null,
+    tier: productAllowed ? matched.tier : null,
+    customerVisible: productAllowed && Boolean(matched.id),
+  };
+  if (item.kind === 'ordinary_vs_rare_negative') return {rareMatch: productAllowed && ['limited','allocated','unicorn'].includes(matched?.tier)};
+  if (item.kind === 'rye_cream_liqueur_rtd_exclusion' || item.kind === 'size_or_multipack_exclusion') {
+    return {qualifiedProduct: productAllowed && ['limited','allocated','unicorn'].includes(matched?.tier)};
+  }
+  if (item.kind === 'availability_semantics') return {
+    quantity: 0, quantityIsExact: false, quantitySemantics: 'binary_retailer_orderable_no_exact_count',
+    canAlertAsInventory: false, canAlertAsWatch: false, eligibleForDelivery: false,
+  };
+  if (item.kind === 'store_identity') {
+    const source = SD_MR_LIQUOR_SOURCES.find(row => sdStoreId(row) === 'sante:sd:mr-liquor:5220');
+    return {storeId: sdStoreId(source), storeAddress: sdFullAddress(source), exactPremise: true, fabricateIdentity: false};
+  }
+  if (item.kind === 'timestamp_freshness') return {preserveOriginalTimestamp: true, futureTimestampAllowed: false, staleRowsAlertable: false};
+  if (item.kind === 'source_specific_sentinel') {
+    let host = '';
+    try { host = new URL(input.sourceUrl).hostname.toLowerCase(); } catch {}
+    return {officialHost: registeredHosts.has(host)};
+  }
+  return {};
+}
+
 function sameValue(left, right) { return JSON.stringify(left) === JSON.stringify(right); }
 
 export async function executeStateFixtures(payload, { bibleFile = path.resolve('out/bourbon-bible.json'), candidateActive = false } = {}) {
@@ -493,6 +524,16 @@ export async function executeStateFixtures(payload, { bibleFile = path.resolve('
     return executeOregonResearchFixtures(payload, { bible, registeredHosts });
   }
   if(['AK','LA'].includes(payload.state))return executeLaakResearchFixtures(payload,{bible});
+  if (payload.state === 'SD') {
+    const registeredHosts = new Set([new URL(SD_MR_LIQUOR_ORIGIN).hostname]);
+    for (const item of payload.cases || []) {
+      const actual = evaluateSouthDakotaCase(item, bible, registeredHosts);
+      for (const [key, expected] of Object.entries(item.expected || {})) {
+        if (!sameValue(actual[key], expected)) failures.push(`${item.id}: expected ${key}=${JSON.stringify(expected)} but got ${JSON.stringify(actual[key])}.`);
+      }
+    }
+    return {ok: failures.length === 0, failures};
+  }
   if(['NJ','MI'].includes(payload.state))return executeNjMiResearchFixtures(payload,{bible});
   if (payload.state === 'MA') return executeMassachusettsResearchFixtures(payload, { bible });
   if (payload.state === 'WY') return executeWyomingFixtures(payload, { bible });

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "sourceRun": {
+    "repository": "tarsagent22/Bourbon-Signal",
+    "workflowRunId": "43622872651",
+    "commitSha": "2810e125021ce0b400c8940d4f78b414ac087d23",
+    "runAttempt": "1",
+    "finishedAt": "2026-11-14T17:46:30.625Z",
+    "reportSha256": "de247b8993528261ce23e0edd1a11fefb6ccaa7ffc35a7d7f4defc4361e9f73c",
+    "evidenceSha256": "99d151136b8120186dea49fd12f46408ad66a985b04b61f868a53bb05706d209",
+    "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43622872651"
+  },
+  "origin": "https://www.mrliquor.com",
+  "requests": [
+    {
+      "storeId": "sante:sd:mr-liquor:5187",
+      "query": "Wild Turkey",
+      "status": 200,
+      "observedAt": "2026-11-14T17:46:27.320Z",
+      "responseSha256": "708d06b893545e89a70802dee3b61632eb4b4f3441060b032072af61b3ff2b1d",
+      "retainedCapture": "west.json",
+      "retainedCaptureSha256": "86439d0857876c132e380a365bc5c9cf942b748908a0681ab9d3b950bbaf79dc"
+    },
+    {
+      "storeId": "sante:sd:mr-liquor:5220",
+      "query": "Heaven Hill",
+      "status": 200,
+      "observedAt": "2026-11-14T17:46:28.967Z",
+      "responseSha256": "160c0fc050e4bf5e0032030feaba1f36308aa235f2c35bdf5064eb51282f2092",
+      "retainedCapture": "south-heaven-hill.json",
+      "retainedCaptureSha256": "56a2cfe99834aea47d411c644e6e4ca8f6accdae6e4d01a6b8f5e689e4380350"
+    },
+    {
+      "storeId": "sante:sd:mr-liquor:5220",
+      "query": "Larceny",
+      "status": 200,
+      "observedAt": "2026-11-14T17:46:30.623Z",
+      "responseSha256": "448008bcd17e2ab134624a820ecac9c1f5da65387e0e622d5b3456d7cde2b03d",
+      "retainedCapture": "south-larceny.json",
+      "retainedCaptureSha256": "e7461ea8f8a7644c19c2fe1faa9064b85442ed179ad7dc4926512aa14e3e54b5"
+    }
+  ]
+}

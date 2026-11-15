@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "state": "SD",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {"id":"sd-heaven-hill-bib-limited","kind":"positive_bottle_match","input":{"canonicalName":"Heaven Hill Bottled-in-Bond 7 Year"},"expected":{"canonicalName":"Heaven Hill Bottled-in-Bond 7 Year","tier":"limited","customerVisible":true}},
+    {"id":"sd-ordinary-maker-mark-excluded","kind":"ordinary_vs_rare_negative","input":{"canonicalName":"Maker's Mark"},"expected":{"rareMatch":false}},
+    {"id":"sd-rye-excluded","kind":"rye_cream_liqueur_rtd_exclusion","input":{"canonicalName":"Old Overholt Rye"},"expected":{"qualifiedProduct":false}},
+    {"id":"sd-multipack-excluded","kind":"size_or_multipack_exclusion","input":{"canonicalName":"Heaven Hill Bottled-in-Bond 7 Year","size":"6 x 750 ml"},"expected":{"qualifiedProduct":false}},
+    {"id":"sd-pickup-is-binary-and-silent","kind":"availability_semantics","input":{"canonicalName":"Larceny Barrel Proof"},"expected":{"quantity":0,"quantityIsExact":false,"quantitySemantics":"binary_retailer_orderable_no_exact_count","canAlertAsInventory":false,"canAlertAsWatch":false,"eligibleForDelivery":false}},
+    {"id":"sd-exact-store-address","kind":"store_identity","input":{"canonicalName":"Larceny Barrel Proof"},"expected":{"storeId":"sante:sd:mr-liquor:5220","storeAddress":"5312 Black Hills Blvd, Rapid City, SD 57701","exactPremise":true,"fabricateIdentity":false}},
+    {"id":"sd-source-clock-retained","kind":"timestamp_freshness","input":{"canonicalName":"Larceny Barrel Proof"},"expected":{"preserveOriginalTimestamp":true,"futureTimestampAllowed":false,"staleRowsAlertable":false}},
+    {"id":"sd-only-reviewed-host","kind":"source_specific_sentinel","input":{"sourceUrl":"https://www.mrliquor.com/"},"expected":{"officialHost":true}}
+  ]
+}

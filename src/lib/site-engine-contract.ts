@@ -7,6 +7,7 @@ import { isNorthDakotaGroceryCanaryPreview } from '../../engine/src/north-dakota
 import { isNorthDakotaProductionOnSiteInventory } from '../../engine/src/north-dakota-public-policy.mjs';
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { isDelawareEcwidProductionOnSiteSignal } from '../../engine/src/delaware-ecwid-production-policy.mjs';
+import { isSouthDakotaProductionOnSiteSignal } from '../../engine/src/south-dakota-pickup-policy.mjs';
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -363,6 +364,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const lastConfirmedAt = firstNonEmptyString(drop.lastConfirmedAt, drop.last_confirmed_at, drop.observedAt, drop.observed_at);
   const exportedDisplayAt = firstNonEmptyString(drop.displayAt, drop.display_at) || eventAt || firstSeenAt || lastConfirmedAt;
   const exportedTimestampBasis = asString(drop.timestampBasis, eventAt ? "source_event_at" : firstSeenAt ? "first_seen_at" : "last_confirmed_at");
+  const isSouthDakotaBinaryPickup = state === 'SD' && isSouthDakotaProductionOnSiteSignal(drop);
   const anchorRepeatedInventoryToFirstSeen = shouldAnchorInventoryToFirstSeen(type) && firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt;
   const publicDisplayAt = firstNonEmptyString(drop.listingChangedAt, drop.listing_changed_at) || (anchorRepeatedInventoryToFirstSeen ? (eventAt || firstSeenAt) : exportedDisplayAt);
   const publicTimestampBasis = anchorRepeatedInventoryToFirstSeen ? (eventAt ? "source_event_at" : "first_seen_at") : exportedTimestampBasis;
@@ -397,7 +399,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
     store_id: firstNonEmptyString(drop.storeId, drop.store_id) || undefined,
     quantity_in_stock: type === "nc_board_shipment_snapshot" ? undefined : quantity || undefined,
     quantity_shipped: shipmentQuantity || undefined,
-    quantity: quantity || (isGroceryExpansionOnSiteSignal(drop) || isCentralCityHiveOnSiteSignal(drop)
+    quantity: quantity || (isSouthDakotaBinaryPickup || isGroceryExpansionOnSiteSignal(drop) || isCentralCityHiveOnSiteSignal(drop)
       || isNorthDakotaGroceryCanaryPreview(drop) || isNorthDakotaProductionOnSiteInventory({ ...drop,
         state: drop.state ?? drop.state_code ?? drop.stateCode,
         eventType: drop.eventType ?? drop.event_type ?? type })

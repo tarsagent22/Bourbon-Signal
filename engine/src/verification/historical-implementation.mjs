@@ -160,6 +160,14 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const southDakotaEntry=/^    "SD": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if(southDakotaEntry){
+      const exactEntry=southDakotaEntry.replace(/,?\n$/,'');
+      assert.equal(createHash('sha256').update(exactEntry).digest('hex'),'106b3241b6cd30a7bcffcbe952408b46ec7e2d10e79be7a41804009f8bde4f02',`${name}: exact South Dakota lifecycle entry`);
+      text=replaceUnique(text,southDakotaEntry,'',`${name}: exact South Dakota lifecycle entry`);
+      text=replaceUnique(text,'    "ND",\n    "SD"\n  ],\n  "reliabilityPolicy"','    "ND"\n  ],\n  "reliabilityPolicy"',`${name}: exact South Dakota active list entry`);
+      text=replaceUnique(text,'      "ND": 30000,\n      "SD": 60000\n','      "ND": 30000\n',`${name}: exact South Dakota expected runtime entry`);
+    }
     const northDakotaEntry=/^    "ND": \{\n[\s\S]+?^    \},?\n/mu.exec(text)?.[0];
     if(northDakotaEntry){
       const exactEntry=northDakotaEntry.replace(/,?\n$/,'');
@@ -185,6 +193,12 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     if(text.includes(northDakotaImport)){
       text=replaceUnique(text,northDakotaImport,'',`${name}: North Dakota source import`);
       text=replaceUnique(text,'  NORTH_DAKOTA_RETAIL_CONFIG,\n','',`${name}: exact North Dakota source registration`);
+    }
+    const southDakotaImport="import { origin as SD_MR_LIQUOR_ORIGIN, batchPath as SD_MR_LIQUOR_PATH } from './south-dakota-pickup-policy.mjs';\n";
+    const southDakotaEntry="  {\n    id: 'SD', label: 'South Dakota first-party pickup inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30m',\n    value: 'Exact Mr. Liquor Santé pickup at two reviewed Rapid City premises; statewide coverage is not established.',\n    sources: [{ kind: 'api', url: SD_MR_LIQUOR_ORIGIN + SD_MR_LIQUOR_PATH, label: 'Mr. Liquor Rapid City first-party pickup', precisionOnly: true }],\n    apiCandidates: []\n  },\n";
+    if(text.includes(southDakotaImport)){
+      text=replaceUnique(text,southDakotaImport,'',`${name}: South Dakota source import`);
+      text=replaceUnique(text,southDakotaEntry,'',`${name}: exact South Dakota source registration`);
     }
     const wyomingImport = "import { WYOMING_GROCERY_CONFIG } from './collectors/wyoming-grocery-production.mjs';\n";
     if (text.includes(wyomingImport)) {
