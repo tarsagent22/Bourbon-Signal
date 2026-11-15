@@ -238,6 +238,13 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const activeOregon = /^    "OR": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if (activeOregon?.includes('      "publicStatus": "active"')) {
+      assert.equal(createHash('sha256').update(activeOregon).digest('hex'), '2a7b68ea463770a405e9619e28fac2edafd3bc1ccbf700b751f32643ceee90dc', name + ': exact attested Oregon lifecycle entry');
+      text = replaceUnique(text, activeOregon, "    \"OR\": {\n      \"customerLabel\": \"Oregon\",\n      \"sourceLabel\": \"Oregon OLCC / Oregon Liquor Search\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"blocked_store_inventory_research\",\n      \"coverageTier\": \"blocked\",\n      \"refinementLevel\": \"store\",\n      \"customerSummary\": \"Research-only while the official daily store inventory source, immutable promotion evidence, and first publication remain behind the activation gate.\"\n    },\n", name + ': Oregon lifecycle entry');
+      text = replaceUnique(text, ',\n    "OR"\n  ],\n  "reliabilityPolicy"', '\n  ],\n  "reliabilityPolicy"', name + ': Oregon active list entry');
+      text = replaceUnique(text, '      "OR": 60000,\n', '', name + ': Oregon runtime forecast');
+    }
     const activeStates=/"activeStates": \[([\s\S]*?)\]/u.exec(text)?.[1]||'';
     if(/^\s*"OR",?\s*$/mu.test(activeStates)) throw new Error(`${name}: Oregon active list entry has no exact historical verification hook`);
     const runtimeBudgets=/"stateExpectedRunMs": \{([\s\S]*?)\}/u.exec(text)?.[1]||'';

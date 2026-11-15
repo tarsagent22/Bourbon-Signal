@@ -39,7 +39,8 @@
     "AR",
     "MO",
     "ND",
-    "SD"
+    "SD",
+    "OR"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -77,6 +78,7 @@
       "MS"
     ],
     "stateExpectedRunMs": {
+      "OR": 60000,
       "WY": 30000,
       "MD": 15000,
       "AR": 30000,
@@ -616,13 +618,99 @@
     },
     "OR": {
       "customerLabel": "Oregon",
-      "sourceLabel": "Oregon OLCC / Oregon Liquor Search",
-      "publicStatus": "research_only",
+      "sourceLabel": "Oregon OLCC Daily Store Inventory",
+      "publicStatus": "active",
       "shadowEligible": true,
-      "lifecycle": "blocked_store_inventory_research",
-      "coverageTier": "blocked",
+      "lifecycle": "store_inventory",
+      "coverageTier": "live_store_inventory",
       "refinementLevel": "store",
-      "customerSummary": "Research-only while the official daily store inventory source, immutable promotion evidence, and first publication remain behind the activation gate."
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "The Oregon Liquor and Cannabis Commission reports quantities by store and inventory date.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "verticalSliceManifest": "engine/data/state-integration/OR.json",
+        "fixtureContract": "engine/data/state-fixtures/OR.json",
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-11-15T15:40:54.497Z",
+        "canaryPreviewUrl": "https://bourbonsignal-18a6w4ybb-tarsagent22s-projects.vercel.app",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "OR",
+          "generatedAt": "2026-11-15T15:40:54.497Z",
+          "sourceConfigHash": "ca2ec5ff941d31da44b17ec47aba1fed28bb4bb3fa6e6a0ec38b31b6cc910ba5",
+          "sourceRuntimeId": "or:olcc-daily-inventory",
+          "cohortSha256": "8c1a4bd03f5f5bd6ca3ed6259f4f16001adf191a27c7a8a547bc297d9ba9098d",
+          "previewUrl": "https://bourbonsignal-18a6w4ybb-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "43569668241",
+              "status": "success",
+              "artifactHash": "815bf9c220e8e67fb37da8c741de90edd94748629b7b786c0a4356d21c096f8a",
+              "artifactId": "14104146525",
+              "commitSha": "677d55cdd5ed42a35981ade96bad82aa6f860495",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43569668241",
+              "artifactName": "state-expansion-shadow-43569668241",
+              "sourceReportDate": "11/13/2026",
+              "sourceReportSha256": "7f3358819f99f036fb3b7594a25f0c0ec331588d680aa16773d71f4084bd6775"
+            },
+            {
+              "runId": "43610935076",
+              "status": "success",
+              "artifactHash": "a3c5ee73127e0305c1762072c8889059f711321eb91c323107f12a6a615702e7",
+              "artifactId": "14119907634",
+              "commitSha": "44c9ec65f354fc754566d62111e4a8f3a454e0cf",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43610935076",
+              "artifactName": "state-expansion-shadow-43610935076",
+              "sourceReportDate": "11/14/2026",
+              "sourceReportSha256": "44f4aaa5e2358bf013bbd8eb71207660d58397d299f96c065d5ad07b43362985"
+            },
+            {
+              "runId": "43730826122",
+              "status": "success",
+              "artifactHash": "21c131d32bf7d249b1a21bd8ccd740cf544b370d9549a848dd0b3091f56f9449",
+              "artifactId": "14167944149",
+              "commitSha": "f1299fc781198878769e9daa8be2370fe2b708e0",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43730826122",
+              "artifactName": "state-expansion-shadow-43730826122",
+              "sourceReportDate": "11/15/2026",
+              "sourceReportSha256": "6dd8f992855f0ccf3854110a889517a39a1ea94144f330c21c06113be5bbbf4c"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "43617826323",
+              "status": "success",
+              "artifactHash": "fd6e1ca0ee8d0eda78612e732a801bf3f6157366c2c25c918e72465d79dcba8f",
+              "artifactId": "14122163860",
+              "commitSha": "3a58a77dd0792219b02a825bccb2d84e49f5169a",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43617826323",
+              "artifactName": "state-expansion-canary-OR-43617826323"
+            },
+            {
+              "runId": "43731142674",
+              "status": "success",
+              "artifactHash": "82ed4fedc5b929399970fcbd375d1054fa703e6d4ee38a5437eb938060340492",
+              "artifactId": "14168417468",
+              "commitSha": "eacc4905a00ce50bf325027e645d0d02ae87dc3a",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43731142674",
+              "artifactName": "state-expansion-canary-OR-43731142674"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "43731145130",
+            "artifactId": "14168676512",
+            "commitSha": "eacc4905a00ce50bf325027e645d0d02ae87dc3a",
+            "artifactDigest": "efa1cebf51f0ab85e2fe609531ef4d2c9787b848856116a58362c04e2a81e499",
+            "bundleDigest": "284567ace306414f5b608b6d115dba08a1cf9d796b72b095bb61793fbadc3278",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43731145130",
+            "artifactName": "state-promotion-provenance-OR-43731145130"
+          }
+        }
+      }
     },
     "NH": {
       "customerLabel": "New Hampshire",

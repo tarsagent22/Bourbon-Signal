@@ -1075,15 +1075,11 @@
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "canary",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
         "official_daily_store_inventory"
       ],
-      "currentBlockers": [
-        "Three successful shadow runs cover only two distinct official report dates; retain another distinct daily report before promotion review.",
-        "Production lifecycle remains research-only; first production publication and immutable promotion evidence are not present.",
-        "A deployed isolated canary preview URL has not been produced."
-      ],
+      "currentBlockers": [],
       "rankingInputs": {
         "demandSignals": [],
         "strategicSignals": []
@@ -1098,7 +1094,7 @@
       "promotionEvidenceRefs": [
         "engine/data/state-integration/OR.json",
         "engine/data/state-fixtures/OR.json",
-        "engine/data/canary-inputs/OR.json"
+        "src/config/state-lifecycle.json"
       ]
     },
     {
