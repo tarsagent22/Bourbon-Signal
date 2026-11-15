@@ -8,6 +8,7 @@
     "refinementLevel": "store"
   },
   "collector": {
+    "cohortSha256": "e4fe87fee52a06bd2ae78fa3c541dbc2b578321961a374acf6ae9a62760b767c",
     "sourceIds": [
       "nd:rock-cityhive",
       "nd:albertsons-xapi"
