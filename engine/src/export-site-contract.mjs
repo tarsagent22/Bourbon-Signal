@@ -755,13 +755,8 @@ function isFastMovingStoreInventory(signal) {
   const source = String(signal.sourceLabel || signal.source || '').toLowerCase();
   if (signal.locationPrecision !== 'store_level') return false;
   if (!signalCanAlertAsInventory(signal) && !isMississippiSparseOnSiteInventory(signal)
-<<<<<<< HEAD
     && !isReviewedResearchGrocery(signal) && !isCentralCityHiveProductionOnSiteSignal(signal) && !isNjMiProductionOnSiteSignal(signal)
-    && !isWyomingGroceryProductionInventory(signal)) return false;
-=======
-    && !isNorthDakotaProductionOnSiteInventory(signal)
-    && !isReviewedResearchGrocery(signal) && !isCentralCityHiveProductionOnSiteSignal(signal) && !isNjMiProductionOnSiteSignal(signal)) return false;
->>>>>>> 6eddbdc6 (Add browser-safe North Dakota public inventory policy)
+    && !isWyomingGroceryProductionInventory(signal) && !isNorthDakotaProductionOnSiteInventory(signal)) return false;
   if (signal.state === 'NC' && source.includes('wake county abc store inventory search')) return true;
   return /store_inventory_result|cityhive_store_inventory_result|retailer_store_inventory_result|browser_assisted_store_inventory_(limited_supply|in_stock)/i.test(type);
 }
