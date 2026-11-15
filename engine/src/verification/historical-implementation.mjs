@@ -163,7 +163,7 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     const southDakotaEntry=/^    "SD": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
     if(southDakotaEntry){
       const exactEntry=southDakotaEntry.replace(/,?\n$/,'');
-      assert.equal(createHash('sha256').update(exactEntry).digest('hex'),'106b3241b6cd30a7bcffcbe952408b46ec7e2d10e79be7a41804009f8bde4f02',`${name}: exact South Dakota lifecycle entry`);
+      assert.equal(createHash('sha256').update(exactEntry).digest('hex'),'58fb4467d293e6e8720e69231dddd5825ed1c37cc85f03f7344b41bbdb1c99a0',`${name}: exact South Dakota lifecycle entry`);
       text=replaceUnique(text,southDakotaEntry,'',`${name}: exact South Dakota lifecycle entry`);
       text=replaceUnique(text,'    "ND",\n    "SD"\n  ],\n  "reliabilityPolicy"','    "ND"\n  ],\n  "reliabilityPolicy"',`${name}: exact South Dakota active list entry`);
       text=replaceUnique(text,'      "ND": 30000,\n      "SD": 60000\n','      "ND": 30000\n',`${name}: exact South Dakota expected runtime entry`);

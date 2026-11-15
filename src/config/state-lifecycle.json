@@ -1437,7 +1437,7 @@
       "promotionStage": "active",
       "promotionEvidence": {
         "shadowRuns": 4,
-        "canaryRuns": 3,
+        "canaryRuns": 4,
         "verifiedAt": "2026-11-15T01:42:50.214Z",
         "verticalSliceManifest": "engine/data/state-integration/SD.json",
         "fixtureContract": "engine/data/state-fixtures/SD.json",
@@ -1501,6 +1501,15 @@
               "artifactHash": "386fcf2e92eb37e1f9ec7e261f646aed91ba916466004d3c170e498ddc5e3121",
               "commitSha": "b613cca0fdc0df75dd4fb3db47eb60bce3b880cb",
               "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43659106534"
+            },
+            {
+              "runId": "43667098159",
+              "status": "success",
+              "artifactId": "14143030397",
+              "artifactHash": "6b0d6b18a97782caf5de78a527f19ddc5fa7297be967f0b113efed723dfb44ac",
+              "commitSha": "57403af3b76eddb66e0eb4ea24a60ded3dae4576",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43667098159",
+              "sourceShadowRunId": "43658963728"
             }
           ],
           "provenance": {

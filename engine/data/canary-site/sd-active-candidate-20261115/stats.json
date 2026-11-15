@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-11-15T01:54:00.530Z",
+  "engineGeneratedAt": "2026-11-15T01:48:27.517Z",
+  "runId": "87a0f16411be8977",
+  "stateCoverage": {
+    "counts": {
+      "sparse_live_store_inventory": 15,
+      "live_store_inventory": 16,
+      "store_delivery_leads": 1,
+      "store_availability_status": 1,
+      "shipment_drop_intelligence": 2,
+      "aggregate_inventory_watch": 2,
+      "distillery_release_watch": 1
+    },
+    "states": [
+      {
+        "state": "SD",
+        "status": "canary_preview",
+        "signalCount": 3,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "South Dakota",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "South Dakota Mr. Liquor pickup inventory",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      }
+    ],
+    "stateCount": 1
+  }
+}
