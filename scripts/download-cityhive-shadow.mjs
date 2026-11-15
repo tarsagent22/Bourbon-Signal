@@ -110,6 +110,18 @@ export function validateInactiveKansasShadowLifecycleTransition({candidateLifecy
   return JSON.stringify(canonical(expected))===JSON.stringify(canonical(shadowLifecycle));
 }
 
+export function validateNorthDakotaCohortManifestTransition({candidateManifest,shadowManifest,comparison}){
+  const file='engine/data/state-integration/ND.json';
+  if(comparison?.status!=='ahead'||comparison?.base_commit?.sha!==comparison.runHeadSha
+    ||!Array.isArray(comparison?.files)||comparison.files.filter(row=>row.filename===file).length!==1
+    ||comparison.files.some(row=>row.filename!==file))return false;
+  const candidate=structuredClone(candidateManifest),shadow=structuredClone(shadowManifest);
+  if(candidate?.state!=='ND'||shadow?.state!=='ND'
+    ||candidate.collector?.cohortSha256!=='e4fe87fee52a06bd2ae78fa3c541dbc2b578321961a374acf6ae9a62760b767c')return false;
+  delete candidate.collector.cohortSha256;
+  return JSON.stringify(candidate)===JSON.stringify(shadow);
+}
+
 export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison}){
   if(!['WI','OK','RI','MN','KS','AR','MO','MD','DE','ND'].includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed CityHive research state or repository');
   if(run?.conclusion!=='success'||run.status!=='completed'||run.repository?.full_name!==repository
@@ -131,6 +143,7 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
     ||state==='MO'&&['engine/src/verification/historical-implementation.mjs','scripts/test-ms-bundle-boundary.mjs'].includes(file.filename)
     ||state==='MO'&&file.filename==='src/config/state-lifecycle.json'&&inactiveMoShadowTransition
     ||state==='KS'&&file.filename==='src/config/state-lifecycle.json'&&inactiveKsShadowTransition
+    ||state==='ND'&&file.filename==='engine/data/state-integration/ND.json'&&comparison?.ndCohortManifestProof===true
     ||state==='MN'&&minnesotaAdapterFiles.has(file.filename)
     ||state==='MN'&&['src/lib/public-drop-evidence.ts','scripts/test-laak-production-projection.mjs','.github/workflows/refresh-feed.yml','engine/test/engine-continuity.test.mjs'].includes(file.filename)
     ||state==='MN'&&file.filename==='src/config/state-lifecycle.json'&&inactiveMnShadowTransition)):[];
@@ -176,6 +189,13 @@ async function main(){
       const candidateLifecycle=JSON.parse(execFileSync('git',['show',`${currentHead}:${lifecyclePath}`],{encoding:'utf8',maxBuffer:2*1024*1024}));
       const shadowLifecycle=JSON.parse(Buffer.from(runLifecycle.content,'base64').toString('utf8'));
       comparison.ksShadowLifecycleProof=validateInactiveKansasShadowLifecycleTransition({candidateLifecycle,shadowLifecycle,comparison:{...comparison,runHeadSha:run.head_sha}});
+    }
+    if(state==='ND'&&comparison.status==='ahead'){
+      const manifestPath='engine/data/state-integration/ND.json',runManifest=api(`contents/${manifestPath}?ref=${run.head_sha}`);
+      const candidateManifest=JSON.parse(execFileSync('git',['show',`${currentHead}:${manifestPath}`],{encoding:'utf8',maxBuffer:2*1024*1024}));
+      const shadowManifest=JSON.parse(Buffer.from(runManifest.content,'base64').toString('utf8'));
+      comparison.ndCohortManifestProof=validateNorthDakotaCohortManifestTransition({candidateManifest,shadowManifest,
+        comparison:{...comparison,runHeadSha:run.head_sha}});
     }
   }
   const provenance=validateCityHiveShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison});

@@ -568,11 +568,6 @@ jobs:
         working-directory: engine
         run: node src/verify-nd-first-publication.mjs
 
-      - name: Require current North Dakota inventory at first publication
-        if: ${{ startsWith(inputs.incident_key, 'north-dakota-first-publication-') }}
-        working-directory: engine
-        run: node src/verify-nd-first-publication.mjs
-
       - name: Require current Missouri pickup inventory at first publication
         if: ${{ startsWith(inputs.incident_key, 'missouri-first-publication-') }}
         working-directory: engine

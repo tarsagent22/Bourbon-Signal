@@ -5,6 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { BourbonBible } from '../src/core/bible.mjs';
+import { bibleLookup, buildDrops, isSafePublicSignal } from '../src/export-site-contract.mjs';
 import { STATE_LIFECYCLE_CONFIG } from '../src/state-lifecycle.mjs';
 import { verifyNorthDakotaFirstPublication } from '../src/verify-nd-first-publication.mjs';
 import {
@@ -123,6 +124,15 @@ test('North Dakota keeps its two exact retail sources independently healthy and 
   assert.equal(result.lastGoodAt, '2026-11-14T22:16:44.262Z');
   assert.deepEqual(result.metadata.sourceHealth.map(row => row.sourceRuntimeId).sort(), [...NORTH_DAKOTA_RETAIL_SOURCE_IDS].sort());
   assert.equal(result.metadata.allDeliveryDisabled, true);
+  const currentProjectionRows=result.signals.map(row=>{
+    const observedAt=new Date(Date.now()-1_000).toISOString();
+    return {...row,observedAt,fetchedAt:observedAt,sourceProductBinding:{...row.sourceProductBinding,observedAt}};
+  });
+  assert.ok(currentProjectionRows.every(row=>isSafePublicSignal(row)));
+  const publicDrops=buildDrops(currentProjectionRows,bibleLookup(bible.records),currentProjectionRows);
+  assert.equal(publicDrops.length,3);
+  assert.ok(publicDrops.every(row=>row.state==='ND'&&row.quantity===0&&row.quantityIsExact===false
+    &&row.canAlertAsInventory===false&&row.canAlertAsWatch===false));
   const published={...result,startedAt:'2026-11-14T22:16:43.000Z',finishedAt:held.reportFinishedAt};
   const sample={state:'ND',count:result.signals.length,drops:result.signals};
   const verified=verifyNorthDakotaFirstPublication(published,sample,bible,{nowMs});
