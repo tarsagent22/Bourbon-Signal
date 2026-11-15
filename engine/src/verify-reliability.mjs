@@ -2,6 +2,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { evaluateCapacityBudget, validateExpansionLifecycle } from './reliability-policy.mjs';
+import { resolveStateWorkerConcurrency } from './optimization/state-worker-config.mjs';
 
 const ROOT = path.resolve('..');
 const lifecycle = JSON.parse(await readFile(path.join(ROOT, 'src/config/state-lifecycle.json'), 'utf8'));
@@ -14,7 +15,7 @@ const durations = (lifecycle.activeStates || []).map((state) => Number(policy.st
 if (durations.some((value) => !Number.isFinite(value) || value <= 0)) failures.push('Every active state must have a positive expected runtime budget.');
 const capacity = evaluateCapacityBudget({
   stateExpectedRunMs: durations,
-  concurrency: policy.workerConcurrency,
+  concurrency: resolveStateWorkerConcurrency(policy.workerConcurrency, process.env.BOURBON_SIGNAL_STATE_WORKER_CONCURRENCY),
   intervalMs: policy.refreshIntervalMs,
   safetyMarginMs: policy.refreshSafetyMarginMs,
 });

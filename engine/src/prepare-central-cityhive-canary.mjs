@@ -12,6 +12,8 @@ import {parseCityHiveProducts} from './collectors/cityhive-surfaces.mjs';
 import {canonicalizeSignal} from './operational-report.mjs';
 import {buildDrops,bibleLookup} from './export-site-contract.mjs';
 import {withResearchLifecycle} from './research-state-registry.mjs';
+import deEcwid from '../data/de-ecwid-research-source.json' with {type:'json'};
+import {parseDelawareEcwidCapture,isDelawareEcwidShadowPickup} from './research-delaware-ecwid.mjs';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const canonical=value=>{const url=new URL(value);url.searchParams.sort();return url.href;};
 const replayIdentity=row=>JSON.stringify([row?.storeId,row?.merchantId,row?.productId,row?.optionId||row?.variantId,
@@ -19,8 +21,8 @@ const replayIdentity=row=>JSON.stringify([row?.storeId,row?.merchantId,row?.prod
 const sameReplayIdentity=(shadowRows,replayedRows)=>Array.isArray(shadowRows)&&shadowRows.length===replayedRows.length
   &&JSON.stringify(shadowRows.map(replayIdentity).sort())===JSON.stringify(replayedRows.map(replayIdentity).sort());
 const ALL_CITYHIVE_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]);
-const CANARY_STATES=new Set(['WI','OK','MN','MO','MA','RI','KS','AR','MD']);
-const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA','RI','KS','AR','MD']);
+const CANARY_STATES=new Set(['WI','OK','MN','MO','MA','RI','KS','AR','MD','DE']);
+const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA','RI','KS','AR','MD','DE']);
 const sourceRegistryDigest=sources=>sha(Buffer.from(JSON.stringify([...sources].map(source=>({
   id:source.id,state:source.state,storeId:source.storeId,chainId:source.chainId||null,name:source.name,chainName:source.chainName||null,
   platform:source.platform,merchantId:source.merchantId,hostname:source.hostname,
@@ -28,9 +30,102 @@ const sourceRegistryDigest=sources=>sha(Buffer.from(JSON.stringify([...sources].
   sourceLabel:source.sourceLabel,categoryUrl:source.categoryUrl,
 })).sort((a,b)=>a.id.localeCompare(b.id)))));
 
+async function prepareDelawareCanary({report,reportDirectory,bible,provenance,nowMs=Date.now()}={}){
+  const state='DE',cityHiveSources=CENTRAL_CITYHIVE_RESEARCH_SOURCES.filter(source=>source.state===state);
+  const cityHive=report?.metadata?.cityHive,banks=report?.metadata?.delawareEcwid;
+  const origin=cityHive?.origin,reportSources=report?.sources||[];
+  const expectedBankUrls=[deEcwid.source.homeUrl,deEcwid.product.url];
+  const bankRuntimeId='research:de:ecwid:130511528';
+  const cityHiveRows=reportSources.filter(row=>cityHiveSources.some(source=>row.sourceRuntimeId===`research:de:${source.id}`));
+  const bankRows=reportSources.filter(row=>row.sourceRuntimeId===bankRuntimeId);
+  if(report?.state!==state||report.stale!==false||report.status!=='useful'||report.metadata?.complete!==true
+    ||report.metadata?.allDeliveryDisabled!==true||cityHive?.complete!==true||cityHive.cacheReused===true
+    ||banks?.complete!==true||banks.shadowOnly!==true||banks.productionActivationAllowed!==false
+    ||banks.customerDeliveryAllowed!==false||banks.allDeliveryDisabled!==true
+    ||cityHiveRows.length!==cityHiveSources.length||bankRows.length!==2
+    ||!cityHiveRows.every(row=>row.ok===true&&Number(row.status)===200)
+    ||!bankRows.every((row,index)=>row.ok===true&&Number(row.status)===200&&row.url===expectedBankUrls[index])
+    ||reportSources.length!==cityHiveSources.length+2)throw Error('A complete three-premise DE report with CityHive and Banks success is required');
+  if(provenance?.status!=='verified_github_shadow_artifact'||provenance.state!==state
+    ||provenance.repository!=='tarsagent22/Bourbon-Signal'||!/^[0-9]+$/.test(provenance.artifactId||'')
+    ||!/^[a-f0-9]{64}$/.test(provenance.artifactDigest||'')||!/^[a-f0-9]{40}$/.test(provenance.headSha||'')
+    ||origin?.kind!=='github_actions'||String(origin.workflowRunId)!==provenance.workflowRunId
+    ||origin.repository!==provenance.repository||origin.commitSha!==provenance.headSha)throw Error('DE preview requires verified hosted shadow provenance');
+  const finishedMs=Date.parse(report.finishedAt),cityHiveHash=cityHive.bibleRecordsSha256,banksHash=banks.libraryRecordsSha256;
+  const currentBibleHash=sha(Buffer.from(JSON.stringify(bible.records||[])));
+  if(!Number.isFinite(finishedMs)||finishedMs>nowMs||nowMs-finishedMs>2*60*60_000
+    ||!cityHiveHash||cityHiveHash!==banksHash||cityHiveHash!==currentBibleHash)throw Error('DE source clocks or library identity digest is stale or mismatched');
+  const cityRequests=cityHive.requests||[],cityReceipts=cityHive.receipts||[],bankRequests=banks.requests||[];
+  if(cityRequests.length!==4||cityReceipts.length!==4||bankRequests.length!==2
+    ||new Set([...cityRequests,...bankRequests].map(row=>canonical(row.url))).size!==6
+    ||[...cityRequests,...bankRequests].some(row=>row.ok!==true||Number(row.status)!==200))throw Error('DE preview requires exactly six distinct successful source requests');
+  const allSources=[...cityHiveSources,{id:'banks-wines:130511528',state:'DE',storeId:'ecwid:de:130511528',chainId:'banks-wines',name:deEcwid.source.premise.name,
+    chainName:deEcwid.source.retailer,platform:'ecwid',merchantId:deEcwid.source.merchantId,hostname:new URL(deEcwid.source.origin).hostname,
+    baseUrl:deEcwid.source.origin,address:deEcwid.source.premise.address,city:deEcwid.source.premise.city,zip:'19967',lat:null,lng:null,
+    sourceLabel:'Banks Wines & Spirits Millville first-party pickup',categoryUrl:deEcwid.source.homeUrl}];
+  const rows=new Map(),proofs=[],premises=new Set();
+  for(const receipt of cityReceipts){
+    const age=nowMs-Date.parse(receipt.observedAt),url=new URL(receipt.url),source=cityHiveSources.find(candidate=>candidate.hostname===url.hostname
+      &&url.searchParams.get('merchant-id')===candidate.merchantId);
+    if(!source||!Number.isFinite(age)||age<0||age>2*60*60_000||receipt.observedAt>report.finishedAt
+      ||receipt.status!==200||!Number.isSafeInteger(receipt.bytes)||receipt.bytes<1||receipt.bytes>2*1024*1024
+      ||canonical(receipt.finalUrl)!==canonical(receipt.url)||!/^source-captures\/[A-Za-z0-9._-]+\.html$/.test(receipt.artifactPath||''))throw Error('DE CityHive receipt failed source, clock or body bounds');
+    const request=cityRequests.find(row=>canonical(row.url)===canonical(receipt.url));
+    if(!request||request.ok!==true||Number(request.status)!==200||request.sourceId!==source.id)throw Error('DE CityHive receipt is not bound to one reviewed merchant query');
+    const body=await readFile(path.join(reportDirectory,receipt.artifactPath));
+    if(body.length!==receipt.bytes||sha(body)!==receipt.sha256)throw Error('DE CityHive raw capture does not match its receipt');
+    let premise=false;parseCityHiveProducts(body.toString('utf8'),source,{sources:ALL_CITYHIVE_SOURCES,
+      isAllowedMerchantConfiguration:()=>{premise=true;return true;}});
+    if(!premise)throw Error('DE CityHive raw capture does not prove its exact merchant address');
+    premises.add(source.storeId);
+    for(const row of parseCentralCityHiveInventory(body.toString('utf8'),source,bible,{observedAt:receipt.observedAt})){
+      if(!isCentralCityHiveInventory(row,{nowMs}))throw Error('DE Kreston replay row no longer passes current pickup policy');
+      const prior=rows.get(row.id);if(!prior||Date.parse(prior.observedAt)<Date.parse(row.observedAt))rows.set(row.id,row);
+    }
+    proofs.push({sourceId:source.id,storeId:source.storeId,url:receipt.url,observedAt:receipt.observedAt,sha256:receipt.sha256,bytes:receipt.bytes,artifactPath:receipt.artifactPath});
+  }
+  const bankCapture=async receipt=>{
+    const age=nowMs-Date.parse(receipt.observedAt);
+    if(!Number.isFinite(age)||age<0||age>2*60*60_000||receipt.status!==200||!Number.isSafeInteger(receipt.bytes)
+      ||receipt.bytes<1||receipt.bytes>2*1024*1024||!/^source-captures\/(?:premise|product)\.html$/.test(receipt.artifactPath||''))throw Error('DE Banks receipt failed source, clock or body bounds');
+    const body=await readFile(path.join(reportDirectory,receipt.artifactPath));
+    if(body.length!==receipt.bytes||sha(body)!==receipt.sha256)throw Error('DE Banks raw capture does not match its receipt');
+    proofs.push({sourceId:bankRuntimeId,url:receipt.url,observedAt:receipt.observedAt,sha256:receipt.sha256,bytes:receipt.bytes,artifactPath:receipt.artifactPath});
+    return body.toString('utf8');
+  };
+  const premiseReceipt=bankRequests.find(row=>row.url===expectedBankUrls[0]),productReceipt=bankRequests.find(row=>row.url===expectedBankUrls[1]);
+  if(!premiseReceipt||!productReceipt||premiseReceipt.ok!==true||productReceipt.ok!==true
+    ||premiseReceipt.url!==expectedBankUrls[0]||productReceipt.url!==expectedBankUrls[1])throw Error('DE Banks receipts do not match the exact reviewed home and product URLs');
+  const home=await bankCapture(premiseReceipt),product=await bankCapture(productReceipt);
+  const banksRow=parseDelawareEcwidCapture(home,product,bible,productReceipt.observedAt);
+  if(!banksRow||!isDelawareEcwidShadowPickup(banksRow,{nowMs}))throw Error('DE Banks replay did not produce a current exact allocated pickup row');
+  rows.set(banksRow.id,banksRow);premises.add(banksRow.storeId);
+  const replayed=[...rows.values()],reported=report.signals||[];
+  if(premises.size!==3||replayed.length!==reported.length||!sameReplayIdentity(reported,replayed)
+    ||!replayed.some(row=>row.tier==='allocated'||row.tier==='unicorn'))throw Error('DE current source replay changed exact rows, three-store coverage or allocation evidence');
+  const operational=replayed.map(row=>canonicalizeSignal(row,bible));
+  const drops=buildDrops(operational,bibleLookup(bible.records),operational).map(row=>{
+    const ecwid=row.sourceRuntimeId===bankRuntimeId;
+    return{...row,previewOnly:true,
+      ...(ecwid?{premisesVerified:true,pickupOfferVerified:true,inventorySemantics:'binary_retailer_orderable_no_exact_count',
+        sourceInventorySemantics:'binary_retailer_orderable_no_exact_count',availabilityLabel:'Retailer reports pickup available'}:{}),
+      canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false};
+  });
+  if(drops.length!==replayed.length||drops.some(row=>row.state!=='DE'||row.previewOnly!==true||row.canAlertAsInventory!==false
+    ||row.canAlertAsWatch!==false||row.eligibleForDelivery!==false||row.eligibleForEmail!==false||row.eligibleForSms!==false))throw Error('DE candidate projection lost a verified row or enabled delivery');
+  const locations=allSources.map(source=>({id:source.storeId,storeId:source.storeId,state:'DE',name:source.name,storeName:source.name,address:source.address,
+    storeAddress:source.address,city:source.city,zip:source.zip,lat:source.lat??null,lng:source.lng??null,type:'store',locationType:'store',
+    source:source.sourceLabel,precision:'store_level',searchable:true,collectorAttached:true,hasSignals:drops.some(row=>row.storeId===source.storeId)}));
+  return{schemaVersion:1,state:'DE',generatedAt:report.finishedAt,scope:'source_replayed_canary_no_production_activation',sourceFamily:'central_cityhive_and_ecwid',
+    sourceRegistrySha256:sourceRegistryDigest(allSources),bibleRecordsSha256:currentBibleHash,originalSourceClockPreserved:true,workflowSource:provenance,
+    sourceReceipts:proofs,locations,drops,allDeliveryDisabled:true,productionActivationAllowed:false};
+}
+
 // Only workflow-issued portable raw bodies can produce isolated canary input.
 // Report signals, prices, tiers and mutable absolute file paths are never read.
 export async function prepareCentralCityHiveCanary({state,report,reportDirectory,bible,provenance,nowMs=Date.now()}={}){
+  if(state==='DE')return prepareDelawareCanary({report,reportDirectory,bible,provenance,nowMs});
   const researchOnly=PER_STORE_QUERY_STATES.has(state);
   const sources=(researchOnly?CENTRAL_CITYHIVE_RESEARCH_SOURCES:CENTRAL_CITYHIVE_EXPANSION_SOURCES).filter(source=>source.state===state);
   const reportSources=report?.sources||[];
@@ -130,7 +225,9 @@ async function main(){
   if(!CANARY_STATES.has(state)||!artifact||!proofFile||out!==`data/canary-inputs/${state}.json`
     ||configOut!==`out/canary-preparation/${state}/lifecycle-research.json`)throw new Error('Use reviewed state, verified artifact/provenance and fixed state canary/config output paths');
   const provenance=JSON.parse(await readFile(proofFile,'utf8')),matching=[];
-  for(const file of await findReports(path.resolve(artifact))){const report=JSON.parse(await readFile(file,'utf8'));if(report.state===state&&String(report.metadata?.origin?.workflowRunId)===provenance.workflowRunId)matching.push({file,report});}
+  for(const file of await findReports(path.resolve(artifact))){const report=JSON.parse(await readFile(file,'utf8'));
+    const origin=state==='DE'?report.metadata?.cityHive?.origin:report.metadata?.origin;
+    if(report.state===state&&String(origin?.workflowRunId)===provenance.workflowRunId)matching.push({file,report});}
   if(matching.length!==1)throw new Error('Expected exactly one matching workflow-issued state report');
   const result=await prepareCentralCityHiveCanary({state,report:matching[0].report,reportDirectory:path.dirname(matching[0].file),bible:await BourbonBible.load(),provenance});
   const lifecycle=withResearchLifecycle(JSON.parse(await readFile('../src/config/state-lifecycle.json','utf8')));

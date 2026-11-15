@@ -8,13 +8,15 @@ import * as knownStoresModule from '../src/lib/coverage-known-stores.ts';
 import * as receiptModule from '../src/lib/nationwide-pilot-receipt.ts';
 import * as harness from '../apps/mobile/src/astra-test-harness.ts';
 import {isCentralCityHiveInventory} from '../engine/src/central-cityhive-policy.mjs';
+import {isCentralCityHiveCanaryOnSiteSignal} from '../engine/src/central-cityhive-policy.mjs';
+import {isDelawareEcwidCanaryPreview} from '../engine/src/delaware-ecwid-canary-preview-policy.mjs';
 const {classifyPublicDrop,getDropClassificationIndex}=classificationModule.default||classificationModule;
 const {normalizePublicDropEvidenceInput,isPublicDropFeedEligible,isCurrentInventoryEvidence}=evidenceModule.default||evidenceModule;
 const {buildCoverageContract}=coverageModule.default||coverageModule;
 const {normalizeDropForSite}=contractModule.default||contractModule;
 const {loadWithMocks}=harness.default||harness;
 const state=process.argv.find(value=>value.startsWith('--state='))?.slice(8);
-assert.ok(['WI','OK','RI','MN','KS','AR','MO','MD'].includes(state),'Use reviewed --state=WI|OK|RI|MN|KS|AR|MO|MD');
+assert.ok(['WI','OK','RI','MN','KS','AR','MO','MD','DE'].includes(state),'Use a reviewed CityHive canary state');
 const read=async file=>JSON.parse(await readFile(file,'utf8'));
 const root=`engine/out/canary/${state}/site`,clock=new Date().toISOString();
 const partition=await read(root+`/states/${state}/drops.json`),stats=await read(root+'/stats.json');
@@ -23,9 +25,13 @@ const index=getDropClassificationIndex((await read('src/data/drop-feed-classific
 const classified=partition.drops.map(row=>normalizePublicDropEvidenceInput(classifyPublicDrop(normalizeDropForSite(row),index)));
 const accepted=classified.filter(row=>isPublicDropFeedEligible(row)&&isCurrentInventoryEvidence(row,clock));
 assert.ok(accepted.length>0,'Actual current app-eligible rows must survive the canary customer policy');
-assert.ok(accepted.every(row=>isCentralCityHiveInventory(row)&&row.previewOnly&&row.eligibleForOnSite
+const acceptsCanaryRow=row=>state==='DE'
+  ? isCentralCityHiveCanaryOnSiteSignal(row)||isDelawareEcwidCanaryPreview(row)
+  : isCentralCityHiveInventory(row);
+assert.ok(accepted.every(row=>acceptsCanaryRow(row)&&row.previewOnly&&row.eligibleForOnSite
   &&row.canAlertAsInventory===false&&row.canAlertAsWatch===false&&row.eligibleForDelivery===false
-  &&row.eligibleForEmail===false&&row.eligibleForSms===false&&row.quantity===0&&row.quantityIsExact===false));
+  &&row.eligibleForEmail===false&&row.eligibleForSms===false
+  &&(row.quantity===0||(state==='DE'&&row.quantity==null&&isDelawareEcwidCanaryPreview(row)))&&row.quantityIsExact===false));
 const binary=accepted[0];
 for(const mutation of [{storeId:'unreviewed'},{productId:'unreviewed'},{quantity:1},{quantityIsExact:true},
   {storeAddress:'999 Other Street'},{sourceStale:true}])assert.equal(isCentralCityHiveInventory({...binary,...mutation}),false);

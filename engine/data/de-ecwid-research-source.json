@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "state": "DE",
+  "researchOnly": true,
+  "source": {
+    "retailer": "Banks Wines & Spirits",
+    "platform": "Ecwid storefront",
+    "merchantId": "130511528",
+    "origin": "https://bankswinesandspirits.com",
+    "homeUrl": "https://bankswinesandspirits.com/",
+    "premise": {
+      "name": "Banks Wines & Spirits",
+      "address": "38014 Town Center Drive, Millville, DE 19967",
+      "city": "Millville",
+      "county": "Sussex",
+      "state": "DE",
+      "pickupPolicy": "Convenient In-Store and Curbside Pickup available for all orders. Shipping is unavailable due to state regulations."
+    },
+    "historicalObservation": {
+      "observedAt": "2026-11-14T16:36:54Z",
+      "captureSha256": "ff542751cffdb8780e453e67f2463218664d3c5361dfc8de20a036511ef59307"
+    }
+  },
+  "product": {
+    "productId": "813956453",
+    "sku": "081128002664",
+    "title": "OLD FORESTER BWS SINGLE BARREL BOURBON BARREL STRENGTH 750ML",
+    "description": "BWS Old Forester Barrel Select Barrel Proof ‘Bank On It 2026’ (128.1 proof)",
+    "url": "https://bankswinesandspirits.com/products/old-forester-bws-single-barrel-bourbon-barrel-strength-750ml",
+    "sizeMl": 750,
+    "canonicalId": "old-forester-single-barrel-barrel-proof",
+    "canonicalName": "Old Forester Single Barrel Barrel Proof",
+    "reviewedTier": "allocated",
+    "historicalObservation": {
+      "observedAt": "2026-11-14T15:21:52Z",
+      "captureSha256": "9ea494195dcba4825d20b9ca3ed0eaaba84d819ebc5e1b04e0b7e4350d81213f",
+      "libraryRecordsSha256AtReview": "2f98c28c23a9f20f10e68777e158aff1539075e60a448d32700fdd574a46c0cc"
+    }
+  }
+}

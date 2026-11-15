@@ -148,6 +148,18 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (!sharedFiles.has(name)) return bytes;
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
+  if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const deStart=text.lastIndexOf('    "DE": {');
+    if(deStart>=0){
+      const deEnd=text.indexOf('\n    }\n  }',deStart);
+      const deBlock=deEnd>=0?text.slice(deStart,deEnd+6):'';
+      assert.equal(createHash('sha256').update(deBlock).digest('hex'),'37151a0e8e0947ca70134c0be309271ff12edda21969d18d0f08262526bac666',`${name}: exact Delaware lifecycle entry`);
+      text=replaceUnique(text,`,\n${deBlock}`,'',`${name}: exact Delaware lifecycle entry`);
+      text=replaceUnique(text,'    "KS",\n    "DE",\n    "AR",\n    "MO"\n  ],\n  "reliabilityPolicy"',
+        '    "KS",\n    "AR",\n    "MO"\n  ],\n  "reliabilityPolicy"',`${name}: four-state admission exact Delaware active list entry`);
+      text=replaceUnique(text,'      "FL": 180000,\n      "DE": 55000\n','      "FL": 180000\n',`${name}: four-state admission exact Delaware forecast entry`);
+    }
+  }
   if(name==='engine/src/state-sources.mjs'){
     const wyomingImport = "import { WYOMING_GROCERY_CONFIG } from './collectors/wyoming-grocery-production.mjs';\n";
     if (text.includes(wyomingImport)) {
@@ -351,6 +363,10 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     ['First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno–Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane.',
       'First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno\\u2013Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane.'],
   ])text=replaceUnique(text,current,historical,`${name}: exact historical JSON unicode escapes`);
+  if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const current='"workerConcurrency": 5,';
+    if(text.includes(current))text=replaceUnique(text,current,'"workerConcurrency": 4,',`${name}: exact five-worker capacity forecast`);
+  }
   if(name==='src/config/state-lifecycle.json')text=replaceUnique(text,'Reno–Sparks','Reno\\u2013Sparks',`${name}: exact Nevada area Unicode escape`);
   return Buffer.from(text);
 }
