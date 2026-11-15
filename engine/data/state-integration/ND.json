@@ -9,10 +9,10 @@
   },
   "collector": {
     "sourceIds": [
-      "research:nd:rock-bottle-shop:67c8a2e465e7a028cb538073",
-      "research:nd:albertsons-xapi"
+      "nd:rock-cityhive",
+      "nd:albertsons-xapi"
     ],
-    "registration": "Isolated Grand Forks CityHive pickup and Williston Albertsons in-store data with independent original observation clocks."
+    "registration": "Production collector uses the reviewed Grand Forks CityHive pickup and Williston Albertsons in-store adapters while preserving independent original observation clocks."
   },
   "storeIdentity": {
     "mode": "exact_reviewed_retailer_store",
