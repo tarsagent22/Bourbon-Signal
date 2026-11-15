@@ -12,6 +12,7 @@ import { groceryExpansionLibraryTier, isGroceryExpansionInventory } from './groc
 import { centralCityHiveLibraryTier } from './collectors/central-cityhive-expansion.mjs';
 import { texasShopifyPickupLibraryTier } from './collectors/texas-shopify-pickup.mjs';
 import {isCentralCityHiveProductionOnSiteSignal} from './central-cityhive-policy.mjs';
+import { isNorthDakotaProductionOnSiteInventory } from './north-dakota-public-policy.mjs';
 import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from './confidence-policy.mjs';
 import { hasVerifiedGeorgiaRetailerInventory, suppressGeorgiaActivationBaseline } from './georgia-activation-policy.mjs';
 import {
@@ -222,6 +223,12 @@ export function canonicalizeSignal(signal, bible) {
       eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
     }:{}),
     ...(isWyomingGroceryProductionInventory(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+    ...(isNorthDakotaProductionOnSiteInventory(signal)?{
       tier:signal.tier,inventorySemantics:signal.inventorySemantics,
       canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
       eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
