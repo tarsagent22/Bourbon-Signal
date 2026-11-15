@@ -8,49 +8,267 @@
     "refinementLevel": "store"
   },
   "collector": {
-    "sourceIds": ["precision:or"],
-    "registration": "Official OLCC daily parsed report; the isolated canary replays the workflow-saved report artifact and revalidates each exact product identity and store row against the current live app Bible. It makes no source request, production activation, alert, or publication."
+    "sourceIds": [
+      "or:olcc-daily-inventory"
+    ],
+    "cohortSha256": "8c1a4bd03f5f5bd6ca3ed6259f4f16001adf191a27c7a8a547bc297d9ba9098d",
+    "registration": "Official OLCC daily store inventory. Hosted research and canary replay immutable workflow-issued report artifacts; production collector remains promotion-gated and makes no request until reviewed lifecycle evidence is complete."
   },
   "storeIdentity": {
     "mode": "official_olcc_store_number_and_reported_premises",
     "addressRequired": true,
-    "expectedKnownStores": 200,
+    "expectedKnownStores": 249,
     "proof": "Store number, store name, street address, city, and postal code come from the same official report row; no location is inferred or fabricated."
   },
   "sourceSemantics": {
-    "availability": "Official report quantity is exact as of each row's date; it is historical inventory context, not a restock event or shelf guarantee. Original Pacific-midnight date timestamps are preserved and rows older than 48 hours are excluded.",
+    "availability": "Official report quantity is exact as of the reported store inventory date; it is dated inventory context, not a restock event or shelf guarantee. Original America/Los_Angeles date timestamps are preserved and rows older than 48 hours are excluded.",
     "inventoryAlertable": false,
     "watchAlertable": false
   },
   "customerPaths": {
-    "stateFilter": {"status":"verified","assertion":"Canary snapshot contains the OR partition while authoritative lifecycle remains research-only."},
-    "areaFilter": {"status":"verified","assertion":"Store-level source rows retain their official city and address in the canary export."},
-    "preferences": {"status":"verified","assertion":"The isolated preview lifecycle is derived from current configuration and is not copied back to production."},
-    "dashboard": {"status":"verified","assertion":"The canary snapshot includes Oregon coverage and dated inventory rows."},
-    "dropFeedApi": {"status":"verified","assertion":"The canary partition carries official source URL, exact quantity, store identity, and original inventory date."},
-    "finder": {"status":"verified","assertion":"Finder locations are limited to official store rows represented by current canary signals."},
-    "alerts": {"status":"verified","assertion":"Oregon inventory and watch alerts remain disabled by both lifecycle and candidate row policy."},
-    "monitoring": {"status":"verified","assertion":"The isolated snapshot records Oregon partition counts without changing production monitoring state."},
-    "export": {"status":"verified","assertion":"The candidate partition is built from the saved parsed OLCC artifact; current source identities and date freshness are rechecked before export."}
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Hosted canary run 43617826323 built and verified the isolated Oregon state partition; production lifecycle remains research-only."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "The partition preserves source-reported city and full street address on each exact store row."
+    },
+    "preferences": {
+      "status": "not_applicable",
+      "reason": "No Oregon production customer scope is active; the isolated research canary does not exercise or alter customer preferences.",
+      "assertion": "Production lifecycle remains research-only."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Hosted isolated canary generated the Oregon partition for the existing site projection; no customer publication occurred."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "The canary artifact contains an Oregon-only public state partition bound to source URL, quantity, exact store identity, and original inventory date."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Canary projection locations are limited to official store rows represented by current report signals."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Canary alert-candidate count is zero; Oregon inventory, Watch, email, SMS, and delivery flags remain false."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Hosted shadow report is complete and useful with 4,179 exact store signals across the official report; the candidate is not in production monitoring."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Hosted canary emitted the 1,595-row Oregon public partition from the saved OLCC report; exact source body and original inventory dates are retained."
+    }
   },
   "evidence": {
     "shadow": {
       "status": "verified",
-      "runs": 1,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565542444",
-      "assertion": "Successful hosted shadow run retained the parsed official OLCC report and a complete OR shadow summary. The report is dated 11/13/2026; original store observation clocks are preserved."
+      "runs": 3,
+      "distinctSourceReports": 3,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43730826122",
+      "sourceReportDate": "11/15/2026",
+      "sourceReportSha256": "6dd8f992855f0ccf3854110a889517a39a1ea94144f330c21c06113be5bbbf4c",
+      "observations": [
+        {
+          "runId": "43569668241",
+          "reportDate": "11/13/2026",
+          "reportSha256": "7f3358819f99f036fb3b7594a25f0c0ec331588d680aa16773d71f4084bd6775",
+          "reportBytes": 95920909,
+          "sourceArtifactId": "14104021710",
+          "sourceArtifactDigest": "daad6a4419930ad0e0aa75d55e21b08a9d821113ca7d99caf34866e9052fc083",
+          "shadowArtifactId": "14104146525",
+          "shadowArtifactDigest": "815bf9c220e8e67fb37da8c741de90edd94748629b7b786c0a4356d21c096f8a",
+          "signals": 4236
+        },
+        {
+          "runId": "43610935076",
+          "reportDate": "11/14/2026",
+          "reportSha256": "44f4aaa5e2358bf013bbd8eb71207660d58397d299f96c065d5ad07b43362985",
+          "reportBytes": 95990899,
+          "sourceArtifactId": "14120401688",
+          "sourceArtifactDigest": "8d328b0eea446f23287340ff8cedc9dae0337eaf24db84c1656f533ec2f7b132",
+          "shadowArtifactId": "14119907634",
+          "shadowArtifactDigest": "a3c5ee73127e0305c1762072c8889059f711321eb91c323107f12a6a615702e7",
+          "signals": 4179
+        },
+        {
+          "runId": "43730826122",
+          "reportDate": "11/15/2026",
+          "reportSha256": "6dd8f992855f0ccf3854110a889517a39a1ea94144f330c21c06113be5bbbf4c",
+          "reportBytes": 95646397,
+          "sourceArtifactId": "14167794717",
+          "sourceArtifactDigest": "a89521fcc4e384aa74a42339696f4e2f99fba57dd32ee66fc52338dd85b5bf57",
+          "shadowArtifactId": "14167944149",
+          "shadowArtifactDigest": "21c131d32bf7d249b1a21bd8ccd740cf544b370d9549a848dd0b3091f56f9449",
+          "signals": 4224
+        }
+      ]
     },
     "canary": {
-      "status": "not_run",
-      "runs": 0,
-      "artifact": null,
-      "reason": "Local isolated preparation and vertical-slice rehearsal are not a hosted canary workflow run or a deployed preview."
+      "status": "verified",
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43731142674",
+      "siteArtifact": "engine/data/canary-site/oregon-20261115",
+      "previewUrl": "https://bourbonsignal-18a6w4ybb-tarsagent22s-projects.vercel.app",
+      "allDeliveryChannelsDisabled": true,
+      "observations": [
+        {
+          "runId": "43617826323",
+          "status": "success",
+          "artifactHash": "fd6e1ca0ee8d0eda78612e732a801bf3f6157366c2c25c918e72465d79dcba8f",
+          "artifactId": "14122163860",
+          "commitSha": "3a58a77dd0792219b02a825bccb2d84e49f5169a",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43617826323",
+          "artifactName": "state-expansion-canary-OR-43617826323"
+        },
+        {
+          "runId": "43731142674",
+          "status": "success",
+          "artifactHash": "82ed4fedc5b929399970fcbd375d1054fa703e6d4ee38a5437eb938060340492",
+          "artifactId": "14168417468",
+          "commitSha": "eacc4905a00ce50bf325027e645d0d02ae87dc3a",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43731142674",
+          "artifactName": "state-expansion-canary-OR-43731142674"
+        }
+      ]
+    },
+    "actualPreviewVerification": {
+      "url": "https://bourbonsignal-18a6w4ybb-tarsagent22s-projects.vercel.app",
+      "canaryRunId": "43731142674",
+      "sourceShadowRunId": "43730826122",
+      "partitionSha256": "7dbe65c31041fae6a23c7c7cc4608134f5d1c2895abe334cf04de70514f54d9d",
+      "generatedAt": "2026-11-15T11:37:10.179Z",
+      "evaluatedAt": "2026-11-15T15:46:21.874Z",
+      "currentStores": 261,
+      "currentCities": 166,
+      "searchableStores": 249,
+      "alertEligibleStores": 0,
+      "finderMatches": [
+        {
+          "storeId": "1074",
+          "address": "6327 SW Capitol Hwy Ste D, PORTLAND, OR, 97239",
+          "city": "PORTLAND",
+          "stateCode": "OR"
+        },
+        {
+          "storeId": "1069",
+          "address": "61153 S Highway 97, BEND, OR, 97702",
+          "city": "BEND",
+          "stateCode": "OR"
+        },
+        {
+          "storeId": "1131",
+          "address": "1590 Delta Waters Rd Ste 110, MEDFORD, OR, 97504",
+          "city": "MEDFORD",
+          "stateCode": "OR"
+        },
+        {
+          "storeId": "1154",
+          "address": "2866 Willamette St, EUGENE, OR, 97405",
+          "city": "EUGENE",
+          "stateCode": "OR"
+        },
+        {
+          "storeId": "1017",
+          "address": "3320 COMMERCIAL ST SE, SALEM, OR, 97302",
+          "city": "SALEM",
+          "stateCode": "OR"
+        },
+        {
+          "storeId": "1167",
+          "address": "730 Bond St Ste A, ASTORIA, OR, 97103",
+          "city": "ASTORIA",
+          "stateCode": "OR"
+        }
+      ]
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "OR",
+      "generatedAt": "2026-11-15T15:40:54.497Z",
+      "sourceConfigHash": "ca2ec5ff941d31da44b17ec47aba1fed28bb4bb3fa6e6a0ec38b31b6cc910ba5",
+      "sourceRuntimeId": "or:olcc-daily-inventory",
+      "cohortSha256": "8c1a4bd03f5f5bd6ca3ed6259f4f16001adf191a27c7a8a547bc297d9ba9098d",
+      "previewUrl": "https://bourbonsignal-18a6w4ybb-tarsagent22s-projects.vercel.app",
+      "shadowRuns": [
+        {
+          "runId": "43569668241",
+          "status": "success",
+          "artifactHash": "815bf9c220e8e67fb37da8c741de90edd94748629b7b786c0a4356d21c096f8a",
+          "artifactId": "14104146525",
+          "commitSha": "677d55cdd5ed42a35981ade96bad82aa6f860495",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43569668241",
+          "artifactName": "state-expansion-shadow-43569668241",
+          "sourceReportDate": "11/13/2026",
+          "sourceReportSha256": "7f3358819f99f036fb3b7594a25f0c0ec331588d680aa16773d71f4084bd6775"
+        },
+        {
+          "runId": "43610935076",
+          "status": "success",
+          "artifactHash": "a3c5ee73127e0305c1762072c8889059f711321eb91c323107f12a6a615702e7",
+          "artifactId": "14119907634",
+          "commitSha": "44c9ec65f354fc754566d62111e4a8f3a454e0cf",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43610935076",
+          "artifactName": "state-expansion-shadow-43610935076",
+          "sourceReportDate": "11/14/2026",
+          "sourceReportSha256": "44f4aaa5e2358bf013bbd8eb71207660d58397d299f96c065d5ad07b43362985"
+        },
+        {
+          "runId": "43730826122",
+          "status": "success",
+          "artifactHash": "21c131d32bf7d249b1a21bd8ccd740cf544b370d9549a848dd0b3091f56f9449",
+          "artifactId": "14167944149",
+          "commitSha": "f1299fc781198878769e9daa8be2370fe2b708e0",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43730826122",
+          "artifactName": "state-expansion-shadow-43730826122",
+          "sourceReportDate": "11/15/2026",
+          "sourceReportSha256": "6dd8f992855f0ccf3854110a889517a39a1ea94144f330c21c06113be5bbbf4c"
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "43617826323",
+          "status": "success",
+          "artifactHash": "fd6e1ca0ee8d0eda78612e732a801bf3f6157366c2c25c918e72465d79dcba8f",
+          "artifactId": "14122163860",
+          "commitSha": "3a58a77dd0792219b02a825bccb2d84e49f5169a",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43617826323",
+          "artifactName": "state-expansion-canary-OR-43617826323"
+        },
+        {
+          "runId": "43731142674",
+          "status": "success",
+          "artifactHash": "82ed4fedc5b929399970fcbd375d1054fa703e6d4ee38a5437eb938060340492",
+          "artifactId": "14168417468",
+          "commitSha": "eacc4905a00ce50bf325027e645d0d02ae87dc3a",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43731142674",
+          "artifactName": "state-expansion-canary-OR-43731142674"
+        }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "43731145130",
+        "artifactId": "14168676512",
+        "commitSha": "eacc4905a00ce50bf325027e645d0d02ae87dc3a",
+        "artifactDigest": "efa1cebf51f0ab85e2fe609531ef4d2c9787b848856116a58362c04e2a81e499",
+        "bundleDigest": "284567ace306414f5b608b6d115dba08a1cf9d796b72b095bb61793fbadc3278",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43731145130",
+        "artifactName": "state-promotion-provenance-OR-43731145130"
+      }
+    },
+    "firstPublication": {
+      "previousSourceReportDate": "11/14/2026",
+      "previousSourceReportSha256": "44f4aaa5e2358bf013bbd8eb71207660d58397d299f96c065d5ad07b43362985"
     },
     "production": {
-      "status": "not_deployed",
-      "url": null,
-      "assertion": "No public production inventory or customer alerts are authorized by this canary preparation.",
-      "reason": "Oregon remains research-only pending separate evidence review and activation."
+      "status": "awaiting_first_publication",
+      "url": "https://www.bourbonsignal.com/api/coverage",
+      "assertion": "First publication requires the current Pacific-date report, current statewide store availability, and a successful canonical Coverage and Finder check."
     }
   }
 }

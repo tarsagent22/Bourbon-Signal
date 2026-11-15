@@ -35,7 +35,8 @@ function stableJson(value) {
 }
 
 function sha256Relative(relative) {
-  return createHash('sha256').update(readFileSync(new URL(relative, import.meta.url))).digest('hex');
+  const source = readFileSync(new URL(relative, import.meta.url)).toString('utf8').replace(/\r\n/gu, '\n');
+  return createHash('sha256').update(source).digest('hex');
 }
 
 function flag(name, fallback) {
@@ -250,9 +251,9 @@ function verifyMississippiCanaryEvidence() {
   assert.equal(evidence.state, 'MS');
   assert.equal(evidence.candidateInput, 'engine/data/canary-inputs/MS.json');
   const inputPath = path.join(root, evidence.candidateInput);
-  const inputBytes = readFileSync(inputPath);
+  const inputBytes = readFileSync(inputPath).toString('utf8').replace(/\r\n/gu, '\n');
   assert.equal(createHash('sha256').update(inputBytes).digest('hex'), evidence.candidateInputSha256);
-  const input = JSON.parse(inputBytes.toString('utf8'));
+  const input = JSON.parse(inputBytes);
   assert.equal(input.contractVersion, 'bourbon-signal/ms-canary-input@1');
   assert.equal(input.state, 'MS');
   assert.equal(input.generatedAt, evidence.generatedAt);

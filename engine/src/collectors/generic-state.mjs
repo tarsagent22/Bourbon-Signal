@@ -14,6 +14,7 @@ import {collectNorthDakotaRetailProductionState} from './north-dakota-retail-pro
 import {CENTRAL_CITYHIVE_PRODUCTION_STATES} from '../central-cityhive-production-config.mjs';
 import {collectMinnesotaCityHiveProductionState} from './minnesota-cityhive-production.mjs';
 import {collectSouthDakotaProductionState} from './south-dakota-production.mjs';
+import {collectOregonDailyProductionState} from './oregon-daily-production.mjs';
 import {collectLouisianaAlaskaGroceryProductionState} from './louisiana-alaska-grocery-production-adapter.mjs';
 import {LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS,LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES,LOUISIANA_ALASKA_GROCERY_BUDGETS} from '../louisiana-alaska-grocery-production-config.mjs';
 import { LOCATION_PROFILES } from '../location-precision.mjs';
@@ -488,6 +489,7 @@ export async function collectState(config, bible, options = {}) {
   if(config.id==='ND')return collectNorthDakotaRetailProductionState(config,bible,options);
   if(config.id==='MN')return collectMinnesotaCityHiveProductionState(config,bible,options);
   if(config.id==='SD')return collectSouthDakotaProductionState(config,bible,options);
+  if(config.id==='OR')return collectOregonDailyProductionState(config,bible,options);
   if(LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(config.id)){
     const productionConfig=LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS.find(candidate=>candidate.id===config.id);
     const budget=LOUISIANA_ALASKA_GROCERY_BUDGETS[config.id];

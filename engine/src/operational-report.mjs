@@ -3,6 +3,7 @@ import {isDelawareEcwidProductionOnSiteSignal} from './delaware-ecwid-production
 import {isSouthDakotaProductionOnSiteSignal} from './south-dakota-pickup-policy.mjs';
 import {isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';
 import { isWyomingGroceryProductionInventory } from './wyoming-grocery-policy.mjs';
+import { isOregonDailyProductionEvidence } from './oregon-daily-production-policy.mjs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -250,6 +251,11 @@ export function canonicalizeSignal(signal, bible) {
     } : {}),
     ...(isNorthDakotaProductionOnSiteInventory(signal)?{
       tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+    ...(isOregonDailyProductionEvidence(signal)?{
       canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
       eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
       eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,

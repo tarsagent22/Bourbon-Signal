@@ -20,8 +20,8 @@ test('MS historical implementation bytes remain pinned, including policy', async
   const hashes = Object.values(evidence).find(v=>v && typeof v==='object' && v['engine/src/collectors/mississippi-retailer-surfaces.mjs']);
   assert.ok(hashes);
   for (const [name, hash] of Object.entries(hashes)) {
-    // Only reviewed NY/CO/AZ metadata, area expectations, the verifier's hooks and
-    // the exact FL/IN proof additions and shared alert suppression may differ.
+    // Only reviewed NY/CO/AZ metadata, area expectations, exact OR verifier/proof
+    // hooks, FL/IN proof additions and shared alert suppression may differ.
     // Original digests pin all other bytes.
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, await readFile(new URL('../'+name,import.meta.url)))),hash,name);
   }
@@ -48,16 +48,33 @@ test('measured forecast reversal accepts only the complete reviewed map and pres
     const marylandBudget = JSON.parse(name.endsWith('.json') ? current : current.slice(current.indexOf('{'), current.lastIndexOf('} as const') + 1))
       .reliabilityPolicy.stateExpectedRunMs.MD;
     const wyoming = '      "WY": 30000,\n';
-    const recentBudgets = (current.includes(wyoming) ? wyoming : '') + (marylandBudget ? '      "MD": 15000,\n' : '') + '      "AR": 30000,\n      "MN": 30000,\n';
+    const oregonBudget = '      "OR": 60000,\n';
+    const recentBudgets = (current.includes(oregonBudget) ? oregonBudget : '') + (current.includes(wyoming) ? wyoming : '')
+      + (marylandBudget ? '      "MD": 15000,\n' : '') + '      "AR": 30000,\n      "MN": 30000,\n';
     const withRecentStateBudgets = map => withKansas(map.replace('"stateExpectedRunMs": {\n', '"stateExpectedRunMs": {\n' + recentBudgets));
     const currentMap = withRecentStateBudgets(reviewed).replace('      "FL": 180000\n    }', '      "FL": 180000,\n      "DE": 55000,\n      "ND": 30000,\n      "SD": 60000\n    }');
     assert.ok(current.includes(currentMap));
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
     for (const mutation of [current.replace(currentMap, withRecentStateBudgets(original)), current.replace(currentMap, withRecentStateBudgets('    "stateExpectedRunMs": {\n    }')), current + '\n' + reviewed,
       ...reviewed.split('\n').slice(1, -1).map(line => current.replace(line, line.replace(/\d+/, value => String(Number(value) + 1)))),
-    ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:measured runtime forecast|exact KS expected runtime|(?:North|South) Dakota expected runtime entry|four-state admission exact Delaware forecast entry).*exact historical verification hook/);
+    ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:measured runtime forecast|exact KS expected runtime|(?:North|South) Dakota expected runtime entry|four-state admission exact Delaware forecast entry|Oregon runtime forecast).*exact historical verification hook/);
     const outside = current.replace('"refreshSafetyMarginMs": 300000', '"refreshSafetyMarginMs": 0');
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name], 'the map exception cannot hide a reduced refresh reserve');
+  }
+});
+
+test('Oregon activation keeps exact lifecycle hooks explicit at the historical Mississippi boundary', async () => {
+  for (const name of ['src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']) {
+    const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
+    const dormantTail = '    "SD"\n  ],\n  "reliabilityPolicy"';
+    const activeTail = '    "SD",\n    "OR"\n  ],\n  "reliabilityPolicy"';
+    const active = current.includes(activeTail) ? current.replace(activeTail, dormantTail) : current.replace(dormantTail, activeTail);
+    assert.notEqual(active, current);
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(active)), /Oregon active list entry.*exact historical verification hook/);
+    const budget = current.includes(activeTail) ? current.replace('      "OR": 60000,\n', '      "OR": 61000,\n')
+      : current.replace('"stateExpectedRunMs": {\n', '"stateExpectedRunMs": {\n      "OR": 60000,\n');
+    assert.notEqual(budget, current);
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(budget)), /Oregon runtime forecast.*exact historical verification hook/);
   }
 });
 
@@ -79,7 +96,7 @@ test('actual four-state admission reverses only the exact active list and issued
         : [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed];
       for (const mutation of mutations) {
         assert.notEqual(mutation, current);
-        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN|KS|AR) active list tail|exact (?:MD|WY) active list head|exact (?:North|South) Dakota active list entry).*exact historical verification hook/);
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN|KS|AR) active list tail|exact (?:MD|WY) active list head|exact (?:North|South) Dakota active list entry|Oregon active list entry).*exact historical verification hook/);
       }
       if (key !== 'activeStates') for (const changed of [
         reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),
@@ -167,6 +184,13 @@ function signalSort(a, b) {
   assert.equal(digest(normalized), originalHash);
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
   assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, '')
+    .replace("import { isOregonDailyProductionEvidence } from './oregon-daily-production-policy.mjs';\n", '')
+    .replace(`    ...(isOregonDailyProductionEvidence(signal)?{
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`, '')
     .replace(sdImport, '').replace(sdGate, '').replace(sdProjection, '')
     .replace("import {isDelawareEcwidProductionOnSiteSignal} from './delaware-ecwid-production-policy.mjs';\n", '')
     .replace(`    ...(isDelawareEcwidProductionOnSiteSignal(signal)?{

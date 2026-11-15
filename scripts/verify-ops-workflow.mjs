@@ -190,7 +190,20 @@ for (const state of ['FL', 'GA', 'NH', 'OH', 'OR', 'UT']) {
     && enginePackageJson.scripts?.['verify:ut']
     && existsSync(path.join(root, 'engine/data/state-integration/UT.json'))
     && existsSync(path.join(root, 'engine/data/state-fixtures/UT.json'));
-  if (isCostcoOnlyExpansion || isHardenedOhioLiveInventory || isHardenedFloridaLiveInventory || isHardenedGeorgiaLiveInventory || isHardenedUtahAggregateWatch) continue;
+  const isHardenedOregonDailyInventory = state === 'OR'
+    && customerStates.has('OR')
+    && lifecycle?.publicStatus === 'active'
+    && lifecycle?.lifecycle === 'store_inventory'
+    && lifecycle?.coverageTier === 'live_store_inventory'
+    && lifecycle?.refinementLevel === 'store'
+    && lifecycle?.inventoryAlertable === false
+    && lifecycle?.watchAlertable === false
+    && existsSync(path.join(root, 'engine/data/state-integration/OR.json'))
+    && existsSync(path.join(root, 'engine/data/state-fixtures/OR.json'))
+    && /isOregonDailyProductionEvidence/.test(read('engine/src/export-site-contract.mjs'))
+    && /Require current Oregon report and exact-store coverage at first publication[\s\S]{0,200}oregon-daily-first-publication-[\s\S]{0,130}run: node src\/verify-oregon-first-publication\.mjs/.test(refreshWorkflow);
+  if (isCostcoOnlyExpansion || isHardenedOhioLiveInventory || isHardenedFloridaLiveInventory || isHardenedGeorgiaLiveInventory
+    || isHardenedUtahAggregateWatch || isHardenedOregonDailyInventory) continue;
   if (customerStates.has(state)) fail(`${state} should remain research-only until hardened enough for its explicitly verified customer-facing coverage contract.`);
   if (lifecycle?.publicStatus !== 'research_only') {
     fail(`${state} should have explicit research_only lifecycle status unless it has an explicitly verified customer-facing coverage contract.`);

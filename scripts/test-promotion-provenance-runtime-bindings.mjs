@@ -12,7 +12,7 @@ const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const common=['engine/src/collectors/generic-state.mjs','engine/src/confidence-policy.mjs','engine/src/run.mjs',
   'engine/src/core/collection-http.mjs','engine/src/reliability-policy.mjs','.github/workflows/refresh-feed.yml',
   '.github/workflows/state-expansion-shadow.yml','engine/out/library-catalog.json','engine/out/bourbon-bible.json'];
-for(const state of ['WA','NM','WI','OK','MN','MO','NJ','MI','AK','LA','RI','DE','SD'])test(`${state} issued bundle binds actual runtime files and refuses missing mandatory production code`,async t=>{
+for(const state of ['WA','NM','WI','OK','MN','MO','NJ','MI','AK','LA','RI','DE','SD','OR'])test(`${state} issued bundle binds actual runtime files and refuses missing mandatory production code`,async t=>{
   const directory=await mkdtemp(path.join(tmpdir(),'synthetic-promotion-hashes-'));
   assert.ok(path.resolve(directory).startsWith(path.resolve(tmpdir())+path.sep));t.after(()=>rm(directory,{recursive:true,force:true}));
   // Synthetic replay bytes validate the issuer, never source or promotion truth.
@@ -20,6 +20,7 @@ for(const state of ['WA','NM','WI','OK','MN','MO','NJ','MI','AK','LA','RI','DE',
   const candidates=[...source.matchAll(/['`]([^'`\n]+)['`]/g)].map(match=>match[1])
     .filter(file=>/^(?:engine\/|src\/|scripts\/|apps\/|\.github\/|next\.config\.ts$)/.test(file)&&!file.includes(' '))
     .map(file=>file.replaceAll('${candidateDrops}',`data/canary-inputs/${state}.json`).replaceAll('${state}',state));
+  if(state==='OR')candidates.push('engine/out/canary/OR/site/public-projection.json');
   for(const file of new Set(candidates)){
     if(file==='engine/out/sd-shadow-input'||file==='engine/out/canary/SD'){
       await mkdir(path.join(directory,file),{recursive:true});
@@ -41,10 +42,11 @@ for(const state of ['WA','NM','WI','OK','MN','MO','NJ','MI','AK','LA','RI','DE',
     env:{...process.env,PROMOTION_CANDIDATE_DROPS:`data/canary-inputs/${state}.json`,GITHUB_REPOSITORY:'synthetic/unit-only',GITHUB_RUN_ID:'unit-only',GITHUB_SHA:'unit-only'}});
   const first=run();assert.equal(first.status,0,first.stderr);
   const out=path.join(directory,`engine/out/promotion-provenance/${state}.json`),payload=JSON.parse(await readFile(out,'utf8'));
-  const central=['WI','OK','RI','MO','DE'].includes(state),minnesota=state==='MN',njmi=['NJ','MI'].includes(state),laak=['AK','LA'].includes(state),sd=state==='SD';
-  const module=sd?'engine/src/collectors/south-dakota-production.mjs':laak?'engine/src/collectors/louisiana-alaska-grocery-production-adapter.mjs':njmi?'engine/src/collectors/nj-mi-cityhive-production.mjs':minnesota?'engine/src/collectors/minnesota-cityhive-production.mjs':central?'engine/src/collectors/central-cityhive-production.mjs':'engine/src/collectors/western-grocery-production.mjs';
-  const config=sd?'engine/src/south-dakota-pickup-policy.mjs':laak?'engine/src/louisiana-alaska-grocery-production-config.mjs':njmi?'engine/src/nj-mi-production-config.mjs':minnesota?'engine/src/minnesota-cityhive-production-config.mjs':central?'engine/src/central-cityhive-production-config.mjs':'engine/src/western-grocery-production-config.mjs';
-  const runtimeFiles=sd?[
+  const oregon=state==='OR',sd=state==='SD',central=['WI','OK','RI','MO','DE'].includes(state),minnesota=state==='MN',njmi=['NJ','MI'].includes(state),laak=['AK','LA'].includes(state);
+  const module=oregon?'engine/src/collectors/oregon-daily-production.mjs':sd?'engine/src/collectors/south-dakota-production.mjs':laak?'engine/src/collectors/louisiana-alaska-grocery-production-adapter.mjs':njmi?'engine/src/collectors/nj-mi-cityhive-production.mjs':minnesota?'engine/src/collectors/minnesota-cityhive-production.mjs':central?'engine/src/collectors/central-cityhive-production.mjs':'engine/src/collectors/western-grocery-production.mjs';
+  const config=oregon?'engine/src/oregon-daily-production-policy.mjs':sd?'engine/src/south-dakota-pickup-policy.mjs':laak?'engine/src/louisiana-alaska-grocery-production-config.mjs':njmi?'engine/src/nj-mi-production-config.mjs':minnesota?'engine/src/minnesota-cityhive-production-config.mjs':central?'engine/src/central-cityhive-production-config.mjs':'engine/src/western-grocery-production-config.mjs';
+  const runtimeFiles=oregon?['engine/src/collectors/generic-state.mjs','engine/src/run.mjs','.github/workflows/refresh-feed.yml','engine/src/verify-oregon-first-publication.mjs','engine/src/verify-oregon-distinct-report.mjs']:
+  sd?[
     'engine/src/collectors/generic-state.mjs','engine/src/run.mjs','.github/workflows/refresh-feed.yml',
     'engine/src/verify-sd-first-publication.mjs','engine/src/operational-report.mjs',
     'engine/src/south-dakota-source-lineage.mjs','engine/src/export-site-contract.mjs','engine/src/verify-state-fixtures.mjs',
