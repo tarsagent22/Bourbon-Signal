@@ -642,12 +642,12 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
       ? 'unavailable'
       : isMsSparseOnSiteInventory ? (signal.availabilityStatus || 'orderable') : signal.availabilityStatus,
     availabilityLabel: isVirginiaExactPremisesProduct && !virginiaProofAllowed ? 'Verification required' : signal.availabilityLabel,
-    sourceAvailabilityVerified: (isSouthDakotaOnSiteInventory || virginiaProofAllowed) && signal.sourceAvailabilityVerified === true,
+    sourceAvailabilityVerified: virginiaProofAllowed && signal.sourceAvailabilityVerified === true,
     fulfillmentPolicyVerified: signal.fulfillmentPolicyVerified === true || signal.raw?.fulfillmentPolicyVerified === true,
     pickupOfferVerified: isSouthDakotaOnSiteInventory || signal.pickupOfferVerified === true || signal.raw?.pickupOfferVerified === true,
     deliveryOfferVerified: signal.deliveryOfferVerified === true || signal.raw?.deliveryOfferVerified === true,
     orderabilityOfferVerified: signal.orderabilityOfferVerified === true || signal.raw?.orderabilityOfferVerified === true,
-    premisesVerified: isSouthDakotaOnSiteInventory || virginiaProofAllowed && (signal.premisesVerified === true || signal.raw?.premisesVerified === true),
+    premisesVerified: virginiaProofAllowed && (isSouthDakotaOnSiteInventory || signal.premisesVerified === true || signal.raw?.premisesVerified === true),
     sourcePremisesProofVersion: virginiaProofAllowed
       ? Number(signal.sourcePremisesProofVersion || signal.raw?.sourcePremisesProofVersion || 0) || null
       : null,
