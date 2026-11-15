@@ -26,6 +26,7 @@ export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
 export type UserFacingDropSignal = {
   engineStateCode?: unknown;
   type?: string;
+  eventType?: string;
   event_type?: string;
   state?: string;
   stateCode?: string;
