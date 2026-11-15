@@ -22,7 +22,7 @@ test('South Dakota fixture executes exact registered merchandise, premise, clock
   assert.equal(new URL(origin).hostname,'www.mrliquor.com');
 });
 
-test('South Dakota protected preview receipt binds exact stores while candidate fails closed without immutable proof',async()=>{
+test('South Dakota protected preview receipt and current immutable proof bind the exact stores',async()=>{
   const [manifestBytes,receiptBytes,lifecycleBytes]=await Promise.all([
     readFile(new URL('../data/state-integration/SD.json',import.meta.url)),
     readFile(new URL('../data/canary-site/sd-protected-preview-20261114.json',import.meta.url)),
@@ -37,5 +37,8 @@ test('South Dakota protected preview receipt binds exact stores while candidate 
   assert.deepEqual(receipt.finder.map(row=>row.storeId),sources.map(source=>`sante:sd:mr-liquor:${source.id}`));
   assert.equal(receipt.productionFirstPublicationVerified,false);
   assert.equal(lifecycle.states.SD.publicStatus,'active');assert.equal(lifecycle.activeStates.includes('SD'),true);
-  assert.equal(southDakotaProductionAllowed({lifecycleConfig:lifecycle,manifest}),false);
+  assert.equal(southDakotaProductionAllowed({lifecycleConfig:lifecycle,manifest}),true,
+    'the current immutable proof is bound to the admitted semantic manifest and separately hashed collector runtime');
+  const unproven=structuredClone(lifecycle);delete unproven.states.SD.promotionEvidence;
+  assert.equal(southDakotaProductionAllowed({lifecycleConfig:unproven,manifest}),false);
 });
