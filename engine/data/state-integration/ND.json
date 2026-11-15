@@ -31,8 +31,8 @@
       "assertion": "The isolated Coverage response exposes the two reviewed North Dakota stores."
     },
     "areaFilter": {
-      "status": "not_applicable",
-      "reason": "This verification covers state and exact-store searches."
+      "status": "verified",
+      "assertion": "The protected Finder verified one exact source-backed store in each of the two reviewed cities."
     },
     "preferences": {
       "status": "not_applicable",
@@ -48,7 +48,7 @@
     },
     "finder": {
       "status": "verified",
-      "assertion": "Both store identities resolve in the Coverage Finder, store and location test routes."
+      "assertion": "Protected Finder returned each exact address in Grand Forks and Williston."
     },
     "alerts": {
       "status": "verified",
@@ -66,8 +66,8 @@
   "evidence": {
     "shadow": {
       "status": "verified",
-      "runs": 2,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43649959646",
+      "runs": 3,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43655326392",
       "observations": [
         {
           "runId": "43647207025",
@@ -85,14 +85,24 @@
           "artifactHash": "c4ea0be7a1779cbeab9bdcbfc545ff19699f0e1341b9e4ddfbc86a5ab0c154ed",
           "commitSha": "3210008811741e468da2840fb536bb4628468957",
           "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43649959646"
+        },
+        {
+          "runId": "43655326392",
+          "status": "success",
+          "artifactId": "14137818143",
+          "artifactName": "state-expansion-shadow-43655326392",
+          "artifactHash": "2bdacefaecade29d0d931531639f1f31fe91948a1f2c22474a329f840dcac651",
+          "reportSha256": "06737c31cf2a6a34f33cb8ddbfedd00ee7a7c06d44d74eaa50c26d572018faef",
+          "commitSha": "f10b83025d61d5de2f9e3413c0fe79e3ec4c07ad",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43655326392"
         }
       ],
       "originalSourceClocksPreserved": true
     },
     "canary": {
       "status": "verified",
-      "runs": 1,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43650063336",
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43655450625",
       "allDeliveryChannelsDisabled": true,
       "observations": [
         {
@@ -106,6 +116,19 @@
           "observedStoreCount": 2,
           "publicCurrentRows": 3,
           "hostedPreviewDeployed": false
+        },
+        {
+          "runId": "43655450625",
+          "status": "success",
+          "commitSha": "f10b83025d61d5de2f9e3413c0fe79e3ec4c07ad",
+          "artifactId": "14137758610",
+          "artifactName": "state-expansion-canary-ND-43655450625",
+          "artifactHash": "664d5dca420f8156e1b18f13f91cd898e4d17b205ceedce9b63e53e44589c942",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43655450625",
+          "observedStoreCount": 2,
+          "publicCurrentRows": 3,
+          "hostedPreviewDeployed": false,
+          "protectedPreviewDeploymentId": "dpl_4cT7uFpKpsM3pC4zKhPnuxzc1hoV"
         }
       ]
     },
@@ -116,6 +139,45 @@
       "reason": "Research lifecycle only."
     },
     "researchProvenance": {
+      "runId": "43655806099",
+      "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43655806099",
+      "commitSha": "f10b83025d61d5de2f9e3413c0fe79e3ec4c07ad",
+      "artifactId": "14137219155",
+      "artifactDigest": "sha256:ddcd142851a4adcac410e3811cf42664d3097e8d5f065d2648d3c029d1e9ac51",
+      "bundleDigest": "1e945f6a73f0fe33be1625750202746a62548b578825cf31e3b2dbc4068598f6",
+      "sourceRunId": "43655326392"
+    },
+    "actualPreviewVerification": {
+      "state": "ND",
+      "preview": "https://bourbonsignal-9sycdhfls-tarsagent22s-projects.vercel.app",
+      "deployment": "dpl_4cT7uFpKpsM3pC4zKhPnuxzc1hoV",
+      "anonymousStatus": 302,
+      "shadowRunId": "43655326392",
+      "replayRunId": "43655450625",
+      "replayArtifact": "14137758610",
+      "rows": 3,
+      "currentStores": 2,
+      "searchableStores": 2,
+      "cities": 2,
+      "alertEligibleStores": 0,
+      "evaluatedAt": "2026-11-15T00:00:32.05Z",
+      "partitionSha256": "b23cc1f7bf4618ee226a7d6252b93a37a69b06860af678883ed2604e9075406d",
+      "finder": [
+        {
+          "storeId": "rock-bottle-shop:67c8a2e465e7a028cb538073",
+          "address": "1730 13th Ave N, Grand Forks, ND 58203, USA",
+          "city": "Grand Forks",
+          "status": "actively-monitored"
+        },
+        {
+          "storeId": "albertsons:28",
+          "address": "20 26th St E, Williston, ND 58801",
+          "city": "Williston",
+          "status": "actively-monitored"
+        }
+      ]
+    },
+    "previousResearchProvenance": {
       "runId": "43650425901",
       "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43650425901",
       "commitSha": "f10b83025d61d5de2f9e3413c0fe79e3ec4c07ad",
