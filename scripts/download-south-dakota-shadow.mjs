@@ -1,10 +1,10 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import { unzipSync } from 'fflate';
-import { southDakotaResearchSourceContractMatches } from '../engine/src/south-dakota-source-lineage.mjs';
+import { hasReviewedSouthDakotaResearchRegistration, hasSouthDakotaProductionRegistration, southDakotaResearchSourceContractMatches } from '../engine/src/south-dakota-source-lineage.mjs';
 
 const [runId, output] = process.argv.slice(2);
 if (!/^\d+$/.test(runId) || !output) throw Error('Provide the successful South Dakota shadow run and a new output directory.');
@@ -20,10 +20,15 @@ if (run.conclusion !== 'success' || run.repository.full_name !== repo || run.pat
 if (spawnSync('git', ['cat-file', '-e', `${run.head_sha}^{commit}`]).status !== 0) {
   execFileSync('git', ['fetch', '--no-tags', '--depth=1', 'origin', run.head_sha], { stdio: 'inherit' });
 }
-for (const name of ['engine/src/research-south-dakota-retailer.mjs', 'engine/src/research-state-registry.mjs']) {
-  const reviewed = execFileSync('git',['show',`${run.head_sha}:${name}`]);
-  const current = execFileSync('git',['show',`HEAD:${name}`]);
-  if (!current.equals(reviewed)) throw Error(`South Dakota source changed after observation: ${name}`);
+const reviewedParser = execFileSync('git',['show',`${run.head_sha}:engine/src/research-south-dakota-retailer.mjs`]);
+const currentParser = execFileSync('git',['show','HEAD:engine/src/research-south-dakota-retailer.mjs']);
+if (!currentParser.equals(reviewedParser)) throw Error('South Dakota source parser changed after observation.');
+const reviewedRegistry = execFileSync('git',['show',`${run.head_sha}:engine/src/research-state-registry.mjs`],{encoding:'utf8'});
+const currentGenericState = await readFile('engine/src/collectors/generic-state.mjs','utf8');
+const currentStateSources = await readFile('engine/src/state-sources.mjs','utf8');
+if (!hasReviewedSouthDakotaResearchRegistration(reviewedRegistry)
+  || !hasSouthDakotaProductionRegistration({genericState:currentGenericState,stateSources:currentStateSources})) {
+  throw Error('South Dakota retained source registration cannot be bound to the reviewed production collector.');
 }
 const reviewedPolicy = await import(`data:text/javascript;base64,${execFileSync('git',['show',`${run.head_sha}:engine/src/south-dakota-pickup-policy.mjs`]).toString('base64')}`);
 const currentPolicy = await import(pathToFileURL(path.resolve('engine/src/south-dakota-pickup-policy.mjs')).href);
