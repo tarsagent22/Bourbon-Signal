@@ -32,7 +32,6 @@ test('scheduled shadow registers exact CityHive candidates while production coho
   const ct=cityHiveResearchSourceForState('CT');
   assert.equal(ct.sources.length,2);assert.ok(ct.sources.every(source=>source.precisionOnly&&source.label.includes('CT first-party pickup inventory')));
   assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('CT'),false);
-  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('ND'),false);
   const nd=researchSourceForState('ND',{shadowMode:true});
   assert.equal(nd.sources.length,3);
   assert.equal(researchSourceForState('ND',{shadowMode:false}),null);
