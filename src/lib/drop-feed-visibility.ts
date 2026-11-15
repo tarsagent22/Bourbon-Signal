@@ -165,7 +165,8 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
     && !canAlert;
 
   if(state==='DE'&&/^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type))
-    return isCentralCityHiveCanaryOnSiteSignal(drop)||isCentralCityHiveProductionOnSiteSignal(drop)||isDelawareEcwidCanaryPreview(drop);
+    return isCentralCityHiveCanaryOnSiteSignal(drop) || isCentralCityHiveProductionOnSiteSignal(drop)
+      || isDelawareEcwidCanaryPreview(drop) || isDelawareEcwidProductionOnSiteSignal(drop);
   if (isLaakGroceryInventory) return isLaakCanaryPreview || isLaakProductionOnSite;
   if (state === 'WY' && type === 'retailer_store_inventory_result') {
     return isWyomingGroceryCanaryPreview(drop) || isWyomingGroceryProductionInventory(drop);
