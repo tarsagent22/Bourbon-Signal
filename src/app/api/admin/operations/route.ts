@@ -23,10 +23,10 @@ async function serviceHealth() {
   return { health: buildSiteExportOpsHealth(stats, heartbeat), states };
 }
 
-export async function GET(request?: Request) {
+export async function GET(request: Request) {
   const owner = await requireOwnerApiAccess();
   if (owner.error) return owner.error;
-  const view = request ? new URL(request.url).searchParams.get("view") : null;
+  const view = new URL(request.url).searchParams.get("view");
   if (view !== null && !["health", "setup", "history"].includes(view)) {
     return Response.json({ error: "Unknown operations view." }, { status: 400, headers });
   }
