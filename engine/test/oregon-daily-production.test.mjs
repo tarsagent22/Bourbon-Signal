@@ -12,6 +12,7 @@ import { buildDrops, buildStores, bibleLookup } from '../src/export-site-contrac
 import { STATE_LIFECYCLE, CUSTOMER_ACTIVE_STATE_IDS } from '../src/state-lifecycle.mjs';
 import { isOregonDailyProductionEvidence } from '../src/oregon-daily-production-policy.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
+import { inventoryEvidenceFreshness } from '../src/state-operating-contract.mjs';
 import { normalizeHistoricalImplementationBytes } from '../src/verification/historical-implementation.mjs';
 
 const report = {
@@ -58,6 +59,14 @@ test('canonicalization and public export retain the report proof while keeping O
       && row.sourceProductBinding.reportGeneratedAt === replayReport.generatedAt && row.observedAt === row.sourceProductBinding.observedAt));
     const drops = buildDrops(operational, bibleLookup(fullBible.records), operational);
     assert.equal(drops.length, rows.length);
+    const confirmation = Date.parse(drops[0].lastConfirmedAt);
+    const reportTime = new Date(confirmation + 24 * 3_600_000).toISOString();
+    const dailyFreshness = inventoryEvidenceFreshness(drops, reportTime).inventory;
+    assert.equal(dailyFreshness.deadlineHours, 48);
+    assert.equal(dailyFreshness.freshCount, drops.length);
+    assert.equal(inventoryEvidenceFreshness(drops, new Date(confirmation + 49 * 3_600_000).toISOString()).inventory.overdueCount, drops.length);
+    const unbound = { ...drops[0], sourceProductBinding: undefined };
+    assert.equal(inventoryEvidenceFreshness([unbound], reportTime).inventory.overdueCount, 1);
     assert.deepEqual(buildDrops(operational, bibleLookup(fullBible.records), []), []);
     assert.ok(buildStores(operational).filter(row => row.state === 'OR').every(row => row.signalCount === 1 && row.sourceAvailabilityVerified));
     assert.ok(drops.every(drop => isOregonDailyProductionEvidence(drop)
