@@ -93,6 +93,7 @@ test('Oregon collector parses bounded streamed CSV across small transport chunks
     },
   });
   const payload = await collectOregonDailyInventory({
+    cacheDir: null,
     fetchImpl: async () => new Response(body, { headers: { 'content-type': 'text/csv', 'content-length': String(encoded.length) } }),
     terms: ['buffalo trace'],
     bible: bibleFor(),
