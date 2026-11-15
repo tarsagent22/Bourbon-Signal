@@ -6,6 +6,7 @@ import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-po
 import { isNorthDakotaGroceryCanaryPreview } from '../../engine/src/north-dakota-retail-policy.mjs';
 import { isNorthDakotaProductionOnSiteInventory } from '../../engine/src/north-dakota-public-policy.mjs';
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
+import { isDelawareEcwidProductionOnSiteSignal } from '../../engine/src/delaware-ecwid-production-policy.mjs';
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -402,7 +403,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
         eventType: drop.eventType ?? drop.event_type ?? type })
       || isNjMiOnSiteSignal(drop) || isLouisianaAlaskaGroceryOnSiteSignal(drop)
       || isLouisianaAlaskaGroceryCanaryPreview(drop) || isWyomingGroceryCanaryPreview(drop)
-      || isWyomingGroceryProductionInventory(drop) ? 0 : undefined),
+      || isWyomingGroceryProductionInventory(drop) || isDelawareEcwidProductionOnSiteSignal(drop) ? 0 : undefined),
     rarity_tier: asString(drop.tier, "unknown"),
     retail_price: asNumber(drop.price) || null,
     state,
