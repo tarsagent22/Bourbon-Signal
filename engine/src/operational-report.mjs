@@ -1,4 +1,5 @@
 import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
+import {isDelawareEcwidProductionOnSiteSignal} from './delaware-ecwid-production-policy.mjs';
 import {isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';
 import { isWyomingGroceryProductionInventory } from './wyoming-grocery-policy.mjs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
@@ -202,6 +203,12 @@ export function canonicalizeSignal(signal, bible) {
       canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
       eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
       eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+    ...(isDelawareEcwidProductionOnSiteSignal(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
     }:{}),
     ...(isNjMiProductionOnSiteSignal(signal)?{
       canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,

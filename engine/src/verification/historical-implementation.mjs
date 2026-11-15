@@ -74,6 +74,17 @@ function replaceUnique(text, current, original, label) {
 export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (name === 'engine/src/operational-report.mjs') {
     let implementation = bytes.toString('utf8');
+    const delawareImport = "import {isDelawareEcwidProductionOnSiteSignal} from './delaware-ecwid-production-policy.mjs';\n";
+    if (implementation.includes(delawareImport)) {
+      implementation = replaceUnique(implementation, delawareImport, '', `${name}: Delaware Ecwid import`);
+      implementation = replaceUnique(implementation, `    ...(isDelawareEcwidProductionOnSiteSignal(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`, '', `${name}: Delaware Ecwid on-site projection`);
+    }
     const wyomingImport = "import { isWyomingGroceryProductionInventory } from './wyoming-grocery-policy.mjs';\n";
     if (implementation.includes(wyomingImport)) {
       implementation = replaceUnique(implementation, wyomingImport, '', `${name}: Wyoming proof import`);

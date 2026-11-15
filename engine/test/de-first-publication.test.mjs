@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {CENTRAL_CITYHIVE_PRODUCTION_SOURCES} from '../src/collectors/central-cityhive-premises.mjs';
 import {centralCityHiveProductionCohortKey} from '../src/central-cityhive-production-config.mjs';
 import {verifyDelawareFirstPublication} from '../src/verify-de-first-publication.mjs';
+import {bibleLookup,buildDrops,buildStores} from '../src/export-site-contract.mjs';
+import {canonicalizeSignal} from '../src/operational-report.mjs';
 import sourceData from '../data/de-ecwid-research-source.json' with {type:'json'};
 
 function fixture(nowMs=Date.now()){
@@ -43,6 +45,25 @@ test('Delaware first-publication contract accepts a current exact silent allocat
   assert.equal(checked.receipt.publishedStores,1);
   assert.equal(checked.receipt.allocatedRows,1);
   assert.equal(checked.receipt.allDeliveryChannelsDisabled,true);
+});
+
+test('Delaware operational and site exports preserve exact Ecwid pickup through first publication',()=>{
+  const input=fixture(),source=input.report.signals[0];
+  source.eventType=source.type;
+  const record={id:source.canonicalBottleId,canonical:source.canonicalName,tier:source.tier};
+  const operational=canonicalizeSignal(source,{match:()=>({record})});
+  const lookup=bibleLookup([record]);
+  const drops=JSON.parse(JSON.stringify(buildDrops([operational],lookup,[operational])));
+  assert.equal(drops.length,1);
+  assert.equal(drops[0].dataLane,'onsite_inventory');
+  assert.equal(drops[0].informationalOnly,false);
+  assert.equal(buildStores([operational]).find(store=>store.id===source.storeId)?.signalCount,1);
+  const partition={state:'DE',count:drops.length,drops};
+  const checked=verifyDelawareFirstPublication({...input,partition,workflowRunId:'123456'});
+  assert.equal(checked.ok,true,checked.failures.join('; '));
+  assert.deepEqual(buildDrops([operational],lookup,[]),[]);
+  const shadow={...operational,raw:{shadowOnly:true}};
+  assert.deepEqual(buildDrops([shadow],lookup,[shadow]),[]);
 });
 
 test('Delaware first-publication contract permits rotated second terms but rejects incomplete or unsafe cohorts',()=>{

@@ -162,6 +162,14 @@ function signalSort(a, b) {
   assert.equal(digest(normalized), originalHash);
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
   assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, '')
+    .replace("import {isDelawareEcwidProductionOnSiteSignal} from './delaware-ecwid-production-policy.mjs';\n", '')
+    .replace(`    ...(isDelawareEcwidProductionOnSiteSignal(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`, '')
     .replace(libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary)
     .replace(groceryExpansionProofImport, groceryExpansionTierImport)
     .replace(groceryExpansionSemanticsBoundary, newYorkVariantSemanticsBoundary)
