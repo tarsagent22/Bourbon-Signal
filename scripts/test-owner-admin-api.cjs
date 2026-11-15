@@ -3,20 +3,39 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const { PGlite } = require("@electric-sql/pglite");
 const { moduleFrom, root } = require("./astra-security-test-helpers.cjs");
-test('operations setup counts remain owner-only and failures do not hide service health', async () => {
- let allowed=false, reads=0;
+test('operations views are owner-only and isolate health, member setup, and audit failures', async () => {
+ let allowed=false, stateSource='remote-snapshot', reads=[], memberReads=0, auditReads=0;
+ const identity={key:'pinned'};
  const route=moduleFrom('src/app/api/admin/operations/route.ts',{
-  '@/lib/owner-auth':{requireOwnerApiAccess:async()=>allowed?{client:{users:{getUserList:async()=>{throw Error('temporary member service failure');}}}}:{error:Response.json({error:'Forbidden'},{status:403})}},
-  '@/lib/ops-health':{buildOpsHealth:()=>({ok:true}),readAlertDeliveryHeartbeat:async()=>null},
-  '@/lib/site-engine-contract':{readSiteExport:async()=>{reads++;return {}; }},
-  '@/lib/owner-workspace':{coverageDatabase:()=>({query:async()=>[]})},
+  '@/lib/owner-auth':{requireOwnerApiAccess:async()=>allowed?{client:{users:{getUserList:async()=>{memberReads++;throw Error('member service failure');}}}}:{error:Response.json({error:'Forbidden'},{status:403})}},
+  '@/lib/ops-health':{buildSiteExportOpsHealth:(stats,heartbeat)=>({snapshot:stats.snapshotId,audit:heartbeat.alertAudit}),readAlertDeliveryHeartbeat:async()=>({alertAudit:{deliveredRows:6}})},
+  '@/lib/site-engine-contract':{readSiteExportIdentity:async()=>identity,readSiteExportResults:async([name],selection)=>{
+    assert.equal(selection,identity);reads.push(name);
+    return [{source:name==='stats'?'remote-snapshot':stateSource,snapshotId:name==='stats'||stateSource==='remote-snapshot'?'current':null,payload:{states:[{state:'OR'}]}}];
+  }},
+  '@/lib/owner-workspace':{coverageDatabase:()=>({query:async()=>{auditReads++;return [];}})},
   '@/lib/member-setup-progress':{buildMemberSetupProgress:()=>({accounts:0})},
   '@/lib/mobile-activity-repository':{MobileActivityRepository:class {async readMany(){return {};}}},
  });
- assert.equal((await route.GET()).status,403);assert.equal(reads,0);
+ const get=(view)=>route.GET(new Request('https://example.test/api/admin/operations'+(view?'?view='+view:'')));
+ assert.equal((await get('health')).status,403);
+ assert.deepEqual(reads,[]);
+ assert.equal(memberReads,0);
+ assert.equal(auditReads,0);
  allowed=true;
- const response=await route.GET();assert.equal(response.status,200);
- assert.deepEqual(await response.json(),{health:{ok:true},states:[],audit:[],setup:null});
+ const response=await get('health');
+ assert.equal(response.headers.get('Cache-Control'),'private, no-store');
+ assert.deepEqual(await response.json(),{health:{snapshot:'current',audit:{deliveredRows:6}},states:[{state:'OR'}]});
+ assert.equal(memberReads,0);
+ assert.equal(auditReads,0);
+ stateSource='cache-fallback';
+ assert.equal((await (await get('health')).json()).states,null,'a differently sourced state report is not shown as current');
+ assert.equal((await get('setup')).status,503);
+ assert.deepEqual(await (await get('history')).json(),{audit:[]});
+ assert.equal(reads.length,4,'setup and audit do not read engine files');
+ assert.equal(memberReads,1);
+ assert.equal(auditReads,1);
+ assert.deepEqual(await (await get()).json(),{health:{snapshot:'current',audit:{deliveredRows:6}},states:[],audit:[],setup:null});
 });
 test('owner catalog bypasses discovery cache and pairs definitions with their exact edit-version snapshot',async()=>{
  let records=[];

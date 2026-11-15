@@ -34,6 +34,17 @@ import {
   type CoverageStatus,
 } from "../../../../shared/coverage-requests";
 
+import {
+  AppErrorMonitoring,
+  MemberSetupMonitoring,
+  MonitoringLink,
+  MonitoringRefresh,
+  MonitoringTabs,
+  ServiceMonitoring,
+  type MonitoringView,
+} from "./Monitoring";
+import { typography } from "../theme";
+
 const s = {
   ...baseStyles,
   card: { ...baseStyles.card, padding: 14, gap: 9, borderRadius: 12 },
@@ -96,6 +107,7 @@ const destinations = [
   "Members",
   "Rewards & Shipping",
   "Operations",
+  "Monitoring",
 ] as const;
 
 type Destination = (typeof destinations)[number];
@@ -114,7 +126,9 @@ export const ownerStyles = StyleSheet.create({
   active: { backgroundColor: "#382211", borderColor: "#ed7b25" },
   tabText: { color: "#c8b9a5", fontWeight: "700", fontSize: 14 },
   activeText: { color: "#ffae6b" },
+  frame: { width: "100%", maxWidth: 760, alignSelf: "center" },
   body: { padding: 16, paddingBottom: 64, gap: 14 },
+  sectionTitle: { ...s.heading, ...typography.section },
   small: { ...s.copy, fontSize: 13, lineHeight: 19 },
   error: { ...s.copy, color: "#ffb5a0" },
   notice: { ...s.copy, color: "#b9dbb9" },
@@ -488,7 +502,11 @@ export default function OwnerWorkspace() {
     [member, setMember] = useState<string | null>(null),
     [communityUser, setCommunityUser] = useState<string | null>(null),
     [rewardUser, setRewardUser] = useState<string | null>(null);
+  const scroll = useRef<ScrollView>(null);
   const revoke = useCallback(() => setAccess({ api, allowed: false }), [api]);
+  useEffect(() => {
+    scroll.current?.scrollTo({ y: 0, animated: false });
+  }, [section, groupView]);
   useEffect(() => {
     let live = true;
     setAccess(null);
@@ -534,12 +552,14 @@ export default function OwnerWorkspace() {
   return (
     <AdminRevoke.Provider value={revoke}>
       <AdminNotice.Provider value={setAnnouncement}>
-        <ScrollView style={s.screen} keyboardShouldPersistTaps="handled">
-          <View style={ui.top}>
+        <ScrollView ref={scroll} style={s.screen} keyboardShouldPersistTaps="handled">
+          <View style={[ui.frame, ui.top]}>
             {section !== "Inbox" ? (
-              <Action label="‹ Admin home" onPress={() => openGroup("Inbox")} />
+              <View style={{ alignSelf: "flex-start" }}>
+                <Action label="‹ Admin home" onPress={() => openGroup("Inbox")} />
+              </View>
             ) : null}
-            <Text style={ui.title}>
+            <Text accessibilityRole="header" style={ui.title}>
               {section === "Inbox"
                 ? "Admin"
                 : section === "Operations"
@@ -548,11 +568,11 @@ export default function OwnerWorkspace() {
             </Text>
             {section === "Inbox" ? (
               <Text style={ui.small}>
-                Review what needs attention. Keep everything moving.
+                Review member requests and check how the app is running.
               </Text>
             ) : null}
           </View>
-          <View style={ui.body}>
+          <View style={[ui.frame, ui.body]}>
             {announcement ? (
               <Pressable
                 accessibilityRole="button"
@@ -616,6 +636,8 @@ export default function OwnerWorkspace() {
                 userId={rewardUser}
                 onClear={() => setRewardUser(null)}
               />
+            ) : section === "Monitoring" ? (
+              <MonitoringWorkspace api={api} />
             ) : (
               <CoverageOperations api={api} />
             )}
@@ -679,11 +701,12 @@ function Inbox({
     ],
   ];
   const pending = rows.filter(
-    ([key]) => state.data?.[key] == null || state.data[key] > 0,
+    ([key]) => state.data && (state.data[key] == null || state.data[key] > 0),
   );
   return (
     <>
-      <Text style={s.heading}>Needs attention</Text>
+      <MonitoringLink onPress={() => onOpen("Monitoring")} />
+      <Text accessibilityRole="header" style={ui.sectionTitle}>Needs attention</Text>
       <Status state={state} />
       {state.data && !pending.length ? (
         <Empty
@@ -728,10 +751,10 @@ function Inbox({
           Some groups could not refresh. Try again before making changes.
         </Text>
       ) : null}
-      <Text style={s.heading}>Browse by group</Text>
+      <Text accessibilityRole="header" style={ui.sectionTitle}>Browse by group</Text>
       <View style={{ gap: 2 }}>
         {destinations
-          .filter((d) => d !== "Inbox")
+          .filter((d) => d !== "Inbox" && d !== "Monitoring")
           .map((d) => (
             <Pressable
               key={d}
@@ -754,8 +777,8 @@ function Inbox({
             </Pressable>
           ))}
       </View>
-      <Text style={ui.mini}>Updated {date(state.data?.checkedAt)}</Text>
-      <Action label="Refresh" onPress={() => void state.load()} />
+      {state.data?.checkedAt ? <Text style={ui.mini}>Queues checked {date(state.data.checkedAt)}</Text> : null}
+      {!state.error ? <Action label="Refresh queues" disabled={state.loading} onPress={() => void state.load()} /> : null}
     </>
   );
 }
@@ -2429,7 +2452,6 @@ function CoverageOperations({ api }: { api: Api }) {
         choices={[
           "Coverage requests",
           "Pricing reviews",
-          "Service health",
           "Change history",
         ]}
         value={view}
@@ -2440,7 +2462,7 @@ function CoverageOperations({ api }: { api: Api }) {
       ) : view === "Pricing reviews" ? (
         <Pricing api={api} />
       ) : (
-        <Operations api={api} history={view === "Change history"} />
+        <OperationsHistory api={api} />
       )}
     </>
   );
@@ -2789,63 +2811,48 @@ function PriceEditor({
   );
 }
 
-function Operations({ api, history }: { api: Api; history: boolean }) {
-  const state = useData(api, "operations"),
-    health = state.data?.health;
-
+function MonitoringWorkspace({ api }: { api: Api }) {
+  const [view, setView] = useState<MonitoringView>("Service health");
   return (
     <>
-      <Text style={s.heading}>
-        {history ? "Admin change history" : "Service health"}
-      </Text>
-      <Status state={state} />
-      {history ? (
-        <History rows={state.data?.audit || []} />
-      ) : health ? (
-        <>
-          <View style={s.card}>
-            <Text style={s.heading}>
-              {health.ok ? "Healthy" : "Needs attention"}
-            </Text>
-            <Text style={ui.small}>Checked {date(health.checkedAt)}</Text>
-            <Text style={ui.badge}>
-              Engine: {human(health.engine?.status)} ·{" "}
-              {health.engine?.ageMinutes ?? "Unknown"} min old
-            </Text>
-            <Text style={ui.badge}>
-              Alert delivery: {human(health.cron?.status)} ·{" "}
-              {health.cron?.ageMinutes ?? "Unknown"} min old
-            </Text>
-            <Text style={ui.small}>{health.release?.reason || ""}</Text>
-          </View>
-          <View style={s.card}>
-            <Text style={s.heading}>New member setup</Text>
-            {state.data?.setup ? <>
-              <Text style={ui.small}>Accounts created in the last 30 days{state.data.setup.complete ? "" : " · Partial count"}</Text>
-              <Text style={ui.badge}>{state.data.setup.appOpened} of {state.data.setup.accounts} opened the app</Text>
-              <Text style={ui.badge}>{state.data.setup.areaSaved} saved an area · {state.data.setup.watchlistSaved} chose bottles or all notable finds</Text>
-              <Text style={ui.badge}>{state.data.setup.setupComplete} of {state.data.setup.alertMembers} members with alert access finished setup</Text>
-              <Text style={ui.small}>Next step: {state.data.setup.missingArea} need an area, {state.data.setup.missingWatchlist} need a watchlist, {state.data.setup.missingPush} need phone alerts.</Text>
-              <Text style={ui.small}>{state.data.setup.activityAfter24Hours} of {state.data.setup.eligibleForLaterActivity} had app activity at least 24 hours after their first visit.</Text>
-              <Text style={ui.small}>Phone alert settings do not confirm notification delivery.</Text>
-            </> : <Text style={ui.small}>Setup counts are temporarily unavailable.</Text>}
-          </View>
-          {state.data?.states.map((r: Row, i: number) => (
-            <View key={r.stateCode || r.state || i} style={s.card}>
-              <Text style={s.label}>
-                {r.stateCode || r.state || r.name || "State"}
-              </Text>
-              <Details values={r} />
-            </View>
-          ))}
-          <Text style={ui.small}>
-            Use Coverage requests to pause a request for review or return it to
-            Requested for investigation. Improvement is confirmed by production
-            evidence.
-          </Text>
-        </>
+      <MonitoringTabs value={view} onChange={setView} />
+      <MonitoringContent key={view} api={api} view={view} />
+    </>
+  );
+}
+
+function MonitoringContent({ api, view }: { api: Api; view: MonitoringView }) {
+  const errors = view === "App errors";
+  const setup = view === "Member setup";
+  const state = useData(
+    api,
+    errors ? "native-diagnostics" : "operations",
+    errors ? "" : setup ? "?view=setup" : "?view=health",
+  );
+  return (
+    <>
+      {state.error ? <Status state={state} /> : (
+        <MonitoringRefresh loading={state.loading} onPress={() => void state.load()} />
+      )}
+      {state.data ? errors ? (
+        <AppErrorMonitoring diagnostics={state.data.diagnostics} />
+      ) : setup ? (
+        <MemberSetupMonitoring setup={state.data.setup} />
+      ) : (
+        <ServiceMonitoring health={state.data.health} states={state.data.states} />
       ) : null}
-      <Action label="Refresh operations" onPress={() => void state.load()} />
+    </>
+  );
+}
+
+function OperationsHistory({ api }: { api: Api }) {
+  const state = useData(api, "operations", "?view=history");
+  return (
+    <>
+      <Text accessibilityRole="header" style={ui.sectionTitle}>Admin change history</Text>
+      <Status state={state} />
+      {state.data ? <History rows={state.data.audit || []} /> : null}
+      {!state.error ? <Action label="Refresh history" disabled={state.loading} onPress={() => void state.load()} /> : null}
     </>
   );
 }

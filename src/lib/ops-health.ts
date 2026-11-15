@@ -1,6 +1,8 @@
 import { list, put } from "@vercel/blob";
 import type { AlertQueueAuditHealth } from "@/lib/alert-queue/audit";
 
+import type { SiteExportResult } from "@/lib/site-engine-contract";
+
 const HEARTBEAT_PATH = "ops/alert-delivery-heartbeat-v2.json";
 export const EXPECTED_ALERT_CRON_SCHEDULE = "*/5 * * * *";
 export const EXPECTED_ALERT_CRON_PATH = "/api/alerts/deliver?cron=v3";
@@ -236,4 +238,34 @@ export function buildOpsHealth(input: {
       alertAudit: input.alertAudit,
     },
   };
+}
+
+export function buildSiteExportOpsHealth(statsResult: SiteExportResult, heartbeat: AlertDeliveryHeartbeat | null) {
+  const stats = statsResult.payload;
+  const productionObservedAt = statsResult.source === "remote-snapshot" ? new Date().toISOString() : null;
+  return buildOpsHealth({
+    heartbeat,
+    engineGeneratedAt: typeof stats?.engineGeneratedAt === "string"
+      ? stats.engineGeneratedAt
+      : typeof stats?.generatedAt === "string" ? stats.generatedAt : null,
+    refreshHealth: stats?.refreshHealth && typeof stats.refreshHealth === "object"
+      ? stats.refreshHealth as Record<string, unknown>
+      : null,
+    currentDeploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
+    alertAudit: heartbeat?.alertAudit,
+    snapshot: {
+      snapshotId: statsResult.snapshotId,
+      dataSource: statsResult.source,
+      exportGeneratedAt: statsResult.generatedAt,
+      snapshotUploadedAt: statsResult.snapshotUploadedAt ?? null,
+      snapshotActivatedAt: statsResult.snapshotActivatedAt ?? null,
+      productionObservedAt,
+      appCommit: statsResult.appCommit ?? null,
+      engineCommit: statsResult.engineCommit ?? null,
+      collectionRunId: statsResult.collectionRunId ?? null,
+      lastRollbackAt: statsResult.lastRollbackAt ?? null,
+      lastRollbackFrom: statsResult.lastRollbackFrom ?? null,
+      lastRollbackTo: statsResult.lastRollbackTo ?? null,
+    },
+  });
 }
