@@ -3,6 +3,9 @@ import { readFileSync } from "node:fs";
 
 const dropClassificationModule = await import("../src/lib/drop-classification.ts");
 const dropsModule = await import("../src/lib/drops.ts");
+const siteModule = await import("../src/lib/site-engine-contract.ts");
+const publicEvidenceModule = await import("../src/lib/public-drop-evidence.ts");
+const productionConfigModule = await import("../engine/src/central-cityhive-production-config.mjs");
 const {
   buildDropClassificationIndex,
   DROP_FEED_CLASSIFICATION_TIERS,
@@ -11,6 +14,40 @@ const {
   classifyPublicDrop,
 } = (dropClassificationModule.default || dropClassificationModule) as typeof import("../src/lib/drop-classification.ts");
 const { groupDrops, TIER_CONFIG } = (dropsModule.default || dropsModule) as typeof import("../src/lib/drops.ts");
+const { normalizeDropForSite } = (siteModule.default || siteModule) as typeof import("../src/lib/site-engine-contract.ts");
+const { derivePublicDropEvidence, isPublicDropFeedEligible } = (publicEvidenceModule.default || publicEvidenceModule) as typeof import("../src/lib/public-drop-evidence.ts");
+const { centralCityHiveProductionCohortKey } = productionConfigModule;
+
+{
+  const { drops } = JSON.parse(readFileSync(new URL("../engine/data/canary-site/de-active-candidate/states/DE/drops.json", import.meta.url), "utf8"));
+  const capture = drops.find((row: Record<string, unknown>) => row.sourceRuntimeId === "research:de:ecwid:130511528");
+  assert.ok(capture);
+  const now = new Date();
+  const observedAt = now.toISOString();
+  const production = {
+    ...capture,
+    sourceRuntimeId: "de:ecwid-pickup",
+    previewOnly: false,
+    observedAt,
+    lastConfirmedAt: observedAt,
+    sourceProductBinding: {
+      ...capture.sourceProductBinding,
+      observedAt,
+      productionOnSiteOnly: true,
+      productionCohortSha256: centralCityHiveProductionCohortKey("DE"),
+    },
+  };
+  const classification = JSON.parse(readFileSync(new URL("../src/data/drop-feed-classification.generated.json", import.meta.url), "utf8"));
+  const readinessIndex = getDropClassificationIndex(classification.records);
+  const row = classifyPublicDrop(normalizeDropForSite(production), readinessIndex);
+  assert.equal(row.quantity, 0, "server normalization must retain verified binary pickup evidence");
+  assert.equal(isPublicDropFeedEligible(row, { asOf: now }), true);
+  const coverage = derivePublicDropEvidence([row], now).get("DE");
+  assert.deepEqual(coverage?.currentInventoryStores.map(store => store.address), [capture.storeAddress]);
+  assert.equal(coverage?.alertableInventoryStores.length, 0);
+  const forged = classifyPublicDrop(normalizeDropForSite({ ...production, productId: "unreviewed" }), readinessIndex);
+  assert.equal(isPublicDropFeedEligible(forged, { asOf: now }), false);
+}
 
 const bottle = {
   id: "weller-12-year",
