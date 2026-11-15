@@ -3,6 +3,8 @@ import {isLouisianaAlaskaGroceryCanaryPreview} from '../../engine/src/laak-canar
 import {isWyomingGroceryCanaryPreview,isWyomingGroceryProductionInventory} from '../../engine/src/wyoming-grocery-policy.mjs';
 import {isLouisianaAlaskaGroceryOnSiteSignal} from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
+import { isNorthDakotaGroceryCanaryPreview } from '../../engine/src/north-dakota-retail-policy.mjs';
+import { isNorthDakotaProductionOnSiteInventory } from '../../engine/src/north-dakota-public-policy.mjs';
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { isDelawareEcwidProductionOnSiteSignal } from '../../engine/src/delaware-ecwid-production-policy.mjs';
 import { createHash } from "node:crypto";
@@ -396,6 +398,9 @@ export function normalizeDropForSite(drop: JsonRecord) {
     quantity_in_stock: type === "nc_board_shipment_snapshot" ? undefined : quantity || undefined,
     quantity_shipped: shipmentQuantity || undefined,
     quantity: quantity || (isGroceryExpansionOnSiteSignal(drop) || isCentralCityHiveOnSiteSignal(drop)
+      || isNorthDakotaGroceryCanaryPreview(drop) || isNorthDakotaProductionOnSiteInventory({ ...drop,
+        state: drop.state ?? drop.state_code ?? drop.stateCode,
+        eventType: drop.eventType ?? drop.event_type ?? type })
       || isNjMiOnSiteSignal(drop) || isLouisianaAlaskaGroceryOnSiteSignal(drop)
       || isLouisianaAlaskaGroceryCanaryPreview(drop) || isWyomingGroceryCanaryPreview(drop)
       || isWyomingGroceryProductionInventory(drop) || isDelawareEcwidProductionOnSiteSignal(drop) ? 0 : undefined),

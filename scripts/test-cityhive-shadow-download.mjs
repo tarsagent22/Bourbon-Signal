@@ -4,7 +4,7 @@ import {zipSync,strToU8} from 'fflate';
 import {createHash} from 'node:crypto';
 import {build} from 'esbuild';
 import {fileURLToPath} from 'node:url';
-import {validateCityHiveShadowWorkflowOrigin,validateInactiveMinnesotaShadowLifecycleTransition,validateInactiveKansasShadowLifecycleTransition,validateInactiveMissouriShadowLifecycleTransition,decodeBoundedShadowArchive} from './download-cityhive-shadow.mjs';
+import {validateCityHiveShadowWorkflowOrigin,validateInactiveMinnesotaShadowLifecycleTransition,validateInactiveKansasShadowLifecycleTransition,validateInactiveMissouriShadowLifecycleTransition,validateNorthDakotaCohortManifestTransition,decodeBoundedShadowArchive} from './download-cityhive-shadow.mjs';
 const base={state:'WI',repository:'tarsagent22/Bourbon-Signal',currentHead:'a'.repeat(40),
   run:{id:123,status:'completed',conclusion:'success',head_sha:'a'.repeat(40),repository:{full_name:'tarsagent22/Bourbon-Signal'},path:'.github/workflows/state-expansion-shadow.yml'},
   artifact:{id:456,name:'state-expansion-shadow-123',digest:'sha256:'+'b'.repeat(64),size_in_bytes:100,expired:false}};
@@ -92,6 +92,44 @@ test('CityHive downloader requires actual successful source-equivalent shadow wo
   assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...inactiveMnAhead,state:'RI'}),/source changed/);
   assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...inactiveMnAhead,comparison:{...lifecycleComparison,mnShadowLifecycleProof:false,files:[{filename:'src/config/state-lifecycle.json'}]}}),/source changed/);
   assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...ahead,comparison:{status:'diverged',files:[]}}),/source changed/);
+});
+test('ND shadow replay accepts only the single verified cohort binding metadata addition',()=>{
+  const shadow={state:'ND',collector:{sourceIds:['nd:rock-cityhive','nd:albertsons-xapi']},evidence:{shadow:{status:'verified'}}};
+  const candidate=structuredClone(shadow);
+  candidate.collector.cohortSha256='e4fe87fee52a06bd2ae78fa3c541dbc2b578321961a374acf6ae9a62760b767c';
+  const comparison={status:'ahead',base_commit:{sha:'a'.repeat(40)},runHeadSha:'a'.repeat(40),files:[{filename:'engine/data/state-integration/ND.json'}]};
+  assert.equal(validateNorthDakotaCohortManifestTransition({candidateManifest:candidate,shadowManifest:shadow,comparison}),true);
+  assert.equal(validateCityHiveShadowWorkflowOrigin({...base,state:'ND',currentHead:'c'.repeat(40),comparison:{...comparison,ndCohortManifestProof:true}}).state,'ND');
+  for(const mutation of [
+    {...candidate,sourceSemantics:{inventoryAlertable:true}},
+    {...candidate,collector:{...candidate.collector,cohortSha256:'0'.repeat(64)}},
+  ])assert.equal(validateNorthDakotaCohortManifestTransition({candidateManifest:mutation,shadowManifest:shadow,comparison}),false);
+  assert.equal(validateNorthDakotaCohortManifestTransition({candidateManifest:candidate,shadowManifest:shadow,
+    comparison:{...comparison,files:[...comparison.files,{filename:'engine/src/collectors/north-dakota-retail-production.mjs'}]}}),false);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...base,state:'ND',currentHead:'c'.repeat(40),comparison}),/source changed/);
+});
+test('ND source replay admits the exact reviewed projection/CI fixture additions, not parser changes',()=>{
+  const files=[
+    '.github/workflows/refresh-feed.yml',
+    'engine/src/export-site-contract.mjs','engine/src/operational-report.mjs',
+    'engine/src/verification/historical-implementation.mjs',
+    'engine/test/de-first-publication.test.mjs','engine/test/north-dakota-public-policy.test.mjs',
+    'engine/test/north-dakota-retail-production.test.mjs','scripts/test-ms-bundle-boundary.mjs',
+    'scripts/test-nd-active-ci-fixture.mjs','scripts/test-north-dakota-public-projection.mts',
+    'scripts/verify-active-state-integration-ci.mjs',
+    ...[
+      'alerts.json','canary-preview-policy.json','drops.json','locations.json','manifest.json','source-proof.json','stats.json',
+      'states/index.json','states/ND/drops.json',
+    ].map(file=>`engine/data/canary-site/nd-active-candidate/${file}`),
+    'engine/data/state-integration/ND.json',
+  ];
+  const comparison={status:'ahead',base_commit:{sha:'a'.repeat(40)},runHeadSha:'a'.repeat(40),
+    files:files.map(filename=>({filename})),ndCohortManifestProof:true};
+  const candidate={...base,state:'ND',currentHead:'c'.repeat(40),comparison};
+  assert.equal(validateCityHiveShadowWorkflowOrigin(candidate).sourceEquivalentPreparationChanges.length,files.length);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...candidate,state:'WI'}),/source changed/);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...candidate,comparison:{...comparison,
+    files:[...comparison.files,{filename:'engine/src/research-cityhive-runtime.mjs'}]}}),/source changed/);
 });
 test('WI/OK archive uses issued ZIP digest and existing bounded portable path decoder',()=>{
   const bytes=zipSync({'WI/report.json':strToU8('{}')}),digest=createHash('sha256').update(bytes).digest('hex');

@@ -10,6 +10,7 @@ import { collectPrecisionProbes } from './precision-probes.mjs';
 import { collectTexasShopifyPickup, isTexasShopifyPickupInventory } from './texas-shopify-pickup.mjs';
 import { texasLegacyPrecisionPolicyReport } from './texas-legacy-source-policy.mjs';
 import {collectCentralCityHiveProductionState} from './central-cityhive-production.mjs';
+import {collectNorthDakotaRetailProductionState} from './north-dakota-retail-production.mjs';
 import {CENTRAL_CITYHIVE_PRODUCTION_STATES} from '../central-cityhive-production-config.mjs';
 import {collectMinnesotaCityHiveProductionState} from './minnesota-cityhive-production.mjs';
 import {collectLouisianaAlaskaGroceryProductionState} from './louisiana-alaska-grocery-production-adapter.mjs';
@@ -483,6 +484,7 @@ function skippedConfiguredSource(source, sourceId, result) {
 }
 
 export async function collectState(config, bible, options = {}) {
+  if(config.id==='ND')return collectNorthDakotaRetailProductionState(config,bible,options);
   if(config.id==='MN')return collectMinnesotaCityHiveProductionState(config,bible,options);
   if(LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(config.id)){
     const productionConfig=LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS.find(candidate=>candidate.id===config.id);

@@ -50,12 +50,12 @@ test('measured forecast reversal accepts only the complete reviewed map and pres
     const wyoming = '      "WY": 30000,\n';
     const recentBudgets = (current.includes(wyoming) ? wyoming : '') + (marylandBudget ? '      "MD": 15000,\n' : '') + '      "AR": 30000,\n      "MN": 30000,\n';
     const withRecentStateBudgets = map => withKansas(map.replace('"stateExpectedRunMs": {\n', '"stateExpectedRunMs": {\n' + recentBudgets));
-    const currentMap = withRecentStateBudgets(reviewed).replace('      "FL": 180000\n    }', '      "FL": 180000,\n      "DE": 55000\n    }');
+    const currentMap = withRecentStateBudgets(reviewed).replace('      "FL": 180000\n    }', '      "FL": 180000,\n      "DE": 55000,\n      "ND": 30000\n    }');
     assert.ok(current.includes(currentMap));
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
     for (const mutation of [current.replace(currentMap, withRecentStateBudgets(original)), current.replace(currentMap, withRecentStateBudgets('    "stateExpectedRunMs": {\n    }')), current + '\n' + reviewed,
       ...reviewed.split('\n').slice(1, -1).map(line => current.replace(line, line.replace(/\d+/, value => String(Number(value) + 1)))),
-    ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:measured runtime forecast|exact KS expected runtime|four-state admission exact Delaware forecast entry).*exact historical verification hook/);
+    ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:measured runtime forecast|exact KS expected runtime|North Dakota expected runtime entry|four-state admission exact Delaware forecast entry).*exact historical verification hook/);
     const outside = current.replace('"refreshSafetyMarginMs": 300000', '"refreshSafetyMarginMs": 0');
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name], 'the map exception cannot hide a reduced refresh reserve');
   }
@@ -79,7 +79,7 @@ test('actual four-state admission reverses only the exact active list and issued
         : [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed];
       for (const mutation of mutations) {
         assert.notEqual(mutation, current);
-        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN|KS|AR) active list tail|exact (?:MD|WY) active list head).*exact historical verification hook/);
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN|KS|AR) active list tail|exact (?:MD|WY) active list head|exact North Dakota active list entry).*exact historical verification hook/);
       }
       if (key !== 'activeStates') for (const changed of [
         reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),

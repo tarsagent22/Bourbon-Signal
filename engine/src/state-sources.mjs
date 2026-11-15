@@ -17,6 +17,7 @@ import { COLORADO_RETAILER_SOURCES, NEW_YORK_RETAILER_SOURCES } from './collecto
 import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
 import { CENTRAL_CITYHIVE_STATE_CONFIGS } from './central-cityhive-state-config.mjs';
 import { MINNESOTA_CITYHIVE_PRODUCTION_CONFIG } from './minnesota-cityhive-production-config.mjs';
+import { NORTH_DAKOTA_RETAIL_CONFIG } from './collectors/north-dakota-retail-production.mjs';
 
 const GEORGIA_RETAILER_SOURCES = [
   ...GEORGIA_CITYHIVE_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
@@ -454,6 +455,7 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   ...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id==='MO'),
+  NORTH_DAKOTA_RETAIL_CONFIG,
   {
     id: 'NV', label: 'Nevada first-party retailer inventory and Costco watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
     value: 'Exact-store first-party pickup/orderability from Liquor World, Liquor Box, Albertsons, Vons, and Safeway across Las Vegas Valley and Reno–Sparks. Binary availability remains distinct from exact quantity; Costco stays a separate warehouse watch lane.',

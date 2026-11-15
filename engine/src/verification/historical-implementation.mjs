@@ -160,6 +160,15 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const northDakotaEntry=/^    "ND": \{\n[\s\S]+?^    \},?\n/mu.exec(text)?.[0];
+    if(northDakotaEntry){
+      const exactEntry=northDakotaEntry.replace(/,?\n$/,'');
+      assert.equal(createHash('sha256').update(exactEntry).digest('hex'),'cdd8a0a2afc40b47bd00fe02bfe5991d6026484910747657233d429f22337c3d',`${name}: exact North Dakota lifecycle entry`);
+      text=replaceUnique(text,northDakotaEntry,'',`${name}: exact North Dakota lifecycle entry`);
+      text=replaceUnique(text,',\n  }\n}','\n  }\n}',`${name}: North Dakota lifecycle object separator`);
+      text=replaceUnique(text,'    "MO",\n    "ND"\n  ],\n  "reliabilityPolicy"','    "MO"\n  ],\n  "reliabilityPolicy"',`${name}: exact North Dakota active list entry`);
+      text=replaceUnique(text,'      "DE": 55000,\n      "ND": 30000\n','      "DE": 55000\n',`${name}: exact North Dakota expected runtime entry`);
+    }
     const deStart=text.lastIndexOf('    "DE": {');
     if(deStart>=0){
       const deEnd=text.indexOf('\n    }\n  }',deStart);
@@ -172,6 +181,11 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     }
   }
   if(name==='engine/src/state-sources.mjs'){
+    const northDakotaImport="import { NORTH_DAKOTA_RETAIL_CONFIG } from './collectors/north-dakota-retail-production.mjs';\n";
+    if(text.includes(northDakotaImport)){
+      text=replaceUnique(text,northDakotaImport,'',`${name}: North Dakota source import`);
+      text=replaceUnique(text,'  NORTH_DAKOTA_RETAIL_CONFIG,\n','',`${name}: exact North Dakota source registration`);
+    }
     const wyomingImport = "import { WYOMING_GROCERY_CONFIG } from './collectors/wyoming-grocery-production.mjs';\n";
     if (text.includes(wyomingImport)) {
       text = replaceUnique(text, wyomingImport, '', `${name}: Wyoming source import`);

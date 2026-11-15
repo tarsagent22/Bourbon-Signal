@@ -5,6 +5,34 @@ import {pathToFileURL} from 'node:url';
 import {decodeBoundedShadowArchive} from './download-grocery-shadow.mjs';
 export {decodeBoundedShadowArchive};
 
+const northDakotaCanarySiteFiles=new Set([
+  'engine/data/canary-site/nd-active-candidate/alerts.json',
+  'engine/data/canary-site/nd-active-candidate/canary-preview-policy.json',
+  'engine/data/canary-site/nd-active-candidate/drops.json',
+  'engine/data/canary-site/nd-active-candidate/locations.json',
+  'engine/data/canary-site/nd-active-candidate/manifest.json',
+  'engine/data/canary-site/nd-active-candidate/source-proof.json',
+  'engine/data/canary-site/nd-active-candidate/stats.json',
+  'engine/data/canary-site/nd-active-candidate/states/index.json',
+  'engine/data/canary-site/nd-active-candidate/states/ND/drops.json',
+]);
+// These are output/provenance contracts and tests. They do not change ND's
+// exact retailer request plans, premises, raw parsers, or denial handling.
+const northDakotaReplayPreparationFiles=new Set([
+  '.github/workflows/refresh-feed.yml',
+  'engine/src/export-site-contract.mjs',
+  'engine/src/operational-report.mjs',
+  'engine/src/verification/historical-implementation.mjs',
+  'engine/test/de-first-publication.test.mjs',
+  'engine/test/north-dakota-public-policy.test.mjs',
+  'engine/test/north-dakota-retail-production.test.mjs',
+  'scripts/test-ms-bundle-boundary.mjs',
+  'scripts/test-drop-feed-classification.mts',
+  'scripts/test-nd-active-ci-fixture.mjs',
+  'scripts/test-north-dakota-public-projection.mts',
+  'scripts/verify-active-state-integration-ci.mjs',
+]);
+
 const preparationOnly=(state,file)=>[
   '.github/workflows/state-expansion-canary.yml','.github/workflows/state-promotion-provenance.yml',
   'engine/src/prepare-central-cityhive-canary.mjs','engine/src/prepare-central-cityhive-canary-manifest.mjs','engine/src/central-cityhive-fixtures.mjs','engine/src/verify-state-fixtures.mjs','scripts/download-cityhive-shadow.mjs',
@@ -20,6 +48,8 @@ const preparationOnly=(state,file)=>[
     'engine/data/canary-site/de-active-candidate/states/DE/drops.json'].includes(file))
   ||(state==='DE'&&file==='engine/src/central-cityhive-fixtures.mjs')
   ||(state==='DE'&&/^engine\/test\/fixtures\/ks-de-cityhive\/[a-z0-9-]+\.json$/.test(file))
+  ||(state==='ND'&&northDakotaCanarySiteFiles.has(file))
+  ||(state==='ND'&&northDakotaReplayPreparationFiles.has(file))
   ||(state==='AR'&&/^engine\/data\/(?:state-fixtures|state-integration)\/AR(?:-canary)?\.json$/.test(file))
   ||(state==='MN'&&/^engine\/data\/(?:state-fixtures|state-integration)\/MN\.json$/.test(file))
   ||(state==='MO'&&file==='engine/test/fixtures/central-cityhive/barrel-blends-6226405682c4ff6dfe6d578a.json')
@@ -110,8 +140,20 @@ export function validateInactiveKansasShadowLifecycleTransition({candidateLifecy
   return JSON.stringify(canonical(expected))===JSON.stringify(canonical(shadowLifecycle));
 }
 
+export function validateNorthDakotaCohortManifestTransition({candidateManifest,shadowManifest,comparison}){
+  const file='engine/data/state-integration/ND.json';
+  if(comparison?.status!=='ahead'||comparison?.base_commit?.sha!==comparison.runHeadSha
+    ||!Array.isArray(comparison?.files)||comparison.files.filter(row=>row.filename===file).length!==1
+    ||comparison.files.some(row=>row.filename!==file))return false;
+  const candidate=structuredClone(candidateManifest),shadow=structuredClone(shadowManifest);
+  if(candidate?.state!=='ND'||shadow?.state!=='ND'
+    ||candidate.collector?.cohortSha256!=='e4fe87fee52a06bd2ae78fa3c541dbc2b578321961a374acf6ae9a62760b767c')return false;
+  delete candidate.collector.cohortSha256;
+  return JSON.stringify(candidate)===JSON.stringify(shadow);
+}
+
 export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison}){
-  if(!['WI','OK','RI','MN','KS','AR','MO','MD','DE'].includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed CityHive research state or repository');
+  if(!['WI','OK','RI','MN','KS','AR','MO','MD','DE','ND'].includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed CityHive research state or repository');
   if(run?.conclusion!=='success'||run.status!=='completed'||run.repository?.full_name!==repository
     ||run.path!=='.github/workflows/state-expansion-shadow.yml'||!/^\d+$/.test(String(run.id))
     ||!/^[a-f0-9]{40}$/.test(run.head_sha||'')||!/^[a-f0-9]{40}$/.test(currentHead||''))throw new Error('Shadow run is not a successful repository-issued shadow workflow');
@@ -131,6 +173,7 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
     ||state==='MO'&&['engine/src/verification/historical-implementation.mjs','scripts/test-ms-bundle-boundary.mjs'].includes(file.filename)
     ||state==='MO'&&file.filename==='src/config/state-lifecycle.json'&&inactiveMoShadowTransition
     ||state==='KS'&&file.filename==='src/config/state-lifecycle.json'&&inactiveKsShadowTransition
+    ||state==='ND'&&file.filename==='engine/data/state-integration/ND.json'&&comparison?.ndCohortManifestProof===true
     ||state==='MN'&&minnesotaAdapterFiles.has(file.filename)
     ||state==='MN'&&['src/lib/public-drop-evidence.ts','scripts/test-laak-production-projection.mjs','.github/workflows/refresh-feed.yml','engine/test/engine-continuity.test.mjs'].includes(file.filename)
     ||state==='MN'&&file.filename==='src/config/state-lifecycle.json'&&inactiveMnShadowTransition)):[];
@@ -146,7 +189,7 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
 const argument=flag=>process.argv.find(value=>value.startsWith(flag+'='))?.slice(flag.length+1);
 async function main(){
   const state=argument('--state'),runId=argument('--run'),output=argument('--out-dir');
-  if(!['WI','OK','RI','MN','KS','AR','MO','MD','DE'].includes(state)||!/^[0-9]+$/.test(runId||'')||!output)throw new Error('Use --state=WI|OK|RI|MN|KS|AR|MO|MD|DE --run=<actual successful workflow run> --out-dir=<new directory>');
+  if(!['WI','OK','RI','MN','KS','AR','MO','MD','DE','ND'].includes(state)||!/^[0-9]+$/.test(runId||'')||!output)throw new Error('Use --state=WI|OK|RI|MN|KS|AR|MO|MD|DE|ND --run=<actual successful workflow run> --out-dir=<new directory>');
   const repository='tarsagent22/Bourbon-Signal',gh=process.platform==='win32'?'gh.exe':'gh',out=path.resolve(output);
   const api=endpoint=>JSON.parse(execFileSync(gh,['api',`repos/${repository}/${endpoint}`],{encoding:'utf8',maxBuffer:8*1024*1024,windowsHide:true}));
   const run=api(`actions/runs/${runId}`),artifacts=api(`actions/runs/${runId}/artifacts?per_page=100`);
@@ -176,6 +219,13 @@ async function main(){
       const candidateLifecycle=JSON.parse(execFileSync('git',['show',`${currentHead}:${lifecyclePath}`],{encoding:'utf8',maxBuffer:2*1024*1024}));
       const shadowLifecycle=JSON.parse(Buffer.from(runLifecycle.content,'base64').toString('utf8'));
       comparison.ksShadowLifecycleProof=validateInactiveKansasShadowLifecycleTransition({candidateLifecycle,shadowLifecycle,comparison:{...comparison,runHeadSha:run.head_sha}});
+    }
+    if(state==='ND'&&comparison.status==='ahead'){
+      const manifestPath='engine/data/state-integration/ND.json',runManifest=api(`contents/${manifestPath}?ref=${run.head_sha}`);
+      const candidateManifest=JSON.parse(execFileSync('git',['show',`${currentHead}:${manifestPath}`],{encoding:'utf8',maxBuffer:2*1024*1024}));
+      const shadowManifest=JSON.parse(Buffer.from(runManifest.content,'base64').toString('utf8'));
+      comparison.ndCohortManifestProof=validateNorthDakotaCohortManifestTransition({candidateManifest,shadowManifest,
+        comparison:{...comparison,runHeadSha:run.head_sha}});
     }
   }
   const provenance=validateCityHiveShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison});

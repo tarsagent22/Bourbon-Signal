@@ -55,7 +55,9 @@
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": ["src/config/state-lifecycle.json"]
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
     },
     {
       "state": "AZ",
@@ -226,7 +228,9 @@
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": ["engine/data/state-integration/DE.json"]
+      "promotionEvidenceRefs": [
+        "engine/data/state-integration/DE.json"
+      ]
     },
     {
       "state": "FL",
@@ -512,7 +516,9 @@
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": ["src/config/state-lifecycle.json"]
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
     },
     {
       "state": "ME",
@@ -566,7 +572,9 @@
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": ["engine/data/state-integration/MD.json"]
+      "promotionEvidenceRefs": [
+        "engine/data/state-integration/MD.json"
+      ]
     },
     {
       "state": "MA",
@@ -961,15 +969,15 @@
     {
       "state": "ND",
       "customerLabel": "North Dakota",
-      "marketClassification": "control",
+      "marketClassification": "private",
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
-        "official_control_board",
-        "official_catalog",
-        "official_release"
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
       ],
       "currentBlockers": [],
       "rankingInputs": {
@@ -983,7 +991,11 @@
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": []
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json",
+        "engine/data/state-integration/ND.json",
+        "engine/data/state-fixtures/ND.json"
+      ]
     },
     {
       "state": "OH",
@@ -1131,7 +1143,10 @@
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": ["src/config/state-lifecycle.json", "engine/data/state-integration/RI.json"]
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json",
+        "engine/data/state-integration/RI.json"
+      ]
     },
     {
       "state": "SC",

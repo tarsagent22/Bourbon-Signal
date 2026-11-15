@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "state": "ND",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "grand-forks-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "rock-bottle-shop:67c8a2e465e7a028cb538073"
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "canonicalNames": [
+          "Maker's Mark Wood Finishing Series"
+        ]
+      }
+    },
+    {
+      "id": "williston-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "albertsons:28"
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "canonicalNames": [
+          "Heaven Hill Bottled-in-Bond 7 Year"
+        ],
+        "canaryEligible": true
+      }
+    },
+    {
+      "id": "grand-forks-ordinary",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "rock-bottle-shop:67c8a2e465e7a028cb538073",
+        "rawName": "Unknown Straight Bourbon 750ml"
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "grand-forks-cream",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "rock-bottle-shop:67c8a2e465e7a028cb538073",
+        "rawName": "Bourbon Cream Liqueur 750ml"
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "grand-forks-miniature",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "rock-bottle-shop:67c8a2e465e7a028cb538073",
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "williston-binary",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "albertsons:28"
+      },
+      "expected": {
+        "sourceRows": 1,
+        "quantity": 0,
+        "quantityIsExact": false,
+        "deliveryEligible": false,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "williston-other-store",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "albertsons:28",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "rejected": true
+      }
+    },
+    {
+      "id": "grand-forks-other-merchant",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "rock-bottle-shop:67c8a2e465e7a028cb538073",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "williston-stale",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "albertsons:28",
+        "ageMinutes": 121
+      },
+      "expected": {
+        "sourceRows": 1,
+        "canaryEligible": false,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "williston-only-delivery",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceId": "albertsons:28",
+        "wrongChannel": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "canaryEligible": false
+      }
+    },
+    {
+      "id": "williston-out-of-stock",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "albertsons:28",
+        "outOfStock": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "canaryEligible": false
+      }
+    }
+  ]
+}

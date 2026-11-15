@@ -8,7 +8,7 @@ import {fetchReviewedCityHiveText,readCityHiveIncidentJournal,validateCityHiveIn
 import {sourceErrorForHttp} from './sources/source-error.mjs';
 import {centralCityHiveProductionAllowed,collectCentralCityHiveProductionSource} from './collectors/central-cityhive-production.mjs';
 
-const names = Object.freeze({ WI: 'Wisconsin', OK: 'Oklahoma', MN: 'Minnesota', MO: 'Missouri', MA: 'Massachusetts', CT: 'Connecticut', DE: 'Delaware', HI: 'Hawaii', MD: 'Maryland', KS: 'Kansas', RI: 'Rhode Island', AR: 'Arkansas' });
+const names = Object.freeze({ WI: 'Wisconsin', OK: 'Oklahoma', MN: 'Minnesota', MO: 'Missouri', MA: 'Massachusetts', CT: 'Connecticut', DE: 'Delaware', HI: 'Hawaii', MD: 'Maryland', KS: 'Kansas', RI: 'Rhode Island', AR: 'Arkansas', ND: 'North Dakota' });
 const sourcesByState = Map.groupBy([...CENTRAL_CITYHIVE_EXPANSION_SOURCES, ...CENTRAL_CITYHIVE_RESEARCH_SOURCES], source => source.state);
 const configurations = new Map(Object.entries(names).map(([state,name]) => [state,Object.freeze({
   id:state,label:`${name} first-party retailer research`,tier:'B',active:false,
@@ -52,6 +52,14 @@ export async function collectCityHiveResearchReport(config,bible,options={}){
     throw new Error('CityHive research requires the registered isolated shadow source.');
   }
   return collectCityHiveStateReport(config,bible,options,true);
+}
+// North Dakota's production adapter reuses the same registered premise,
+// query plan, exact parser, and durable host journal after its own promotion
+// gate succeeds. Keep direct callers closed unless that adapter opts in.
+export async function collectNorthDakotaCityHiveProductionObservation(bible,options={}){
+  const config=configurations.get('ND');
+  if(!config||options.productionAuthorized!==true)throw new Error('North Dakota CityHive collection requires its production promotion gate');
+  return collectCityHiveStateReport(config,bible,options,false);
 }
 export async function collectPromotedCentralCityHiveState(config,bible,options={}){
   const canonical=configurations.get(config?.id);
