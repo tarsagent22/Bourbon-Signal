@@ -108,6 +108,29 @@ test('ND shadow replay accepts only the single verified cohort binding metadata 
     comparison:{...comparison,files:[...comparison.files,{filename:'engine/src/collectors/north-dakota-retail-production.mjs'}]}}),false);
   assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...base,state:'ND',currentHead:'c'.repeat(40),comparison}),/source changed/);
 });
+test('ND source replay admits the exact reviewed projection/CI fixture additions, not parser changes',()=>{
+  const files=[
+    '.github/workflows/refresh-feed.yml',
+    'engine/src/export-site-contract.mjs','engine/src/operational-report.mjs',
+    'engine/src/verification/historical-implementation.mjs',
+    'engine/test/de-first-publication.test.mjs','engine/test/north-dakota-public-policy.test.mjs',
+    'engine/test/north-dakota-retail-production.test.mjs','scripts/test-ms-bundle-boundary.mjs',
+    'scripts/test-nd-active-ci-fixture.mjs','scripts/test-north-dakota-public-projection.mts',
+    'scripts/verify-active-state-integration-ci.mjs',
+    ...[
+      'alerts.json','canary-preview-policy.json','drops.json','locations.json','manifest.json','source-proof.json','stats.json',
+      'states/index.json','states/ND/drops.json',
+    ].map(file=>`engine/data/canary-site/nd-active-candidate/${file}`),
+    'engine/data/state-integration/ND.json',
+  ];
+  const comparison={status:'ahead',base_commit:{sha:'a'.repeat(40)},runHeadSha:'a'.repeat(40),
+    files:files.map(filename=>({filename})),ndCohortManifestProof:true};
+  const candidate={...base,state:'ND',currentHead:'c'.repeat(40),comparison};
+  assert.equal(validateCityHiveShadowWorkflowOrigin(candidate).sourceEquivalentPreparationChanges.length,files.length);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...candidate,state:'WI'}),/source changed/);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...candidate,comparison:{...comparison,
+    files:[...comparison.files,{filename:'engine/src/research-cityhive-runtime.mjs'}]}}),/source changed/);
+});
 test('WI/OK archive uses issued ZIP digest and existing bounded portable path decoder',()=>{
   const bytes=zipSync({'WI/report.json':strToU8('{}')}),digest=createHash('sha256').update(bytes).digest('hex');
   assert.ok(decodeBoundedShadowArchive(bytes,digest)['WI/report.json']);

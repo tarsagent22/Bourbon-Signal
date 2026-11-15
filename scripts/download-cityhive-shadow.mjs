@@ -5,6 +5,33 @@ import {pathToFileURL} from 'node:url';
 import {decodeBoundedShadowArchive} from './download-grocery-shadow.mjs';
 export {decodeBoundedShadowArchive};
 
+const northDakotaCanarySiteFiles=new Set([
+  'engine/data/canary-site/nd-active-candidate/alerts.json',
+  'engine/data/canary-site/nd-active-candidate/canary-preview-policy.json',
+  'engine/data/canary-site/nd-active-candidate/drops.json',
+  'engine/data/canary-site/nd-active-candidate/locations.json',
+  'engine/data/canary-site/nd-active-candidate/manifest.json',
+  'engine/data/canary-site/nd-active-candidate/source-proof.json',
+  'engine/data/canary-site/nd-active-candidate/stats.json',
+  'engine/data/canary-site/nd-active-candidate/states/index.json',
+  'engine/data/canary-site/nd-active-candidate/states/ND/drops.json',
+]);
+// These are output/provenance contracts and tests. They do not change ND's
+// exact retailer request plans, premises, raw parsers, or denial handling.
+const northDakotaReplayPreparationFiles=new Set([
+  '.github/workflows/refresh-feed.yml',
+  'engine/src/export-site-contract.mjs',
+  'engine/src/operational-report.mjs',
+  'engine/src/verification/historical-implementation.mjs',
+  'engine/test/de-first-publication.test.mjs',
+  'engine/test/north-dakota-public-policy.test.mjs',
+  'engine/test/north-dakota-retail-production.test.mjs',
+  'scripts/test-ms-bundle-boundary.mjs',
+  'scripts/test-nd-active-ci-fixture.mjs',
+  'scripts/test-north-dakota-public-projection.mts',
+  'scripts/verify-active-state-integration-ci.mjs',
+]);
+
 const preparationOnly=(state,file)=>[
   '.github/workflows/state-expansion-canary.yml','.github/workflows/state-promotion-provenance.yml',
   'engine/src/prepare-central-cityhive-canary.mjs','engine/src/prepare-central-cityhive-canary-manifest.mjs','engine/src/central-cityhive-fixtures.mjs','engine/src/verify-state-fixtures.mjs','scripts/download-cityhive-shadow.mjs',
@@ -20,6 +47,8 @@ const preparationOnly=(state,file)=>[
     'engine/data/canary-site/de-active-candidate/states/DE/drops.json'].includes(file))
   ||(state==='DE'&&file==='engine/src/central-cityhive-fixtures.mjs')
   ||(state==='DE'&&/^engine\/test\/fixtures\/ks-de-cityhive\/[a-z0-9-]+\.json$/.test(file))
+  ||(state==='ND'&&northDakotaCanarySiteFiles.has(file))
+  ||(state==='ND'&&northDakotaReplayPreparationFiles.has(file))
   ||(state==='AR'&&/^engine\/data\/(?:state-fixtures|state-integration)\/AR(?:-canary)?\.json$/.test(file))
   ||(state==='MN'&&/^engine\/data\/(?:state-fixtures|state-integration)\/MN\.json$/.test(file))
   ||(state==='MO'&&file==='engine/test/fixtures/central-cityhive/barrel-blends-6226405682c4ff6dfe6d578a.json')
