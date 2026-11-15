@@ -20,8 +20,8 @@ test('MS historical implementation bytes remain pinned, including policy', async
   const hashes = Object.values(evidence).find(v=>v && typeof v==='object' && v['engine/src/collectors/mississippi-retailer-surfaces.mjs']);
   assert.ok(hashes);
   for (const [name, hash] of Object.entries(hashes)) {
-    // Only reviewed NY/CO/AZ metadata, area expectations, the verifier's hooks and
-    // the exact FL/IN proof additions and shared alert suppression may differ.
+    // Only reviewed NY/CO/AZ metadata, area expectations, exact OR verifier/proof
+    // hooks, FL/IN proof additions and shared alert suppression may differ.
     // Original digests pin all other bytes.
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, await readFile(new URL('../'+name,import.meta.url)))),hash,name);
   }
@@ -162,6 +162,13 @@ function signalSort(a, b) {
   assert.equal(digest(normalized), originalHash);
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
   assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, '')
+    .replace("import { isOregonDailyProductionEvidence } from './oregon-daily-production-policy.mjs';\n", '')
+    .replace(`    ...(isOregonDailyProductionEvidence(signal)?{
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`, '')
     .replace("import {isDelawareEcwidProductionOnSiteSignal} from './delaware-ecwid-production-policy.mjs';\n", '')
     .replace(`    ...(isDelawareEcwidProductionOnSiteSignal(signal)?{
       tier:signal.tier,inventorySemantics:signal.inventorySemantics,

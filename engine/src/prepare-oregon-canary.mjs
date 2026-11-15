@@ -5,6 +5,7 @@ import {pathToFileURL} from 'node:url';
 import {BourbonBible} from './core/bible.mjs';
 import {stableId} from './core/text.mjs';
 import {resolveOregonBourbonIdentity,isOregonDailyInventoryObservation,OREGON_DAILY_INVENTORY_URL} from './or-daily-inventory.mjs';
+import {OREGON_DAILY_PRODUCTION_COHORT_SHA256,OREGON_DAILY_PRODUCTION_RUNTIME_ID} from './oregon-daily-production-policy.mjs';
 import {canonicalizeSignal} from './operational-report.mjs';
 import {buildDrops,bibleLookup} from './export-site-contract.mjs';
 import {withResearchLifecycle} from './research-state-registry.mjs';
@@ -42,17 +43,25 @@ export function prepareOregonCanary({sourceReport,shadowSummary,shadowReport,pro
         ||!/^\d{5}(?:-\d{4})?$/.test(String(store.zip||'').trim())||!store.inventoryObservedAt)throw Error(`Positive OLCC row is missing exact store identity or inventory date: ${product.itemCode}`);
       const storeId=String(store.storeNo),address=[store.address,store.city,'OR',store.zip].join(', ');
       const signal={id:stableId(['OR','or-daily-store',identity.match.record.id,product.size,product.proof,storeId]),state:'OR',stateCode:'OR',
+        sourceRuntimeId:OREGON_DAILY_PRODUCTION_RUNTIME_ID,
         sourceLabel:'Oregon OLCC Daily Store Inventory',sourceUrl:OREGON_DAILY_INVENTORY_URL,rawName:product.name,
         canonicalBottleId:identity.match.record.id,canonicalName:identity.match.record.canonical,tier:identity.match.record.tier||product.rarityTier,
         confidence:1,sourceMatchStatus:'bottle_bible_match',fetchedAt:sourceReport.generatedAt,eventType:'store_inventory_result',
+        sourceReportSha256:sourceReport.sourceSha256,sourceReportGeneratedAt:sourceReport.generatedAt,
+        sourceStale:false,stale:false,previewOnly:false,
+        sourceProductBinding:{source:'olcc-daily-report',cohortSha256:OREGON_DAILY_PRODUCTION_COHORT_SHA256,
+          itemCode:String(product.itemCode),newItemCode:String(product.newItemCode),canonicalBottleId:identity.match.record.id,
+          size:product.size,proof:product.proof,reportSha256:sourceReport.sourceSha256,reportGeneratedAt:sourceReport.generatedAt,
+          sourceQuantity:store.quantity,observedAt:store.inventoryObservedAt},
         locationPrecision:'store_level',locationName:`Oregon Liquor Store ${storeId}`,storeName:`Oregon Liquor Store ${storeId}`,
         storeId,storeAddress:address,city:store.city,postalCode:String(store.zip),zip:String(store.zip),quantity:store.quantity,price:product.bottlePrice??null,
-        observedAt:store.inventoryObservedAt,sourceAvailabilityVerified:true,canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
-        eligibleForOnSite:false,eligibleForDropFeed:false,eligibleForWatch:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
+        observedAt:store.inventoryObservedAt,lastConfirmedAt:store.inventoryObservedAt,quantityIsExact:true,
+        sourceAvailabilityVerified:true,canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+        eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
         dataLane:'inventory',inventorySemantics:'Official OLCC store-reported bottle quantity in the statewide daily inventory report. Timestamp is the store inventory date, not a restock event; verify with the store before driving.',
         evidence:`The OLCC daily inventory report lists ${store.quantity} bottle(s) of ${product.name} at ${store.storeName||`store ${storeId}`}, ${address}. Store inventory date: ${store.inventoryDate}; verify with the store before driving.`,
         raw:{itemCode:product.itemCode,newItemCode:product.newItemCode,proof:product.proof,size:product.size,inventoryDate:store.inventoryDate,
-          sourceReportDate:sourceReport.sourceReportDate,officialReportSha256:sourceReport.sourceSha256,shadowOnly:true}};
+          sourceReportDate:sourceReport.sourceReportDate,officialReportSha256:sourceReport.sourceSha256}};
       if(!isOregonDailyInventoryObservation(signal,nowMs))continue;
       const original=shadowSignals.get(signal.id);
       if(!original||original.observedAt!==signal.observedAt||original.storeId!==signal.storeId||original.storeAddress!==signal.storeAddress

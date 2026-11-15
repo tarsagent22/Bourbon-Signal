@@ -25,7 +25,17 @@ test('national candidate registry gives every state an explicit lifecycle record
     assert.equal(registry.states.find((row) => row.state === state).lifecycleStage, 'active');
     assert.deepEqual(registry.states.find((row) => row.state === state).promotionEvidenceRefs, ['src/config/state-lifecycle.json']);
   }
-  assert.equal(registry.states.find((state) => state.state === 'OR').lifecycleStage, 'discovery');
+  const oregon = registry.states.find((state) => state.state === 'OR');
+  const oregonActive = lifecycle.activeStates.includes('OR');
+  assert.equal(oregon.lifecycleStage, oregonActive ? 'active' : 'canary');
+  assert.deepEqual(oregon.promotionEvidenceRefs, [
+    'engine/data/state-integration/OR.json',
+    'engine/data/state-fixtures/OR.json',
+    oregonActive ? 'src/config/state-lifecycle.json' : 'engine/data/canary-inputs/OR.json',
+  ]);
+  if (oregonActive) {
+    assert.equal(lifecycle.states.OR.promotionEvidence.immutableEvidence.state, 'OR');
+  }
   assert.equal(registry.states.find((state) => state.state === 'NH').lifecycleStage, 'discovery');
   assert.equal(registry.states.find((state) => state.state === 'CO').lifecycleStage, 'active');
   assert.equal(registry.states.find((state) => state.state === 'NY').lifecycleStage, 'active');

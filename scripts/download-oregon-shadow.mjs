@@ -7,15 +7,43 @@ import {unzipSync} from 'fflate';
 
 const REPOSITORY='tarsagent22/Bourbon-Signal';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+const sourcePipelineFiles=new Set([
+  '.github/workflows/state-expansion-shadow.yml','engine/src/or-browser-collector.mjs','engine/src/or-daily-inventory.mjs',
+  'engine/src/research-oregon-runtime.mjs','engine/src/research-state-registry.mjs','engine/src/run-expansion-shadow.mjs',
+]);
 const preparationOnly=file=>[
-  '.github/workflows/state-expansion-canary.yml','scripts/download-oregon-shadow.mjs','scripts/test-oregon-shadow-download.mjs',
+  '.github/workflows/state-expansion-canary.yml','.github/workflows/refresh-feed.yml','scripts/download-oregon-shadow.mjs','scripts/test-oregon-shadow-download.mjs',
+  'scripts/test-owner-admin-api.cjs','src/app/api/admin/catalog/route.ts',
   'scripts/test-oregon-public-canary.mjs','engine/src/prepare-oregon-canary.mjs','engine/src/oregon-research-fixtures.mjs',
-  'src/lib/public-drop-evidence.ts',
+  'engine/src/oregon-daily-production-policy.mjs','engine/src/verify-oregon-first-publication.mjs',
+  'engine/src/verification/historical-implementation.mjs','engine/src/verify-ms.mjs',
+  'src/lib/public-drop-evidence.ts','src/lib/drop-feed-visibility.ts',
   'engine/src/build-state-canary-preview.mjs',
   'engine/src/central-cityhive-policy.mjs','engine/src/export-site-contract.mjs',
-  'engine/src/verify-state-fixtures.mjs','engine/test/oregon-canary.test.mjs','engine/test/or-daily-inventory.test.mjs',
+  'engine/src/collectors/generic-state.mjs','engine/src/collectors/oregon-daily-production.mjs',
+  'engine/src/customer-drop-freshness.mjs','engine/src/operational-report.mjs','engine/src/state-sources.mjs',
+  'engine/src/verify-oregon-distinct-report.mjs','engine/test/customer-drop-freshness.test.mjs',
+  'engine/test/fixtures/oregon-daily-production-replay.json','engine/test/oregon-distinct-report.test.mjs',
+  'scripts/build-promotion-provenance.mjs','scripts/test-promotion-provenance-runtime-bindings.mjs',
+  'scripts/test-ms-bundle-boundary.mjs',
+  'src/config/state-lifecycle.json','src/config/stateLifecycle.ts',
+  'engine/src/verify-state-fixtures.mjs','engine/test/oregon-canary.test.mjs','engine/test/oregon-daily-production.test.mjs',
+  'engine/test/oregon-first-publication.test.mjs','engine/test/or-daily-inventory.test.mjs','engine/test/oregon-shadow-provenance.test.mjs',
   'engine/data/state-fixtures/OR.json','engine/data/state-integration/OR.json',
+  'engine/data/canary-inputs/OR.json',
 ].includes(file);
+
+export function validateOregonShadowChanges(runHead,currentHead,comparison){
+  if(runHead===currentHead)return [];
+  const changes=comparison?.files;
+  if(!['ahead','identical','diverged'].includes(comparison?.status)||!Array.isArray(changes)||changes.length>=300
+    ||comparison?.status==='diverged'&&(!Number.isSafeInteger(comparison.ahead_by)||comparison.ahead_by<0
+      ||!Number.isSafeInteger(comparison.behind_by)||comparison.behind_by<0
+      ||comparison.ahead_by>50||comparison.behind_by>50)
+    ||changes.some(file=>sourcePipelineFiles.has(file.filename)||!preparationOnly(file.filename)))
+    throw Error('Oregon collector/source changed since the saved report; collect a new report before canary');
+  return changes.map(file=>file.filename);
+}
 
 export function validateOregonShadowOrigin({repository=REPOSITORY,run,sourceArtifact,shadowArtifact,currentHead,comparison,shadowSummary,sourceReport,shadowReport}){
   if(repository!==REPOSITORY||run?.conclusion!=='success'||run.status!=='completed'||run.repository?.full_name!==repository
@@ -41,11 +69,9 @@ export function validateOregonShadowOrigin({repository=REPOSITORY,run,sourceArti
   const sourceAt=Date.parse(sourceReport.generatedAt),shadowStart=Date.parse(shadowReport.startedAt),shadowEnd=Date.parse(shadowReport.finishedAt),summaryAt=Date.parse(shadowSummary.generatedAt);
   if(![sourceAt,shadowStart,shadowEnd,summaryAt].every(Number.isFinite)||sourceAt>shadowStart||shadowStart>shadowEnd||shadowEnd>summaryAt
     ||shadowStart-sourceAt>10*60_000||shadowEnd-shadowStart>10*60_000||shadowReport.signals.some(row=>row.fetchedAt!==sourceReport.generatedAt))throw Error('Saved source, state, and summary clocks are not one coherent hosted report revision');
-  const changes=run.head_sha===currentHead?[]:comparison?.files;
-  if(run.head_sha!==currentHead&&(!['ahead','identical'].includes(comparison?.status)||!Array.isArray(changes)||changes.length>=300
-    ||changes.some(file=>!preparationOnly(file.filename))))throw Error('Oregon collector/source changed since the saved report; collect a new report before canary');
+  const changes=validateOregonShadowChanges(run.head_sha,currentHead,comparison);
   return{status:'verified_github_oregon_report_artifacts',state:'OR',repository,workflowRunId:String(run.id),workflowRunUrl:run.html_url,
-    headSha:run.head_sha,currentHead,sourceEquivalentPreparationChanges:changes.map(file=>file.filename),
+    headSha:run.head_sha,currentHead,sourceEquivalentPreparationChanges:changes,
     sourceArtifactId:String(sourceArtifact.id),sourceArtifactName:sourceArtifact.name,sourceArtifactDigest:sourceArtifact.digest.slice(7),
     shadowArtifactId:String(shadowArtifact.id),shadowArtifactName:shadowArtifact.name,shadowArtifactDigest:shadowArtifact.digest.slice(7),
     verifiedAt:new Date().toISOString()};
