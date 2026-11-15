@@ -775,7 +775,7 @@ function isFastMovingStoreInventory(signal) {
   return /store_inventory_result|cityhive_store_inventory_result|retailer_store_inventory_result|browser_assisted_store_inventory_(limited_supply|in_stock)/i.test(type);
 }
 
-function isFreshCurrentInventorySignal(signal, currentKeys) {
+function isFreshCurrentInventorySignal(signal, currentKeys, nowMs) {
   if (!isFastMovingStoreInventory(signal)) return true;
   if (!currentKeys.has(signalFreshnessKey(signal))) return false;
   const observedAt = asTime(signal.observedAt || signal.fetchedAt);
@@ -789,7 +789,7 @@ function isFreshCurrentInventorySignal(signal, currentKeys) {
       : signal.state === 'VA' && String(signal.eventType || signal.type || '') === 'store_inventory_result'
         ? VA_STORE_INVENTORY_MAX_AGE_HOURS
         : signal.state === 'WY' || isDelawareEcwidSignal(signal) ? 2 : FAST_STORE_INVENTORY_MAX_AGE_HOURS;
-  const ageMs = Date.now() - observedAt;
+  const ageMs = nowMs - observedAt;
   return ageMs >= -5 * 60_000 && ageMs <= maxAgeHours * 60 * 60 * 1000;
 }
 
@@ -1484,7 +1484,7 @@ function publicDisplaySortTimestamp(signal, freshnessIndex) {
   return freshness?.eventAt || freshness?.firstSeenAt || signal.observedAt || signal.fetchedAt || freshness?.lastConfirmedAt || '';
 }
 
-export function buildDrops(signals, bible, currentSignals = [], previousDrops = [], availabilityHistory = signals, { shopifyPolicy } = {}) {
+export function buildDrops(signals, bible, currentSignals = [], previousDrops = [], availabilityHistory = signals, { shopifyPolicy, nowMs = Date.now() } = {}) {
   const seenSourceIds = new Set();
   const seenProjectedIds = new Set();
   const currentObservationKeys = new Set(currentSignals.map(signal => `${signalFreshnessKey(signal)}|${signal.observedAt || signal.fetchedAt || ''}`));
@@ -1514,7 +1514,7 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
     .filter((s) => isSafePublicSignal(s, shopifyPolicy))
     .filter((s) => !arizonaInventory(s) || currentArizonaKeys.has(currentProjectionKey(s)))
     .filter((s) => !isGeorgiaRetailerProjectionSignal(s) || currentGeorgiaRetailerKeys.has(currentProjectionKey(s)))
-    .filter((s) => isFreshCurrentInventorySignal(s, currentKeys))
+    .filter((s) => isFreshCurrentInventorySignal(s, currentKeys, nowMs))
     .filter((s) => {
       if (s.state !== 'IA' || !/^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(s.eventType || ''))) return true;
       const sourceId = s.key || s.id || s.sourceSignalId;

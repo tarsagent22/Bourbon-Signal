@@ -73,7 +73,7 @@ export function prepareOregonCanary({sourceReport,shadowSummary,shadowReport,pro
   }
   if(!observedRows.length)throw Error('No exact, fresh, positive Oregon store rows survived current identity and availability checks');
   const operational=observedRows.map(row=>canonicalizeSignal(row,bible));
-  const drops=buildDrops(operational,bibleLookup(bible.records),operational).map(row=>({...row,previewOnly:true,
+  const drops=buildDrops(operational,bibleLookup(bible.records),operational,[],operational,{nowMs}).map(row=>({...row,previewOnly:true,
     canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
     eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false}));
   if(!drops.length)throw Error('No Oregon candidate rows survived current site export policy');
