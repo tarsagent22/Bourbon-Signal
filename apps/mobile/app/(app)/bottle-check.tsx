@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@clerk/expo';
 import * as Crypto from 'expo-crypto';
+import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActivityIndicator, BackHandler, FlatList, Keyboard, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -11,7 +12,7 @@ import { COVERAGE_STATES } from '../../../../shared/coverage-states';
 import { useBottleCatalog } from '../../src/hooks/useBottleCatalog';
 import { useMobileApi } from '../../src/hooks/useMobileApi';
 import { NativeBottleScanner } from '../../src/scanner/NativeBottleScanner';
-import { buyingScore, type BuyingScope } from '../../src/scanner/buying-score';
+import { buyingScore, type BuyingScope } from '../../../../shared/bottle-check-score';
 import type { MemberPreferences, MemberProfile, RadarBottleOption, Signal } from '../../src/api/types';
 import { CellarBottleArtwork } from '../../src/components/CellarBottleArtwork';
 import { colors, fonts } from '../../src/theme';
@@ -40,7 +41,7 @@ function BottleCheckScreen() {
   const router = useRouter(); const api = useMobileApi(); const catalog = useBottleCatalog();
   const [showSources, setShowSources] = useState(false);
   const { userId } = useAuth();
-  const params = useLocalSearchParams<{ state?: string; area?: string }>();
+  const params = useLocalSearchParams<{ state?: string; area?: string; bottleId?: string; bottleName?: string }>();
   const initialRegion = regionContext(params.state, params.area);
   const [mode, setMode] = useState<'scan' | 'search'>('scan');
   const [query, setQuery] = useState(''); const [matches, setMatches] = useState<RadarBottleOption[]>([]);
@@ -51,19 +52,31 @@ function BottleCheckScreen() {
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [profileError, setProfileError] = useState('');
   const [scope, setScope] = useState<BuyingScope>(initialRegion); const locationTouched = useRef(Boolean(initialRegion.state));
+  const [locationStatus, setLocationStatus] = useState<'idle' | 'locating' | 'unavailable' | 'denied'>('idle');
+  const locationAttempt = useRef(0);
   const [editingRegion, setEditingRegion] = useState(false); const [statePicker, setStatePicker] = useState(false);
   const [cityOptions, setCityOptions] = useState<Array<{value: string; label: string}>>([]);
   const [draftState, setDraftState] = useState(''); const [draftArea, setDraftArea] = useState('');
-  const [selected, setSelected] = useState<RadarBottleOption | null>(null);
+  const [selected, setSelected] = useState<RadarBottleOption | null>(() => {
+    if (typeof params.bottleId !== 'string' || typeof params.bottleName !== 'string') return null;
+    return catalog.catalog.find(item => item.id === params.bottleId) ?? null;
+  });
+  const pendingReportBottle = useRef(!selected && typeof params.bottleId === 'string' ? params.bottleId : '');
   const list = useRef<FlatList<RadarBottleOption>>(null);
-  const [details, setDetails] = useState<BottleProfile | null>(null); const [reports, setReports] = useState<Signal[]>([]);
+  useEffect(() => {
+    if (!pendingReportBottle.current) return;
+    const match = catalog.catalog.find(item => item.id === pendingReportBottle.current);
+    if (match) { pendingReportBottle.current = ''; setSelected(match); }
+  }, [catalog.catalog]);
+  const [details, setDetails] = useState<BottleProfile | null>(null); const [reportBatch, setReportBatch] = useState<{ key: string; signals: Signal[] } | null>(null);
+  const assessmentKey = JSON.stringify([selected?.id, scope.state, userId]);
   const [askingPrice, setAskingPrice] = useState(''); const [loading, setLoading] = useState(false);
   const [detailsError, setDetailsError] = useState(''); const [reportError, setReportError] = useState(''); const [retry, setRetry] = useState(0);
   const watch = useBottleWatch(preferences, setPreferences);
   useFocusEffect(useCallback(() => {
     let active = true; setFocused(true);
     void api.getMemberPreferences({ fresh: true }).then(value => { if (active) setPreferences(value); }).catch(() => { if (active) setPreferences(null); });
-    return () => { active = false; setFocused(false); };
+    return () => { active = false; setFocused(false); locationAttempt.current += 1; setLocationStatus('idle'); };
   }, [api]));
   useEffect(() => {
     let active = true;
@@ -81,26 +94,55 @@ function BottleCheckScreen() {
     return () => { active = false; };
   }, [api, selected?.id, scope.state, retry]);
   useEffect(() => {
-    let active = true; setReports([]); setReportError(''); setLoading(false);
+    let active = true; setReportBatch(null); setReportError(''); setLoading(false);
     if (!selected || !scope.state) return;
     setLoading(true);
-    void api.listSignals({ bottle: selected.name, state: scope.state, limit: 100, fresh: true }).then(result => {
+    void api.listSignals({ view: 'market', bottleId: selected.id, state: scope.state, limit: 100, fresh: true }).then(result => {
       if (!active) return;
       if (result.degraded || result.access?.marketDetailsLocked || result.access?.previewLocked) setReportError('Local price evidence is limited for this lookup.');
-      else setReports(result.signals);
+      else setReportBatch({ key: assessmentKey, signals: result.signals });
     }).catch(() => { if (active) setReportError('Local prices couldn’t load. This estimate uses available bottle details.'); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [api, selected?.id, scope.state, retry]);
+  }, [api, selected?.id, scope.state, retry, assessmentKey]);
   useEffect(() => {
     let active = true; setCityOptions([]);
     if (editingRegion && draftState) void api.getSignalAreaOptions(draftState).then(options => { if (active) setCityOptions(options); }).catch(() => undefined);
     return () => { active = false; };
   }, [api, editingRegion, draftState]);
   const bottle: BottleProfile | null = (details?.id === selected?.id ? details : null) || (selected ? { id: selected.id, name: selected.name, producer: selected.producer || null, category: '', proof: selected.proof || null, age: selected.ageStatement || null, msrp: null, rarity: { label: selected.rarity || 'Under review', tier: selected.nationalTier || '', pending: selected.rarityPending !== false && !selected.nationalTier, reviewedAt: null } } : null);
-  const decision = bottle ? buyingScore({ bottle, askingPrice, reports, scope, collection: preferences?.collectionPreferences.bottles }) : null;
+  const decision = bottle ? buyingScore({ bottle, askingPrice, reports: reportBatch?.key === assessmentKey ? reportBatch.signals : [], scope }) : null;
   const results = useMemo(() => selected ? [] : mode === 'search' ? query.trim().length >= 2 ? catalog.search(query, 12) : [] : matches, [selected, mode, query, catalog.search, matches]);
   const regionName = COVERAGE_STATES.find(state => state.code === scope.state)?.name;
   const areaOptions = cityOptions;
+  const applyRegion = (state: string, area: string) => {
+    locationAttempt.current += 1; locationTouched.current = true;
+    setScope(regionContext(state, area)); setEditingRegion(false); setLocationStatus('idle'); Keyboard.dismiss();
+  };
+  const useCurrentRegion = async () => {
+    const request = ++locationAttempt.current;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    setLocationStatus('locating');
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (request !== locationAttempt.current) return;
+      if (!permission.granted) { setLocationStatus('denied'); return; }
+      const resolvePlace = async () => {
+        const { coords } = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        if (request !== locationAttempt.current) return undefined;
+        return (await Location.reverseGeocodeAsync({ latitude: coords.latitude, longitude: coords.longitude }))[0];
+      };
+      const place = await Promise.race([resolvePlace(), new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('Location unavailable')), 15_000);
+      })]);
+      if (request !== locationAttempt.current) return;
+      const region = place?.region?.trim().toLowerCase();
+      const state = place?.isoCountryCode?.toUpperCase() === 'US'
+        ? COVERAGE_STATES.find(item => item.name.toLowerCase() === region || item.code.toLowerCase() === region) : null;
+      if (state) applyRegion(state.code, place?.city ?? '');
+      else setLocationStatus('unavailable');
+    } catch { if (request === locationAttempt.current) setLocationStatus('unavailable'); }
+    finally { clearTimeout(timer); }
+  };
   const dismissHelp = () => { helpTouched.current = true; setHelp(false); void SecureStore.setItemAsync(HELP_KEY, 'dismissed').catch(() => undefined); };
   const handoff = (item: { id: string; name: string }, destination: 'post' | 'shelf', price = askingPrice) => {
     if (!userId) return;
@@ -108,11 +150,12 @@ function BottleCheckScreen() {
   };
   const selectBottle = (item: RadarBottleOption) => {
     Keyboard.dismiss();
+    pendingReportBottle.current = '';
     setSelected(item); setMatches([]); setShowSources(false);
     requestAnimationFrame(() => list.current?.scrollToOffset({ offset: 0, animated: false }));
   };
   const resetCheck = useCallback((newLookup: boolean) => {
-    Keyboard.dismiss(); setSelected(null); setDetails(null); setReports([]); setMatches([]);
+    Keyboard.dismiss(); setSelected(null); setDetails(null); setReportBatch(null); setMatches([]);
     setDetailsError(''); setReportError(''); setShowSources(false); setLoading(false);
     setScanSession(value => value + 1); setEditingRegion(false);
     if (newLookup) { setQuery(''); setAskingPrice(''); }
@@ -133,14 +176,16 @@ function BottleCheckScreen() {
     </View></SafeAreaView>
     <FlatList ref={list} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" data={results} keyExtractor={item => item.id} contentContainerStyle={s.content}
       ListHeaderComponent={<View style={s.header}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Change Bottle Check reference region" accessibilityState={{ expanded: editingRegion }} onPress={() => { setDraftState(scope.state); setDraftArea(scope.area); setStatePicker(false); setEditingRegion(value => !value); }} style={s.region}><MaterialCommunityIcons name="map-marker-outline" size={18} color={colors.accent} /><Text style={s.regionText}>{scope.area ? `${scope.area}, ${scope.state}` : regionName || 'Choose a reference state'}</Text>{scope.state && scope.state === profile?.homeState && !scope.area ? <Text style={s.note}>Home state</Text> : null}<MaterialCommunityIcons name="chevron-down" size={18} color={colors.muted} /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Change Bottle Check reference region" accessibilityState={{ expanded: editingRegion }} onPress={() => { setDraftState(scope.state); setDraftArea(scope.area); setStatePicker(false); locationAttempt.current += 1; setLocationStatus('idle'); setEditingRegion(value => !value); }} style={s.region}><MaterialCommunityIcons name="map-marker-outline" size={18} color={colors.accent} /><Text style={s.regionText}>{scope.area ? `${scope.area}, ${scope.state}` : regionName || 'Choose a reference state'}</Text>{scope.state && scope.state === profile?.homeState && !scope.area ? <Text style={s.note}>Home state</Text> : null}<MaterialCommunityIcons name="chevron-down" size={18} color={colors.muted} /></Pressable>
         {editingRegion ? <View style={s.regionEditor}>
           <Pressable accessibilityRole="button" accessibilityLabel="Select reference state" accessibilityState={{ expanded: statePicker }} onPress={() => setStatePicker(value => !value)} style={s.field}><Text style={s.copy}>{COVERAGE_STATES.find(state => state.code === draftState)?.name || 'Select state'}</Text><MaterialCommunityIcons name="chevron-down" size={18} color={colors.muted} /></Pressable>
           {statePicker ? <ScrollView nestedScrollEnabled style={s.stateList}>{COVERAGE_STATES.map(state => <Pressable key={state.code} accessibilityRole="button" accessibilityLabel={`Use ${state.name}`} onPress={() => { setDraftState(state.code); setDraftArea(''); setStatePicker(false); }} style={s.stateOption}><Text style={s.copy}>{state.name}</Text>{draftState === state.code ? <MaterialCommunityIcons name="check" color={colors.accent} size={18} /> : null}</Pressable>)}</ScrollView> : null}
           <TextInput accessibilityLabel="Reference city or area" value={draftArea} onChangeText={setDraftArea} placeholder="City (optional)" placeholderTextColor={colors.muted} maxLength={120} style={s.input} />
           {draftArea ? <ScrollView horizontal keyboardShouldPersistTaps="handled" showsHorizontalScrollIndicator={false}>{areaOptions.filter(area => area.label.toLowerCase().includes(draftArea.toLowerCase())).slice(0, 6).map(area => <Pressable key={area.value} accessibilityRole="button" onPress={() => setDraftArea(area.value)} style={s.areaChip}><Text style={s.note}>{area.label}</Text></Pressable>)}</ScrollView> : null}
-          <Pressable accessibilityRole="button" disabled={!draftState} accessibilityState={{ disabled: !draftState }} onPress={() => { locationTouched.current = true; setScope({ state: draftState, area: draftArea.trim() }); setEditingRegion(false); Keyboard.dismiss(); }} style={[s.primary, !draftState && { opacity: 0.4 }]}><Text style={s.primaryText}>Use this region</Text></Pressable>
-          {profile?.homeState ? <Pressable accessibilityRole="button" onPress={() => { locationTouched.current = true; setScope({ state: profile.homeState!, area: '' }); setEditingRegion(false); }} style={s.textButton}><Text style={s.link}>Reset to home state</Text></Pressable> : null}
+          <Pressable accessibilityRole="button" disabled={!draftState} accessibilityState={{ disabled: !draftState }} onPress={() => applyRegion(draftState, draftArea)} style={[s.primary, !draftState && { opacity: 0.4 }]}><Text style={s.primaryText}>Use this region</Text></Pressable>
+          <Pressable accessibilityRole="button" disabled={locationStatus === 'locating'} onPress={() => void useCurrentRegion()} style={s.textButton}><Text style={s.link}>{locationStatus === 'locating' ? 'Finding your region…' : 'Use current location'}</Text></Pressable>
+          {locationStatus === 'unavailable' || locationStatus === 'denied' ? <Text accessibilityRole="alert" style={s.note}>{locationStatus === 'denied' ? 'Location access is off. You can still choose a region.' : 'Couldn’t determine your region. Choose one above.'}</Text> : null}
+          {profile?.homeState ? <Pressable accessibilityRole="button" onPress={() => applyRegion(profile.homeState!, '')} style={s.textButton}><Text style={s.link}>Reset to home state</Text></Pressable> : null}
         </View> : null}
         {profileError && !scope.state ? <Text style={s.note}>{profileError}</Text> : null}
         {editingRegion ? <Text style={s.note}>Reference for this check. Radar alert areas stay as saved.</Text> : null}
@@ -149,11 +194,10 @@ function BottleCheckScreen() {
           <View style={s.bottleHeading}><View style={s.bottleArt}><CellarBottleArtwork bottle={{ bottleId: bottle.id, bottleName: bottle.name }} size="showcase" /></View><View style={s.bottleCopy}><Text accessibilityRole="header" style={s.bottleName}>{bottle.name}</Text><Text style={s.note}>{[bottle.proof ? `${bottle.proof} proof` : '', bottle.age?.replace(/^0*(\d+)Y$/i, '$1 years')].filter(Boolean).join(' · ')}</Text>{decision.releaseLabel ? <Text style={s.releaseTag}>{decision.releaseLabel}</Text> : null}</View></View>
           {tasteNote ? <Text style={s.link}>{tasteNote}</Text> : null}
           <View style={s.scoreCard} accessibilityLiveRegion="polite">
-            <View style={s.scoreLine}><View style={s.verdictCopy}><Text style={s.scoreTitle}>Signal Score</Text><Text accessibilityRole="header" style={s.verdict}>{decision.findVerdict}</Text><Text style={s.note}>{decision.evidenceScope}</Text></View><View style={s.scoreValue}><Text testID="bottle-assessment-score" style={[s.score, decision.scoreRange && { fontSize: 30 }]}>{decision.score ?? (decision.scoreRange ? `${decision.scoreRange.low}–${decision.scoreRange.high}` : '—')}</Text><Text style={s.scoreOutOf}>/ 100</Text></View></View>
-            {decision.score == null ? <Text style={s.note}>{decision.scoreRange ? 'Range until reviews are verified' : 'Release research pending'}</Text> : null}
+            <View style={s.scoreLine}><View style={s.verdictCopy}><Text style={s.scoreTitle}>Signal Score</Text><Text accessibilityRole="header" style={s.verdict}>{decision.verdict}</Text><Text style={s.note}>{decision.confidence} · {decision.evidenceScope}</Text></View><View style={s.scoreValue}><Text testID="bottle-assessment-score" style={s.score}>{decision.score}</Text><Text style={s.scoreOutOf}>/ 100</Text></View></View>
           </View>
-          <View style={s.priceEntry}><View style={s.priceLabelRow}><Text style={s.inputLabel}>Shelf price</Text>{decision.reference != null ? <Text style={s.note}>${decision.reference.toFixed(2)} reference</Text> : null}</View><View style={s.priceInput}><Text style={s.currency}>$</Text><TextInput accessibilityLabel="Bottle Check shelf price in US dollars" keyboardType="decimal-pad" value={askingPrice} onChangeText={setAskingPrice} placeholder="Enter price to compare" placeholderTextColor={colors.muted} maxLength={12} style={s.priceText} returnKeyType="done" onSubmitEditing={Keyboard.dismiss} /></View>
-            {decision.priceVerdict ? <View accessibilityLiveRegion="polite"><Text style={s.priceVerdict}>{decision.priceVerdict}</Text><Text style={s.note}>{decision.priceNote}{!askingPrice && decision.price != null ? ` · Recent ${scope.area && !decision.stateFallback ? scope.area : scope.state} median` : ''}</Text></View> : null}
+          <View style={s.priceEntry}><View style={s.priceLabelRow}><Text style={s.inputLabel}>Shelf price · {decision.sizeMl} mL</Text></View><View style={s.priceInput}><Text style={s.currency}>$</Text><TextInput accessibilityLabel="Bottle Check shelf price in US dollars" keyboardType="decimal-pad" value={askingPrice} onChangeText={setAskingPrice} placeholder="Enter price to compare" placeholderTextColor={colors.muted} maxLength={12} style={s.priceText} returnKeyType="done" onSubmitEditing={Keyboard.dismiss} /></View>
+            <Text style={s.note}>{decision.priceNote}</Text>
           </View>
           {decision.reviewStats.expert != null || decision.reviewStats.consumer != null ? <View style={s.reviews}>
             <Text accessibilityRole="header" style={s.reviewHeading}>Published reviews</Text>
@@ -170,10 +214,8 @@ function BottleCheckScreen() {
           <Pressable accessibilityRole="button" accessibilityState={{ expanded: showSources }} onPress={() => setShowSources(value => !value)} style={s.textButton}><Text style={s.link}>Why this score? {showSources ? '\u2212' : '+'}</Text></Pressable>
           {showSources ? <View style={s.methodology}>
             {decision.reasons.map((reason, index) => <Text key={index} style={s.note}>{reason}</Text>)}
-            <Text style={s.note}>{decision.reviewPublishers ? `${decision.reviewPublishers} · ${decision.reviewConfidence.toLowerCase()}.` : 'Published reviews not yet verified.'}</Text>
-            <Text style={s.note}>{decision.adjustment}</Text><Text style={s.note}>Catalog prices are references, not observed shelf prices. A local median needs three distinct stores within seven days. City samples fall back to state evidence when available. Standard-release context does not guarantee local stock.</Text>
+            <Text style={s.note}>{decision.adjustment}</Text><Text style={s.note}>State list prices are benchmarks. A local median needs three distinct stores with comparable prices in the past seven days.</Text>
             {decision.notes.map((note, index) => <Text key={index} style={s.note}>{note}</Text>)}
-            {decision.producerFacts ? <Text style={s.note}>Producer facts: {[decision.producerFacts.proof ? `${decision.producerFacts.proof} proof` : '', decision.producerFacts.ageYears ? `${decision.producerFacts.ageYears} years` : '', decision.producerFacts.process || ''].filter(Boolean).join(' · ')}</Text> : null}
             <Text style={s.note}>Expert scores retain their published scale. Consumer stars are converted only inside the weighted model. Each publisher counts once per group; consumer samples need 100 ratings. Source checks expire after a year. Reviews on one platform do not establish independent publisher consensus.</Text>
             {decision.sources.map((source, index) => <Pressable key={`${source.url}-${index}`} accessibilityRole="link" accessibilityLabel={`Open ${source.label}`} onPress={() => { void Linking.openURL(source.url).catch(() => undefined); }} style={s.textButton}><Text style={s.link}>{source.label}</Text><Text style={s.note}>Checked {source.checkedAt}</Text></Pressable>)}
           </View> : null}

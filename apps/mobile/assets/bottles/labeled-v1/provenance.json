@@ -10340,6 +10340,18 @@
       "reviewed": true,
       "reviewNotes": "Complete silhouette, distinct producer/expression label and required transparent RGBA verified. Unspecified numeric age, proof or batch claims omitted; detail caption discloses the scope. Microprint illustrative.",
       "bytes": 183939
+    },
+    {
+      "key": "old-forester-birthday-bourbon-2026",
+      "masterSha256": "a978cbbf773461f6a3f725a3c20efcf1d73c4d1731646257479aed09492fdcdb",
+      "sha256": "947e1a21f28d5e73f9d06f7532c213519e7b18b2f16c110330c48188ea965762",
+      "prompt": "Match the authenticated 2026 Old Forester Birthday Bourbon label: green ribbon and gold medallion, 11 years, barreled 2015, last bottled 2026. Keep the existing upright decanter silhouette, transparent background and original style.",
+      "reference": "https://www.breakingbourbon.com/review/old-forester-2026-birthday-bourbon",
+      "referenceImage": "https://cdn.prod.website-files.com/5ace2bae31f6d3c07d267cb9/6ae1250f0b0ad07e8c2b8f5c_old-forester-2026-birthday-bourbon-01.jpg",
+      "method": "Built-in imagegen edit of reviewed 2025 silhouette against the photographed 2026 edition",
+      "reviewed": true,
+      "reviewNotes": "Verified exact 11-year marking, green neck seal, 2015 and 2026 years, and complete decanter. Exterior alpha sample pixels are transparent. Verified edition facts against NC ABC SKU 17122 and Brown-Forman's official release rules.",
+      "bytes": 317429
     }
   ]
 }

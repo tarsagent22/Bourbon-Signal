@@ -80,6 +80,8 @@ export interface CanonicalSignal {
     quantity?: number;
     quantityLabel?: string;
     price?: number;
+    sizeMl?: number;
+    priceObservedAt?: string;
     label?: string;
     caveat?: string;
   };
@@ -194,6 +196,18 @@ function signalStrength(drop: Record<string, unknown>, type: SignalSourceType, s
   return "more_activity";
 }
 
+// Exact values from structured size or an explicit unit in the original listing.
+function retailBottleSizeMl(drop: Record<string, unknown>) {
+  const size = finiteNumber(drop.sizeMl, drop.size_ml, drop.volumeMl, drop.volume_ml);
+  const named = [drop.size, drop.rawName, drop.raw_name].filter((value): value is string => typeof value === 'string');
+  if (named.some(value => /(?:\b\d+\s*[- ]?p(?:ac)?k\b|\b\d+\s*[x×]\s*\d+)/i.test(value))) return undefined;
+  const sizes = new Set(named.flatMap(value => [...value.matchAll(/(?:^|[^\d.])(\d+(?:\.\d+)?|\.\d+)\s*(ml|l)\b/ig)]
+    .map(([, amount, unit]) => Math.round(Number(amount) * (unit.toLowerCase() === 'l' ? 1000 : 1)))));
+  if (size !== undefined) sizes.add(size);
+  const [ml] = sizes;
+  return sizes.size === 1 && Number.isInteger(ml) && ml >= 50 && ml <= 3000 ? ml : undefined;
+}
+
 function signalAvailability(drop: Record<string, unknown>, kind: SignalKind) {
   if (kind === "release") return undefined;
   const retailerState = text(drop.retailerSignalState)?.toLowerCase();
@@ -205,10 +219,14 @@ function signalAvailability(drop: Record<string, unknown>, kind: SignalKind) {
       : "reported" as const;
   const quantity = finiteNumber(drop.quantity_in_stock, drop.quantityInStock, drop.quantity, drop.quantity_shipped, drop.quantityShipped);
   const price = finiteNumber(drop.retail_price, drop.retailPrice, drop.price);
+  const sizeMl = retailBottleSizeMl(drop);
+  const priceObservedAt = drop.sourceStale === true ? undefined : text(drop.last_confirmed_at, drop.lastConfirmedAt, drop.observed_at, drop.observedAt);
   return {
     status,
     ...(quantity === undefined ? {} : { quantity }),
     ...(price === undefined || price <= 0 ? {} : { price }),
+    ...(sizeMl === undefined ? {} : { sizeMl }),
+    ...(sizeMl !== undefined && priceObservedAt ? { priceObservedAt } : {}),
     ...(text(drop.availabilityLabel, drop.availability) ? { label: text(drop.availabilityLabel, drop.availability) } : {}),
     ...(text(drop.inventoryCaveat) ? { caveat: text(drop.inventoryCaveat) } : {}),
   };

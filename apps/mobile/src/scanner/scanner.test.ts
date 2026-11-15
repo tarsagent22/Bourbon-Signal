@@ -149,79 +149,7 @@ test('malformed profile facts are rejected at the mobile API boundary', () => {
 });
 
 // Buying guidance must never turn missing evidence or a rare label into a buy signal.
-import { buyingScore, regionalPriceEvidence } from './buying-score';
-import type { BottleProfile } from '../../../../shared/bottle-profile';
-import type { Signal } from '../api/types';
-const guideBottle: BottleProfile = { id: 'er10', name: 'Eagle Rare 10 Year', producer: null, category: 'bourbon', proof: 90, age: '10 years', msrp: 40, rarity: { label: 'Allocated', tier: 'allocated', pending: false, reviewedAt: '2026-10-01' } };
-const guideNow = new Date('2026-10-16T18:00:00Z');
-const priceReport = (id: string, price: number, state = 'NC', patch: Partial<Signal> = {}): Signal => ({
-  contractVersion: 'bourbon-signal/signal@1', id, kind: 'availability', bottle: { id: 'er10', name: 'Eagle Rare 10 Year' },
-  source: { type: 'trusted_source', label: 'Source' }, location: { scope: 'exact_store', state, store: { id, name: id, city: 'Raleigh', state } },
-  timing: { displayAt: '2026-10-16T12:00:00Z' }, availability: { status: 'reported', price },
-  evidence: { photo: false, corroborationCount: 0, helpfulCount: 0, retailerReported: false, sourceBacked: true }, strength: 'more_activity', alertEligibility: { inventory: false, watch: false }, actions: [], ...patch,
-});
-const guide = (askingPrice: string, reports: Signal[] = [], patch: Partial<BottleProfile> = {}) => buyingScore({ bottle: { ...guideBottle, ...patch }, askingPrice, reports, scope: { state: 'NC', area: '' }, now: guideNow });
-test('zero-input assessments use published reviews and automatic prices rather than placeholder points', () => {
-  const automatic = guide('');
-  assert.equal(automatic.automatic, true); assert.equal(automatic.price, null); assert.equal(automatic.valuePoints, null);
-  assert.ok(automatic.score != null && automatic.score > 75); assert.notEqual(automatic.score, 59);
-  assert.equal(automatic.priceBasis, 'Catalog reference');
-  assert.ok(automatic.sources.some(source => source.label.includes('Distiller community')));
-  const common = guide('', [], { id: 'makers-mark', name: "Maker's Mark", proof: 90, age: null, rarity: { ...guideBottle.rarity, tier: 'regular' } });
-  assert.notEqual(common.score, automatic.score);
-  assert.equal(guide('120').verdict, 'Steep price premium'); assert.equal(guide('120').score, guide('60').score);
-});
-
-test('missing reviews and classifications never receive a fabricated number', () => {
-  const unknown = { ...guideBottle, id: 'unreviewed', name: 'Unknown Release 14 Year', proof: 100, rarity: { ...guideBottle.rarity, tier: 'unicorn', pending: true, reviewedAt: null } };
-  for (const askingPrice of ['', '40']) {
-    const result = buyingScore({ bottle: unknown, askingPrice, reports: [], scope: { state: 'NC', area: '' }, now: guideNow });
-    assert.equal(result.score, null); assert.equal(result.findVerdict, 'Still researching this release');
-  }
-  assert.equal(guide('', [], { name: 'Eagle Rare 17 Year', age: '17 years', rarity: { ...guideBottle.rarity, pending: true } }).score, null);
-  assert.equal(guide('', [], { proof: 130, rarity: { ...guideBottle.rarity, pending: true } }).score, null, 'conflicting producer proof prevents transferring a review');
-  for (const input of ['0', '-2', 'abc', '12.345']) {
-    assert.equal(guide(input).verdict, 'Check the shelf price'); assert.equal(guide(input).score, guide('').score);
-  }
-  const reputationOnly = guide('', [], { msrp: null });
-  assert.equal(reputationOnly.price, null); assert.equal(reputationOnly.verdict, 'Notable find');
-  assert.ok(reputationOnly.score != null);
-});
-
-test('regional prices require three independent current exact-release store observations', () => {
-  const valid = [priceReport('one', 35), priceReport('two', 40), priceReport('three', 45)];
-  assert.equal(regionalPriceEvidence(guideBottle, valid, { state: 'NC', area: 'Raleigh' }, guideNow).median, 40);
-  const rejected = [priceReport('other-state', 1, 'VA'), priceReport('old', 2, 'NC', { timing: { displayAt: '2026-10-01T12:00:00Z' } }), priceReport('future', 3, 'NC', { timing: { displayAt: '2026-10-20T12:00:00Z' } }), priceReport('historical', 4, 'NC', { historical: true }), priceReport('other-release', 5, 'NC', { bottle: { id: 'er17', name: 'Eagle Rare 17 Year' } }), priceReport('unknown', 6, 'NC', { availability: { status: 'unknown', price: 6 } })];
-  assert.deepEqual(regionalPriceEvidence(guideBottle, [...valid, ...rejected], { state: 'NC', area: 'Raleigh' }, guideNow), { count: 3, median: 40, low: 35, high: 45 });
-  assert.equal(regionalPriceEvidence(guideBottle, valid, { state: 'NC', area: 'Durham' }, guideNow).count, 0);
-  assert.equal(regionalPriceEvidence(guideBottle, valid.slice(0, 2), { state: 'NC', area: '' }, guideNow).median, null);
-  const duplicate = priceReport('new-provider-id', 100, 'NC', { location: valid[0].location, timing: { displayAt: '2026-10-16T17:00:00Z' } });
-  const evidence = regionalPriceEvidence(guideBottle, [...valid, duplicate], { state: 'NC', area: '' }, guideNow);
-  assert.equal(evidence.count, 3); assert.equal(evidence.high, 100);
-});
-test('automatic local prices change the assessment while expensive markets cannot erase the catalog benchmark', () => {
-  const reports = [...[80, 90, 100].map((price, i) => priceReport('nc' + i, price)), ...[30, 35, 40].map((price, i) => priceReport('va' + i, price, 'VA'))];
-  const automatic = (state: string) => buyingScore({ bottle: guideBottle, askingPrice: '', reports, scope: { state, area: '' }, now: guideNow });
-  assert.equal(automatic('NC').price, 90); assert.equal(automatic('VA').price, 35);
-  assert.equal(automatic('NC').score, automatic('VA').score, 'price affects the verdict, not fixed find-strength weights');
-  assert.equal(automatic('NC').reference, 40); assert.equal(automatic('NC').verdict, 'Steep price premium');
-});
-
-test('verified regional rarity is bounded and scoped, and missing sightings do not manufacture rarity', () => {
-  const region: BottleProfile['marketRarity'] = { state: 'NC', tier: 'allocated', label: 'Allocated', reason: 'Synthetic source-backed fixture', reviewedAt: '2026-10-01', sources: [] };
-  const assessment = (state: string, marketRarity = region) => buyingScore({ bottle: { ...guideBottle, marketRarity }, askingPrice: '', reports: [], scope: { state, area: '' }, now: guideNow });
-  assert.equal(assessment('NC').localClassification, true); assert.equal(assessment('VA').localClassification, false);
-  assert.equal(assessment('NC', { ...region!, reviewedAt: '2020-01-01' }).localClassification, false);
-  assert.equal(assessment('NC', { ...region!, reviewedAt: '2030-01-01' }).localClassification, false);
-  assert.equal(guide('').localClassification, false);
-});
-
-test('personal ratings are context and cannot replace public reputation', () => {
-  const base = guide('');
-  const result = buyingScore({ bottle: guideBottle, askingPrice: '', reports: [], scope: { state: 'NC', area: '' }, now: guideNow, collection: [{ bottleId: guideBottle.id, isRated: true, rating: 10 } as any] });
-  assert.equal(result.score, base.score); assert.match(result.personalNote || '', /1.0\/10/);
-});
-
+const guideNow = new Date('2026-11-15T18:00:00Z');
 import { bottleReputation, reputationEvidence, BOTTLE_REPUTATION, type BottleReputation } from '../../../../shared/bottle-reputation';
 test('source groups deduplicate publishers, reject small samples, stale and future evidence, and expose disagreement', () => {
   const rating = { publisher: 'Fixture', kind: 'expert' as const, value: 90, scale: 100, source: 'https://example.com/review', checkedAt: '2026-10-01' };
@@ -245,58 +173,6 @@ test('review registry is attributable and release-specific; no broad brand or ag
 });
 
 
-test('rarity leads the fixed score and missing reviews show an honest range', () => {
-  const scoreTier = (tier: string) => guide('', [], { rarity: { ...guideBottle.rarity, tier } });
-  assert.ok(scoreTier('unicorn').score! > scoreTier('allocated').score!);
-  assert.ok(scoreTier('allocated').score! > scoreTier('limited').score!);
-  assert.ok(scoreTier('limited').score! > scoreTier('regular').score!);
-  const unreviewed = guide('', [], { name: 'Unreviewed expression' });
-  assert.equal(unreviewed.scoreKind, 'SIGNAL SCORE'); assert.equal(unreviewed.reputationScore, null);
-  assert.equal(unreviewed.score, null); assert.deepEqual(unreviewed.scoreRange, { low: 64, high: 84 });
-  const reviewOnly = guide('', [], { rarity: { ...guideBottle.rarity, pending: true } });
-  assert.equal(reviewOnly.scoreKind, 'SIGNAL SCORE'); assert.equal(reviewOnly.verdict, 'Reviews available');
-  assert.equal(reviewOnly.score, null); assert.ok(reviewOnly.reputationScore != null);
-});
-
-
-test('catalog-only and self-referenced medians never award price value points', () => {
-  assert.equal(guide('').valuePoints, null); assert.equal(guide('').price, null);
-  const prices = [35, 40, 45].map((value, i) => priceReport(String(i), value));
-  assert.equal(guide('', prices, { msrp: null }).valuePoints, null);
-  assert.equal(guide('30', prices, { msrp: null }).valuePoints, 100);
-  const fallback = buyingScore({ bottle: guideBottle, askingPrice: '', reports: prices, scope: { state: 'NC', area: 'Lewisville' }, now: guideNow });
-  assert.equal(fallback.stateFallback, true); assert.equal(fallback.local.median, null);
-  assert.equal(fallback.price, 40); assert.equal(fallback.evidenceScope, 'National context');
-  assert.ok(fallback.notes.some(note => /Lewisville.*NC observations/.test(note)));
-  assert.equal(fallback.valuePoints, 90);
-  const noState = buyingScore({ bottle: guideBottle, askingPrice: '', reports: prices, scope: { state: 'VA', area: 'Richmond' }, now: guideNow });
-  assert.equal(noState.price, null); assert.equal(noState.valuePoints, null);
-});
-
-test('owner screenshot bottles have attributable release context without assuming a shelf price', () => {
-  for (const fixture of [{ id: 'heaven-hill-bottled-in-bond', name: 'Heaven Hill 7 Year Bottled-in-Bond', proof: 100, age: '7 years', msrp: 49.95 }, { id: 'blantons-gold-bourbon', name: "Blanton's Gold Bourbon", proof: 103, age: null, msrp: 149.95 }]) {
-    const result = guide('', [], { ...fixture, rarity: { ...guideBottle.rarity, pending: true, reviewedAt: null } });
-    assert.ok(result.score != null); assert.equal(result.valuePoints, null);
-    assert.equal(result.price, null); assert.equal(result.localClassification, false);
-    assert.ok(result.sources.some(source => source.label === 'Release context'));
-    assert.ok(result.reviewStats.count > 1000);
-  }
-  assert.equal(bottleReputation({ name: "Blanton's Gold Single Barrel Select", proof: 103, age: null }), null);
-  const expired = guide('', [], { rarity: { ...guideBottle.rarity, reviewedAt: '2020-01-01' } });
-  assert.equal(expired.score, null);
-});
-
-
-test('researched release context expires and cannot populate another state classification', () => {
-  const bottle = { ...guideBottle, id: 'blantons-gold-bourbon', name: "Blanton's Gold Bourbon", proof: 103, age: null, rarity: { ...guideBottle.rarity, pending: true, reviewedAt: null } };
-  const current = buyingScore({ bottle, askingPrice: '', reports: [], scope: { state: 'NC', area: '' }, now: guideNow });
-  assert.ok(current.score != null); assert.equal(current.localClassification, false);
-  const expired = buyingScore({ bottle, askingPrice: '', reports: [], scope: { state: 'NC', area: '' }, now: new Date('2028-01-01') });
-  assert.equal(expired.score, null); assert.equal(expired.reputationScore, null);
-  assert.equal(expired.sources.length, 0);
-});
-
-
 test('ambiguous brand-only catalog names require the reviewed proof', () => {
   for (const name of ['Old Forester', 'Henry McKenna']) {
     assert.equal(bottleReputation({ name, proof: null, age: null }), null);
@@ -304,26 +180,4 @@ test('ambiguous brand-only catalog names require the reviewed proof', () => {
   }
   assert.ok(bottleReputation({ name: 'Old Forester', proof: 86, age: null }));
   assert.ok(bottleReputation({ name: 'Henry McKenna', proof: 80, age: null }));
-});
-
-test('Signal Score uses fixed weights across absent, entered and observed prices', () => {
-  const base = guide('');
-  assert.equal(base.score, Math.round(base.findPoints! * 0.8 + base.reputationScore! * 0.2));
-  for (const price of ['', '1', '40', '120', '9999']) assert.equal(guide(price).score, base.score);
-  assert.equal(guide('40').priceVerdict, 'Good buy at this price');
-  assert.equal(guide('120').priceVerdict, 'Steep price premium');
-  assert.equal(base.priceVerdict, null);
-  const noBenchmark = guide('40', [], { msrp: null });
-  assert.equal(noBenchmark.priceVerdict, 'Price reference unavailable');
-  assert.equal(noBenchmark.valuePoints, null); assert.equal(noBenchmark.score, base.score);
-});
-
-test('common screenshot expression has a sourced zero-input result without invented local rarity', () => {
-  for (const state of ['NC', 'VA']) {
-    const result = buyingScore({ bottle: { ...guideBottle, id: 'buffalo-trace-bourbon', name: 'Buffalo Trace Bourbon', proof: 90, age: null, rarity: { ...guideBottle.rarity, pending: true, reviewedAt: null } }, askingPrice: '', reports: [], scope: { state, area: '' }, now: guideNow });
-    assert.ok(result.score != null); assert.equal(result.findVerdict, 'Everyday option');
-    assert.equal(result.localClassification, false); assert.equal(result.evidenceScope, 'National context');
-    assert.equal(result.price, null); assert.equal(result.priceVerdict, null);
-    assert.ok(result.sources.some(source => source.label === 'Release context'));
-  }
 });

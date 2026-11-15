@@ -6,7 +6,7 @@ export interface BottleProfile {
   proof: number | null;
   age: string | null;
   msrp: number | null;
-  rarity: { label: string; tier: string; pending: boolean; reviewedAt: string | null };
+  rarity: { label: string; tier: string; pending: boolean; reviewedAt: string | null; sources?: { label: string; url: string }[] };
   marketRarity?: { state: string; tier: string; label: string; reason: string; reviewedAt: string; sources: { label: string; url: string }[] } | null;
 }
 

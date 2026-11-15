@@ -287,6 +287,11 @@ export default function SignalDetailScreen() {
         </> : presented?.caveat && !/stale|not alertable|last.known|before driving/i.test(presented.caveat) ? <Detail label="Source note" value={presented.caveat} /> : null}
       </View>
       <View style={styles.bottleActions}>
+        {bottleDetails && signal.location.scope === "exact_store" && signal.location.store?.state ? (
+          <ActionButton compact quiet label="Check buying score" onPress={() => router.push({ pathname: "/(app)/bottle-check", params: {
+            bottleId: bottleDetails.id, bottleName: bottleDetails.name, state: signal.location.store?.state, area: signal.location.store?.city,
+          } })} />
+        ) : null}
         {canWatch ? <ActionButton compact primary={!isWatched} disabled={!preferences || saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
         {canReadCellar ? <ActionButton quiet disabled={(!inCellar && !canAddToCellar) || saving} label={inCellar ? "Edit your shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => shelfEntry ? router.push({pathname:"/(app)/(tabs)/cellar",params:{editBottleId:shelfEntry.bottleId}}) : signal.bottle.id ? router.push({pathname:"/(app)/cellar/add",params:{bottleId:signal.bottle.id}}) : void addToCellar()} /> : null}
       </View>

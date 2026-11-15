@@ -1,145 +1,82 @@
-# Signal Score and bottle research
+# Bottle Check: Signal Score
 
-Bottle Check uses **Signal Score** for find potential. It never presents a drinking
-review average as that score. Drinking reviews retain their original scales in a
-separate compact section. An unresearched result has a small explanation, without
-a large empty ring or invented number. Sources and methodology stay collapsed.
+Signal Score is a **0–100 buying guide** for a confirmed catalog expression. It
+answers whether the bottle is worth considering in the market where you found it.
+It is separate from drinking reviews, personal shelf ratings, and availability
+reports. The web and native app share version 2 of the model. The app can use its
+saved browsing region, home state, an exact store report's city/state, a manually
+selected region, or your current location when you choose to share it.
 
-## Evidence coverage
+## What changed
 
-The registry contains 83 exact expressions and 154 attributed rating observations,
-checked October 16, 2026. These match 100 entries in the 1,156-entry offline catalog.
-The previous release had 39 expressions, 75 observations and 48 matched entries.
-55 expressions (70 catalog entries) now also have researched release context.
-This is expanded coverage, not a claim to have researched the complete catalog.
+| Before | Current model |
+| --- | --- |
+| The app weighted rarity at 80% and showed a range or no score with missing evidence. | Every identified bottle immediately has a numeric score. Evidence coverage appears beside it. |
+| The website primarily scored rarity. | Web and app use the same buying score and evidence rules. |
+| Entering a price changed the verdict but not the score. | Price is the largest factor. Higher shelf prices never increase the score for the same evidence. |
+| An undated catalog MSRP could be used for a price comparison. | The model requires a separately sourced, correctly sized benchmark. |
 
-Most reviews come from Distiller expert reviews and community averages. These are
-opinion groups on one platform, not independent publisher consensus. The Wild
-Turkey 101 profile also includes Whisky Advocate. Sources retain the original
-score/scale, sample count, public URL and check date. Only numeric facts and short
-original factual summaries are stored; tasting prose is not copied.
+## How the score works
 
-New profiles include Blanton's Gold and Straight From the Barrel, 1792 Full Proof
-and Bottled in Bond, Henry McKenna, Four Roses Small Batch, Jack Daniel's Bonded and
-Triple Mash, Green River, Bardstown Origin, Michter's rye/American whiskey,
-Rittenhouse, Pikesville, Wild Turkey rye, Still Austin, Weller Single Barrel and
-Van Winkle expressions. Separate batches, annual editions, proofs and named
-store picks never inherit a loosely matched brand rating. A 2020 Jack Daniel's
-special rye release, batch-numbered Penelope Architect reviews and age-specific
-Knob Creek 18 reviews were excluded from generic expression matches.
+All three factors have a fixed weight. A factor without usable evidence contributes
+a neutral 50 on its own 0–100 scale. If no factor has evidence, the bottle scores
+**50/100 · Limited evidence**, with guidance to verify before buying. This is an
+explicit baseline, not an observed quality rating. There are no pending scores;
+unknown or ambiguous labels still need an exact match before a bottle is scored.
+A missing dimension never increases another dimension's weight.
 
-## Method
+| Factor | Weight | Evidence and influence |
+| --- | ---: | --- |
+| Price | 40% | An entered shelf price or a qualified market price is compared with an independent benchmark. At the benchmark it contributes 82 factor points. The curve goes through 65 points at 15% above, 50 at 30% above, 20 at 60% above, and 0 at twice the benchmark. It reaches 100 at 35% below. |
+| Release rarity | 30% | A current, sourced state classification wins over a sourced national catalog tier, then exact researched release context. Regular = 45, limited = 65, allocated = 78, highly allocated = 90, unicorn = 95. Missing reports never increase rarity. |
+| Published drinking reviews | 30% | Each publisher counts once per group. Expert and qualifying consumer averages have equal group weight when both exist. Consumer ratings require at least 100 ratings. The model pivots at 75/100 and reduces the effect of single-publisher evidence and disagreement. Raw scores are disclosed on the published scale. |
 
-- Signal Score has fixed weights: release rarity/context 80%, published drinking
-  reviews 20%. Price has a separate buying verdict. Missing price data never
-  reweights the score. A current classification and published review evidence are
-  required for a precise score. Classification without reviews produces the
-  possible score range; missing classification leaves the number unavailable.
-- Rarity/context points are editorial: standard 40, limited 65, allocated 80,
-  highly allocated/unicorn 95. They express find potential, not drinking quality
-  or a measured probability of finding stock. A supported state classification
-  takes precedence over a reviewed national catalog classification; researched
-  release context is the fallback. National context is labeled visibly.
-- A standard expression in a producer's range does not establish regular local
-  stock. Release context is a separate, sourced assessment and does not change
-  owner-approved catalog rarity or state allocation records. Limited/annual
-  release statements are supported by producer releases or original publisher
-  reporting. Source links and check dates appear in the disclosure.
-- A catalog price is only a benchmark. It never becomes an assumed shelf price
-  and never earns price-value points by being compared with itself. Observed
-  prices come from optional shelf input or at least three distinct current stores.
-  An observed median without a separate catalog benchmark is not scored against
-  itself. An entered shelf price may be compared with that median.
-- City evidence falls back to the selected state's observations when the city
-  sample is insufficient. The median is labeled with the state; the missing city
-  sample is explained in the disclosure. No state sample means national reference only; other states
-  are not substituted. Missing sightings never establish scarcity.
-- Observations must match the exact expression and selected state, be no more
-  than seven days old, be non-historical and have reported availability. Repeated
-  stores are deduplicated. The catalog benchmark remains available even when
-  local prices are expensive.
-- Price comparisons remain separate from Signal Score. At or below 115% of
-  reference, a bottle with published review average >=75 receives a good-buy
-  verdict. Prices above 160% get a steep-premium verdict. The reference and
-  percentage difference are visible. This is a benchmark comparison, not a
-  prediction of resale value or a claim of local stock.
-- Expert and consumer groups contribute equally inside the review component.
-  Consumer stars are explicitly converted by value/scale, while their displayed
-  rating stays on the original scale. Each publisher counts once per group;
-  consumer samples need at least 100 ratings. Source checks expire after a year.
-  Invalid/future dates and small samples are excluded. Disagreement is disclosed.
-- Personal shelf ratings, proof, age and marketing awards do not supply missing
-  quality points. Personal taste notes remain separate from public evidence.
+A price more than 60% above the comparison or a credible lower published anchor
+caps the overall score at 54. An expensive local median cannot make an excessive
+markup look like a bargain. A high number without a comparable price cannot
+produce “Good buy at this price.” A strong endorsement also needs at least one
+other factor. “Strong evidence” requires all three factors, multiple publishers,
+an entered price, and a sourced price anchor. This is an editorial model, not a
+calibrated prediction of personal enjoyment, resale value, or live stock.
 
-This is a transparent editorial guide, not a calibrated prediction of personal
-enjoyment, a live-stock guarantee or a resale forecast.
+## Market and source boundaries
+
+- A store median needs at least three distinct stores within seven days. A city
+  can fall back to its state, with that change disclosed. There is no nearby-state
+  substitution. Prices must come from an exact ID or reviewed catalog mapping,
+  explicit package size, a source-backed retailer or trusted source, an exact
+  store, and a real observation time. Historical rows, board shipments,
+  member posts, future dates, malformed prices, and unsupported sizes are
+  excluded. Same-premise rows and conflicting simultaneous prices cannot
+  manufacture a sample.
+- The best independent regional comparison is used when available. A median or
+  official list price is never compared with itself. A materially lower official
+  state list price or manufacturer MSRP still limits how favorable a marked-up
+  local price can look. A published benchmark is not evidence that anyone has a
+  bottle in stock. Bottle Check does not use secondary-market prices.
+- Published reviews and classifications expire after 365 days. The date and
+  links are visible under **Why this score?** Maker MSRP is accepted only for
+  exact, reviewed releases and expires after 730 days. State lists expire with
+  their published period. Undated catalog MSRP, proof, age, favorite status,
+  retailer title guesses and personal taste do not substitute for missing
+  evidence.
+- North Carolina and Virginia launch with a small reviewed set of ABC price
+  references. Each row records the precise product code and price; the label
+  indicates the benchmark size. Benchmarks beyond those lists depend on priced,
+  comparable source reports or reviewed MSRP. The September 2026 Old Forester
+  Birthday Bourbon uses its 700 mL edition, never a prior year's price or label.
 
 ## Validation and upkeep
 
+Run `npm --prefix apps/mobile run test:scanner` and
+`npm run test:signal-contract`. Tests cover the entire offline catalog, different
+city/state outcomes, marked-up prices, duplicate premises, wrong expressions and
+sizes, no self-comparisons, and expiring evidence. The native browser fixture
+exercises live price changes, location selection, and limited evidence at 320 and
+393 points. Physical-device validation is separate.
+
 Run `npx tsx apps/mobile/scripts/audit-bottle-reputation.ts --output .operator/reputation-coverage.json`
-to validate the registry and export the complete missing/expired research queue.
-Do not renew a check date without actually checking the cited source. No recurring
-collector, external API subscription or unverified family-score fallback is added.
-
-Regression checks cover the owner screenshot expressions, absent-price value,
-median self-comparison, city/state fallback, conflicting producer facts, personal
-rating independence, source freshness and release boundaries. Actual-source
-browser fixtures cover 320/393-point layouts, disclosure, price clearing, missing
-research and the scanner. Production OTA checks do not establish physical-device
-acceptance.
-
-## Concise repeat checks
-
-The result header goes back to the prior scan/search without closing the modal.
-That path preserves the price for a corrected match. The fixed bottom action
-repeats the entry method: **Search another** clears the query/price and focuses
-the search field; **Scan another** clears the price/matches and starts a fresh
-scanner session. Both return the list to the top and retain the region. Android's
-hardware back uses the same correction path. Async profile/report effects are
-cancelled when the selected bottle changes.
-
-The default result contains the bottle, find verdict, Signal Score, context label,
-optional shelf price and compact published reviews. Reasons, source dates,
-confidence and methodology are under **Why this score?** Coverage requests,
-regional alert setup and repeated explanations are removed. Watch, post sighting
-and details are secondary actions.
-
-## Purposeful form scanners
-
-Home's Bottle Check remains an assessment workflow. Post and My Shelf open
-separate `scan-post` and `scan-shelf` modal routes, using the same low-level native
-camera and exact bottle catalog. Their headers are **Scan for your post** and
-**Scan to My Shelf**. They offer camera identification and a search fallback,
-without assessment scores, profile requests, market reports or a region selector.
-Choosing an exact match returns to the existing post or shelf form; it does not
-post a sighting or save a bottle. Closing preserves the unfinished form.
-
-The existing owner-bound handoff carries price and source-region context without
-inventing a store. Shelf scanning also retains the form's purchase store. Existing
-draft conflict prompts remain in place. Old Bottle Check links with `returnTo`
-redirect to the corresponding scanner before mounting the assessment screen.
-Modal options remain in the parent layout to preserve the navigation-loop fix.
-
-Mounted browser checks use the actual native scanner, candidate latch and
-navigation core with simulated camera/OCR boundaries. They cover both form
-destinations at 320/393 widths, portrait guide geometry, camera shutdown on close
-and search, cancellation, draft/price/store retention and legacy redirects.
-They do not establish physical-device acceptance.
-
-## October 16 core-release research
-
-Twenty additional exact expressions now have sourced release context. The new
-standard/core classifications describe their place in the producer's portfolio,
-not the frequency of stock in a state or store. Some are editorial interpretations
-of the producer's portfolio grouping; they never overwrite approved rarity.
-In particular, Michter's US1 range is separate from its limited-release collection,
-but the producer also describes US1 production as limited quantities. That alone
-does not establish a rare or allocated release. Barrel, proof and named-pick
-boundaries remain in place. Ratings and sample counts are unchanged.
-
-Source URLs and concise evidence summaries are attached to each added record in
-`shared/bottle-reputation.json`: Buffalo Trace, Elijah Craig Small Batch, Larceny,
-1792 Small Batch, Russell's Reserve 10 and standard Single Barrel, Evan Williams
-Bottled-in-Bond, Michter's US1 bourbon/rye/American whiskey, Angel's Envy port finish,
-Bulleit bourbon/rye, New Riff bonded bourbon/rye, Old Grand-Dad 114, Redwood Empire
-Pipe Dream, Still Austin The Musician/Cask Strength Bourbon and High West Double Rye.
+to export the review coverage queue. Refresh the ABC lists with a reviewed
+dated source before expiry; don't roll dates forward without checking the
+source. Focus research on frequently checked expressions with no verified inputs.
+A price list tells us price and product identity, not drinking quality or stock.

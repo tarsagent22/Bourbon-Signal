@@ -46,7 +46,14 @@ test('labeled illustrations preserve exact catalog identities and immutable nati
   }
 });
 
-test('matching glass does not approve a different expression label', () => {
+test('Old Forester Birthday Bourbon 2026 feed art stays isolated from prior years', () => {
+  const exact = resolve({ bottleId: 'retailer-nc-17122', bottleName: 'Old Forester Birthday Bourbon 2026' }, catalog);
+  assert.equal(exact?.catalogId, 'old-forester-birthday-bourbon-2026');
+  assert.notEqual(exact?.sha256, resolve({ bottleId: 'old-forester-birthday-bourbon-2025' }, catalog)?.sha256);
+  assert.equal(resolve({ bottleId: 'old-forester-birthday-bourbon-2025', bottleName: 'Old Forester Birthday Bourbon 2026' }, catalog), undefined);
+});
+
+test('matching glass does not approve a different expression label' , () => {
   const small = resolve({bottleId:'eh-taylor-small-batch'},catalog)!;
   const single = resolve({bottleId:'eh-taylor-single-barrel'},catalog)!;
   const rye = resolve({bottleId:'e-h-taylor-jr-straight-rye-whiskey'},catalog)!;

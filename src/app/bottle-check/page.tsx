@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { buyingScore } from "../../../shared/bottle-check-score";
+import type { BottleProfile } from "../../../shared/bottle-profile";
+import { COVERAGE_STATES } from "../../../shared/coverage-states";
+import type { CanonicalSignal } from "@/lib/signals/signal-contract";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { AVAILABLE_STATES } from "@/lib/statePreferences";
@@ -8,7 +12,6 @@ import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useAuth } from "@/lib/auth";
 import { recordGrowthMilestone } from "@/lib/growth-client";
 import {
-  assessShelfPrice,
   bottleCheckActionAccess,
   buildBottleCheckCollectionEntry,
   countBottleCheckAlertAreas,
@@ -43,6 +46,7 @@ interface BottleResult {
     matchScore?: number;
     matchReason?: "exact" | "alias" | "fuzzy" | "engine";
   } | null;
+  assessmentProfile?: BottleProfile;
   localSignal?: {
     state: string;
     rarityScore: number;
@@ -174,12 +178,15 @@ export default function BottleCheckPage() {
   const { prefs, loading: prefsLoading, savePreferences, collectionSyncState } = useAreaPreferences();
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
-  const [submittedState, setSubmittedState] = useState("NC");
-  const [state, setState] = useState("NC");
+  const [submittedState, setSubmittedState] = useState("");
+  const [submittedId, setSubmittedId] = useState("");
+  const [state, setState] = useState("");
+  const [marketCity, setMarketCity] = useState("");
+  const [marketData, setMarketData] = useState<{ key: string; profile?: BottleProfile; reports?: CanonicalSignal[] } | null>(null);
   const [result, setResult] = useState<BottleResult | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [trackingStates, setTrackingStates] = useState<string[]>(["NC"]);
+  const [trackingStates, setTrackingStates] = useState<string[]>([]);
   const [savingTrack, setSavingTrack] = useState(false);
   const [trackError, setTrackError] = useState<string | null>(null);
   const [trackSaved, setTrackSaved] = useState(false);
@@ -197,6 +204,7 @@ export default function BottleCheckPage() {
   const suggestionRequestVersion = useRef(0);
   const suggestionCache = useRef(new Map<string, NonNullable<BottleResult["bottle"]>[]>());
   const authoritativeSuggestionCache = useRef(new Set<string>());
+  const guestQuota = useRef({ isFreeBottleCheck, isSignedIn, bottleCheckLimit });
   const pendingValueResult = useRef(false);
   const freeValueRecorded = useRef(false);
   const [valueResultVersion, setValueResultVersion] = useState(0);
@@ -238,13 +246,20 @@ export default function BottleCheckPage() {
     suggestionRequestVersion.current += 1;
     setLiveSuggestions([]);
     setSuggestionsLoading(query.trim().length >= 2);
+    setMarketCity("");
     setState(value);
   }
 
   function selectSuggestion(suggestion: NonNullable<BottleResult["bottle"]>) {
     closeSuggestionMenu();
+    if (!hasFreeChecksRemaining) {
+      setResult({ bottle: null, message: "Free includes 3 Bottle Checks. Upgrade for unlimited Bottle Check access." });
+      return;
+    }
     setQuery(suggestion.canonicalName);
+    guestQuota.current = { isFreeBottleCheck, isSignedIn, bottleCheckLimit };
     setSubmittedQuery(suggestion.canonicalName);
+    setSubmittedId(suggestion.id);
     setSubmittedState(state);
     setHasSearched(true);
   }
@@ -267,7 +282,7 @@ export default function BottleCheckPage() {
     const handoffQuery = params.get("q")?.trim() || "";
     const handoffState = params.get("state")?.toUpperCase() || "";
     if (handoffQuery) setQuery(handoffQuery);
-    if (activeStates.some((item) => item.code === handoffState)) {
+    if (COVERAGE_STATES.some((item) => item.code === handoffState)) {
       setState(handoffState);
       setTrackingStates([handoffState]);
     }
@@ -279,9 +294,11 @@ export default function BottleCheckPage() {
       const q = submittedQuery.trim();
       if (!q) return;
       setLoading(true);
+      const quota = guestQuota.current;
       try {
-        const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(submittedState)}&intent=check`, { signal: controller.signal });
+        const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(submittedState)}&id=${encodeURIComponent(submittedId)}&intent=check`, { signal: controller.signal });
         const data = (await res.json()) as BottleResult;
+        if (controller.signal.aborted) return;
         if (data.usage && typeof data.usage.used === "number") {
           setFreeChecksUsed(data.usage.used);
           if (typeof window !== "undefined") window.localStorage.setItem(BOTTLE_CHECK_USAGE_STORAGE_KEY, String(data.usage.used));
@@ -289,6 +306,13 @@ export default function BottleCheckPage() {
         setResult(data);
         setHasSearched(true);
         if (res.ok && data.bottle) {
+          if (!data.usage && quota.isFreeBottleCheck && !quota.isSignedIn) {
+            setFreeChecksUsed(current => {
+              const next = Math.min(quota.bottleCheckLimit ?? current + 1, current + 1);
+              window.localStorage.setItem(BOTTLE_CHECK_USAGE_STORAGE_KEY, String(next));
+              return next;
+            });
+          }
           setShelfPrice("");
           setCollectionError(null);
           setCollectionSaveState("idle");
@@ -306,7 +330,7 @@ export default function BottleCheckPage() {
     }
     load();
     return () => controller.abort();
-  }, [submittedQuery, submittedState]);
+  }, [submittedQuery, submittedState, submittedId]);
 
   useEffect(() => {
     if (!isLoaded || !pendingValueResult.current || freeValueRecorded.current) return;
@@ -320,7 +344,7 @@ export default function BottleCheckPage() {
   }, [entitlements.tier, isLoaded, isSignedIn, valueResultVersion]);
 
   useEffect(() => {
-    setTrackingStates((prev) => Array.from(new Set([...(prev.length ? prev : []), state])));
+    setTrackingStates((prev) => Array.from(new Set([...prev, ...(state ? [state] : [])])));
   }, [state]);
 
   useEffect(() => {
@@ -437,13 +461,34 @@ export default function BottleCheckPage() {
     : collectionSaveState;
   const canTrack = Boolean(bottle && signal?.canTrack);
   const isRegular = signal?.marketTier === "regular";
-  const parsedShelfPrice = shelfPrice.trim() ? Number(shelfPrice) : null;
-  const shelfPriceAssessment = assessShelfPrice(bottle?.msrp, parsedShelfPrice);
+  const marketKey = JSON.stringify([bottle?.id, state, isSignedIn]);
+  const matchingMarket = marketData?.key === marketKey ? marketData : null;
+  const profile = matchingMarket?.profile ?? result?.assessmentProfile ?? (bottle ? {
+    id: bottle.id, name: bottle.canonicalName, producer: bottle.producer ?? null, category: bottle.category,
+    proof: bottle.proof ?? null, age: bottle.ageStatement ?? null, msrp: bottle.msrp ?? null,
+    rarity: { tier: bottle.nationalTier, label: bottle.scarcityLabel, pending: true, reviewedAt: null },
+  } : null);
+  const decision = profile ? buyingScore({ bottle: profile, askingPrice: shelfPrice, reports: matchingMarket?.reports ?? [], scope: { state, area: marketCity } }) : null;
+  const checkedId = bottle?.id;
+  useEffect(() => {
+    const controller = new AbortController();
+    if (!checkedId || !state || !isSignedIn) return;
+    const params = new URLSearchParams({ state, view: "market", bottleId: checkedId, limit: "100" });
+    const signal = controller.signal;
+    const read = async (path: string) => { const response = await fetch(path, { signal }); return response.ok ? response.json() : null; };
+    const apply = (patch: { profile?: BottleProfile; reports?: CanonicalSignal[] }) => {
+      if (!signal.aborted) setMarketData(current => ({ ...(current?.key === marketKey ? current : {}), key: marketKey, ...patch }));
+    };
+    void read(`/api/v1/bottles/${encodeURIComponent(checkedId)}?state=${state}`).then(data => {
+      if (data?.bottle?.id === checkedId) apply({ profile: data.bottle });
+    }).catch(() => undefined);
+    void read(`/api/v1/signals?${params}`).then(data => {
+      if (Array.isArray(data?.signals) && !data.degraded && !data.access?.marketDetailsLocked && !data.access?.previewLocked) apply({ reports: data.signals });
+    }).catch(() => undefined);
+    return () => controller.abort();
+  }, [checkedId, state, isSignedIn, marketKey]);
   const resultStateCode = signal?.state || submittedState;
-  const resultStateName = activeStates.find((item) => item.code === resultStateCode)?.name || resultStateCode;
-  const classificationIsUnderReview = signal?.classificationSource === "national_baseline"
-    && signal.classificationConfidence === "low"
-    && signal.nationalTier !== "regular";
+  const resultStateName = COVERAGE_STATES.find((item) => item.code === resultStateCode)?.name || resultStateCode;
 
   function submitSearch(event: React.FormEvent) {
     event.preventDefault();
@@ -454,15 +499,10 @@ export default function BottleCheckPage() {
       setResult({ bottle: null, message: "Free includes 3 Bottle Checks. Upgrade for unlimited Bottle Check access." });
       return;
     }
-    if (isFreeBottleCheck && !isSignedIn) {
-      setFreeChecksUsed((current) => {
-        const next = Math.min(bottleCheckLimit ?? current + 1, current + 1);
-        if (typeof window !== "undefined") window.localStorage.setItem(BOTTLE_CHECK_USAGE_STORAGE_KEY, String(next));
-        return next;
-      });
-    }
+    guestQuota.current = { isFreeBottleCheck, isSignedIn, bottleCheckLimit };
     setSubmittedState(state);
     setSubmittedQuery(nextQuery);
+    setSubmittedId("");
   }
 
   async function addMissingBottleFromCheck() {
@@ -524,7 +564,7 @@ export default function BottleCheckPage() {
     setTrackError(null);
     setTrackSaved(false);
     try {
-      const selectedStates = trackingStates.length ? trackingStates : [state];
+      const selectedStates = trackingStates.length ? trackingStates : state ? [state] : [];
       await savePreferences({
         areaPreferences: {
           ...prefs.areaPreferences,
@@ -677,9 +717,10 @@ export default function BottleCheckPage() {
               ) : null}
             </div>
             <div className="bc-field state">
-              <label htmlFor="state-select">Area</label>
+              <label htmlFor="state-select">Where you found it</label>
               <select id="state-select" value={state} onChange={(event) => updateSuggestionState(event.target.value)} className="bourbon-select">
-                {activeStates.map((item) => (
+                <option value="">National context</option>
+                {COVERAGE_STATES.map((item) => (
                   <option key={item.code} value={item.code}>{item.name}</option>
                 ))}
               </select>
@@ -709,6 +750,14 @@ export default function BottleCheckPage() {
             <div className="bc-panel empty">
               <strong>Search any bottle to read the signal.</strong>
               <p>Check rarity, local market history, and whether a bottle is worth chasing before you burn a trip.</p>
+            </div>
+          ) : !bottle && result?.suggestions?.some(Boolean) ? (
+            <div className="bc-panel empty">
+              <strong>Choose the exact bottle</strong>
+              <p>Batches, ages and editions can score differently.</p>
+              <div className="bc-live-suggestions">{result.suggestions.map(suggestion => suggestion ? (
+                <button type="button" key={suggestion.id} onClick={() => selectSuggestion(suggestion)}>{suggestion.canonicalName}</button>
+              ) : null)}</div>
             </div>
           ) : !bottle ? (
             <div className="bc-panel empty">
@@ -745,56 +794,33 @@ export default function BottleCheckPage() {
                   </dl>
                 </section>
 
-                <section className="bc-price-check" aria-labelledby="shelf-price-heading">
-                  <div className="bc-section-heading">
-                    <span>Price read</span>
-                    <h3 id="shelf-price-heading">Shelf price</h3>
+                {decision ? <>
+                  <div className={`bc-score ${scoreTone(decision.score)}`} role="status" aria-live="polite">
+                    <div><span>Signal Score</span><strong>{decision.score}<small>/ 100</small></strong></div>
+                    <div><p>{decision.verdict}</p><small>{decision.confidence} · {decision.evidenceScope}</small></div>
                   </div>
-                  {typeof bottle.msrp === "number" ? (
-                    <>
-                      <label htmlFor="shelf-price-input">What price are you looking at?</label>
-                      <div className="bc-price-input-wrap">
-                        <span aria-hidden="true">$</span>
-                        <input
-                          id="shelf-price-input"
-                          type="number"
-                          min="0.01"
-                          max="99999"
-                          step="0.01"
-                          inputMode="decimal"
-                          value={shelfPrice}
-                          onChange={(event) => setShelfPrice(event.target.value)}
-                          placeholder={bottle.msrp.toFixed(2)}
-                        />
-                      </div>
-                      {shelfPriceAssessment ? (
-                        <div className={`bc-price-read ${shelfPriceAssessment.tone}`} role="status" aria-live="polite">
-                          <div>
-                            <strong>{shelfPriceAssessment.label}</strong>
-                            <span>{shelfPriceAssessment.premiumPercent > 0 ? "+" : ""}{Number(shelfPriceAssessment.premiumPercent.toFixed(2))}% vs. MSRP</span>
-                          </div>
-                          <p>{shelfPriceAssessment.detail}</p>
-                        </div>
-                      ) : (
-                        <p className="bc-price-help">Enter the shelf price to compare it with the MSRP listed in Bottle Check.</p>
-                      )}
-                      <small>This is a retail price comparison, not a live inventory or secondary-market estimate.</small>
-                    </>
-                  ) : (
-                    <p className="bc-price-help">Bottle Check does not list an MSRP for this bottle yet, so it will not calculate a comparison.</p>
-                  )}
-                </section>
-
-                {signal ? (
-                  <div className={`bc-score ${scoreTone(signal.rarityScore)}`}>
-                    <div>
-                      <span>{classificationIsUnderReview ? "Evidence status" : "Rarity Score"}</span>
-                      <strong>{classificationIsUnderReview ? "—" : signal.rarityScore}</strong>
+                  <section className="bc-price-check" aria-labelledby="shelf-price-heading">
+                    <h3 id="shelf-price-heading"><label htmlFor="shelf-price-input">Shelf price · {decision.sizeMl} mL</label></h3>
+                    <div className="bc-price-input-wrap">
+                      <span aria-hidden="true">$</span>
+                      <input id="shelf-price-input" inputMode="decimal" maxLength={12} value={shelfPrice}
+                        onChange={(event) => setShelfPrice(event.target.value)} placeholder="Enter price" />
                     </div>
-                    <p>{classificationIsUnderReview ? "Scarcity under review" : signal.label}</p>
-                    <small>{signal.scoreBasis}</small>
-                  </div>
-                ) : null}
+                    <p>{decision.priceNote}</p>
+                    {state ? <label className="bc-city-label">City (optional)
+                      <input value={marketCity} maxLength={120} onChange={(event) => setMarketCity(event.target.value)}
+                        placeholder="Compare prices in this city" />
+                    </label> : null}
+                  </section>
+                  <details className="bc-dossier-section">
+                    <summary>Why this score?</summary>
+                    <p>{decision.adjustment}</p>
+                    <ul>{[...decision.reasons, ...decision.notes].map((note, index) => <li key={index}>{note}</li>)}</ul>
+                    {decision.sources.length ? <ul>{decision.sources.map((source, index) => (
+                      <li key={index}><a href={source.url} target="_blank" rel="noreferrer">{source.label}</a> · {source.checkedAt}</li>
+                    ))}</ul> : null}
+                  </details>
+                </> : null}
 
                 {signal ? (
                   <div className="bc-classification-context">
@@ -803,7 +829,7 @@ export default function BottleCheckPage() {
                       <strong>{signal.nationalLabel}</strong>
                     </div>
                     <div>
-                      <span>{resultStateName}</span>
+                      <span>{resultStateName || "Find region"}</span>
                       <strong>{signal.localClassificationEstablished ? signal.marketLabel : "Local classification not established"}</strong>
                     </div>
                     <p>{signal.localClassificationEstablished ? signal.localReason : "We use the national baseline until authoritative local evidence or normalized market coverage supports an override."}</p>
@@ -821,12 +847,6 @@ export default function BottleCheckPage() {
                     <small>{memberTasteScore.count} member {memberTasteScore.count === 1 ? "rating" : "ratings"} from saved collections.</small>
                   </div>
                 ) : null}
-                <div className="bc-guidance">
-                  <h3>In-store read</h3>
-                  <p>{classificationIsUnderReview ? "This bottle's scarcity tier is still being sourced. Use recent local sightings and price context; do not treat the current tier as verified." : (signal?.verdict || bottle.guidance)}</p>
-                  <small>{classificationIsUnderReview ? "Purchase guidance is withheld until this classification has enough evidence." : bottle.guidance}</small>
-                </div>
-
                 <div className="bc-bottle-actions" aria-label="Bottle actions">
                   <div>
                     <strong>{isInCollection ? "In your collection" : "Save this bottle"}</strong>
@@ -902,7 +922,7 @@ export default function BottleCheckPage() {
               </article>
 
               <aside className="bc-detail-card">
-                <h3>Local signal in {resultStateName}</h3>
+                <h3>{resultStateName ? `Recent reports in ${resultStateName}` : "Recent reports"}</h3>
                 <p className="bc-local-note">Recent Bourbon Signal sightings for the selected market. This is not a live shelf confirmation.</p>
                 <p className="bc-local-confidence">Signal coverage: {signal?.signalConfidence || "low"} confidence</p>
                 <div className="bc-stat-grid">
@@ -921,7 +941,7 @@ export default function BottleCheckPage() {
                       </div>
                     ))
                   ) : (
-                    <p>No recent Bourbon Signal sightings for this bottle in the current engine window.</p>
+                    <p>{resultStateName ? "No recent Bourbon Signal sightings for this bottle in the current engine window." : "Choose a state to look for reports in that market."}</p>
                   )}
                 </div>
               </aside>
@@ -1009,6 +1029,8 @@ const bottleCheckCss = `
 .bc-fact-grid dt { color:var(--color-text-tertiary); font:900 9px/1 var(--font-dm-sans); letter-spacing:.09em; text-transform:uppercase; }
 .bc-fact-grid dd { margin:7px 0 0; color:var(--color-cream); font:800 14px/1.3 var(--font-dm-sans); text-transform:capitalize; overflow-wrap:anywhere; }
 .bc-price-check > label { display:block; margin-bottom:8px; color:var(--color-text-secondary); font:700 12px/1.3 var(--font-dm-sans); }
+.bc-city-label { display:grid; gap:6px; margin-top:14px; }
+.bc-city-label input { width:min(100%,300px); min-height:42px; border:1px solid rgba(196,148,58,.32); border-radius:10px; background:rgba(13,11,8,.68); color:var(--color-cream); padding:0 12px; }
 .bc-price-input-wrap { position:relative; width:min(240px,100%); }
 .bc-price-input-wrap > span { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--color-accent-amber); font:800 16px/1 var(--font-dm-sans); pointer-events:none; }
 .bc-price-input-wrap input { width:100%; height:48px; box-sizing:border-box; border:1px solid rgba(196,148,58,.32); border-radius:13px; background:rgba(13,11,8,.68); color:var(--color-cream); padding:0 14px 0 30px; font:800 16px/1 var(--font-dm-sans); outline:none; }

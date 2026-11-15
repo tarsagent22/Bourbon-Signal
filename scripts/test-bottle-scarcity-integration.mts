@@ -173,7 +173,7 @@ assert.match(pageSource, /Local classification not established/);
 assert.match(pageSource, /resultStateName/);
 assert.match(pageSource, /signal\?\.state \|\| submittedState/, "result labels must be bound to the state that produced the result");
 assert.doesNotMatch(pageSource, /activeStateName/, "mutable selector state must not relabel an existing result");
-assert.match(pageSource, /classificationIsUnderReview/, "the UI must suppress definitive rarity scores for unsupported classifications");
+assert.doesNotMatch(pageSource, /<span>Rarity Score<\/span>/, "the buying guide must not present unsupported rarity as a definitive score");
 assert.match(pageSource, /releaseBadges/);
 assert.doesNotMatch(pageSource, /availabilityLabels/, "Bottle Check must not render the legacy mixed availability taxonomy");
 assert.doesNotMatch(pageSource, /scarcityLabels/, "Bottle Check must use the canonical label supplied by the scarcity model");
