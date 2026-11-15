@@ -96,6 +96,18 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     }:{}),
 `,'',`${name}: Wyoming production projection`);
     }
+    const northDakotaImport = "import { isNorthDakotaProductionOnSiteInventory } from './north-dakota-public-policy.mjs';\n";
+    const northDakotaBoundary = `    ...(isNorthDakotaProductionOnSiteInventory(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`;
+    if (implementation.includes(northDakotaImport) || implementation.includes(northDakotaBoundary)) {
+      implementation = replaceUnique(implementation, northDakotaImport, '', `${name}: North Dakota on-site proof import`);
+      implementation = replaceUnique(implementation, northDakotaBoundary, '', `${name}: North Dakota on-site projection`);
+    }
     implementation=replaceUnique(implementation,"import {isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';\n",'',`${name}: AK/LA production projection import`);
     implementation=replaceUnique(implementation,`    ...(isLouisianaAlaskaGroceryOnSiteSignal(signal)?{
       tier:signal.tier,inventorySemantics:signal.inventorySemantics,
