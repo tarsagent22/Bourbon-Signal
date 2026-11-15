@@ -193,7 +193,7 @@ assert.equal(degradedAudit.ok, true, 'audit database unavailability must not tur
 
 const healthRoute = readFileSync(new URL('../src/app/api/ops/health/route.ts', import.meta.url), 'utf8');
 assert.doesNotMatch(healthRoute, /readAlertQueueAuditHealth/, 'public health must read the cached heartbeat rather than scan the queue');
-assert.match(healthRoute, /heartbeat\?\.alertAudit/, 'public health must expose the aggregate cached by the delivery heartbeat');
+assert.match(healthRoute, /buildSiteExportOpsHealth\(statsResult, heartbeat\)/, 'public health must use the shared snapshot and heartbeat mapping');
 const deliveryRoute = readFileSync(new URL('../src/app/api/alerts/deliver/route.ts', import.meta.url), 'utf8');
 assert.match(deliveryRoute, /readAlertQueueAuditHealth/, 'the scheduled delivery boundary must calculate the aggregate once per heartbeat');
 
