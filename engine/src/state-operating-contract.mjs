@@ -7,6 +7,7 @@ import {
 } from './customer-surface-policy.mjs';
 import { lifecycleExpectsCustomerVisibleDrops } from './state-lifecycle.mjs';
 import { buildStateRecoveryPlan } from './state-recovery-plan.mjs';
+import { currentInventoryMaxAgeMs } from './customer-drop-freshness.mjs';
 
 export const STATE_OPERATING_CONTRACT_VERSION = 'bourbon-signal-state-operating-v1';
 
@@ -78,7 +79,11 @@ export function inventoryEvidenceFreshness(rows, generatedAt) {
     const confirmed = Date.parse(row.lastConfirmedAt || row.observedAt || '');
     const age = (nowMs - confirmed) / 3_600_000;
     const known = Number.isFinite(age) && age >= 0;
-    const fresh = known && age <= 2 && !row.stale && !row.sourceStale && !row.raw?.staleFallback;
+    const deadlineHours = stateOf(row) === 'OR' && row.previewOnly !== true
+      ? currentInventoryMaxAgeMs(row) / 3_600_000
+      : 2;
+    const fresh = known && age <= deadlineHours && !row.stale && !row.sourceStale && !row.raw?.staleFallback;
+    total.deadlineHours = Math.max(total.deadlineHours, deadlineHours);
     for (const counts of [total, source]) {
       counts.totalCount++;
       counts[fresh ? 'freshCount' : 'overdueCount']++;
