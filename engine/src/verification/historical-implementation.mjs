@@ -217,6 +217,10 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const activeStates=/"activeStates": \[([\s\S]*?)\]/u.exec(text)?.[1]||'';
+    if(/^\s*"OR",?\s*$/mu.test(activeStates)) throw new Error(`${name}: Oregon active list entry has no exact historical verification hook`);
+    const runtimeBudgets=/"stateExpectedRunMs": \{([\s\S]*?)\}/u.exec(text)?.[1]||'';
+    if(/^\s*"OR": 60000,?\s*$/mu.test(runtimeBudgets)) throw new Error(`${name}: Oregon runtime forecast has no exact historical verification hook`);
     const southDakotaEntry=/^    "SD": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
     if(southDakotaEntry){
       const exactEntry=southDakotaEntry.replace(/,?\n$/,'');
