@@ -21,8 +21,8 @@ test('ND CI-only customer fixture preserves its exact reviewed hosted partition'
   assert.equal(proof.productionSnapshotTouched,false);
   assert.equal(proof.runs.length,1);
   assert.equal(proof.runs[0].state,'ND');
-  assert.equal(proof.runs[0].canaryRunId,'43655450625');
-  assert.equal(proof.runs[0].sourceShadowRunId,'43655326392');
+  assert.equal(proof.runs[0].canaryRunId,'43663736227');
+  assert.equal(proof.runs[0].sourceShadowRunId,'43663226351');
   assert.equal(proof.runs[0].partitionSha256,sha(partitionBytes));
   assert.equal(partition.state,'ND');
   assert.equal(partition.count,3);
@@ -31,6 +31,6 @@ test('ND CI-only customer fixture preserves its exact reviewed hosted partition'
   assert.equal(locations.locations.filter(row=>row.state==='ND').length,2);
   assert.equal(stats.stateCoverage.states.find(row=>row.state==='ND')?.signalCount,3);
   assert.equal(alerts.alerts.some(row=>row.state==='ND'),false);
-  assert.equal(manifest.sourceArtifact,'state-expansion-canary-ND-43655450625');
+  assert.equal(manifest.sourceArtifact,'state-expansion-canary-ND-43663736227');
   assert.equal(alerts.previewAlertDeliveryDisabled,true);
 });

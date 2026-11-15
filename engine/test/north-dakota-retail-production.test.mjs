@@ -80,10 +80,11 @@ function groceryObservation() {
       storeId: 'albertsons:28', bytes: 100, sha256: 'f'.repeat(64) }, receipt('bourbon', observedAt), receipt("blanton's gold", observedAt)] };
 }
 
-test('North Dakota production admission remains closed without authoritative lifecycle and immutable evidence', async () => {
+test('North Dakota production admission requires the bound evidence and still obeys the explicit disable gate', async () => {
   assert.equal(northDakotaRetailProductionAllowed(), false);
   const calls = [];
   const result = await collectNorthDakotaRetailProductionState(NORTH_DAKOTA_RETAIL_CONFIG, bible, {
+    env: { BOURBON_SIGNAL_DISABLED_STATES: 'ND' },
     collectCityHiveObservation: async () => { calls.push('cityhive'); throw new Error('must stay gated'); },
     collectGroceryObservation: async () => { calls.push('grocery'); throw new Error('must stay gated'); },
   });

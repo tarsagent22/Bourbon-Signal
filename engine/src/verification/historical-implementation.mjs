@@ -163,10 +163,11 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     const northDakotaEntry=/^    "ND": \{\n[\s\S]+?^    \},?\n/mu.exec(text)?.[0];
     if(northDakotaEntry){
       const exactEntry=northDakotaEntry.replace(/,?\n$/,'');
-      assert.equal(createHash('sha256').update(exactEntry).digest('hex'),'83d81b0f747f741bab9c4a7b6b19ab15505ce23b52d73f84ecfd9702fbbbb543',`${name}: exact North Dakota lifecycle entry`);
+      assert.equal(createHash('sha256').update(exactEntry).digest('hex'),'cdd8a0a2afc40b47bd00fe02bfe5991d6026484910747657233d429f22337c3d',`${name}: exact North Dakota lifecycle entry`);
       text=replaceUnique(text,northDakotaEntry,'',`${name}: exact North Dakota lifecycle entry`);
       text=replaceUnique(text,',\n  }\n}','\n  }\n}',`${name}: North Dakota lifecycle object separator`);
       text=replaceUnique(text,'    "MO",\n    "ND"\n  ],\n  "reliabilityPolicy"','    "MO"\n  ],\n  "reliabilityPolicy"',`${name}: exact North Dakota active list entry`);
+      text=replaceUnique(text,'      "DE": 55000,\n      "ND": 30000\n','      "DE": 55000\n',`${name}: exact North Dakota expected runtime entry`);
     }
     const deStart=text.lastIndexOf('    "DE": {');
     if(deStart>=0){

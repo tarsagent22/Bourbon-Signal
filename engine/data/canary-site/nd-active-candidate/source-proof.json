@@ -6,10 +6,10 @@
   "runs": [
     {
       "state": "ND",
-      "canaryRunId": "43655450625",
-      "sourceShadowRunId": "43655326392",
-      "artifactDigest": "664d5dca420f8156e1b18f13f91cd898e4d17b205ceedce9b63e53e44589c942",
-      "partitionSha256": "b23cc1f7bf4618ee226a7d6252b93a37a69b06860af678883ed2604e9075406d"
+      "canaryRunId": "43663736227",
+      "sourceShadowRunId": "43663226351",
+      "artifactDigest": "bf40c549f45b13c23b6c6bd91e5311919d6c5e4a81aa7a7b3215f2f4b3e33f49",
+      "partitionSha256": "e60cb228d9cd873ca90292ef2103c7733e9d9d44c8aeaf1d20d298105dfcf8d9"
     }
   ]
 }

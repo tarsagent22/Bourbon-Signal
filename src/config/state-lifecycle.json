@@ -37,7 +37,8 @@
     "KS",
     "DE",
     "AR",
-    "MO"
+    "MO",
+    "ND"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -97,7 +98,8 @@
       "ID": 180000,
       "AZ": 900000,
       "FL": 180000,
-      "DE": 55000
+      "DE": 55000,
+      "ND": 30000
     }
   },
   "states": {
@@ -2647,6 +2649,74 @@
             "bundleDigest": "af39ff0f0316e09297f3da528635b9bf913e9660899d3662e75c3661dceb56b5",
             "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43649097005",
             "artifactName": "state-promotion-provenance-DE-43649097005"
+          }
+        }
+      }
+    },
+    "ND": {
+      "customerLabel": "North Dakota",
+      "sourceLabel": "North Dakota reviewed CityHive pickup and grocery in-store inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Current retailer-reported bottle signals from one Grand Forks pickup store and one Williston in-store location. Exact shelf counts are unavailable; alerts and delivery are disabled.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-11-15T01:36:00.000Z",
+        "verticalSliceManifest": "engine/data/state-integration/ND.json",
+        "fixtureContract": "engine/data/state-fixtures/ND.json",
+        "canaryPreviewUrl": "https://bourbonsignal-9sycdhfls-tarsagent22s-projects.vercel.app",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "ND",
+          "generatedAt": "2026-11-15T01:36:00.000Z",
+          "sourceConfigHash": "fac22f921204bbe62424b43fce4e297a89e1fe4863a610af89c7606a9d120914",
+          "previewUrl": "https://bourbonsignal-9sycdhfls-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "43649959646",
+              "status": "success",
+              "artifactHash": "c4ea0be7a1779cbeab9bdcbfc545ff19699f0e1341b9e4ddfbc86a5ab0c154ed"
+            },
+            {
+              "runId": "43655326392",
+              "status": "success",
+              "artifactHash": "2bdacefaecade29d0d931531639f1f31fe91948a1f2c22474a329f840dcac651"
+            },
+            {
+              "runId": "43663226351",
+              "status": "success",
+              "artifactHash": "90ca1845e47b533cac62641f64a77e56ac8ec13fc02889c2f452598247f76a9d"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "43655450625",
+              "status": "success",
+              "artifactHash": "664d5dca420f8156e1b18f13f91cd898e4d17b205ceedce9b63e53e44589c942"
+            },
+            {
+              "runId": "43663736227",
+              "status": "success",
+              "artifactHash": "bf40c549f45b13c23b6c6bd91e5311919d6c5e4a81aa7a7b3215f2f4b3e33f49"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "43663296700",
+            "artifactId": "14140644269",
+            "commitSha": "dc6a531b29ddbe302ae8d0dce87b11e27a208aec",
+            "artifactDigest": "2b013c3010650dcabf305a818493d3cdc31423e6174a8e9ac535850c58f2f39f",
+            "bundleDigest": "4969e8b3f71b5f3a37974daff2e4a4397fc1c39173aad6bdf0c5b4d18f1799c9",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43663296700",
+            "artifactName": "state-promotion-provenance-ND-43663296700"
           }
         }
       }
