@@ -1139,7 +1139,11 @@ function buildBottles(signals, bible, bibleRecords = []) {
 
 export function buildStores(signals) {
   const storeSignals = signals.filter((s) => s.locationProjectionDisabled !== true && s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
-  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal) || isReviewedResearchGrocery(signal)||isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal) || isDelawareEcwidProductionOnSiteSignal(signal) || isSouthDakotaProductionOnSiteSignal(signal) || isOregonDailyProductionEvidence(signal)));
+  const inventorySignals = storeSignals.filter(signal => signal.sourceAvailabilityVerified === true && (
+    signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal) || isReviewedResearchGrocery(signal)
+    || isCentralCityHiveProductionOnSiteSignal(signal) || isNjMiProductionOnSiteSignal(signal) || isDelawareEcwidProductionOnSiteSignal(signal)
+    || isNorthDakotaProductionOnSiteInventory(signal) || isSouthDakotaProductionOnSiteSignal(signal) || isOregonDailyProductionEvidence(signal)
+  ));
   const fallbackStoreKey = (signal) => JSON.stringify([
     [typeof signal.state, signal.state],
     [typeof (signal.storeName || signal.locationName), signal.storeName || signal.locationName],

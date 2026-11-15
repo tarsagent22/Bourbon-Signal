@@ -209,6 +209,14 @@ function signalSort(a, b) {
       eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
     }:{}),
 `, '')
+    .replace("import { isNorthDakotaProductionOnSiteInventory } from './north-dakota-public-policy.mjs';\n", '')
+    .replace(`    ...(isNorthDakotaProductionOnSiteInventory(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`, '')
     .replace("import {isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';\n", '')
     .replace(`    ...(isLouisianaAlaskaGroceryOnSiteSignal(signal)?{
       tier:signal.tier,inventorySemantics:signal.inventorySemantics,
@@ -242,6 +250,28 @@ function signalSort(a, b) {
     current.replace(centralProductionOnSiteBoundary, centralProductionOnSiteBoundary.replace('canAlertAsInventory:false', 'canAlertAsInventory:true')),
     current.replace(centralProductionOnSiteBoundary, centralProductionOnSiteBoundary.replace('isCentralCityHiveProductionOnSiteSignal(signal)', "isCentralCityHiveProductionOnSiteSignal({...signal,state:'MS'})")),
     current.replace(texasShopifyPickupTierImport, texasShopifyPickupTierImport.replace('./collectors/texas-shopify-pickup.mjs', './collectors/unreviewed-pickup.mjs')),
+    current.replace("import { isNorthDakotaProductionOnSiteInventory } from './north-dakota-public-policy.mjs';\n", ''),
+    current + "\nimport { isNorthDakotaProductionOnSiteInventory } from './north-dakota-public-policy.mjs';\n",
+    current.replace(`    ...(isNorthDakotaProductionOnSiteInventory(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`, ''),
+    current.replace(`    ...(isNorthDakotaProductionOnSiteInventory(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`, `    ...(isNorthDakotaProductionOnSiteInventory(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:true,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`),
     current + '\n' + groceryExpansionTierImport,
     current + '\n' + centralCityHiveTierImport,
     current + '\n' + texasShopifyPickupTierImport,

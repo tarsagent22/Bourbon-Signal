@@ -9,12 +9,15 @@ import {ALL_STATE_SOURCES,STATE_SOURCES} from '../src/state-sources.mjs';
 import {STATE_LIFECYCLE_CONFIG} from '../src/state-lifecycle.mjs';
 import sdManifest from '../data/state-integration/SD.json' with {type:'json'};
 import {verifySouthDakotaFirstPublication} from '../src/verify-sd-first-publication.mjs';
+import {canonicalizeSignal} from '../src/operational-report.mjs';
 import {collectSouthDakotaProductionState,SOUTH_DAKOTA_PRODUCTION_COHORT_SHA256,southDakotaProductionConfigHash,southDakotaSemanticManifestHash,southDakotaProductionRuntimeId,southDakotaProductionAllowed} from '../src/collectors/south-dakota-production.mjs';
 import {reviewSouthDakotaPickup} from '../src/research-south-dakota-retailer.mjs';
 import {southDakotaCanaryLifecycle} from '../src/prepare-sd-pickup-canary.mjs';
 import {sources,storeId,southDakotaRetailerRequest,isSouthDakotaProductionOnSiteSignal,productionCohortSha256} from '../src/south-dakota-pickup-policy.mjs';
-import {buildCurrentInventoryAlertsFromDrops,buildDrops,buildStores,bibleLookup} from '../src/export-site-contract.mjs';
-import {derivePublicDropEvidence,isPublicDropFeedEligible} from '../../src/lib/public-drop-evidence.ts';
+import {buildCurrentInventoryAlertsFromDrops,buildDrops,buildStores,bibleLookup,isSafePublicSignal} from '../src/export-site-contract.mjs';
+import * as publicDropEvidenceModule from '../../src/lib/public-drop-evidence.ts';
+
+const {derivePublicDropEvidence,isPublicDropFeedEligible,normalizePublicDropEvidenceInput}=publicDropEvidenceModule.default||publicDropEvidenceModule;
 
 const root=path.join(path.dirname(fileURLToPath(import.meta.url)),'fixtures','south-dakota-sante');
 const terms=new Map([['Wild Turkey','west.json'],['Heaven Hill','south-heaven-hill.json'],['Larceny','south-larceny.json']]);
@@ -130,6 +133,39 @@ test('South Dakota production rows pass engine and shared customer projections w
     assert.deepEqual(buildDrops([row],bibleLookup(bible.records),[row]),[],JSON.stringify(row));
     assert.equal(isPublicDropFeedEligible({...drops[0],...row,observedAt:row.observedAt},{asOf:projectionNow}),false);
   }
+});
+
+test('South Dakota production proof survives canonicalization, export, first-publication, and Coverage projection',async t=>{
+  for(const filename of terms.values())if(!fixtureCache.has(filename))fixtureCache.set(filename,await readFile(path.join(root,filename),'utf8').then(JSON.parse));
+  const dir=await mkdtemp(path.join(os.tmpdir(),'sd-canonical-customer-path-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+  const nowMs=Date.now(),{lifecycleConfig,manifest}=syntheticPromotion();
+  const report=await collectSouthDakotaProductionState(ALL_STATE_SOURCES.find(row=>row.id==='SD'),bible,{nowMs,lifecycleConfig,promotionManifest:manifest,
+    incidentFile:path.join(dir,'state.json'),fetchText:async(url,options)=>{
+      const term=JSON.parse(new URL(url).searchParams.get('input'))['2'].json.text;
+      await options.onResponse({status:200,retryAfterSeconds:0});
+      return{status:200,url,text:JSON.stringify(fixtureCache.get(terms.get(term)))};
+    }});
+  const canonicalSignals=report.signals.map(row=>canonicalizeSignal(row,bible));
+  assert.ok(canonicalSignals.every(row=>isSouthDakotaProductionOnSiteSignal(row,{nowMs:Date.now()})));
+  const drops=buildDrops(canonicalSignals,bibleLookup(bible.records),canonicalSignals);
+  assert.equal(drops.length,3,`normal engine canonicalization and buildDrops retain every exact SD row: ${JSON.stringify(canonicalSignals.map(row=>({predicate:isSouthDakotaProductionOnSiteSignal(row),safe:isSafePublicSignal(row),canonicalBottleId:row.canonicalBottleId,raw:row.raw,quantity:row.quantity,storeId:row.storeId})))}`);
+  assert.ok(drops.every(row=>row.quantity===0&&row.canAlertAsInventory===false&&row.canAlertAsWatch===false
+    &&row.eligibleForOnSite===true&&row.eligibleForDropFeed===true&&row.eligibleForDelivery===false
+    &&row.eligibleForEmail===false&&row.eligibleForSms===false));
+  const partition={state:'SD',count:drops.length,drops},reportBytes=JSON.stringify(report),partitionBytes=JSON.stringify(partition);
+  const firstPublication=verifySouthDakotaFirstPublication({report,partition,reportBytes,partitionBytes,nowMs:Date.now(),workflowRunId:'43643508900'});
+  assert.equal(firstPublication.ok,true,firstPublication.failures.join('; '));
+
+  const customerRows=drops.map(row=>normalizePublicDropEvidenceInput(row));
+  assert.ok(customerRows.every(row=>row.quantity===0&&row.quantityIsExact===false),'public evidence normalization preserves binary pickup zero');
+  assert.ok(customerRows.every(row=>isPublicDropFeedEligible(row,{asOf:Date.now()})),'canonicalized rows remain feed eligible');
+  assert.ok(customerRows.every(row=>row.canAlertAsInventory===false&&row.canAlertAsWatch===false
+    &&row.eligibleForDelivery===false&&row.eligibleForEmail===false&&row.eligibleForSms===false));
+  const coverage=derivePublicDropEvidence(customerRows,Date.now()).get('SD');
+  assert.equal(coverage.currentInventoryStores.length,2);
+  assert.equal(coverage.currentInventoryCities,1);
+  assert.equal(coverage.freshPublicSignalCount,3);
+  assert.equal(coverage.alertableInventoryStores.length,0);
 });
 
 test('South Dakota production denial persists before response and blocks the exact host for 24 hours',async t=>{

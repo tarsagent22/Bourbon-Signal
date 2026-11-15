@@ -1,5 +1,6 @@
 import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import {isDelawareEcwidProductionOnSiteSignal} from './delaware-ecwid-production-policy.mjs';
+import {isSouthDakotaProductionOnSiteSignal} from './south-dakota-pickup-policy.mjs';
 import {isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';
 import { isWyomingGroceryProductionInventory } from './wyoming-grocery-policy.mjs';
 import { isOregonDailyProductionEvidence } from './oregon-daily-production-policy.mjs';
@@ -13,6 +14,7 @@ import { groceryExpansionLibraryTier, isGroceryExpansionInventory } from './groc
 import { centralCityHiveLibraryTier } from './collectors/central-cityhive-expansion.mjs';
 import { texasShopifyPickupLibraryTier } from './collectors/texas-shopify-pickup.mjs';
 import {isCentralCityHiveProductionOnSiteSignal} from './central-cityhive-policy.mjs';
+import { isNorthDakotaProductionOnSiteInventory } from './north-dakota-public-policy.mjs';
 import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from './confidence-policy.mjs';
 import { hasVerifiedGeorgiaRetailerInventory, suppressGeorgiaActivationBaseline } from './georgia-activation-policy.mjs';
 import {
@@ -81,6 +83,10 @@ function optionalNumber(...values) {
 }
 
 export function canonicalizeSignal(signal, bible) {
+  // Keep the reviewed binary pickup proof intact through the backend snapshot
+  // transform. The predicate is deliberately evaluated against the original
+  // collector row before projecting only the proof marker needed downstream.
+  const isSouthDakotaProductionPickup = isSouthDakotaProductionOnSiteSignal(signal);
   const name = signal.canonicalName || signal.rawName || signal.matchedBottles?.[0]?.name || null;
   const unsafeSourceMatch = ['ID', 'IA', 'MD-MONTGOMERY', 'OH', 'UT'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || signal.sourceMatchStatus || '').startsWith('source_name_kept:');
   const match = name && !unsafeSourceMatch ? bible.match(name) : null;
@@ -228,6 +234,27 @@ export function canonicalizeSignal(signal, bible) {
       eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
       eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
     }:{}),
+    ...(isSouthDakotaProductionPickup ? {
+      // The reviewed adapter tier is derived from the exact scoped library
+      // identity; generic Bible tier fallback can otherwise discard it.
+      tier: signal.tier,
+      canAlertAsInventory: false,
+      canAlertAsWatch: false,
+      alertable: false,
+      eligibleForOnSite: true,
+      eligibleForDropFeed: true,
+      eligibleForWatch: false,
+      eligibleForDelivery: false,
+      eligibleForEmail: false,
+      eligibleForSms: false,
+      deliveryEligible: false,
+    } : {}),
+    ...(isNorthDakotaProductionOnSiteInventory(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
     ...(isOregonDailyProductionEvidence(signal)?{
       canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
       eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
@@ -305,6 +332,7 @@ export function canonicalizeSignal(signal, bible) {
         'officialAddress', 'officialCity', 'officialZip', 'officialLatitude', 'officialLongitude',
       ].filter((field) => Object.hasOwn(signal.raw, field)).map((field) => [field, signal.raw[field]])) : undefined,
     } : {}),
+    ...(isSouthDakotaProductionPickup ? {raw: {productionOnSiteOnly: true}} : {}),
   };
 }
 
