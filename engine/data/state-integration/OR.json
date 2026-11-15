@@ -15,7 +15,7 @@
   "storeIdentity": {
     "mode": "official_olcc_store_number_and_reported_premises",
     "addressRequired": true,
-    "expectedKnownStores": 251,
+    "expectedKnownStores": 249,
     "proof": "Store number, store name, street address, city, and postal code come from the same official report row; no location is inferred or fabricated."
   },
   "sourceSemantics": {
