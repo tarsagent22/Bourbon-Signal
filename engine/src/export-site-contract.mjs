@@ -711,7 +711,9 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     dataLane,
     informationalOnly: dataLane === 'informational',
     availabilityScope: isNcBoardShipment ? 'board' : undefined,
-    inventoryCaveat: isSouthDakotaOnSiteInventory
+    inventoryCaveat: isOregonOnSiteInventory
+      ? 'Daily OLCC store count. Confirm availability before driving.'
+      : isSouthDakotaOnSiteInventory
       ? 'Mr. Liquor first-party pickup is available at this exact Rapid City store. The retailer does not publish an exact shelf count; confirm with the store before driving.'
       : isNorthDakotaOnSiteInventory
       ? 'The retailer reports on-site pickup or in-store availability. Exact shelf quantity is not published, and availability can change; confirm with the store before driving.'
@@ -1484,7 +1486,7 @@ function publicDisplaySortTimestamp(signal, freshnessIndex) {
   return freshness?.eventAt || freshness?.firstSeenAt || signal.observedAt || signal.fetchedAt || freshness?.lastConfirmedAt || '';
 }
 
-export function buildDrops(signals, bible, currentSignals = [], previousDrops = [], availabilityHistory = signals, { shopifyPolicy, nowMs = Date.now() } = {}) {
+export function buildDrops(signals, bible, currentSignals = [], previousDrops = [], availabilityHistory = signals, { shopifyPolicy, nowMs = Date.now(), enforceByteBudget = true } = {}) {
   const seenSourceIds = new Set();
   const seenProjectedIds = new Set();
   const currentObservationKeys = new Set(currentSignals.map(signal => `${signalFreshnessKey(signal)}|${signal.observedAt || signal.fetchedAt || ''}`));
@@ -1543,7 +1545,7 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
     })
     .map((signal) => {
       const drop = publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal)), { shopifyPolicy });
-      if (isCurrentObservation(signal)) currentProjectedDrops.add(drop);
+      if (enforceByteBudget && isCurrentObservation(signal)) currentProjectedDrops.add(drop);
       return drop;
     })
     .filter((drop) => isCustomerDropTier(drop))
@@ -1553,7 +1555,9 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
       seenProjectedIds.add(key);
       return true;
     });
-  return selectFleetDropBudget(projected, { isRequired: drop => currentProjectedDrops.has(drop) });
+  return enforceByteBudget
+    ? selectFleetDropBudget(projected, { isRequired: drop => currentProjectedDrops.has(drop) })
+    : projected;
 }
 
 function eventCategory(signal) {
@@ -2597,8 +2601,11 @@ async function main({ rejectedQualityStates = [] } = {}) {
     .filter((location) => String(location?.state || location?.state_code || '').toUpperCase() === 'WV'
       && (location?.type === 'store' || location?.locationType === 'store'))
     .map((location) => String(location.id)));
-  const candidateDrops = buildDrops(historicalSignals, bible, signals, previousDrops);
-  const currentDrops = buildDrops(signals, bible, signals, previousDrops, historicalSignals);
+  // Partial refreshes replace unattempted projections with the published partitions.
+  // Budget only the merged fleet, after its required current evidence is known.
+  const deferByteBudget = { enforceByteBudget: false };
+  const candidateDrops = buildDrops(historicalSignals, bible, signals, previousDrops, historicalSignals, deferByteBudget);
+  const currentDrops = buildDrops(signals, bible, signals, previousDrops, historicalSignals, deferByteBudget);
   const previousLocations = await readJson(path.join(PREVIOUS_SITE_OUT, 'locations.json'), []);
   const previousStores = await readJson(path.join(PREVIOUS_SITE_OUT, 'stores.json'), []);
   const previousEvents = await readJson(path.join(PREVIOUS_SITE_OUT, 'events.json'), []);
