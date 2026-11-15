@@ -4,6 +4,7 @@ import {isWyomingGroceryCanaryPreview,isWyomingGroceryProductionInventory} from 
 import {isLouisianaAlaskaGroceryOnSiteSignal} from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
+import { isSouthDakotaProductionOnSiteSignal } from '../../engine/src/south-dakota-pickup-policy.mjs';
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -341,6 +342,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const sourceStale = asBoolean(drop.sourceStale) || asBoolean(drop.source_stale) || asBoolean(drop.stale);
   const staleSourceCaveat = asString(drop.staleSourceCaveat) || "Last-known source availability; verify with the store before driving.";
   const canAlertAsInventory = (asBoolean(drop.canAlertAsInventory) || asBoolean(drop.can_alert_as_inventory)) && exactStoreDetails && !sourceStale;
+  const isSouthDakotaBinaryPickup = state === "SD" && isSouthDakotaProductionOnSiteSignal(drop);
   const type = firstNonEmptyString(drop.type, drop.event_type) || "signal";
   const isWestVirginiaRecentPurchase = state === "WV" && type.toLowerCase() === "wv_abca_retailer_recent_purchase_window";
   const signalLabel = getPublicSignalLabel(type, locationPrecision, visibilityQuantity, canAlertAsInventory);
@@ -394,7 +396,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
     store_id: firstNonEmptyString(drop.storeId, drop.store_id) || undefined,
     quantity_in_stock: type === "nc_board_shipment_snapshot" ? undefined : quantity || undefined,
     quantity_shipped: shipmentQuantity || undefined,
-    quantity: quantity || (isGroceryExpansionOnSiteSignal(drop) || isCentralCityHiveOnSiteSignal(drop)
+    quantity: quantity || (isSouthDakotaBinaryPickup || isGroceryExpansionOnSiteSignal(drop) || isCentralCityHiveOnSiteSignal(drop)
       || isNjMiOnSiteSignal(drop) || isLouisianaAlaskaGroceryOnSiteSignal(drop)
       || isLouisianaAlaskaGroceryCanaryPreview(drop) || isWyomingGroceryCanaryPreview(drop)
       || isWyomingGroceryProductionInventory(drop) ? 0 : undefined),

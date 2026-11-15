@@ -7,6 +7,7 @@ import { dropFreshnessTime } from "./drop-feed-policy.ts";
 import { isUserFacingDropSignal } from "./drop-feed-visibility.ts";
 import { resolveDropQuantitySemantics } from "./drop-quantity-semantics.ts";
 import { isArizonaRetailerInventory } from "../../engine/src/arizona-retailer-policy.mjs";
+import { isSouthDakotaProductionOnSiteSignal } from "../../engine/src/south-dakota-pickup-policy.mjs";
 
 const FUTURE_CLOCK_SKEW_MS = 15 * 60 * 1000;
 const DROP_FEED_TIERS = new Set(["unicorn", "highly_allocated", "allocated", "limited"]);
@@ -378,6 +379,11 @@ export function isPublicDropFeedEligible(
   const healthState = publicEvidenceHealthStateCode(drop.engineStateCode ?? state);
   if (!state || options.degradedStateCodes?.has(healthState)
     && !independentlyAcceptedSource(drop) && !reviewedRetailerOverdueSiblingEvidence(drop, options)) return false;
+  if (state === "SD" && text(drop.type ?? drop.event_type, 120).toLowerCase() === "retailer_store_inventory_result"
+    && drop.previewOnly !== true) {
+    return isSouthDakotaProductionOnSiteSignal(drop, { nowMs: asTimestamp(options.asOf) })
+      && DROP_FEED_TIERS.has(publicDropRarityTier(drop)) && !isKnownFalseRareMatch(drop);
+  }
   if (['AK','LA'].includes(state) && drop.previewOnly === true && !isLouisianaAlaskaGroceryCanaryPreview(drop)) return false;
   if (['AK','LA'].includes(state) && isLouisianaAlaskaGroceryOnSiteSignal(drop)) return true;
   const retailer = isVerifiedRetailerDrop(drop);

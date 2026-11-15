@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "state": "SD",
+  "sourceLabel": "South Dakota Mr. Liquor pickup inventory",
+  "lifecycle": {
+    "customerLabel": "South Dakota",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": ["sd:mr-liquor-sante"],
+    "cohortSha256": "58126b3ed90799fe6e8f45f254bbc85fcb5404a2f79c1c03c4bdf1db27bdbf11",
+    "sourceConfigHash": "962136ef78a73eb6959a5e84e8c226c7970f21e329004cff94622a9058e61e21",
+    "registration": "Exact pickup-only collector for the two reviewed Rapid City Mr. Liquor premises; no delivery, watch, or alerts."
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_store_pickup",
+    "addressRequired": true,
+    "proof": "Public merchant identity, exact store address, pickup-enabled checkout, and positive online quantity are bound in the retained first-party response.",
+    "expectedKnownStores": 2,
+    "storeIds": ["sante:sd:mr-liquor:5187", "sante:sd:mr-liquor:5220"],
+    "quantitySemantics": "binary_retailer_orderable_no_exact_count"
+  },
+  "sourceSemantics": {
+    "availability": "Retailer confirms positive online pickup quantity at the selected store; the exact shelf count is not reported.",
+    "inventoryAlertable": false,
+    "watchAlertable": false,
+    "deliveryEnabled": false,
+    "quantitySemantics": "binary_retailer_orderable_no_exact_count",
+    "geographicScope": ["Rapid City"]
+  },
+  "customerPaths": {
+    "stateFilter": {"status":"verified","assertion":"The isolated protected preview exposes the exact two Rapid City locations under the South Dakota state filter."},
+    "areaFilter": {"status":"not_applicable","reason":"The reviewed source covers one city only."},
+    "preferences": {"status":"verified","assertion":"The protected preview resolved South Dakota through the lifecycle-backed state selector."},
+    "dashboard": {"status":"verified","assertion":"The protected preview carries the exact two Rapid City premises with binary pickup availability."},
+    "dropFeedApi": {"status":"verified","assertion":"The retained production-shaped rows pass normalizeDropForSite, classifyPublicDrop, and derivePublicDropEvidence; first production publication is still pending."},
+    "storePrecision": true,
+    "finder": {"status":"verified","assertion":"The protected preview showed both exact Rapid City pickup addresses as searchable."},
+    "inventoryAlerts": false,
+    "watchAlerts": false,
+    "alerts": {"status":"verified","assertion":"The protected preview showed zero alert-eligible stores."},
+    "monitoring": {"status":"verified","assertion":"The hosted canary partition retained three fresh rows at two exact stores."},
+    "export": {"status":"verified","assertion":"The hosted canary exported the exact two-store partition with all delivery flags disabled."},
+    "delivery": false
+  },
+  "evidence": {
+    "status": "active_candidate_pending_first_publication",
+    "shadow": {
+      "status": "verified",
+      "runs": 4,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43658963728",
+      "originalSourceClocksPreserved": true,
+      "observations": [
+        {"runId":"43622872651","status":"success","artifactHash":"de247b8993528261ce23e0edd1a11fefb6ccaa7ffc35a7d7f4defc4361e9f73c","commitSha":"2810e125021ce0b400c8940d4f78b414ac087d23"},
+        {"runId":"43643508900","status":"success","artifactHash":"a411637098127bcbd525e65d8e84c83fda26c36251f91a7ac2b73f27db36428b","commitSha":"8ef80bb81d53eb43be52910769af486b13537239"},
+        {"runId":"43653528864","status":"success","artifactHash":"501a45c4bba2e86a4e03de45c415ee64078fa695584945cd1bfe5103011b7491","commitSha":"b613cca0fdc0df75dd4fb3db47eb60bce3b880cb"},
+        {"runId":"43658963728","status":"success","artifactHash":"1415dfb60350d27533d48415b13fd1336deb5d4943ba7fd3a5b0204e9c7f4836","commitSha":"b613cca0fdc0df75dd4fb3db47eb60bce3b880cb"}
+      ]
+    },
+    "canary": {
+      "status": "verified",
+      "runs": 3,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43659106534",
+      "siteArtifact": "engine/data/canary-site/sd-active-candidate-20261115",
+      "previewUrl": "https://bourbonsignal-gw76mnhpl-tarsagent22s-projects.vercel.app",
+      "allDeliveryChannelsDisabled": true,
+      "originalSourceClocksPreserved": true,
+      "observations": [
+        {"runId":"43626676255","status":"success","artifactId":"14126067081","artifactHash":"579c4a6849c5c0dec4271541b4b78496cf184d3ce709f41f000dc88a546058ab","sourceShadowRunId":"43622872651"},
+        {"runId":"43653707990","status":"success","artifactId":"14137550861","artifactHash":"217e2d9de6198d66e712d7140b1cbe6099b1f89cad80d403c068b8f299b2e298","sourceShadowRunId":"43653528864"},
+        {"runId":"43659106534","status":"success","artifactId":"14139406160","artifactHash":"386fcf2e92eb37e1f9ec7e261f646aed91ba916466004d3c170e498ddc5e3121","sourceShadowRunId":"43658963728"}
+      ]
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "Production first publication has not been verified.",
+      "reason": "This isolated candidate is not merged or deployed. A source-bound first-production-publication receipt is required after the first production refresh."
+    },
+    "protectedCanaryPreview": {
+      "status": "verified_protected_preview",
+      "receipt": "engine/data/canary-site/sd-protected-preview-20261114.json",
+      "receiptSha256": "56a342bfc5da27dfedf5a162e11d3e50e6bc34c86e76d54314c3a75921144da4",
+      "sourceShadowRunId": "43653528864",
+      "canaryRunId": "43653707990",
+      "canaryArtifactId": "14137550861",
+      "provenanceRunId": "43653883357",
+      "provenanceArtifactId": "14137461396",
+      "provenanceArtifactSha256": "7b34e1d5c7ae4568eb7012e2f5653c986b0664ab5e510dc570fdbf022f0638cd",
+      "provenanceBundleSha256": "a39736f8bcde55609b221322a9f3e30ba553a95eff12c5d95bfd8d8a44310de9",
+      "canaryInputSha256": "b3b01d1eab961012d6649482fdfc24c7bf03a0b2f303f9a8802cfc6d60238aaa",
+      "previewDeploymentId": "dpl_98cYBSu3zoZzZDnyxKbea4WHppCz",
+      "evaluatedAt": "2026-11-14T23:46:38.459Z",
+      "rows": 3,
+      "currentStores": 2,
+      "searchableStores": 2,
+      "alertEligibleStores": 0,
+      "partitionSha256": "217e2d9de6198d66e712d7140b1cbe6099b1f89cad80d403c068b8f299b2e298",
+      "firstProductionPublicationVerified": false
+    },
+    "provenance": {
+      "status": "verified_replay_not_current_manifest_binding",
+      "runId": "43659499726",
+      "artifactId": "14138634527",
+      "artifactSha256": "80230c272dad408bca564264f2388f36a4db6e5124d45d41ac954c786581aa1d",
+      "bundleSha256": "3dd09e0892fa012142357f1933a4f59ab8640a625322bf2f779e4748ebece7a7",
+      "commitSha": "b613cca0fdc0df75dd4fb3db47eb60bce3b880cb",
+      "boundManifestSha256": "ba11a4a22d5deea9309f600b869a5263bf2029b96cfda416218bb6f7dd09dd5a",
+      "reason": "This successful source replay proves the new shadow artifact but signs the earlier dormant manifest; it is not immutable admission evidence for the current manifest."
+    },
+    "shadowObservations": [
+      {
+        "runId": "43622872651",
+        "commitSha": "2810e125021ce0b400c8940d4f78b414ac087d23",
+        "observedAt": "2026-11-14T17:46:30.625Z",
+        "reportSha256": "de247b8993528261ce23e0edd1a11fefb6ccaa7ffc35a7d7f4defc4361e9f73c",
+        "positiveRows": 3
+      },
+      {
+        "runId": "43643508900",
+        "commitSha": "8ef80bb81d53eb43be52910769af486b13537239",
+        "observedAt": "2026-11-14T21:34:33.792Z",
+        "reportSha256": "a411637098127bcbd525e65d8e84c83fda26c36251f91a7ac2b73f27db36428b",
+        "positiveRows": 3
+      },
+      {
+        "runId": "43653528864",
+        "commitSha": "b613cca0fdc0df75dd4fb3db47eb60bce3b880cb",
+        "observedAt": "2026-11-14T23:30:29.240Z",
+        "reportSha256": "501a45c4bba2e86a4e03de45c415ee64078fa695584945cd1bfe5103011b7491",
+        "positiveRows": 3
+      },
+      {
+        "runId": "43658963728",
+        "commitSha": "b613cca0fdc0df75dd4fb3db47eb60bce3b880cb",
+        "observedAt": "2026-11-15T00:36:16.528Z",
+        "reportSha256": "1415dfb60350d27533d48415b13fd1336deb5d4943ba7fd3a5b0204e9c7f4836",
+        "positiveRows": 3
+      }
+    ],
+    "lastFreshShadowRunId": "43658963728",
+    "lastFreshShadowObservedAt": "2026-11-15T00:36:16.528Z",
+    "verifiedPremiseCount": 2,
+    "verifiedCityCount": 1,
+    "positiveRows": 3,
+    "firstPublicationRequired": true
+  }
+}

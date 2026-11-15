@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const state = String(process.argv.find((value) => value.startsWith('--state='))?.split('=')[1] || '').toUpperCase();
@@ -105,6 +105,85 @@ if (state === 'WY') files.push(
   'engine/out/grocery-shadow-input/WY/provenance.json',
   'engine/out/grocery-shadow-input/WY/artifact.zip',
 );
+if (state === 'SD') files.push(
+  'engine/src/research-south-dakota-retailer.mjs',
+  'engine/src/south-dakota-pickup-policy.mjs',
+  'engine/src/south-dakota-source-lineage.mjs',
+  'engine/src/research-state-registry.mjs',
+  'engine/src/prepare-sd-pickup-canary.mjs',
+  'engine/src/collectors/south-dakota-production.mjs',
+  'engine/src/collectors/generic-state.mjs',
+  'engine/src/run.mjs',
+  'engine/src/operational-report.mjs',
+  'engine/src/verify-sd-first-publication.mjs',
+  'engine/src/verify-state-fixtures.mjs',
+  'engine/src/south-dakota-fixtures.mjs',
+  'engine/src/build-state-canary-preview.mjs',
+  'engine/src/state-sources.mjs',
+  'engine/src/state-lifecycle.mjs',
+  'engine/test/sd-first-publication.test.mjs',
+  'engine/test/south-dakota-fixtures.test.mjs',
+  'engine/test/south-dakota-retailer-research.test.mjs',
+  'engine/test/south-dakota-source-lineage.test.mjs',
+  'engine/test/fixtures/south-dakota-sante/manifest.json',
+  'engine/test/fixtures/south-dakota-sante/west.json',
+  'engine/test/fixtures/south-dakota-sante/south-heaven-hill.json',
+  'engine/test/fixtures/south-dakota-sante/south-larceny.json',
+  'engine/data/state-expansion-candidates.json',
+  'engine/data/state-integration/SD.json',
+  'engine/data/state-fixtures/SD.json',
+  'engine/data/canary-site/sd-protected-preview-20261114.json',
+  'engine/src/export-site-contract.mjs',
+  'engine/src/reliability-policy.mjs',
+  'engine/src/verify-state-integration.mjs',
+  'engine/src/verify-state-expansion-candidates.mjs',
+  'engine/src/state-expansion-candidate-contract.mjs',
+  'src/config/state-lifecycle.json',
+  'src/lib/drop-feed-visibility.ts',
+  'src/lib/public-drop-evidence.ts',
+  'src/lib/drop-classification.ts',
+  'src/lib/coverage-model.ts',
+  'src/lib/coverage-server.ts',
+  'src/lib/site-engine-contract.ts',
+  'src/lib/sighting-store-directory.ts',
+  'src/app/api/coverage/route.ts',
+  'src/app/api/drops/route.ts',
+  'scripts/build-promotion-provenance.mjs',
+  'scripts/download-south-dakota-shadow.mjs',
+  'scripts/test-sd-public-canary.mjs',
+  'scripts/test-sd-production-customer-path.mjs',
+  'scripts/verify-active-state-integration-ci.mjs',
+  '.github/workflows/state-expansion-shadow.yml',
+  '.github/workflows/state-expansion-canary.yml',
+  '.github/workflows/state-promotion-provenance.yml',
+  '.github/workflows/refresh-feed.yml',
+  'engine/out/library-catalog.json',
+  'engine/out/bourbon-bible.json',
+  `engine/out/canary/${state}/public-projection.json`,
+);
+if (state === 'SD') {
+  const collect = async directory => {
+    for (const entry of await readdir(path.join(root, directory), { withFileTypes: true })) {
+      const relative = path.posix.join(directory.replaceAll('\\', '/'), entry.name);
+      if (entry.isDirectory()) await collect(relative);
+      else if (entry.isFile()) files.push(relative);
+    }
+  };
+  await collect('engine/out/sd-shadow-input');
+  await collect('engine/out/canary/SD');
+  const manifest = JSON.parse(await readFile(path.join(root, 'engine/data/state-integration/SD.json'), 'utf8'));
+  const config = JSON.parse(await readFile(path.join(root, 'src/config/state-lifecycle.json'), 'utf8'));
+  const semanticConfig = Object.fromEntries(['lifecycle', 'collector', 'storeIdentity', 'sourceSemantics', 'customerPaths']
+    .map(key => [key, manifest?.[key]]));
+  const sourceConfigHash = createHash('sha256').update(JSON.stringify(semanticConfig)).digest('hex');
+  const bindingPath = 'engine/out/promotion-provenance/SD-manifest-binding.json';
+  const binding = {schemaVersion: 1, state: 'SD', sourceConfigHash, runtimeConfigHash: manifest.collector?.sourceConfigHash,
+    lifecycleConfigHash: createHash('sha256').update(JSON.stringify({active: config.activeStates?.includes('SD'), state: config.states?.SD})).digest('hex'),
+    semanticConfig};
+  await mkdir(path.dirname(path.join(root, bindingPath)), {recursive: true});
+  await writeFile(path.join(root, bindingPath), `${JSON.stringify(binding, null, 2)}\n`);
+  files.push(bindingPath);
+}
 // Bind grocery promotions to the actual replay parser, frozen premise registry,
 // source policy, portable artifact verifier, executable fixtures and raw ZIP digest.
 if (['WA', 'NM'].includes(state)) files.push(
@@ -456,4 +535,5 @@ payload.bundleDigest = createHash('sha256').update(JSON.stringify(payload.fileDi
 const out = path.join(root, 'engine', 'out', 'promotion-provenance', `${state}.json`);
 await mkdir(path.dirname(out), { recursive: true });
 await writeFile(out, `${JSON.stringify(payload, null, 2)}\n`);
-console.log(JSON.stringify({ state, out, bundleDigest: payload.bundleDigest }));
+console.log(JSON.stringify({ state, out, bundleDigest: payload.bundleDigest,
+  ...(state === 'SD' ? {sourceConfigHash: JSON.parse(await readFile(path.join(root, 'engine/out/promotion-provenance/SD-manifest-binding.json'), 'utf8')).sourceConfigHash} : {}) }));

@@ -37,7 +37,8 @@
     "KS",
     "DE",
     "AR",
-    "MO"
+    "MO",
+    "SD"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -1418,6 +1419,19 @@
           }
         }
       }
+    },
+    "SD": {
+      "customerLabel": "South Dakota",
+      "sourceLabel": "South Dakota Mr. Liquor pickup inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Sparse first-party pickup availability at two reviewed Rapid City Mr. Liquor stores; exact shelf counts and statewide coverage are not claimed.",
+      "promotionStage": "active"
     },
     "MO": {
       "customerLabel": "Missouri",

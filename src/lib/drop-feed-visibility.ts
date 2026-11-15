@@ -5,6 +5,7 @@ import { isCentralCityHiveCanaryOnSiteSignal } from '../../engine/src/central-ci
 import { isCentralCityHiveProductionOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { isDelawareEcwidCanaryPreview } from '../../engine/src/delaware-ecwid-canary-preview-policy.mjs';
 import { isDelawareEcwidProductionOnSiteSignal } from '../../engine/src/delaware-ecwid-production-policy.mjs';
+import { isSouthDakotaCanaryPickup, isSouthDakotaProductionOnSiteSignal } from '../../engine/src/south-dakota-pickup-policy.mjs';
 import { isLouisianaAlaskaGroceryCanaryPreview } from '../../engine/src/laak-canary-preview-policy.mjs';
 import { isWyomingGroceryCanaryPreview, isWyomingGroceryProductionInventory } from '../../engine/src/wyoming-grocery-policy.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal } from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
@@ -68,6 +69,17 @@ export type UserFacingDropSignal = {
   eligibleForSms?: boolean;
   previewOnly?: boolean;
   inventorySemantics?: string;
+  sourceProductBinding?: Record<string, unknown>;
+  raw?: Record<string, unknown>;
+  rawName?: string;
+  canonicalName?: string;
+  canonicalBottleId?: string;
+  observedAt?: string;
+  quantitySemantics?: string;
+  alertable?: boolean;
+  zip?: string;
+  postalCode?: string;
+  quarantined?: boolean;
 };
 
 function asNumber(value: unknown, fallback = 0) {
@@ -167,6 +179,11 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
   if(state==='DE'&&/^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type))
     return isCentralCityHiveCanaryOnSiteSignal(drop) || isCentralCityHiveProductionOnSiteSignal(drop)
       || isDelawareEcwidCanaryPreview(drop) || isDelawareEcwidProductionOnSiteSignal(drop);
+  if (state === 'SD' && type === 'retailer_store_inventory_result') {
+    return drop.previewOnly === true
+      ? isSouthDakotaCanaryPickup(drop)
+      : isSouthDakotaProductionOnSiteSignal(drop);
+  }
   if (isLaakGroceryInventory) return isLaakCanaryPreview || isLaakProductionOnSite;
   if (state === 'WY' && type === 'retailer_store_inventory_result') {
     return isWyomingGroceryCanaryPreview(drop) || isWyomingGroceryProductionInventory(drop);
