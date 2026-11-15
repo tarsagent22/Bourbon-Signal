@@ -3,7 +3,7 @@ import {mkdir,writeFile,copyFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const here=path.dirname(fileURLToPath(import.meta.url));const mobile=path.resolve(here,'../..');const out=path.join(mobile,'dist/feed-preview');await mkdir(out,{recursive:true});
-await build({entryPoints:[path.join(here,'preview.jsx')],outfile:path.join(out,'preview.js'),bundle:true,platform:'browser',format:'esm',jsx:'automatic',resolveExtensions:['.web.tsx','.web.ts','.web.js','.tsx','.ts','.jsx','.js','.json'],loader:{'.png':'file','.jpg':'file','.ttf':'file'},define:{'process.env.NODE_ENV':'"development"','__DEV__':'true'},plugins:[{name:'native-fixture',setup(b){
+await build({entryPoints:[path.join(here,'preview.jsx')],outfile:path.join(out,'preview.js'),bundle:true,platform:'browser',format:'esm',jsx:'automatic',resolveExtensions:['.web.tsx','.web.ts','.web.js','.tsx','.ts','.jsx','.js','.json'],loader:{'.png':'file','.jpg':'file','.ttf':'file'},define:{'process.env':'{}','process.env.NODE_ENV':'"development"','__DEV__':'true',global:'globalThis'},plugins:[{name:'native-fixture',setup(b){
  b.onResolve({filter:/^react-native$/},()=>({path:path.join(here,'../cohesion-preview/native.jsx')}));
  b.onResolve({filter:/@expo\/vector-icons/},()=>({path:path.join(here,'../cohesion-preview/icons.jsx')}));
  b.onResolve({filter:/expo-router|@clerk\/expo|expo-secure-store|expo-file-system\/legacy|expo-crypto|expo-updates|useMobileApi$|PushResponseHandler$/},()=>({path:path.join(here,'mocks.jsx')}));

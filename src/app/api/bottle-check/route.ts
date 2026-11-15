@@ -1,12 +1,15 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { getBottleById, normalizeBottleKey, searchBourbonBible, type AvailabilityTier, type BibleBottle } from "@/lib/bourbonBible";
+import { getBottleById, normalizeBottleKey, searchBourbonBible, type AvailabilityTier, type BibleSearchResult, type BibleBottle } from "@/lib/bourbonBible";
 import { captureSearchEvent } from "@/lib/search-capture";
 import { normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
 import { getServerEntitlements } from "@/lib/server-entitlements";
 import { getMemberTasteScore } from "@/lib/member-taste-score";
 import { getRarityProfile } from "@/lib/bottle-rarity-score";
 import { getPublicScarcityLabel, getScarcityBadges, normalizeBottleScarcity, resolveBottleScarcity, scarcityTierToAvailability, type ScarcityTier } from "@/lib/bottle-scarcity";
+import { bottleAssessmentProfile } from "@/lib/bottle-profile-route";
+import { canonicalBottleId } from "@/data/bottle-identity-redirects";
+import { COVERAGE_STATES } from "../../../../shared/coverage-states";
 import { searchFastBottleSuggestions } from "@/lib/bottle-suggestion-index";
 
 
@@ -74,16 +77,9 @@ function asTime(value: unknown) {
   return Number.isFinite(time) ? time : 0;
 }
 
-function dropName(drop: Record<string, unknown>) {
-  return String(drop.canonical_name || drop.brand_name || drop.raw_name || drop.tracked_brand_name || "");
-}
-
 function dropMatchesBottle(drop: Record<string, unknown>, bottle: BibleBottle) {
-  const names = [dropName(drop), String(drop.canonical_id || ""), String(drop.bottle_id || ""), ...(Array.isArray(drop.aliases) ? drop.aliases.map(String) : [])]
-    .map(normalizeBottleKey)
-    .filter(Boolean);
-  const keys = [bottle.id, bottle.canonicalName, ...bottle.aliases].map(normalizeBottleKey).filter(Boolean);
-  return names.some((name) => keys.some((key) => name === key || (key.length >= 12 && name.includes(key)) || (name.length >= 12 && key.includes(name))));
+  const id = String(drop.canonical_id || drop.bottle_id || "");
+  return Boolean(id && canonicalBottleId(id) === canonicalBottleId(bottle.id));
 }
 
 async function getDropsForBottle(bottle: BibleBottle, state?: string) {
@@ -149,11 +145,11 @@ function dedupeBottleSuggestions(suggestions: BibleBottle[]) {
 }
 
 async function getLocalSignal(bottle: BibleBottle, state: string): Promise<LocalSignal> {
-  const drops = await getDropsForBottle(bottle, state);
+  const drops = state ? await getDropsForBottle(bottle, state) : [];
   const now = Date.now();
   const day = 24 * 60 * 60 * 1000;
-  const recent90 = drops.filter((drop) => now - asTime(drop.timestamp) <= 90 * day);
-  const recent30 = drops.filter((drop) => now - asTime(drop.timestamp) <= 30 * day);
+  const recent90 = drops.filter((drop) => asTime(drop.timestamp) <= now && now - asTime(drop.timestamp) <= 90 * day);
+  const recent30 = drops.filter((drop) => asTime(drop.timestamp) <= now && now - asTime(drop.timestamp) <= 30 * day);
   const lastSeenAt = drops[0]?.timestamp ? String(drops[0].timestamp) : null;
 
   const scarcity = resolveBottleScarcity(normalizeBottleScarcity(bottle as unknown as Record<string, unknown>), state);
@@ -228,7 +224,8 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const query = url.searchParams.get("q") || "";
   const id = url.searchParams.get("id") || "";
-  const state = (url.searchParams.get("state") || "NC").toUpperCase();
+  const state = (url.searchParams.get("state") || "").trim().toUpperCase();
+  if (state && !COVERAGE_STATES.some(entry => entry.code === state)) return NextResponse.json({ message: "Choose a valid reference state." }, { status: 400 });
   const intent = url.searchParams.get("intent") || "suggest";
 
   if (intent === "suggest" || intent === "suggest-authoritative") {
@@ -256,13 +253,8 @@ export async function GET(request: Request) {
     );
   }
 
-  const usageGate = await consumeFreeBottleCheckIfNeeded(intent);
-  if (usageGate.limited) {
-    return NextResponse.json({ bottle: null, suggestions: [], message: "Free includes 3 Bottle Checks. Upgrade for unlimited Bottle Check access.", usage: usageGate.usage }, { status: 403, headers: siteExportHeaders("local-export") });
-  }
-
   let bottle: BibleBottle | null;
-  let suggestionRows: BibleBottle[];
+  let suggestionRows: BibleSearchResult[];
   if (id) {
     [bottle, suggestionRows] = await Promise.all([
       getBottleById(id),
@@ -270,7 +262,9 @@ export async function GET(request: Request) {
     ]);
   } else {
     suggestionRows = query ? await searchBourbonBible(query, 16) : [];
-    bottle = suggestionRows[0] || null;
+    const exact = suggestionRows.filter(row => row.matchReason === "exact");
+    const confirmedCandidates = exact.length ? exact : suggestionRows.filter(row => row.matchReason === "alias");
+    bottle = confirmedCandidates.length === 1 ? confirmedCandidates[0] : null;
   }
   const suggestions = dedupeBottleSuggestions(suggestionRows).slice(0, 8);
 
@@ -288,12 +282,17 @@ export async function GET(request: Request) {
         query,
         state,
         bottle: null,
-        suggestions,
-        message: "We do not have this bottle in the Bottle Check index yet. Try a different spelling or check back as the list expands.",
-        usage: usageGate.usage,
+        suggestions: suggestions.map(userFacingBottle),
+        message: suggestions.length ? "Choose the exact expression to see its score." : "We do not have this bottle in the Bottle Check index yet. Try a different spelling or check back as the list expands.",
+        usage: null,
       },
       { headers: siteExportHeaders("local-export") }
     );
+  }
+
+  const usageGate = await consumeFreeBottleCheckIfNeeded(intent);
+  if (usageGate.limited) {
+    return NextResponse.json({ bottle: null, suggestions: [], message: "Free includes 3 Bottle Checks. Upgrade for unlimited Bottle Check access.", usage: usageGate.usage }, { status: 403, headers: siteExportHeaders("local-export") });
   }
 
   const localSignal = await getLocalSignal(bottle, state);
@@ -315,6 +314,7 @@ export async function GET(request: Request) {
       state,
       bottle: userFacingBottle(bottle),
       localSignal,
+      assessmentProfile: bottleAssessmentProfile(bottle, state),
       memberTasteScore,
       suggestions: suggestions.map(userFacingBottle),
       showSuggestions: matchScore < 95,

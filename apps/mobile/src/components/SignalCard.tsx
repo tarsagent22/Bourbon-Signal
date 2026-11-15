@@ -38,7 +38,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
     style={({ pressed }) => [styles.card, age.older && styles.older, highlighted && styles.highlighted, pressed && styles.pressed]}>
     <View accessible={false} importantForAccessibility="no-hide-descendants" style={styles.artwork}>
       <Image source={require("../../assets/shelf/bottle-contact-shadow.png")} resizeMode="stretch" style={styles.contactShadow} />
-      <CellarBottleArtwork bottle={{ bottleId: signal.bottle.id, bottleName: signal.bottle.name }} size="feed" />
+      <CellarBottleArtwork bottle={{ bottleId: signal.bottle.catalogId ?? signal.bottle.id, bottleName: signal.bottle.name }} size="feed" />
     </View>
     <View style={styles.copy}>
       <View style={styles.topline}>

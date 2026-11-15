@@ -55,6 +55,13 @@ export interface BibleSearchResult extends BibleBottle {
 }
 
 const SEED_BOTTLES: BibleBottleInput[] = [
+  // NC ABC product 17122; Brown-Forman's release rules identify the 97-proof limited edition.
+  { ...signalBottle("old-forester-birthday-bourbon-2026", "Old Forester Birthday Bourbon 2026", "Old Forester",
+    ["Old Forester 2026 Birthday Bourbon", "Old Forester Birthday 2026", "OF Birthday Bourbon 2026"], "limited",
+    "Limited 2026 edition of Old Forester Birthday Bourbon, bottled at 97 proof in 700 mL.",
+    "Confirm the 2026 bottling on the front label."), producer: "Brown-Forman", proof: 97, ageStatement: "11 years",
+    rarityPending: false, nationalConfidence: "high", releaseCadence: "annual", scarcitySourceIds: ["old-forester-birthday-2026"],
+    scarcityLastReviewedAt: "2026-11-15" },
   { ...signalBottle("jack-daniels-10-year-batch-3", "Jack Daniel's 10 Year Batch 3", "Jack Daniel's", ["Jack Daniels 10 Year Batch 3"], "allocated", "Producer-confirmed 2024 third batch of Jack Daniel's 10-year Tennessee whiskey.", "Confirm Batch 3 on the label."), producer:"Jack Daniel Distillery", proof:97, ageStatement:"10 Year" },
   // Exact expression identities, with unresolved pricing and rarity kept pending.
   // Discovery editions have reviewed art; producer-verified additions may not yet.

@@ -2,7 +2,7 @@ import { build } from 'esbuild';
 import { mkdir, copyFile, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
-const here=import.meta.dirname,mobile=path.resolve(here,'../..'),negative=process.argv.includes('--negative'),camera=process.argv.includes('--camera'),out=path.join(mobile,'dist/navigation-preview'+(negative?'-negative':camera?'-camera':''));
+const here=import.meta.dirname,mobile=path.resolve(here,'../..'),negative=process.argv.includes('--negative'),camera=process.argv.includes('--camera'),profileNegative=process.argv.includes('--profile-negative'),out=path.join(mobile,'dist/navigation-preview'+(negative?'-negative':profileNegative?'-profile-negative':camera?'-camera':''));
 await mkdir(out,{recursive:true});
 await build({entryPoints:[path.join(here,'entry.tsx')],outfile:path.join(out,'app.js'),bundle:true,platform:'browser',jsx:'automatic',resolveExtensions:['.web.tsx','.web.ts','.web.js','.tsx','.ts','.jsx','.js','.json'],loader:{'.js':'jsx','.png':'file','.jpg':'file','.webp':'file','.ttf':'file'},define:{'process.env.NODE_ENV':'"development"','process.env':'{}',__DEV__:'true',global:'globalThis'},plugins:[{name:'native-boundaries-real-navigation',setup(b){
  b.onResolve({filter:/^react-native$/},()=>({path:path.join(here,'../continuity-preview/native.jsx')}));
@@ -14,8 +14,9 @@ await build({entryPoints:[path.join(here,'entry.tsx')],outfile:path.join(out,'ap
  }
  b.onResolve({filter:/^expo-router\/build\//},args=>({path:path.join(mobile,'node_modules',args.path)+'.js'}));
  b.onResolve({filter:/react-navigation\/native$/},()=>({path:path.join(mobile,'node_modules/expo-router/build/react-navigation/core/index.js')}));
- b.onResolve({filter:/^(@clerk\/expo|expo-secure-store|expo-crypto|expo-updates|react-native-safe-area-context)$|\/(useMobileApi|NativeBottleScanner)$|\/membership\/PurchasesProvider$|\/push\/(push-registration|PushResponseHandler)$|\/sighting-photo-native$|\/activity\/useMobileActivity$/},()=>({path:path.join(here,'boundaries.tsx')}));
+ b.onResolve({filter:/^(@clerk\/expo|expo-secure-store|expo-crypto|expo-location|expo-updates|react-native-safe-area-context)$|\/(useMobileApi|NativeBottleScanner)$|\/membership\/PurchasesProvider$|\/push\/(push-registration|PushResponseHandler)$|\/sighting-photo-native$|\/activity\/useMobileActivity$/},()=>({path:path.join(here,'boundaries.tsx')}));
  b.onResolve({filter:/^expo-constants$/},()=>({path:path.join(here,'../cohesion-preview/constants.js')}));
+ if(profileNegative)b.onLoad({filter:/app[\\/]\(app\)[\\/]bottle[\\/]\[id\]\.tsx$/},()=>({contents:execFileSync('git',['show','0a72f3b3:apps/mobile/app/(app)/bottle/[id].tsx'],{cwd:mobile,encoding:'utf8'}),loader:'tsx',resolveDir:path.join(mobile,'app/(app)/bottle')}));
  if(negative)b.onLoad({filter:/app[\\/]\(app\)[\\/]bottle-check\.tsx$/},()=>({contents:execFileSync('git',['show','7def5a40:apps/mobile/app/(app)/bottle-check.tsx'],{cwd:mobile,encoding:'utf8'}),loader:'tsx',resolveDir:path.join(mobile,'app/(app)')}));
 }}]});
 await copyFile(path.join(mobile,'node_modules/@expo-google-fonts/fraunces/700Bold/Fraunces_700Bold.ttf'),path.join(out,'fraunces.ttf'));

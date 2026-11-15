@@ -3,7 +3,10 @@ import { Stack } from "expo-router";
 import { useRef } from "react";
 import { colors } from "../../src/theme";
 import { PushMaintenance } from "../../src/push/PushResponseHandler";
+import { ProfileHeader } from "../../src/components/ProfileBackButton";
 import { useMobileActivity } from "../../src/activity/useMobileActivity";
+
+const profileOptions = { title: "Bottle Profile", header: () => <ProfileHeader /> };
 
 export default function AppLayout() {
   const { userId, sessionId } = useAuth();
@@ -20,8 +23,8 @@ export default function AppLayout() {
       <Stack.Screen name="bottle-check" options={{ presentation: "modal", title: "Bottle Check", headerShown: false }} />
       <Stack.Screen name="scan-post" options={{ presentation: "modal", title: "Scan for your post", headerShown: false }} />
       <Stack.Screen name="scan-shelf" options={{ presentation: "modal", title: "Scan to My Shelf", headerShown: false }} />
-      <Stack.Screen name="bottle/[id]" options={{ title: "Bottle Profile" }} />
-      <Stack.Screen name="signal/[id]" options={{ title: "Signal" }} />
+      <Stack.Screen name="bottle/[id]" options={profileOptions} />
+      <Stack.Screen name="signal/[id]" options={profileOptions} />
       <Stack.Screen name="cellar/add" options={{ presentation: "modal", title: "Add bottle" }} />
       <Stack.Screen name="account/rewards" options={{ title: "Rewards & Badges", headerBackButtonDisplayMode: "minimal" }} />
       <Stack.Screen name="account/redeem" options={{ title: "Redeem reward", headerBackButtonDisplayMode: "minimal" }} />

@@ -1,3 +1,5 @@
+import { standardBottleIdentity } from "../../../../shared/standard-bottle-identity";
+import { canonicalBottleId } from "@/data/bottle-identity-redirects";
 import { validSignalBottleId } from "@/lib/signals/signal-feed-filters";
 import { filterNearbyFeedDrops, nearbyFeedPageLimit } from "@/lib/nearby-feed-scope";
 import { dropFeedSearchMatches } from "@/lib/signals/feed-search";
@@ -480,7 +482,14 @@ export async function GET(request: Request) {
 
     // Narrow the authorized, policy-filtered feed before its page boundary.
     drops = filterNearbyFeedDrops(drops);
-    if (bottleId) drops = drops.filter((drop: Record<string, unknown>) => (drop.bottle_id || drop.bottleId || drop.canonical_id || drop.canonicalId) === bottleId);
+    if (bottleId) {
+      const canonicalId = canonicalBottleId(bottleId);
+      drops = drops.filter((drop: Record<string, unknown>) => {
+        const sourceId = canonicalBottleId(String(drop.bottle_id || drop.bottleId || drop.canonical_id || drop.canonicalId || ""));
+        const catalogId = typeof drop.canonical_name === "string" ? standardBottleIdentity(drop.canonical_name, sourceId)?.id : undefined;
+        return (catalogId || sourceId) === canonicalId;
+      });
+    }
 
     drops = canonicalSignalOrder
       ? drops

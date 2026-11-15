@@ -6,12 +6,11 @@ import { CommunityTermsGate } from "../../../src/components/CommunityTermsGate";
 import { readReportPreview } from "../../../src/signals/report-preview";
 import type { BottleProfile } from '../../../../../shared/bottle-profile';
 import { BottleProfileHero, BottleProfileRating } from '../../../src/components/BottleProfileHero';
-import { ProfileHeader } from '../../../src/components/ProfileBackButton';
 import { BottlePriceCheck } from '../../../src/components/BottlePriceCheck';
 import { reportAge } from "../../../src/signals/report-age";
 import { ErrorState } from "../../../src/components/MemberScreen";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { reportDateTime, signalStoreContact } from "../../../src/signals/store-contact";
@@ -235,7 +234,6 @@ export default function SignalDetailScreen() {
 
 
   return <ScrollView contentContainerStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing && Boolean(signal)} onRefresh={() => void load(true)} tintColor={colors.accent} />}>
-    <Stack.Screen options={{ title: "Bottle Profile", header: () => <ProfileHeader /> }} />
     {!signal && !error ? <View style={styles.signalSection}><Text style={styles.disclaimer}>Loading bottle report…</Text><ActivityIndicator color={colors.accent} /></View> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {safetyNotice ? <Text accessibilityRole="alert" style={styles.disclaimer}>{safetyNotice}</Text> : null}
@@ -287,6 +285,11 @@ export default function SignalDetailScreen() {
         </> : presented?.caveat && !/stale|not alertable|last.known|before driving/i.test(presented.caveat) ? <Detail label="Source note" value={presented.caveat} /> : null}
       </View>
       <View style={styles.bottleActions}>
+        {bottleDetails && signal.location.scope === "exact_store" && signal.location.store?.state ? (
+          <ActionButton compact quiet label="Check buying score" onPress={() => router.push({ pathname: "/(app)/bottle-check", params: {
+            bottleId: bottleDetails.id, bottleName: bottleDetails.name, state: signal.location.store?.state, area: signal.location.store?.city,
+          } })} />
+        ) : null}
         {canWatch ? <ActionButton compact primary={!isWatched} disabled={!preferences || saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
         {canReadCellar ? <ActionButton quiet disabled={(!inCellar && !canAddToCellar) || saving} label={inCellar ? "Edit your shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => shelfEntry ? router.push({pathname:"/(app)/(tabs)/cellar",params:{editBottleId:shelfEntry.bottleId}}) : signal.bottle.id ? router.push({pathname:"/(app)/cellar/add",params:{bottleId:signal.bottle.id}}) : void addToCellar()} /> : null}
       </View>

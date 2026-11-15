@@ -5,6 +5,7 @@ import type { ScarcityTier, StateScarcityOverride } from "@/lib/bottle-scarcity"
  * State systems establish local handling; they never set a national tier by themselves.
  */
 export const BOTTLE_SCARCITY_SOURCE_REGISTRY = {
+  "old-forester-birthday-2026": { type: "official_producer", label: "Brown-Forman: 2026 Birthday Bourbon release", url: "https://legal.brown-forman.com/terms-and-conditions/us-of-birthday-bourbon-sweepstakes-rules-2026" },
   "eht-cured-oak-special-release": { type: "official_producer", label: "E.H. Taylor Cured Oak special release", url: "https://www.buffalotracedistillery.com/our-brands/e-h-taylor-jr/e-h-taylor-jr-cured-oak/" },
   "high-west-midwinter-act-13": { type: "official_producer", label: "High West A Midwinter Night's Dram Act 13", url: "https://ship.highwest.com/collections/limited-release" },
   "penelope-cooper-series": { type: "official_producer", label: "Penelope Cooper Series limited releases", url: "https://shop.penelopebourbon.com/collections/cooper-series" },

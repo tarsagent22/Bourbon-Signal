@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { CellarBottleArtwork } from './CellarBottleArtwork';
-import { buyingScore } from '../scanner/buying-score';
+import { buyingScore } from '../../../../shared/bottle-check-score';
 import { colors, fonts } from '../theme';
 import type { BottleProfile } from '../../../../shared/bottle-profile';
 import type { bottleProfileState } from '../signals/bottle-profile';
@@ -8,8 +8,11 @@ import type { bottleProfileState } from '../signals/bottle-profile';
 export function BottleProfileHero({ identity, details, tier, compact = false, catalogStatus }: {
   identity: { id?: string; name: string }; details?: BottleProfile | null; tier?: string; compact?: boolean; catalogStatus?: string;
 }) {
-  const assessment = details ? buyingScore({ bottle: details, askingPrice: '', reports: [], scope: { state: '', area: '' } }) : null;
-  const score = assessment?.score ?? (assessment?.scoreRange ? assessment.scoreRange.low + '–' + assessment.scoreRange.high : null);
+  const assessment = buyingScore({
+    bottle: details ?? { id: identity.id ?? '', name: identity.name, producer: null, category: '', age: null, proof: null,
+      msrp: null, rarity: { label: '', tier: '', reviewedAt: null, pending: true } },
+    askingPrice: '', reports: [], scope: { state: '', area: '' },
+  });
   const facts = [details?.category, details?.proof ? `${details.proof} proof` : '', details?.age?.replace(/^0*(\d+)Y$/i, '$1 years')].filter(Boolean);
   const rarity = details && !details.rarity.pending ? details.rarity.label : tier;
   const rarityLabel = rarity?.replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase());
@@ -20,7 +23,7 @@ export function BottleProfileHero({ identity, details, tier, compact = false, ca
         <Text accessibilityRole="header" style={[s.name, compact && s.compactName]}>{identity.name}</Text>
         {rarityLabel ? <View style={s.tierBadge}><Text style={s.rarityText}>{rarityLabel}</Text></View> : null}
         <View style={compact ? s.summary : undefined}>
-          {score != null ? <Text style={s.score}>Signal Score · {score} / 100</Text> : details ? <Text style={s.facts}>Signal Score unavailable</Text> : null}
+          <Text style={s.score}>Signal Score · {assessment.score} / 100</Text><Text style={s.facts}>{assessment.confidence}</Text>
           {details?.msrp != null ? <Text style={s.facts}>{compact ? "MSRP $" + details.msrp.toFixed(2) : "Reference price · $" + details.msrp.toFixed(2) + " MSRP"}</Text> : null}
         </View>
         {catalogStatus ? <Text style={s.catalogStatus}>{catalogStatus}</Text> : null}

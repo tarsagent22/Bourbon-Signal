@@ -114,5 +114,16 @@
     ],
     "sha256": "e9b30e57bb3b9774748a347ae2f10be60a620b24d44b01e827cb8c61568d55d4",
     "reference": "https://pressroom.jackdaniels.com/jack-daniels-launches-new-batches-of-12-year-old-and-10-year-old-tennessee-whiskey/"
+  },
+  {
+    "id": "old-forester-birthday-bourbon-2026",
+    "name": "Old Forester Birthday Bourbon 2026",
+    "names": [
+      "Old Forester 2026 Birthday Bourbon",
+      "Old Forester Birthday 2026",
+      "OF Birthday Bourbon 2026"
+    ],
+    "sha256": "947e1a21f28d5e73f9d06f7532c213519e7b18b2f16c110330c48188ea965762",
+    "reference": "https://www.breakingbourbon.com/review/old-forester-2026-birthday-bourbon"
   }
 ]

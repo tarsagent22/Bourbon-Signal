@@ -4,6 +4,11 @@ import { Pressable, Text } from 'react-native';
 import { useMobileApi as useFixtureApi } from '../continuity-preview/fixture';
 import seed from '../../src/cellar/bottle-catalog-seed.json';
 const query = new URLSearchParams(location.search);
+export const Accuracy = { Balanced: 3 };
+export const requestForegroundPermissionsAsync = async () => ({ granted: false });
+export const getCurrentPositionAsync = async () => { throw new Error('Location not provided by fixture'); };
+export const reverseGeocodeAsync = async () => [];
+
 const extra = { id: 'fixture-unreviewed', name: 'Unreviewed Fixture Bourbon', proof: 100 };
 export function useMobileApi() {
   const base = useFixtureApi();

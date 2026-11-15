@@ -39,6 +39,7 @@ test('member navigation retains its key during logout and resets when another ac
     react: { useRef: () => retained },
     'expo-router': { Stack: Object.assign(() => null, { Screen: () => null }) },
     '../../src/activity/useMobileActivity': { useMobileActivity() {} },
+    '../../src/components/ProfileBackButton': { ProfileHeader: () => null },
     '../../src/push/PushResponseHandler': { PushMaintenance: () => null },
   });
   const navigationKey = () => Layout().props.children[1].key;

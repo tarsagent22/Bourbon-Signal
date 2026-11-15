@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "3428a2602ca8df5c6c4c765f6853c1a9fb59f68791b2b1af174cdaceb4c5cfa4",
+  "revision": "09404460a50463d7c2f437d94a896433998660870a2b09c2b1c19be4c71fb566",
   "entries": [
     {
       "catalogId": "1792-12-year",
@@ -6205,6 +6205,19 @@
         "Old Forester Birthday Bourbon 2025"
       ],
       "sha256": "43dc8e184a2e504e1a01430164a3bb25737a2a009e8b4d9425c1e67b26d1249f",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "old-forester-birthday-bourbon-2026",
+      "displayName": "Old Forester Birthday Bourbon 2026",
+      "exactNames": [
+        "Old Forester Birthday Bourbon 2026",
+        "Old Forester 2026 Birthday Bourbon",
+        "Old Forester Birthday 2026",
+        "OF Birthday Bourbon 2026"
+      ],
+      "sha256": "947e1a21f28d5e73f9d06f7532c213519e7b18b2f16c110330c48188ea965762",
       "width": 400,
       "height": 600
     },

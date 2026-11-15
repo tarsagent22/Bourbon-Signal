@@ -87,6 +87,13 @@ assert.equal(engineSignal.strength, "best");
 assert.equal(engineSignal.alertEligibility.inventory, true);
 assert.equal(engineSignal.availability?.quantity, 3);
 assert.equal(engineSignal.availability?.price, 79.99);
+const pricedDrop = { ...ongoingDrop, price: 97, raw_name: "Example Bourbon 700 mL" };
+assert.equal(normalizeDropSignal(pricedDrop).availability?.sizeMl, 700);
+assert.equal(normalizeDropSignal(pricedDrop).availability?.priceObservedAt, ongoingDrop.lastConfirmedAt);
+assert.equal(normalizeDropSignal({ ...pricedDrop, sizeMl: 750 }).availability?.sizeMl, undefined);
+assert.equal(normalizeDropSignal({ ...pricedDrop, raw_name: "Example Bourbon 2 x 700 mL" }).availability?.sizeMl, undefined);
+assert.equal(normalizeDropSignal({ ...pricedDrop, sourceStale: true }).availability?.priceObservedAt, undefined);
+assert.equal(normalizeDropSignal({ raw_name: "Example Bourbon .75 L", price: 60, displayAt: ongoingDrop.lastConfirmedAt }).availability?.priceObservedAt, undefined);
 assert.equal(JSON.stringify(engineSignal).includes("inventory-probe-internal"), false, "internal source identifiers must not leak into the Signal contract");
 assert.equal(normalizeDropSignal({
   id: "ohlq:item-42",

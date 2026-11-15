@@ -4,9 +4,15 @@ import { resolve } from "node:path";
 import test from "node:test";
 
 const detail = readFileSync(resolve(process.cwd(), "app/(app)/signal/[id].tsx"), "utf8");
+const catalogProfile = readFileSync(resolve(process.cwd(), "app/(app)/bottle/[id].tsx"), "utf8");
+const layout = readFileSync(resolve(process.cwd(), "app/(app)/_layout.tsx"), "utf8");
 
 test("Signal detail is the unified Bottle Profile route", () => {
-  assert.match(detail, /Stack\.Screen options=\{\{ title: "Bottle Profile"[, ]/);
+  assert.match(layout, /const profileOptions = \{ title: "Bottle Profile", header: \(\) => <ProfileHeader \/> \}/);
+  assert.match(layout, /name="signal\/\[id\]" options=\{profileOptions\}/);
+  assert.match(layout, /name="bottle\/\[id\]" options=\{profileOptions\}/);
+  assert.doesNotMatch(detail, /<Stack\.Screen/);
+  assert.doesNotMatch(catalogProfile, /<Stack\.Screen/);
   assert.match(detail, /<BottleProfileHero\s+identity=\{signal.bottle\}/);
   assert.match(detail, /getBottleProfile\(catalogId/);
   assert.match(detail, /bottleDetails\?\.msrp != null \? <BottlePriceCheck/);

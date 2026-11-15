@@ -93,12 +93,11 @@ assert.match(routeSource, /scoreStatus: "bible_baseline" \| "local_adjusted"/, "
 assert.doesNotMatch(routeSource, /proofBoost|ageBoost|alertBoost|recencyBoost|opportunityBoost|abundancePenalty/, "proof, age, alert internals, and sightings must not distort rarity scores");
 
 const pageSource = readFileSync(new URL("../src/app/bottle-check/page.tsx", import.meta.url), "utf8");
-assert.match(pageSource, /classificationIsUnderReview \? "Evidence status" : "Rarity Score"/, "the UI must name the verified metric honestly and suppress it while evidence is under review");
-assert.match(pageSource, /classificationIsUnderReview \? "—" : signal\.rarityScore/, "unsupported classifications must not display a definitive numeric rarity score");
-assert.match(pageSource, /classificationIsUnderReview \? "This bottle's scarcity tier is still being sourced\. Use recent local sightings and price context; do not treat the current tier as verified\." : \(signal\?\.verdict \|\| bottle\.guidance\)/, "the primary in-store read must independently suppress purchase advice while evidence is under review");
-assert.match(pageSource, /classificationIsUnderReview \? "Purchase guidance is withheld until this classification has enough evidence\." : bottle\.guidance/, "unsupported classifications must not leak assertive editorial purchase guidance");
-assert.match(pageSource, /if \(score >= 86\) return "hot";[\s\S]*?if \(score >= 58\) return "warm";[\s\S]*?if \(score >= 35\) return "medium";/, "score colors must align with the rarity tier anchors");
-assert.match(pageSource, /signal\.scoreBasis/, "the UI must explain the score basis returned by the API");
+assert.match(pageSource, />Signal Score</, "the buying guide names the customer score");
+assert.match(pageSource, /decision\.score/, "the buying guide displays the shared score");
+assert.match(pageSource, /decision\.confidence/, "a score always includes its evidence level");
+assert.match(pageSource, /decision\.reasons/, "the customer can inspect which evidence contributes");
+assert.doesNotMatch(pageSource, /signal\.(?:rarityScore|verdict|scoreBasis)/, "the legacy rarity score and verdict are not the buying guide");
 assert.doesNotMatch(pageSource, />Bottle Score</, "the ambiguous Bottle Score label must be retired");
 
 console.log("Bottle Check rarity-score contract passed.");

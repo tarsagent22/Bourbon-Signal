@@ -2,6 +2,25 @@
   "version": 1,
   "records": [
     {
+      "key": "penelope-architect-bourbon",
+      "names": [
+        "Penelope Architect Bourbon",
+        "Penelope Architect"
+      ],
+      "identity": {
+        "requiredProof": 104
+      },
+      "ratings": [],
+      "release": {
+        "kind": "standard",
+        "label": "Core series",
+        "reason": "Penelope lists the 104-proof French oak finished Architect Bourbon as part of its Core Series.",
+        "source": "https://shop.penelopebourbon.com/products/architect-series",
+        "checkedAt": "2026-11-15"
+      },
+      "scopeNote": "Release context is for the standard 104-proof Architect. Individual builds and private barrels may differ."
+    },
+    {
       "key": "makers-mark",
       "names": [
         "Maker's Mark",

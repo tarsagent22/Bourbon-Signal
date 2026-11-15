@@ -36,6 +36,8 @@ export interface Signal {
     quantity?: number;
     quantityLabel?: string;
     price?: number;
+    sizeMl?: number;
+    priceObservedAt?: string;
     label?: string;
     caveat?: string;
   };

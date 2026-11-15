@@ -165,6 +165,7 @@ export default function SignalFeedScreen() {
   const selectedAreaLabel = selectedArea?.displayName || selectedArea?.label || filters.area;
   const bottleQuery = tier === undefined || detailedFilters ? bottleQueries[view] : "";
   const requestSequence = useRef(0);
+  const autoPageAttempt = useRef("");
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
   const loadedScopeRef = useRef("");
   const successfulRequestRef = useRef(0);
@@ -264,10 +265,17 @@ export default function SignalFeedScreen() {
     try {
       const page = await api.listSignals({ view, limit: 30, cursor: refresh ? null : cursor, fresh: refresh, ...requestFilters, bottle: undefined, search: requestFilters.bottle });
       if (requestId !== requestSequence.current || capturedScope !== scopeKeyRef.current) return;
-      if (refresh && page.degraded && restoredScope.current === capturedScope && !page.access.marketDetailsLocked) {
-        setError("Could not refresh. Showing saved reports.");
+      if (page.degraded && !page.access.marketDetailsLocked && (!refresh || signalsSnapshotRef.current.length)) {
+        setError(refresh ? "Could not refresh. Showing the reports already loaded." : "Could not load more reports. Try again.");
         return;
       }
+      if (!refresh && page.hasMore && page.nextCursor === cursor) {
+        setCursor(null);
+        setHasMore(false);
+        setError("The feed changed while you were reading. Refresh to continue.");
+        return;
+      }
+      if (refresh) autoPageAttempt.current = "";
       successfulRequestRef.current = requestId;
       displayedAccessScope.current = accessScope;
       if (refresh && restoredScope.current === capturedScope) {
@@ -437,11 +445,11 @@ export default function SignalFeedScreen() {
     let stopped = false;
     const capturedScope = scopeKey;
     const poll = async () => {
-      if (requestInFlightRef.current === "refresh") return;
+      if (requestInFlightRef.current) return;
       const requestId = ++backgroundRequestSequence.current;
       try {
         const page = await api.listSignals({ view, limit: 30, cursor: null, fresh: true, ...requestFilters, bottle: undefined, search: requestFilters.bottle });
-        if (stopped || requestId !== backgroundRequestSequence.current || capturedScope !== scopeKeyRef.current) return;
+        if (stopped || requestId !== backgroundRequestSequence.current || capturedScope !== scopeKeyRef.current || page.degraded) return;
         const scopedIncoming = filterSignalsByRarity(page.signals, filters.rarities);
         const accessChanged = JSON.stringify(accessSnapshotRef.current) !== JSON.stringify(page.access);
         if (accessChanged) {
@@ -708,6 +716,24 @@ export default function SignalFeedScreen() {
 
   const canPage = loaded && hasMore && Boolean(cursor) && !marketLocked;
   const retry = feedRetryAction(canPage);
+  const loadNextOnScroll = () => {
+    if (!canPage || loading || error || !screenActive || requestInFlightRef.current) return;
+    const key = JSON.stringify([scopeKey, cursor]);
+    if (autoPageAttempt.current === key) return;
+    autoPageAttempt.current = key;
+    void load(false);
+  };
+  const widenFeed = () => {
+    switch (emptyFeed.action) {
+      case "search": setBottleQueries(current => ({ ...current, [view]: "" })); applyFilters({ ...filters, bottle: "" }); break;
+      case "time": applyFilters({ ...filters, freshness: null }); break;
+      case "rarity": applyFilters({ ...filters, rarities: [] }); break;
+      case "area": applyFilters({ ...filters, area: "" }); break;
+      case "state": applyFilters({ ...filters, state: "", area: "" }); break;
+      case "post": router.push("/(app)/(tabs)/post"); break;
+      case "community": selectView("community"); break;
+    }
+  };
   const feedFooter = loaded && loading && (canPage || visibleSignals.length > 0)
     ? <View style={styles.footer}><Text accessibilityLiveRegion="polite" style={styles.loadingText}>Loading signals…</Text></View>
     : error && visibleSignals.length
@@ -720,7 +746,10 @@ export default function SignalFeedScreen() {
           </Pressable>
         </View>
         : loaded && visibleSignals.length
-          ? view === "market" && tier === "free" ? <View style={styles.footer}><Text style={styles.end}>You’ve reached the end of your Intel preview.</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>Get the full feed and bottle alerts →</Text></Pressable></View> : <Text style={styles.end}>You’re caught up.</Text>
+          ? view === "market" && tier === "free" ? <View style={styles.footer}><Text style={styles.end}>You’ve reached the end of your Intel preview.</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>Get the full feed and bottle alerts →</Text></Pressable></View> : <View style={styles.footer}>
+              <Text style={styles.end}>{filters.area || filters.state || filters.freshness || filters.rarities.length || filters.bottle ? "End of reports for this view" : "You’re caught up."}</Text>
+              <Pressable accessibilityRole="button" onPress={widenFeed} style={styles.retryTarget}><Text style={styles.retry}>{emptyFeed.actionLabel}</Text></Pressable>
+            </View>
           : null;
 
   return (
@@ -751,6 +780,8 @@ export default function SignalFeedScreen() {
       data={visibleSignals}
       keyboardShouldPersistTaps="handled"
       onScroll={(event) => { scrollOffset.current = event.nativeEvent.contentOffset.y; if (pendingOffset.current === null) { savedOffsets.current.delete(scopeKey); savedOffsets.current.set(scopeKey, scrollOffset.current); if (savedOffsets.current.size > 8) savedOffsets.current.delete(savedOffsets.current.keys().next().value!); } }}
+      onEndReached={loadNextOnScroll}
+      onEndReachedThreshold={0.5}
       onContentSizeChange={(_width, height) => { listContentHeight.current = height; restoreScrollPosition(); }}
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
@@ -778,17 +809,7 @@ export default function SignalFeedScreen() {
               </View>
             : canPage ? <Text style={styles.end}>No matching signals on this page.</Text>
             : <View style={{gap:12}}><EmptyState title={emptyFeed.title} detail={emptyFeed.detail} actionLabel={emptyFeed.actionLabel}
-              onAction={() => {
-                switch (emptyFeed.action) {
-                  case "search": setBottleQueries(current => ({ ...current, [view]: "" })); applyFilters({ ...filters, bottle: "" }); break;
-                  case "time": applyFilters({ ...filters, freshness: null }); break;
-                  case "rarity": applyFilters({ ...filters, rarities: [] }); break;
-                  case "area": applyFilters({ ...filters, area: "" }); break;
-                  case "state": applyFilters({ ...filters, state: "", area: "" }); break;
-                  case "post": router.push("/(app)/(tabs)/post"); break;
-                  case "community": selectView("community"); break;
-                }
-              }} />
+              onAction={widenFeed} />
               {view!=="community"?<Pressable accessibilityRole="button" onPress={()=>router.push({pathname:'/(app)/account/coverage',params:coverageContext({state:filters.state || profile?.homeState,area:selectedAreaLabel})})} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.accent,fontWeight:'700'}}>Request coverage here →</Text></Pressable>:null}</View>}
       ListFooterComponent={feedFooter}
     />

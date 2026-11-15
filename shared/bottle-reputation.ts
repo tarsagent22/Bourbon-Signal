@@ -13,7 +13,10 @@ export interface BottleReputation {
 const normalize = (value: string) => value.normalize('NFKD').toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 export const BOTTLE_REPUTATION = registry.records as BottleReputation[];
 export const currentEvidence = (date: string, now: Date, days = 365) => {
-  const at = Date.parse(date); return Number.isFinite(at) && at <= now.getTime() && now.getTime() - at <= days * 86400000;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const at = Date.parse(date);
+  return Number.isFinite(at) && new Date(at).toISOString().slice(0, 10) === date
+    && at <= now.getTime() && now.getTime() - at <= days * 86400000;
 };
 
 /** Exact expression names only: never transfer a brand's rating to another age, proof or store pick. */
