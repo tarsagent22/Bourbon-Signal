@@ -136,6 +136,11 @@ test('FL and IN proof normalization reverse exact additions while preserving the
   const originalHash = evidence.implementationFilesSha256[name];
   const originalBoundary = '    } : undefined\n  };\n}\n\nfunction signalSort(a, b) {\n';
   const indianaAddition = "    ...(sig.state === 'IN' ? { sourceProductBinding: sig.sourceProductBinding || null } : {}),\n";
+  const sdImport = "import {isSouthDakotaProductionOnSiteSignal} from './south-dakota-pickup-policy.mjs';\n";
+  const sdGate = "  // Keep the reviewed binary pickup proof intact through the backend snapshot\n  // transform. The predicate is deliberately evaluated against the original\n  // collector row before projecting only the proof marker needed downstream.\n  const isSouthDakotaProductionPickup = isSouthDakotaProductionOnSiteSignal(signal);\n";
+  const sdProjection = /^    \.\.\.\(isSouthDakotaProductionPickup \? \{\n[\s\S]+?^    \} : \{\}\),\n/mu.exec(current)?.[0];
+  const sdMarker = '    ...(isSouthDakotaProductionPickup ? {raw: {productionOnSiteOnly: true}} : {}),\n';
+  assert.ok(sdProjection);
   const addition = `    } : undefined,
     ...(signal.state === 'FL' ? {
       optionValueId: signal.optionValueId ?? signal.raw?.optionValueId ?? null,
@@ -151,7 +156,7 @@ test('FL and IN proof normalization reverse exact additions while preserving the
         'officialAddress', 'officialCity', 'officialZip', 'officialLatitude', 'officialLongitude',
       ].filter((field) => Object.hasOwn(signal.raw, field)).map((field) => [field, signal.raw[field]])) : undefined,
     } : {}),
-  };
+${sdMarker}  };
 }
 
 function signalSort(a, b) {
@@ -162,6 +167,7 @@ function signalSort(a, b) {
   assert.equal(digest(normalized), originalHash);
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
   assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, '')
+    .replace(sdImport, '').replace(sdGate, '').replace(sdProjection, '')
     .replace("import {isDelawareEcwidProductionOnSiteSignal} from './delaware-ecwid-production-policy.mjs';\n", '')
     .replace(`    ...(isDelawareEcwidProductionOnSiteSignal(signal)?{
       tier:signal.tier,inventorySemantics:signal.inventorySemantics,
@@ -206,6 +212,8 @@ function signalSort(a, b) {
     .replace(arizonaMetroTierImport, '').replace(arizonaMetroTierBoundary, originalArizonaMetroTierBoundary)
     .replace("    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n"));
   for (const altered of [
+    current.replace(sdMarker, sdMarker.replace('true', 'false')),
+    current.replace(sdProjection, sdProjection.replace('eligibleForDelivery: false', 'eligibleForDelivery: true')),
     current.replace(addition, originalBoundary),
     current + '\n' + addition,
     current.replace(addition, addition.replace("signal.state === 'FL'", "signal.state === 'MS'")),
