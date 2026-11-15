@@ -86,9 +86,7 @@ export type UserFacingDropSignal = {
   quarantined?: boolean;
   sourceReportSha256?: string;
   sourceReportGeneratedAt?: string;
-  observedAt?: string;
   lastConfirmedAt?: string;
-  quantityIsExact?: boolean;
 };
 
 function asNumber(value: unknown, fallback = 0) {
