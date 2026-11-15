@@ -183,13 +183,16 @@
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
         "retailer_storefront",
         "public_platform_surface",
         "allocated_release"
       ],
-      "currentBlockers": [],
+      "currentBlockers": [
+        "Sparse scope: two exact Rapid City premises only; statewide coverage is not claimed.",
+        "This isolated activation candidate is not merged or deployed; first production publication verification remains pending and all alerts/delivery stay disabled."
+      ],
       "rankingInputs": {
         "demandSignals": [],
         "strategicSignals": []
@@ -201,7 +204,12 @@
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": []
+      "promotionEvidenceRefs": [
+        "engine/data/state-integration/SD.json",
+        "engine/data/state-fixtures/SD.json",
+        "engine/data/canary-site/sd-protected-preview-20261114.json",
+        "src/config/state-lifecycle.json"
+      ]
     },
     {
       "state": "DE",
@@ -1173,9 +1181,7 @@
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": [
-        "src/config/state-lifecycle.json"
-      ]
+      "promotionEvidenceRefs": []
     },
     {
       "state": "SD",
@@ -1184,13 +1190,16 @@
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
         "retailer_storefront",
         "public_platform_surface",
         "allocated_release"
       ],
-      "currentBlockers": [],
+      "currentBlockers": [
+        "Sparse scope: two exact Rapid City premises only; statewide coverage is not claimed.",
+        "This isolated activation candidate is not merged or deployed; first production publication verification remains pending and all alerts/delivery stay disabled."
+      ],
       "rankingInputs": {
         "demandSignals": [],
         "strategicSignals": []
@@ -1202,7 +1211,12 @@
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": []
+      "promotionEvidenceRefs": [
+        "engine/data/state-integration/SD.json",
+        "engine/data/state-fixtures/SD.json",
+        "engine/data/canary-site/sd-protected-preview-20261114.json",
+        "src/config/state-lifecycle.json"
+      ]
     },
     {
       "state": "TN",

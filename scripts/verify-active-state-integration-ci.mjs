@@ -23,6 +23,7 @@ const MD_SITE='engine/data/canary-site/md-active-candidate';
 const WY_SITE='engine/data/canary-site/wy-active-candidate';
 const DE_SITE='engine/data/canary-site/de-active-candidate';
 const ND_SITE='engine/data/canary-site/nd-active-candidate';
+const SD_SITE='engine/data/canary-site/sd-active-candidate-20261115';
 const REVIEWED_SOURCE_SITES=new Map([
   ...[...REVIEWED_STATES].map(state=>[state,REVIEWED_SITE]),
   ['AK',LA_AK_SITE],
@@ -36,6 +37,7 @@ const REVIEWED_SOURCE_SITES=new Map([
   ['WY',WY_SITE],
   ['DE',DE_SITE],
   ['ND',ND_SITE],
+  ['SD',SD_SITE],
 ]);
 const array=value=>Array.isArray(value)?value:[];
 const readJson=async(file,fallback)=>{try{return JSON.parse(await readFile(file,'utf8'));}catch{return fallback;}};
@@ -67,7 +69,7 @@ export async function verifyActiveStateIntegrationForCi({root=DEFAULT_ROOT,state
     if(reviewedSite&&manifest?.evidence?.production?.status==='awaiting_first_publication'){
       if(manifest.evidence.canary?.siteArtifact!==reviewedSite)throw Error(`${state}: CI artifact must be the exact reviewed canary path`);
       const requiresPartitionProof=reviewedSite===LA_AK_SITE||reviewedSite===RI_SITE||reviewedSite===MN_SITE
-        ||reviewedSite===KS_SITE||reviewedSite===AR_SITE||reviewedSite===MO_SITE||reviewedSite===MD_SITE||reviewedSite===WY_SITE||reviewedSite===DE_SITE||reviewedSite===ND_SITE;
+        ||reviewedSite===KS_SITE||reviewedSite===AR_SITE||reviewedSite===MO_SITE||reviewedSite===MD_SITE||reviewedSite===WY_SITE||reviewedSite===DE_SITE||reviewedSite===ND_SITE||reviewedSite===SD_SITE;
       if(requiresPartitionProof){
         const proof=await readJson(path.join(root,reviewedSite,'source-proof.json'),null);
         const source=proof?.runs?.find(entry=>entry.state===state);

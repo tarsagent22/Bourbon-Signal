@@ -118,9 +118,18 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
 `,'',`${name}: AK/LA production projection`);
     bytes = Buffer.from(implementation);
     bytes = Buffer.from(replaceUnique(bytes.toString('utf8'), "    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n", `${name}: exact SC Square proof preservation`));
+    let text = bytes.toString('utf8');
+    const southDakotaImport = "import {isSouthDakotaProductionOnSiteSignal} from './south-dakota-pickup-policy.mjs';\n";
+    if (text.includes(southDakotaImport)) {
+      text = replaceUnique(text, southDakotaImport, '', `${name}: South Dakota proof import`);
+      text = replaceUnique(text, "  // Keep the reviewed binary pickup proof intact through the backend snapshot\n  // transform. The predicate is deliberately evaluated against the original\n  // collector row before projecting only the proof marker needed downstream.\n  const isSouthDakotaProductionPickup = isSouthDakotaProductionOnSiteSignal(signal);\n", '', `${name}: South Dakota proof gate`);
+      text = replaceUnique(text, `    ...(isSouthDakotaProductionPickup ? {\n      // The reviewed adapter tier is derived from the exact scoped library\n      // identity; generic Bible tier fallback can otherwise discard it.\n      tier: signal.tier,\n      canAlertAsInventory: false,\n      canAlertAsWatch: false,\n      alertable: false,\n      eligibleForOnSite: true,\n      eligibleForDropFeed: true,\n      eligibleForWatch: false,\n      eligibleForDelivery: false,\n      eligibleForEmail: false,\n      eligibleForSms: false,\n      deliveryEligible: false,\n    } : {}),\n`, '', `${name}: South Dakota proof projection`);
+      text = replaceUnique(text, "    ...(isSouthDakotaProductionPickup ? {raw: {productionOnSiteOnly: true}} : {}),\n", '', `${name}: South Dakota proof marker`);
+      bytes = Buffer.from(text);
+    }
     // Reverse only this exact FL proof-preservation addition at its original
     // canonicalization boundary. The original MS full-file digest stays pinned.
-    let text = replaceUnique(bytes.toString('utf8'), floridaProofBoundary, originalFloridaProofBoundary, `${name}: FL proof`);
+    text = replaceUnique(bytes.toString('utf8'), floridaProofBoundary, originalFloridaProofBoundary, `${name}: FL proof`);
     text = replaceUnique(text, indianaCandidateProof, '', `${name}: IN candidate proof`);
     // Permit only the exact shared library suppression. It cannot enable an
     // alert or change the pinned Mississippi source and inventory policies.
@@ -172,6 +181,14 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const southDakotaEntry=/^    "SD": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if(southDakotaEntry){
+      const exactEntry=southDakotaEntry.replace(/,?\n$/,'');
+      assert.equal(createHash('sha256').update(exactEntry).digest('hex'),'58fb4467d293e6e8720e69231dddd5825ed1c37cc85f03f7344b41bbdb1c99a0',`${name}: exact South Dakota lifecycle entry`);
+      text=replaceUnique(text,southDakotaEntry,'',`${name}: exact South Dakota lifecycle entry`);
+      text=replaceUnique(text,'    "ND",\n    "SD"\n  ],\n  "reliabilityPolicy"','    "ND"\n  ],\n  "reliabilityPolicy"',`${name}: exact South Dakota active list entry`);
+      text=replaceUnique(text,'      "ND": 30000,\n      "SD": 60000\n','      "ND": 30000\n',`${name}: exact South Dakota expected runtime entry`);
+    }
     const northDakotaEntry=/^    "ND": \{\n[\s\S]+?^    \},?\n/mu.exec(text)?.[0];
     if(northDakotaEntry){
       const exactEntry=northDakotaEntry.replace(/,?\n$/,'');
@@ -197,6 +214,12 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     if(text.includes(northDakotaImport)){
       text=replaceUnique(text,northDakotaImport,'',`${name}: North Dakota source import`);
       text=replaceUnique(text,'  NORTH_DAKOTA_RETAIL_CONFIG,\n','',`${name}: exact North Dakota source registration`);
+    }
+    const southDakotaImport="import { origin as SD_MR_LIQUOR_ORIGIN, batchPath as SD_MR_LIQUOR_PATH } from './south-dakota-pickup-policy.mjs';\n";
+    const southDakotaEntry="  {\n    id: 'SD', label: 'South Dakota first-party pickup inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30m',\n    value: 'Exact Mr. Liquor Santé pickup at two reviewed Rapid City premises; statewide coverage is not established.',\n    sources: [{ kind: 'api', url: SD_MR_LIQUOR_ORIGIN + SD_MR_LIQUOR_PATH, label: 'Mr. Liquor Rapid City first-party pickup', precisionOnly: true }],\n    apiCandidates: []\n  },\n";
+    if(text.includes(southDakotaImport)){
+      text=replaceUnique(text,southDakotaImport,'',`${name}: South Dakota source import`);
+      text=replaceUnique(text,southDakotaEntry,'',`${name}: exact South Dakota source registration`);
     }
     const wyomingImport = "import { WYOMING_GROCERY_CONFIG } from './collectors/wyoming-grocery-production.mjs';\n";
     if (text.includes(wyomingImport)) {

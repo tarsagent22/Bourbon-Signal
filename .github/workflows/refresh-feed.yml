@@ -568,6 +568,11 @@ jobs:
         working-directory: engine
         run: node src/verify-nd-first-publication.mjs
 
+      - name: Require current South Dakota inventory at first publication
+        if: ${{ startsWith(inputs.incident_key, 'south-dakota-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-sd-first-publication.mjs
+
       - name: Require current Missouri pickup inventory at first publication
         if: ${{ startsWith(inputs.incident_key, 'missouri-first-publication-') }}
         working-directory: engine
@@ -820,6 +825,9 @@ jobs:
             engine/out/first-publication/ND.json
             engine/out/states/ND.json
             engine/out/site/states/ND/drops.json
+            engine/out/first-publication/SD.json
+            engine/out/states/SD.json
+            engine/out/site/states/SD/drops.json
             engine/out/first-publication/WY.json
             engine/out/site/states/WY/drops.json
             engine/out/az-expansion-verification.json

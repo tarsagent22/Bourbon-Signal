@@ -1,0 +1,43 @@
+{
+  "contractVersion": "bourbon-signal-site-v0.1",
+  "count": 2,
+  "locations": [
+    {
+      "id": "sante:sd:mr-liquor:5187",
+      "storeId": "sante:sd:mr-liquor:5187",
+      "state": "SD",
+      "name": "Mr. Liquor West",
+      "address": "3609 Sturgis Road, Rapid City, SD 57702",
+      "city": "Rapid City",
+      "zip": "57702",
+      "type": "store",
+      "locationType": "store",
+      "precision": "store_level",
+      "searchable": true,
+      "collectorAttached": true,
+      "hasSignals": true,
+      "storeName": "Mr. Liquor West",
+      "storeAddress": "3609 Sturgis Road, Rapid City, SD 57702"
+    },
+    {
+      "id": "sante:sd:mr-liquor:5220",
+      "storeId": "sante:sd:mr-liquor:5220",
+      "state": "SD",
+      "name": "Mr. Liquor South",
+      "address": "5312 Black Hills Blvd, Rapid City, SD 57701",
+      "city": "Rapid City",
+      "zip": "57701",
+      "type": "store",
+      "locationType": "store",
+      "precision": "store_level",
+      "searchable": true,
+      "collectorAttached": true,
+      "hasSignals": true,
+      "storeName": "Mr. Liquor South",
+      "storeAddress": "5312 Black Hills Blvd, Rapid City, SD 57701"
+    }
+  ],
+  "runId": "87a0f16411be8977",
+  "generatedAt": "2026-11-15T01:54:00.530Z",
+  "engineGeneratedAt": "2026-11-15T01:48:27.517Z"
+}

@@ -1,0 +1,230 @@
+import { createHash, randomUUID } from 'node:crypto';
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fetchReviewedFirstPartyText, CITYHIVE_DENIAL_STATUSES } from './collectors/central-cityhive-transport.mjs';
+import { centralCityHiveRecordMarketTier } from './collectors/central-cityhive-market-policy.mjs';
+import { stableId } from './core/text.mjs';
+
+import {
+  batchPath, city, fullAddress, origin, silent, sourceId, sources, storeId, southDakotaRetailerRequest,
+} from './south-dakota-pickup-policy.mjs';
+export { isSouthDakotaShadowPickup, southDakotaRetailerRequest } from './south-dakota-pickup-policy.mjs';
+
+const label = 'Rapid City first-party pickup research';
+const config = Object.freeze({
+  id: 'SD', label, tier: 'B', active: false, strategy: 'retailer_store_inventory', cadence: 'shadow-only',
+  value: 'Closed set of reviewed pickup stores and indexed bottle expressions in Rapid City.',
+  sources: [{kind: 'api', label, url: origin + batchPath, precisionOnly: true}], apiCandidates: [],
+});
+export const southDakotaResearchSource = state => state === 'SD' ? config : null;
+export const southDakotaResearchLifecycle = () => ({
+  SD: { customerLabel: 'South Dakota', sourceLabel: label, publicStatus: 'research_only', shadowEligible: true,
+    lifecycle: 'retailer_inventory_research', coverageTier: 'sparse_live_store_inventory',
+    refinementLevel: 'store', inventoryAlertable: false, watchAlertable: false },
+});
+
+function reviewedStore(payload, source) {
+  if (!Array.isArray(payload) || payload.length !== 3) return null;
+  const [organization, checkout, catalog] = payload.map(row => row?.result?.data?.json);
+  const merchant = organization?.currentStore;
+  if (merchant?.id !== source.id || merchant.publicId !== source.publicId || merchant.name !== source.name
+    || merchant.address !== source.address || merchant.city !== city || merchant.state !== 'SD'
+    || merchant.zip !== source.zip || merchant.ecomStore?.pickupEnabled !== true
+    || checkout?.storeId !== source.id || checkout.checkoutEnabled !== true || checkout.pickupEnabled !== true
+    || !Number.isSafeInteger(catalog?.count) || catalog.count < 0 || !Array.isArray(catalog.data)
+    || catalog.data.length !== Math.min(20,catalog.count) || catalog.data.some(row => row?.storeId !== source.id)) return null;
+  return catalog;
+}
+
+export function reviewSouthDakotaPickup(payload, store, bible, observedAt, queryUrl) {
+  const source = sources.find(entry => entry.id === store);
+  if (!source || !source.terms.some(term => southDakotaRetailerRequest(term) === queryUrl)
+    || !Number.isFinite(Date.parse(observedAt))) return null;
+  const catalog = reviewedStore(payload, source);
+  if (!catalog) return null;
+  const signals = [];
+  for (const row of catalog.data) {
+    const product = source.products.find(([id,upc,title]) => row.publicId === id && row.upc === upc && row.title === title);
+    if (!product || row.sizeMl_rollup !== 750 || row.isCase !== false || row.isKeg !== false
+      || row.backorderEnabled !== false || (row.packSize != null && row.packSize !== 1)
+      || !Array.isArray(row.channels) || !row.channels.includes('Online')
+      || !Number.isSafeInteger(row.price) || row.price <= 0 || !Number.isSafeInteger(row.onlineQtyAvailable)
+      || row.onlineQtyAvailable <= 0 || !Number.isSafeInteger(row.qtyAvailableStandalone)
+      || !Number.isSafeInteger(row.qtyReservedOnline) || row.qtyReservedOnline < 0
+      || row.qtyAvailableStandalone - row.qtyReservedOnline < row.onlineQtyAvailable) continue;
+    const match = bible.match(product[3]);
+    if (match?.record?.canonical !== product[3] || match.confidence !== 1) continue;
+    const tier = centralCityHiveRecordMarketTier(match.record, 'SD');
+    if (!['limited', 'allocated', 'unicorn'].includes(tier)) continue;
+    const id = storeId(source), address = fullAddress(source);
+    const price = row.price / 100;
+    const proof = {source: 'mr-liquor-sante', shadowOnly: true, storeId: id, storeAddress: address,
+      premiseVerified: true, pickupOfferVerified: true, productId: row.publicId, upc: row.upc,
+      canonicalBottleId: match.record.id, observedAt, quantitySemantics: 'binary_retailer_orderable_no_exact_count',
+      availableToOrder: row.onlineQtyAvailable};
+    signals.push({
+      id: stableId(['SD', id, row.publicId]), state: 'SD', stateCode: 'SD', eventType: 'retailer_store_inventory_result',
+      sourceLabel: source.name + ' first-party pickup inventory', sourceUrl: queryUrl, sourceRuntimeId: sourceId(source),
+      productId: row.publicId, canonicalBottleId: match.record.id, canonicalName: match.record.canonical,
+      rawName: row.title, tier, locationPrecision: 'store_level', storeId: id, storeName: source.name,
+      storeAddress: address, locationName: source.name, city, postalCode: source.zip, observedAt, price,
+      quantity: 0, quantityIsExact: false, quantitySemantics: proof.quantitySemantics,
+      availabilityStatus: 'in_stock', sourceAvailabilityVerified: true, sourceProductBinding: proof, raw: {shadowOnly:true},
+      ...silent,
+    });
+  }
+  return {signals, availableCatalogCount: catalog.count};
+}
+
+export async function collectSouthDakotaResearch(incoming, bible, {
+  signal, env = process.env, fetchText = fetchReviewedFirstPartyText,
+  attemptsFile = path.resolve('out/research-source-attempts/south-dakota-mr-liquor.json'),
+  reportDirectory = env.BOURBON_SIGNAL_STATE_OUT_FILE ? path.dirname(env.BOURBON_SIGNAL_STATE_OUT_FILE) : null,
+  sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
+  now = () => Date.now(),
+} = {}) {
+  if (env.BOURBON_SIGNAL_SHADOW_MODE !== '1' || incoming !== config) throw Error('South Dakota requires its registered shadow mode.');
+  const startedAt = new Date(now()).toISOString();
+  let previous = null;
+  try {
+    previous = JSON.parse(await readFile(attemptsFile, 'utf8'));
+    if (!previous || typeof previous !== 'object' || Array.isArray(previous)) throw Error('South Dakota source attempt journal must be an object.');
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+  if (previous !== null && (!previous || ![1,2].includes(previous.schemaVersion || 1)
+    || !Number.isFinite(Date.parse(previous?.nextAllowedAt ?? ''))
+    || previous.schemaVersion === 2 && (!previous.hosts || typeof previous.hosts !== 'object' || Array.isArray(previous.hosts)
+      || Object.entries(previous.hosts).some(([host, entry]) => !/^[a-z0-9.-]{1,253}$/i.test(host)
+        || !entry || !CITYHIVE_DENIAL_STATUSES.has(Number(entry.httpStatus))
+        || !Number.isFinite(Date.parse(entry.lastAttemptAt || '')) || !Number.isFinite(Date.parse(entry.nextAllowedAt || ''))
+        || Date.parse(entry.nextAllowedAt) - Date.parse(entry.lastAttemptAt) < 86_400_000)))) {
+    throw Error('Invalid South Dakota source attempt clock.');
+  }
+  const requests = [], selected = [], rows = new Map(), roadblocks = [];
+  const host = new URL(origin).hostname;
+  const hosts = {...(previous?.schemaVersion === 2 ? previous.hosts : {})};
+  if (previous?.schemaVersion === 1 && previous.deniedHost === host
+    && Number.isFinite(Date.parse(previous.denialLastAttemptAt || ''))
+    && Number.isFinite(Date.parse(previous.nextAllowedAt || ''))) {
+    hosts[host] = {httpStatus: Number(previous.httpStatus) || 403, lastAttemptAt: previous.denialLastAttemptAt,
+      nextAllowedAt: previous.nextAllowedAt, retryAfterSeconds: Number(previous.retryAfterSeconds) || 0};
+  }
+  let ledger = previous?.schemaVersion === 2 ? {...previous, hosts} : {schemaVersion: 2, hosts};
+  const persist = async value => {
+    await mkdir(path.dirname(attemptsFile), {recursive: true});
+    const temporary = attemptsFile + '.' + randomUUID() + '.tmp';
+    try {
+      await writeFile(temporary, JSON.stringify(value));
+      await rename(temporary, attemptsFile);
+    } finally {
+      await rm(temporary, {force: true});
+    }
+  };
+  const nowMs = now();
+  if (!Number.isFinite(nowMs)) throw Error('Invalid South Dakota collector clock.');
+  if (ledger.lastAttemptAt && nowMs < Date.parse(ledger.lastAttemptAt) - 5 * 60_000) {
+    throw Error('South Dakota source attempt clock is from the future.');
+  }
+  const pairDue = Date.parse(ledger.nextAllowedAt || '') <= nowMs || previous === null;
+  let attempted = false;
+  if (pairDue) {
+    const attemptAt = new Date(nowMs).toISOString();
+    ledger = {...ledger, schemaVersion: 2, lastAttemptAt: attemptAt,
+      nextAllowedAt: new Date(nowMs + 30 * 60_000).toISOString(), hosts};
+    await persist(ledger);
+    attempted = true;
+    for (const source of sources) {
+      let successful = true;
+      const cooldown = ledger.hosts[host];
+      if (Date.parse(cooldown?.nextAllowedAt || '') > now()) {
+        successful = false;
+        roadblocks.push({state: 'SD', source: source.name, status: cooldown.httpStatus,
+          error: 'source_host_cooldown', nextAllowedAt: cooldown.nextAllowedAt});
+        continue;
+      }
+      for (const term of source.terms) {
+        if (requests.length) await sleep(1000);
+        signal?.throwIfAborted();
+        const url = southDakotaRetailerRequest(term);
+        try {
+          const response = await fetchText(url, {signal, timeoutMs: 9000, maxBytes: 2 * 1024 * 1024,
+            headers: {accept: 'application/json', cookie: 'childStorePublicId=' + source.publicId},
+            isAllowedUrl: target => target.href === url,
+            onResponse: async value => {
+              const code = Number(value.status);
+              if (!CITYHIVE_DENIAL_STATUSES.has(code) && !(code >= 200 && code < 300)) return;
+              const nextHosts = {...ledger.hosts};
+              if (!CITYHIVE_DENIAL_STATUSES.has(code)) {
+                if (!nextHosts[host]) return;
+                delete nextHosts[host];
+                ledger = {...ledger, hosts: nextHosts};
+                await persist(ledger);
+                return;
+              }
+              const deniedAtMs = now();
+              const retryAfterSeconds = Math.max(0, Number(value.retryAfterSeconds) || 0);
+              const delay = Math.max(86_400_000, retryAfterSeconds * 1000);
+              ledger = {...ledger, hosts: {...ledger.hosts, [host]: {httpStatus: Number(value.status),
+                lastAttemptAt: new Date(deniedAtMs).toISOString(), retryAfterSeconds,
+                nextAllowedAt: new Date(Math.min(8_640_000_000_000_000, deniedAtMs + delay)).toISOString()}}};
+              await persist(ledger);
+            },
+          });
+          const observedAt = new Date(now()).toISOString();
+          const replay = response.status === 200 && response.url === url
+            ? reviewSouthDakotaPickup(JSON.parse(response.text), source.id, bible, observedAt, url) : null;
+          const sha256 = replay ? createHash('sha256').update(response.text).digest('hex') : null;
+          const artifactPath = sha256 && reportDirectory
+            ? `source-captures/${requests.length + 1}-${sha256.slice(0,12)}.json` : null;
+          const request = {storeId: storeId(source), query: term, url, status: response.status, observedAt,
+            ok: Boolean(replay), sha256, artifactPath};
+          requests.push(request);
+          if (!replay) throw Error(`Pickup response did not verify (${response.status}).`);
+          if (artifactPath) {
+            // The retail response exposes operational metadata unrelated to pickup.
+            // Retain only the fields the exact-store verifier needs to replay.
+            const [organization, checkout, catalog] = JSON.parse(response.text).map(row => row.result.data.json);
+            const publicStore = organization.currentStore;
+            const capture = [{currentStore: {
+              id: publicStore.id, publicId: publicStore.publicId, name: publicStore.name, address: publicStore.address,
+              city: publicStore.city, state: publicStore.state, zip: publicStore.zip,
+              ecomStore: {pickupEnabled: publicStore.ecomStore.pickupEnabled},
+            }}, {storeId: checkout.storeId, pickupEnabled: checkout.pickupEnabled, checkoutEnabled: checkout.checkoutEnabled},
+            {count: catalog.count, data: catalog.data.map(row => Object.fromEntries([
+              'publicId','upc','title','storeId','price','sizeMl_rollup','isCase','isKeg','backorderEnabled',
+              'packSize','channels','onlineQtyAvailable','qtyAvailableStandalone','qtyReservedOnline',
+            ].map(key => [key, row[key]])))}].map(json => ({result: {data: {json}}}));
+            const safeBody = JSON.stringify(capture);
+            await mkdir(path.join(reportDirectory, 'source-captures'), {recursive: true});
+            await writeFile(path.join(reportDirectory, artifactPath), safeBody, {flag: 'wx', signal});
+            request.retainedCaptureSha256 = createHash('sha256').update(safeBody).digest('hex');
+          }
+          for (const row of replay.signals) rows.set(row.id,row);
+        } catch (error) {
+          signal?.throwIfAborted();
+          successful = false;
+          roadblocks.push({state: 'SD', source: source.name, status: requests.at(-1)?.status ?? error.status ?? 0,
+            error: error.message, ...(ledger.hosts[host] ? {nextAllowedAt: ledger.hosts[host].nextAllowedAt} : {})});
+          break;
+        }
+      }
+      if (successful) selected.push(source);
+    }
+  }
+  const checkedSources = selected.map(source => ({sourceRuntimeId: sourceId(source), label: source.name,
+    url: origin, ok: true, status: 200, alertable: false, inventoryAlertable: false, watchAlertable: false}));
+  const complete = selected.length === sources.length && requests.length === 3;
+  const signals = [...rows.values()], finishedAt = new Date(now()).toISOString();
+  return {state: 'SD', label, tier: config.tier, strategy: config.strategy, cadence: config.cadence, startedAt, finishedAt,
+    lastGoodAt: complete ? finishedAt : signals.length ? finishedAt : null,
+    status: complete && signals.length ? 'useful' : signals.length ? 'partial_useful'
+      : roadblocks.length ? 'no_trusted_inventory' : attempted ? 'no_trusted_inventory' : 'not_due',
+    stale: false, signals, sources: checkedSources, sourceResults: checkedSources, roadblocks,
+    metadata: {complete, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false,
+      origin: env.GITHUB_ACTIONS === 'true' ? {
+        kind: 'github_actions', repository: env.GITHUB_REPOSITORY, workflowRunId: env.GITHUB_RUN_ID,
+        commitSha: env.GITHUB_SHA, runAttempt: env.GITHUB_RUN_ATTEMPT,
+      } : {kind: 'local_shadow_not_workflow_issued'},
+      verifiedPremises: selected.map(storeId), requests}};
+}

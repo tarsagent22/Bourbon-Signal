@@ -50,12 +50,12 @@ test('measured forecast reversal accepts only the complete reviewed map and pres
     const wyoming = '      "WY": 30000,\n';
     const recentBudgets = (current.includes(wyoming) ? wyoming : '') + (marylandBudget ? '      "MD": 15000,\n' : '') + '      "AR": 30000,\n      "MN": 30000,\n';
     const withRecentStateBudgets = map => withKansas(map.replace('"stateExpectedRunMs": {\n', '"stateExpectedRunMs": {\n' + recentBudgets));
-    const currentMap = withRecentStateBudgets(reviewed).replace('      "FL": 180000\n    }', '      "FL": 180000,\n      "DE": 55000,\n      "ND": 30000\n    }');
+    const currentMap = withRecentStateBudgets(reviewed).replace('      "FL": 180000\n    }', '      "FL": 180000,\n      "DE": 55000,\n      "ND": 30000,\n      "SD": 60000\n    }');
     assert.ok(current.includes(currentMap));
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
     for (const mutation of [current.replace(currentMap, withRecentStateBudgets(original)), current.replace(currentMap, withRecentStateBudgets('    "stateExpectedRunMs": {\n    }')), current + '\n' + reviewed,
       ...reviewed.split('\n').slice(1, -1).map(line => current.replace(line, line.replace(/\d+/, value => String(Number(value) + 1)))),
-    ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:measured runtime forecast|exact KS expected runtime|North Dakota expected runtime entry|four-state admission exact Delaware forecast entry).*exact historical verification hook/);
+    ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:measured runtime forecast|exact KS expected runtime|(?:North|South) Dakota expected runtime entry|four-state admission exact Delaware forecast entry).*exact historical verification hook/);
     const outside = current.replace('"refreshSafetyMarginMs": 300000', '"refreshSafetyMarginMs": 0');
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name], 'the map exception cannot hide a reduced refresh reserve');
   }
@@ -79,7 +79,7 @@ test('actual four-state admission reverses only the exact active list and issued
         : [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed];
       for (const mutation of mutations) {
         assert.notEqual(mutation, current);
-        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN|KS|AR) active list tail|exact (?:MD|WY) active list head|exact North Dakota active list entry).*exact historical verification hook/);
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN|KS|AR) active list tail|exact (?:MD|WY) active list head|exact (?:North|South) Dakota active list entry).*exact historical verification hook/);
       }
       if (key !== 'activeStates') for (const changed of [
         reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),
@@ -136,6 +136,11 @@ test('FL and IN proof normalization reverse exact additions while preserving the
   const originalHash = evidence.implementationFilesSha256[name];
   const originalBoundary = '    } : undefined\n  };\n}\n\nfunction signalSort(a, b) {\n';
   const indianaAddition = "    ...(sig.state === 'IN' ? { sourceProductBinding: sig.sourceProductBinding || null } : {}),\n";
+  const sdImport = "import {isSouthDakotaProductionOnSiteSignal} from './south-dakota-pickup-policy.mjs';\n";
+  const sdGate = "  // Keep the reviewed binary pickup proof intact through the backend snapshot\n  // transform. The predicate is deliberately evaluated against the original\n  // collector row before projecting only the proof marker needed downstream.\n  const isSouthDakotaProductionPickup = isSouthDakotaProductionOnSiteSignal(signal);\n";
+  const sdProjection = /^    \.\.\.\(isSouthDakotaProductionPickup \? \{\n[\s\S]+?^    \} : \{\}\),\n/mu.exec(current)?.[0];
+  const sdMarker = '    ...(isSouthDakotaProductionPickup ? {raw: {productionOnSiteOnly: true}} : {}),\n';
+  assert.ok(sdProjection);
   const addition = `    } : undefined,
     ...(signal.state === 'FL' ? {
       optionValueId: signal.optionValueId ?? signal.raw?.optionValueId ?? null,
@@ -151,7 +156,7 @@ test('FL and IN proof normalization reverse exact additions while preserving the
         'officialAddress', 'officialCity', 'officialZip', 'officialLatitude', 'officialLongitude',
       ].filter((field) => Object.hasOwn(signal.raw, field)).map((field) => [field, signal.raw[field]])) : undefined,
     } : {}),
-  };
+${sdMarker}  };
 }
 
 function signalSort(a, b) {
@@ -162,6 +167,7 @@ function signalSort(a, b) {
   assert.equal(digest(normalized), originalHash);
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
   assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, '')
+    .replace(sdImport, '').replace(sdGate, '').replace(sdProjection, '')
     .replace("import {isDelawareEcwidProductionOnSiteSignal} from './delaware-ecwid-production-policy.mjs';\n", '')
     .replace(`    ...(isDelawareEcwidProductionOnSiteSignal(signal)?{
       tier:signal.tier,inventorySemantics:signal.inventorySemantics,
@@ -206,6 +212,8 @@ function signalSort(a, b) {
     .replace(arizonaMetroTierImport, '').replace(arizonaMetroTierBoundary, originalArizonaMetroTierBoundary)
     .replace("    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n"));
   for (const altered of [
+    current.replace(sdMarker, sdMarker.replace('true', 'false')),
+    current.replace(sdProjection, sdProjection.replace('eligibleForDelivery: false', 'eligibleForDelivery: true')),
     current.replace(addition, originalBoundary),
     current + '\n' + addition,
     current.replace(addition, addition.replace("signal.state === 'FL'", "signal.state === 'MS'")),

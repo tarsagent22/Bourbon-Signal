@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       shadow_run_id:
-        description: "WY/OR/AK/LA/WA/NM/WI/OK/RI/MN/KS/AR/MO/MD/DE/NJ/MI/ND: successful workflow-issued shadow run to replay with original clocks"
+        description: "WY/OR/SD/AK/LA/WA/NM/WI/OK/RI/MN/KS/AR/MO/MD/DE/NJ/MI/ND: successful workflow-issued shadow run to replay with original clocks"
         required: false
         type: string
       candidate_drops:
@@ -50,13 +50,13 @@ jobs:
           set -euo pipefail
           if [[ ! "$RAW_STATE" =~ ^[A-Z]{2}(-[A-Z0-9]+)?$ ]]; then exit 1; fi
           if [[ ! "$RAW_CANDIDATE_DROPS" =~ ^data/canary-inputs/[A-Za-z0-9._/-]+\.json$ ]] || [[ "$RAW_CANDIDATE_DROPS" == *".."* ]]; then exit 1; fi
-          if [[ "$RAW_STATE" == "OR" || "$RAW_STATE" == "AK" || "$RAW_STATE" == "LA" || "$RAW_STATE" == "WA" || "$RAW_STATE" == "NM" || "$RAW_STATE" == "WI" || "$RAW_STATE" == "OK" || "$RAW_STATE" == "RI" || "$RAW_STATE" == "KS" || "$RAW_STATE" == "AR" || "$RAW_STATE" == "MO" || "$RAW_STATE" == "MD" || "$RAW_STATE" == "DE" || "$RAW_STATE" == "NJ" || "$RAW_STATE" == "MI" || "$RAW_STATE" == "MN" || "$RAW_STATE" == "WY" || "$RAW_STATE" == "ND" ]]; then
+          if [[ "$RAW_STATE" == "OR" || "$RAW_STATE" == "SD" || "$RAW_STATE" == "AK" || "$RAW_STATE" == "LA" || "$RAW_STATE" == "WA" || "$RAW_STATE" == "NM" || "$RAW_STATE" == "WI" || "$RAW_STATE" == "OK" || "$RAW_STATE" == "RI" || "$RAW_STATE" == "KS" || "$RAW_STATE" == "AR" || "$RAW_STATE" == "MO" || "$RAW_STATE" == "MD" || "$RAW_STATE" == "DE" || "$RAW_STATE" == "NJ" || "$RAW_STATE" == "MI" || "$RAW_STATE" == "MN" || "$RAW_STATE" == "WY" || "$RAW_STATE" == "ND" ]]; then
             if [[ ! "$RAW_SHADOW_RUN" =~ ^[0-9]+$ ]] || [[ "$RAW_CANDIDATE_DROPS" != "data/canary-inputs/$RAW_STATE.json" ]]; then
               echo "Reviewed artifact replay requires an actual shadow run and the fixed state canary path" >&2
               exit 1
             fi
           elif [[ -n "$RAW_SHADOW_RUN" ]]; then
-            echo "Artifact replay is reviewed only for WY/OR/AK/LA/WA/NM/WI/OK/RI/MN/KS/AR/MO/MD/DE/NJ/MI/ND" >&2
+            echo "Artifact replay is reviewed only for WY/OR/SD/AK/LA/WA/NM/WI/OK/RI/MN/KS/AR/MO/MD/DE/NJ/MI/ND" >&2
             exit 1
           fi
           echo "shadow_run=$RAW_SHADOW_RUN" >> "$GITHUB_OUTPUT"
@@ -94,6 +94,7 @@ jobs:
         run: |
           case "$STATE" in
             OR) node scripts/download-oregon-shadow.mjs --run="$SHADOW_RUN" --out-dir="engine/out/oregon-shadow-input/OR" ;;
+            SD) node scripts/download-south-dakota-shadow.mjs "$SHADOW_RUN" engine/out/sd-shadow-input ;;
             AK|LA) node scripts/download-laak-shadow.mjs --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/laak-shadow-input/$STATE" ;;
             NJ|MI|WI|OK|RI|MN|KS|AR|MO|MD|DE|ND|WA|NM|WY)
               case "$STATE" in NJ|MI) family=njmi ;; WI|OK|RI|MN|KS|AR|MO|MD|DE|ND) family=cityhive ;; WA|NM|WY) family=grocery ;; esac
@@ -109,6 +110,11 @@ jobs:
         run: |
           case "$STATE" in
             OR) family=oregon; preparer=prepare-oregon-canary.mjs ;;
+            SD)
+              node src/prepare-sd-pickup-canary.mjs out/sd-shadow-input "$SHADOW_RUN"
+              mkdir -p out/canary-preparation/SD
+              cp out/canary/SD/site/lifecycle-preview.json out/canary-preparation/SD/lifecycle-research.json
+              ;;
             AK|LA) family=laak; preparer=prepare-laak-canary.mjs ;;
             NJ|MI) family=njmi; preparer=prepare-nj-mi-canary.mjs ;;
             WI|OK|RI|MN|KS|AR|MO|MD|DE) family=cityhive; preparer=prepare-central-cityhive-canary.mjs ;;
@@ -160,7 +166,7 @@ jobs:
         env:
           STATE: ${{ steps.validate.outputs.state }}
         run: |
-          case "$STATE" in OR) verifier=test-oregon-public-canary.mjs ;; AK|LA) verifier=test-laak-public-canary.mjs ;; NJ|MI) verifier=test-nj-mi-public-canary.mjs ;; WI|OK|RI|MN|KS|AR|MO|MD|DE|ND) verifier=test-central-cityhive-public-canary.mjs ;; WA|NM|WY) verifier=test-grocery-public-canary.mjs ;; *) exit 1 ;; esac
+          case "$STATE" in OR) verifier=test-oregon-public-canary.mjs ;; SD) verifier=test-sd-public-canary.mjs ;; AK|LA) verifier=test-laak-public-canary.mjs ;; NJ|MI) verifier=test-nj-mi-public-canary.mjs ;; WI|OK|RI|MN|KS|AR|MO|MD|DE|ND) verifier=test-central-cityhive-public-canary.mjs ;; WA|NM|WY) verifier=test-grocery-public-canary.mjs ;; *) exit 1 ;; esac
           node --import tsx "scripts/$verifier" --state="$STATE"
 
       - name: Build workflow-issued provenance bundle
@@ -183,11 +189,16 @@ jobs:
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: engine/out/promotion-provenance/WY.json
+      - name: Attest South Dakota replay evidence
+        if: steps.validate.outputs.state == 'SD'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: engine/out/promotion-provenance/SD.json
       - name: Upload immutable promotion provenance
         uses: actions/upload-artifact@v4
         with:
           name: state-promotion-provenance-${{ steps.validate.outputs.state }}-${{ github.run_id }}
-          path: engine/out/promotion-provenance/${{ steps.validate.outputs.state }}.json
+          path: engine/out/promotion-provenance/*.json
           retention-days: 90
           if-no-files-found: error
 
@@ -207,6 +218,8 @@ jobs:
             engine/out/njmi-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
             engine/out/oregon-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
             engine/out/laak-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
+            engine/out/sd-shadow-input/provenance.json
+            engine/out/sd-shadow-input/SD/**
             engine/out/canary-preparation/${{ steps.validate.outputs.state }}/lifecycle-research.json
             engine/out/canary/${{ steps.validate.outputs.state }}/public-projection.json
             engine/out/canary/${{ steps.validate.outputs.state }}/site/public-projection.json
@@ -214,5 +227,6 @@ jobs:
             engine/out/canary/${{ steps.validate.outputs.state }}/site/lifecycle-preview.json
             engine/out/canary/${{ steps.validate.outputs.state }}/site/canary-preview-policy.json
             engine/out/canary-preparation/${{ steps.validate.outputs.state }}
+            engine/out/canary/SD/**
             engine/out/library-catalog.json
             engine/out/bourbon-bible.json
