@@ -106,9 +106,18 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
 `,'',`${name}: AK/LA production projection`);
     bytes = Buffer.from(implementation);
     bytes = Buffer.from(replaceUnique(bytes.toString('utf8'), "    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n", `${name}: exact SC Square proof preservation`));
+    let text = bytes.toString('utf8');
+    const southDakotaImport = "import {isSouthDakotaProductionOnSiteSignal} from './south-dakota-pickup-policy.mjs';\n";
+    if (text.includes(southDakotaImport)) {
+      text = replaceUnique(text, southDakotaImport, '', `${name}: South Dakota proof import`);
+      text = replaceUnique(text, "  // Keep the reviewed binary pickup proof intact through the backend snapshot\n  // transform. The predicate is deliberately evaluated against the original\n  // collector row before projecting only the proof marker needed downstream.\n  const isSouthDakotaProductionPickup = isSouthDakotaProductionOnSiteSignal(signal);\n", '', `${name}: South Dakota proof gate`);
+      text = replaceUnique(text, `    ...(isSouthDakotaProductionPickup ? {\n      // The reviewed adapter tier is derived from the exact scoped library\n      // identity; generic Bible tier fallback can otherwise discard it.\n      tier: signal.tier,\n      canAlertAsInventory: false,\n      canAlertAsWatch: false,\n      alertable: false,\n      eligibleForOnSite: true,\n      eligibleForDropFeed: true,\n      eligibleForWatch: false,\n      eligibleForDelivery: false,\n      eligibleForEmail: false,\n      eligibleForSms: false,\n      deliveryEligible: false,\n    } : {}),\n`, '', `${name}: South Dakota proof projection`);
+      text = replaceUnique(text, "    ...(isSouthDakotaProductionPickup ? {raw: {productionOnSiteOnly: true}} : {}),\n", '', `${name}: South Dakota proof marker`);
+      bytes = Buffer.from(text);
+    }
     // Reverse only this exact FL proof-preservation addition at its original
     // canonicalization boundary. The original MS full-file digest stays pinned.
-    let text = replaceUnique(bytes.toString('utf8'), floridaProofBoundary, originalFloridaProofBoundary, `${name}: FL proof`);
+    text = replaceUnique(bytes.toString('utf8'), floridaProofBoundary, originalFloridaProofBoundary, `${name}: FL proof`);
     text = replaceUnique(text, indianaCandidateProof, '', `${name}: IN candidate proof`);
     // Permit only the exact shared library suppression. It cannot enable an
     // alert or change the pinned Mississippi source and inventory policies.
