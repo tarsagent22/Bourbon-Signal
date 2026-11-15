@@ -27,6 +27,7 @@ const northDakotaReplayPreparationFiles=new Set([
   'engine/test/north-dakota-public-policy.test.mjs',
   'engine/test/north-dakota-retail-production.test.mjs',
   'scripts/test-ms-bundle-boundary.mjs',
+  'scripts/test-drop-feed-classification.mts',
   'scripts/test-nd-active-ci-fixture.mjs',
   'scripts/test-north-dakota-public-projection.mts',
   'scripts/verify-active-state-integration-ci.mjs',
