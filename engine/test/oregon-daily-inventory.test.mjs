@@ -13,6 +13,8 @@ const csv = `"OLCC Daily Store Inventory","Report Date","Store Number","Location
 ,11/13/2026,1004,Beer Shop,2 Main St,SALEM,97301,503-555-0102,Daily,1111,99900111175,"BOURBON BARREL STOUT",BEER,750 ML,0,0,2,9.99,119.88,11/12
 ,11/13/2026,1005,Whiskey Shop,3 Main St,SALEM,97301,503-555-0103,Daily,2222,99900222275,"RYE WHISKEY",DOMESTIC WHISKEY,750 ML,90,0,7,30.00,360.00,11/12`;
 
+const fixtureGeneratedAt = '2026-11-14T12:00:00.000Z';
+
 function bibleFor(revision = 'fixture-v1') {
   return { records: [{ revision }], match: (candidate) => ({ record: { id: `bb_${candidate}`, canonical: candidate, tier: 'allocated' }, method: 'exact-normalized-alias' }) };
 }
@@ -57,7 +59,7 @@ test('Oregon parser refuses reports older than the two day source refresh bound'
 
 test('Oregon parser treats missing inventory quantity as unknown, not zero', () => {
   const missing = csv.replace(',90,0,11,28.95', ',90,0,,28.95');
-  const payload = parseOregonDailyInventoryCsv(missing, { terms: ['buffalo trace'], bible: bibleFor() });
+  const payload = parseOregonDailyInventoryCsv(missing, { terms: ['buffalo trace'], generatedAt: fixtureGeneratedAt, bible: bibleFor() });
   assert.equal(payload.products[0].stores[0].quantity, null);
 });
 
@@ -94,6 +96,7 @@ test('Oregon collector parses bounded streamed CSV across small transport chunks
   });
   const payload = await collectOregonDailyInventory({
     cacheDir: null,
+    generatedAt: fixtureGeneratedAt,
     fetchImpl: async () => new Response(body, { headers: { 'content-type': 'text/csv', 'content-length': String(encoded.length) } }),
     terms: ['buffalo trace'],
     bible: bibleFor(),
@@ -201,7 +204,7 @@ test('Oregon malformed cache is discarded and replaced only after a bounded 200 
   const directory = await cacheDirectory(t);
   const calls = [];
   const initialFetch = async (_url, options) => options.method === 'HEAD' ? head200() : csv200();
-  await collectOregonDailyInventory({ fetchImpl: initialFetch, cacheDir: directory, bible: bibleFor() });
+  await collectOregonDailyInventory({ fetchImpl: initialFetch, cacheDir: directory, generatedAt: fixtureGeneratedAt, bible: bibleFor() });
   await writeFile(path.join(directory, 'report.json'), '{ malformed');
   const payload = await collectOregonDailyInventory({
     fetchImpl: async (_url, options) => {
