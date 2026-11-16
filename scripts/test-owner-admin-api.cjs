@@ -37,6 +37,75 @@ test('operations views are owner-only and isolate health, member setup, and audi
  assert.equal(auditReads,1);
  assert.deepEqual(await (await get()).json(),{health:{snapshot:'current',audit:{deliveredRows:6}},states:[],audit:[],setup:null});
 });
+test("the mobile client accepts signed-in Monitoring responses from the owner routes", async () => {
+  require("tsx/cjs");
+  const { createMobileApi, MobileApiError } = require("../apps/mobile/src/api/client.ts");
+  const { buildMemberSetupProgress } = require("../src/lib/member-setup-progress.ts");
+  const ownerAuth = {
+    requireOwnerApiAccess: async () => ({
+      client: { users: { getUserList: async () => ({ data: [], totalCount: 0 }) } },
+    }),
+  };
+  const opsHealth = moduleFrom("src/lib/ops-health.ts", { "@vercel/blob": {} });
+  const stateRows = [{ state: "OR", health: "stale_useful", customerVisibleDropCount: 7 }];
+  let stateReportAvailable = true;
+  const operations = moduleFrom("src/app/api/admin/operations/route.ts", {
+    "@/lib/owner-auth": ownerAuth,
+    "@/lib/ops-health": { ...opsHealth, readAlertDeliveryHeartbeat: async () => null },
+    "@/lib/site-engine-contract": {
+      readSiteExportIdentity: async () => ({}),
+      readSiteExportResults: async ([name]) => [{
+        source: "remote-snapshot",
+        snapshotId: "fixture-snapshot",
+        generatedAt: new Date().toISOString(),
+        payload: name === "state-health" && stateReportAvailable ? { states: stateRows } : {},
+      }],
+    },
+    "@/lib/owner-workspace": { coverageDatabase: () => ({ query: async () => [] }) },
+    "@/lib/member-setup-progress": { buildMemberSetupProgress },
+    "@/lib/mobile-activity-repository": { MobileActivityRepository: class { async readMany() { return {}; } } },
+  });
+  let errorRows = [{
+    metadata: { fingerprint: "a".repeat(64), errorKind: "TypeError", platform: "ios", build: "31", runtime: "1.1.1-ios", update: "fixture" },
+    occurrences: 4,
+    lastSeenAt: new Date().toISOString(),
+  }];
+  const diagnostics = moduleFrom("src/app/api/admin/native-diagnostics/route.ts", {
+    "@/lib/owner-auth": ownerAuth,
+    "@/lib/native-diagnostics": { NativeDiagnosticsRepository: class { async recent() { return errorRows; } } },
+  });
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "owner-fixture",
+    fetcher: async (request) => {
+      assert.equal(request.headers.get("Authorization"), "Bearer owner-fixture");
+      const pathname = new URL(request.url).pathname;
+      if (pathname === "/api/admin/operations") return operations.GET(request);
+      assert.equal(pathname, "/api/admin/native-diagnostics");
+      return diagnostics.GET();
+    },
+  });
+  const responses = await Promise.allSettled([
+    api.getAdminData("operations", "?fixture=1&view=health"),
+    api.getAdminData("operations", "?view=setup"),
+    api.getAdminData("native-diagnostics"),
+  ]);
+  assert.deepEqual(responses.map(({ status }) => status), ["fulfilled", "fulfilled", "fulfilled"]);
+  assert.deepEqual(responses[0].value.states, stateRows);
+  assert.equal(responses[1].value.setup.accounts, 0);
+  assert.equal(responses[1].value.setup.complete, true);
+  assert.deepEqual(responses[2].value.diagnostics, errorRows);
+  assert.deepEqual(await api.getAdminData("operations", "?view=history"), { audit: [] });
+  assert.deepEqual((await api.getAdminData("operations")).audit, []);
+
+  stateReportAvailable = false;
+  assert.equal((await api.getAdminData("operations", "?view=health")).states, null);
+  errorRows = [];
+  assert.deepEqual(await api.getAdminData("native-diagnostics"), { diagnostics: [] });
+  errorRows = [{ occurrences: 4 }];
+  await assert.rejects(() => api.getAdminData("native-diagnostics"), (error) =>
+    error instanceof MobileApiError && error.code === "INVALID_RESPONSE");
+});
 test('owner catalog bypasses discovery cache and pairs definitions with their exact edit-version snapshot',async()=>{
  let records=[];
  const readRecords=async()=>records;

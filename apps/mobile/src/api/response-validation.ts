@@ -57,6 +57,31 @@ const achievement = obj({ points: num, currentWeeklyStreak: num, longestWeeklySt
   featuredBadgeIds: optional(v=>strings(v)&&Array.isArray(v)&&v.length<=3), metricsAvailable: optional(bool),
   badges: arr(obj({ id: str, label: str, tier: optional(str), earnedAt: str, pointsAwarded: num })),
   badgeProgress: arr(obj({ id: str, label: str, tier: optional(str), current: num, target: num, earned: bool, description: optional(str),category:optional(str),unit:optional(str),rules:optional(str),pointsAwarded:optional(num),context:optional(str) })) });
+const adminServiceHealth = obj({
+  health: obj({ checkedAt: str, engine: obj({ status: str }), cron: obj({ status: str }), release: obj({ status: str }) }),
+  states: nullable(arr(obj({ state: str, health: str }))),
+});
+const adminMemberSetup = obj({
+  setup: obj({
+    windowDays: nonnegative, complete: bool, accounts: nonnegative, appOpened: nonnegative,
+    areaSaved: nonnegative, watchlistSaved: nonnegative, alertMembers: nonnegative,
+    setupComplete: nonnegative, missingArea: nonnegative, missingWatchlist: nonnegative, missingPush: nonnegative,
+    eligibleForLaterActivity: nonnegative, activityAfter24Hours: nonnegative,
+  }),
+});
+const adminChangeHistory = obj({ audit: arr(record) });
+const adminNativeDiagnostics = obj({
+  diagnostics: arr(obj({
+    metadata: obj({
+      fingerprint: str, platform: one('ios', 'android'),
+      errorKind: one('Error', 'TypeError', 'ReferenceError', 'RangeError', 'SyntaxError'),
+      build: str, runtime: str, update: str,
+    }),
+    occurrences: nonnegative,
+    lastSeenAt: str,
+  })),
+});
+
 const checks: Record<string, Check> = {
   '/api/admin/access': obj({allowed:bool}),
   '/api/admin/catalog': v=>obj({bottles:arr(obj({id:str,canonicalName:str,version:num})),total:num,nextOffset:nullable(num)})(v)||obj({ok:one(true)})(v),
@@ -64,6 +89,7 @@ const checks: Record<string, Check> = {
   '/api/admin/member-detail': v=>obj({member:obj({id:str,email:str,name:str}),unavailable:strings})(v)||obj({ok:one(true)})(v),
   '/api/admin/shipping': v=>obj({shipments:arr(obj({userId:str,status:str,updatedAt:str}))})(v)||obj({ok:one(true)})(v),
   '/api/admin/operations': obj({health:record,states:arr(record),audit:arr(record)}),
+  '/api/admin/native-diagnostics': adminNativeDiagnostics,
   '/api/admin/pricing': v=>obj({bottles:arr(obj({id:str,name:str})),history:arr(record),health:nullable(record)})(v)||obj({ok:one(true)})(v),
   '/api/admin/overview': obj({checkedAt:str,unavailable:strings,coverage:nullable(num),community:nullable(num),bottles:nullable(num),rewards:nullable(num),founderShipping:nullable(num)}),
   '/api/admin/coverage': v=>obj({requests:arr(obj({id:str,userId:str,stateCode:str,areaLabel:str,status:one('requested','on_radar','improved','closed'),canonicalTargetKey:str,updatedAt:str,review:nullable(obj({internal_note:str,member_update:str,priority:one('normal','high')}))})),automation:record})(v)||obj({ok:one(true)})(v),
@@ -98,8 +124,15 @@ const checks: Record<string, Check> = {
   '/api/v1/signals': obj({ contractVersion: signalVersion, view: one('market','community','all'), signals: arr(signal), marketSummaries: arr(obj({ state: str, areaLabel: str, signalCount: num, bottleNames: strings })), total: num, nextCursor: nullable(str), hasMore: bool, degraded: bool, access: obj({ previewLocked: bool, requiresAccountForFullFeed: bool, memberSignalsAvailable: bool, marketDetailsLocked: bool }) }),
 };
 export function validApiResponse(path: string, value: unknown): boolean {
-  const rawPathname = path.split('?')[0];
+  const [rawPathname, query] = path.split('?');
   const pathname = rawPathname === '/api/v1/me/google-membership' ? '/api/v1/me/apple-membership' : rawPathname;
+  if (pathname === '/api/admin/operations') {
+    const view = new URLSearchParams(query).get('view');
+    if (view === 'health') return adminServiceHealth(value);
+    if (view === 'setup') return adminMemberSetup(value);
+    if (view === 'history') return adminChangeHistory(value);
+    if (view !== null) return false;
+  }
   if (pathname === '/api/v1/nearby') {
     const store = obj({id:str,name:str,address:str,city:str,state:str,latitude:num,longitude:num,distance:nonnegative,signals:arr(signal)});
     return obj({stores:arr(store),sightingPins:optional(arr(store)),partial:bool,unmapped:nonnegative,previewLocked:bool})(value);
