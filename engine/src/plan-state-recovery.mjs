@@ -3,7 +3,7 @@ import { appendFile, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { buildStateRecoveryPlan, MAX_STATE_RECOVERY_ATTEMPTS } from './state-recovery-plan.mjs';
+import { automaticRecoveryExcludedStates, buildStateRecoveryPlan, MAX_STATE_RECOVERY_ATTEMPTS } from './state-recovery-plan.mjs';
 
 function option(argv, name, fallback = null) {
   const direct = argv.find((value) => value.startsWith(`${name}=`));
@@ -16,7 +16,7 @@ async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
 }
 
-export async function runStateRecoveryPlanner(argv = process.argv.slice(2)) {
+export async function runStateRecoveryPlanner(argv = process.argv.slice(2), env = process.env) {
   const contractPath = path.resolve(option(argv, '--contract', 'out/site/state-health.json'));
   const contract = await readJson(contractPath);
   if (!contract?.states) throw new Error(`State operating contract is missing or invalid: ${contractPath}`);
@@ -35,9 +35,9 @@ export async function runStateRecoveryPlanner(argv = process.argv.slice(2)) {
     failedStateIds,
     attempt: option(argv, '--attempt', '0'),
     maxAttempts: option(argv, '--max-attempts', String(MAX_STATE_RECOVERY_ATTEMPTS)),
-    excludedStateIds: option(argv, '--exclude-states', process.env.BOURBON_SIGNAL_RECOVERY_EXCLUDED_STATES || 'OH').split(','),
+    excludedStateIds: automaticRecoveryExcludedStates(env, option(argv, '--exclude-states')),
   });
-  const githubOutput = option(argv, '--github-output') || process.env.GITHUB_OUTPUT;
+  const githubOutput = option(argv, '--github-output') || env.GITHUB_OUTPUT;
   if (githubOutput) {
     await appendFile(githubOutput, [
       `states=${plan.retryStateIds.join(',')}`,

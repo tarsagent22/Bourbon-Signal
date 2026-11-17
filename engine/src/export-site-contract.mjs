@@ -151,9 +151,9 @@ async function reconcileArchive(fullPath, archivedPath) {
 
 async function archiveSnapshot(fullPath) {
   const archivedPath = `${fullPath}.gz`;
-  if (await reconcileArchive(fullPath, archivedPath)) return;
   const tempPath = `${archivedPath}.${process.pid}.${randomUUID()}.tmp`;
   try {
+    if (await reconcileArchive(fullPath, archivedPath)) return;
     await pipeline(
       createReadStream(fullPath),
       createGzip({ level: 6 }),
@@ -162,15 +162,18 @@ async function archiveSnapshot(fullPath) {
     try {
       await rename(tempPath, archivedPath);
     } catch (error) {
-      // Another same-process export may have won the atomic publish race.
+      // Another export may have won the atomic publish race.
       if (!(await reconcileArchive(fullPath, archivedPath))) throw error;
-      await rm(tempPath, { force: true });
       return;
     }
     await rm(fullPath, { force: true }).catch(() => {});
   } catch (error) {
-    await rm(tempPath, { force: true });
+    // A sibling can commit the archive and remove the source before our
+    // checksum or compression stream opens it.
+    if (error?.code === 'ENOENT' && error.path === fullPath && await exists(archivedPath)) return;
     throw error;
+  } finally {
+    await rm(tempPath, { force: true });
   }
 }
 
@@ -186,7 +189,13 @@ export async function recentSnapshots(days = HISTORY_DAYS, options = {}) {
   const snapshots = [];
   for (const file of files) {
     const fullPath = path.join(snapshotsPath, file);
-    const data = await readJson(fullPath);
+    let data;
+    try {
+      data = JSON.parse(await readFile(fullPath, 'utf8'));
+    } catch (error) {
+      if (error?.code === 'ENOENT') continue;
+      if (!(error instanceof SyntaxError)) throw error;
+    }
     const ts = new Date(data?.generatedAt || '').getTime();
     if (!Number.isFinite(ts) || ts < cutoff) {
       // Scan the complete directory before applying the read cap so the persisted

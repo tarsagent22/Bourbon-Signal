@@ -403,7 +403,7 @@ export async function getBourbonBible() {
   if (bourbonBibleCache && bourbonBibleCache.expiresAt > Date.now()) return bourbonBibleCache.value;
   if (bourbonBibleInFlight) return bourbonBibleInFlight;
 
-  bourbonBibleInFlight = buildBourbonBible()
+  const request = buildBourbonBible()
     .then((value) => {
       // Review evidence is owner-only; ordinary search/detail responses must not
       // serialize private photo references or administrative source URLs.
@@ -413,13 +413,16 @@ export async function getBourbonBible() {
         delete record.photoEvidenceUrl;
         return record;
       });
-      bourbonBibleCache = { value: publicCatalog, expiresAt: Date.now() + BOURBON_BIBLE_CACHE_TTL_MS };
+      if (bourbonBibleInFlight === request) {
+        bourbonBibleCache = { value: publicCatalog, expiresAt: Date.now() + BOURBON_BIBLE_CACHE_TTL_MS };
+      }
       return publicCatalog;
     })
     .finally(() => {
-      bourbonBibleInFlight = null;
+      if (bourbonBibleInFlight === request) bourbonBibleInFlight = null;
     });
-  return bourbonBibleInFlight;
+  bourbonBibleInFlight = request;
+  return request;
 }
 
 export function clearBourbonBibleCache() {

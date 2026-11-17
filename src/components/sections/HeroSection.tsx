@@ -119,7 +119,7 @@ export default function HeroSection({ appFunnel = false }: { appFunnel?: boolean
               paddingInline: "8px",
             }}
           >
-            Find the bourbon you're looking for.
+            Find the bourbon you&apos;re looking for.
           </p>
         </ScrollReveal>
 

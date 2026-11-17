@@ -43,6 +43,23 @@ test('new identities never enter legacy containment; ambiguous aliases and unkno
   assert.notEqual(exported.canonicalId, 'twelve', 'Exporter must not restore lossy matches rejected by the shared matcher');
 });
 
+test('an exact non-alerting owner duplicate cannot block the established bottle or add a retailer alias', () => {
+  const name = 'Old Forester Birthday Bourbon 2026';
+  const established = bottle('old-forester-birthday-bourbon-2026', name, { isAlertEligible: true });
+  const duplicate = bottle('owner-duplicate', name, { aliases: ['Birthday Bourbon 2026'], isAlertEligible: false });
+  const unique = bottle('owner-unique', 'Old Forester Birthday Bourbon 2027', { isAlertEligible: false });
+  const catalog = normalizeLibraryCatalog({ records: [duplicate, unique, established] });
+  const bible = new BourbonBible(integrateLibraryCatalog([], { records: catalog }));
+
+  assert.equal(cityHiveSafeBottleMatch(name, bible).record?.id, established.id);
+  assert.equal(bible.match('Birthday Bourbon 2026'), null);
+  assert.equal(bible.match(unique.canonicalName).record?.libraryAlertEligible, false);
+
+  const otherEstablished = bottle('conflicting-expression', name, { isAlertEligible: true });
+  const conflicting = new BourbonBible(integrateLibraryCatalog([], { records: [duplicate, established, otherEstablished] }));
+  assert.equal(conflicting.match(name), null);
+});
+
 test('library ingestion validates completeness, identities, age and digest; stale live sync cannot silently fall back', async () => {
   const records = normalizeLibraryCatalog({ bottles: [bottle('twelve', 'Example 12 Year')] });
   assert.throws(() => normalizeLibraryCatalog({ records: [...records, ...records] }), /duplicate/);

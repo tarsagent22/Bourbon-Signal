@@ -140,6 +140,42 @@ test('owner catalog bypasses discovery cache and pairs definitions with their ex
  bible.clearBourbonBibleCache();
  const discovery=(await bible.getBourbonBible()).find(b=>b.id===old.id);assert.ok(discovery);assert.equal(discovery.canonicalName,'Reviewed Maker’s Mark 750 ml');assert.deepEqual(discovery.aliases,['Reviewed Maker’s Mark']);assert.equal('photoEvidenceUrl' in discovery,false);assert.equal('sourceUrl' in discovery,false);assert.doesNotMatch(JSON.stringify(await bible.searchBourbonBible('Reviewed Maker’s Mark')),/private[.]example/);
 });
+test('a catalog read started before an edit cannot replace the refreshed discovery cache', async () => {
+  let ownerRecords = [];
+  let releaseOldRecords;
+  let oldReadStarted;
+  const oldRead = new Promise((resolve) => { oldReadStarted = resolve; });
+  let reads = 0;
+  const bible = moduleFrom('src/lib/bourbonBible.ts', {
+    '@/data/bourbonBibleInventory.json': [],
+    '@/lib/site-engine-contract': { readSiteExport: async () => null },
+    '@/lib/bottle-catalog-merge': moduleFrom('src/lib/bottle-catalog-merge.ts'),
+    '@/data/bottle-scarcity-overrides': { getBottleStateScarcityOverrides: () => [] },
+    '@/lib/bottle-scarcity': moduleFrom('src/lib/bottle-scarcity.ts'),
+    '@/lib/approved-catalog-service': { listApprovedBottles: async () => [] },
+    '@/lib/owner-admin-repository': {
+      readOwnerBottleRecords: async () => {
+        if (++reads !== 1) return ownerRecords;
+        return new Promise((resolve) => {
+          releaseOldRecords = resolve;
+          oldReadStarted();
+        });
+      },
+    },
+    './bottle-photos': { catalogBottlePhoto: () => undefined },
+  });
+  const oldRequest = bible.getBourbonBible();
+  await oldRead;
+  ownerRecords = [{ bottle_id: 'makers-mark', patch: { summary: 'Updated catalog record.' } }];
+  bible.clearBourbonBibleCache();
+
+  const refreshed = await bible.getBourbonBible();
+  releaseOldRecords([]);
+  assert.notEqual(await oldRequest, refreshed);
+  assert.equal(refreshed.find((bottle) => bottle.id === 'makers-mark').summary, 'Updated catalog record.');
+  assert.equal(await bible.getBourbonBible(), refreshed);
+  assert.equal(reads, 2);
+});
 test("catalog edits save without a merge target version", async () => {
   const db = new PGlite();
   try {

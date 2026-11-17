@@ -106,13 +106,21 @@ export default function DropHistoryModal({ bottle, isOpen, onClose }: DropHistor
 
   const [allDrops, setAllDrops] = useState<DropEvent[]>([]);
 
-  // Fetch drops from live API instead of static file
   useEffect(() => {
     if (!isOpen) return;
-    fetch("/api/drops")
-      .then((r) => r.json())
-      .then((data) => setAllDrops(data.drops || []))
-      .catch(() => setAllDrops([]));
+    const controller = new AbortController();
+    fetch("/api/drops", { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error("Drop history is unavailable.");
+        return response.json();
+      })
+      .then((data) => {
+        if (!controller.signal.aborted) setAllDrops(Array.isArray(data.drops) ? data.drops : []);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setAllDrops([]);
+      });
+    return () => controller.abort();
   }, [isOpen]);
 
   const recentDrops = useMemo(() => {
@@ -141,7 +149,7 @@ export default function DropHistoryModal({ bottle, isOpen, onClose }: DropHistor
     return [...filtered]
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 5);
-  }, [bottle.name, preferences]);
+  }, [allDrops, bottle, preferences]);
 
   if (!isOpen) return null;
 
