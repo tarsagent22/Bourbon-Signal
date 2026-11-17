@@ -349,7 +349,7 @@ export default function Navigation() {
                 Sign In
               </a>
               <a
-                href="/pricing?source=site-nav-desktop-try-free"
+                href="/pricing?source=site-nav-desktop-plans"
                 style={{
                   fontFamily: "var(--font-dm-sans)",
                   fontSize: "14px",
@@ -368,7 +368,7 @@ export default function Navigation() {
                   (e.currentTarget.style.opacity = "1")
                 }
               >
-                Try free
+                View plans
               </a>
             </>
           )}
@@ -502,7 +502,7 @@ export default function Navigation() {
                   Sign In
                 </a>
                 <a
-                  href="/pricing?source=site-nav-mobile-try-free"
+                  href="/pricing?source=site-nav-mobile-plans"
                   onClick={() => setMobileOpen(false)}
                   style={{
                     fontFamily: "var(--font-dm-sans)",
@@ -515,7 +515,7 @@ export default function Navigation() {
                     background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
                   }}
                 >
-                  Try free
+                  View plans
                 </a>
               </>
             )}

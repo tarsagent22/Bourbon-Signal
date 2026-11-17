@@ -14,7 +14,7 @@ import LifecycleTimeZoneCapture from "@/components/LifecycleTimeZoneCapture";
 import LegacyMemberSetupPrompt from "@/components/LegacyMemberSetupPrompt";
 
 const siteTitle = "Bourbon Signal — Premium Bourbon Drop Alerts";
-const siteDescription = "Premium source-backed bourbon drop alerts, live inventory signals, Bottle Check, and member tools for covered control and retailer markets.";
+const siteDescription = "Check bourbon coverage in your area, read recent bottle reports, and follow the bottles you want. Browse free or get matching phone alerts with Barrel Proof.";
 
 export const metadata: Metadata = {
   title: {
