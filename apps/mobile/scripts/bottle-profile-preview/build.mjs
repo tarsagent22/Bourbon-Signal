@@ -5,8 +5,9 @@ const here = import.meta.dirname, root = path.resolve(here, '../..'), output = p
 await mkdir(output, { recursive: true });
 await build({ entryPoints: [path.join(here, 'entry.tsx')], outfile: path.join(output, 'app.js'), bundle: true, platform: 'browser', resolveExtensions: ['.web.tsx', '.web.ts', '.web.js', '.tsx', '.ts', '.js', '.json'], jsx: 'automatic', loader: { '.js': 'jsx', '.png': 'file', '.jpg': 'file', '.webp': 'file', '.ttf': 'file' }, define: { 'process.env': '{}', 'process.env.NODE_ENV': '"development"', __DEV__: 'true', global: 'globalThis' }, plugins: [{ name: 'preview-boundaries', setup(b) {
   if (process.env.SCANNER_PREVIEW === '1') {
+  b.onResolve({filter: /\/ShelfTagPhoto$/}, () => ({path:path.join(root,'src/scanner/ShelfTagPhoto.native.tsx')}));
   b.onResolve({filter: /\/NativeBottleScanner$/}, () => ({path:path.join(root,'src/scanner/NativeBottleScanner.native.tsx')}));
-  b.onResolve({filter: /^(expo|expo-camera|expo-file-system|expo-image-manipulator)$/}, () => ({path:path.join(here,'scanner-fixture.tsx')}));
+  b.onResolve({filter: /^(expo|expo-camera|expo-file-system|expo-image-manipulator|expo-image-picker)$/}, () => ({path:path.join(here,'scanner-fixture.tsx')}));
 }
   b.onResolve({ filter: /^react-native$/ }, () => ({ path: path.join(root, 'node_modules/react-native-web/dist/index.js') }));
   b.onResolve({ filter: /^node:async_hooks$/ }, () => ({ path: 'server-only-font-context', namespace: 'preview' }));

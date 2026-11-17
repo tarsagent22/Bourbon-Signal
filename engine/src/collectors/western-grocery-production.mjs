@@ -13,7 +13,7 @@ import {createSourceAdapter} from '../sources/source-adapter.mjs';
 import {runSourceAdapters} from '../sources/source-runner.mjs';
 import {summarizeSourceResult} from '../sources/source-result.mjs';
 import {collectGroceryExpansion,GROCERY_EXPANSION_REQUEST_LIMITS} from './grocery-xapi-expansion.mjs';
-import {WESTERN_GROCERY_EXPANSION_SOURCES} from './western-grocery-premises.mjs';
+import {WESTERN_GROCERY_EXPANSION_SOURCES,WESTERN_GROCERY_RESOLVER_ZIPS} from './western-grocery-premises.mjs';
 import {isGroceryExpansionInventory,groceryExpansionLibraryTier} from '../grocery-xapi-policy.mjs';
 import {WESTERN_GROCERY_PRODUCTION_STATES,WESTERN_GROCERY_BUDGETS,westernGroceryCohortKey,westernGroceryRuntimeId} from '../western-grocery-production-config.mjs';
 
@@ -77,7 +77,7 @@ function completeCohortMetadata(metadata,state){
   const sources=WESTERN_GROCERY_EXPANSION_SOURCES.filter(source=>source.stateCode===state),ids=sources.map(source=>source.storeId);
   return metadata?.complete===true && JSON.stringify(metadata.selectedStores)===JSON.stringify(ids)
     && Array.isArray(metadata.verifiedPremises)&&metadata.verifiedPremises.length===ids.length&&ids.every(id=>metadata.verifiedPremises.includes(id))
-    && Array.isArray(metadata.requests)&&metadata.requests.length>=sources.length*2+3&&metadata.requests.length<=GROCERY_EXPANSION_REQUEST_LIMITS[state]
+    && Array.isArray(metadata.requests)&&metadata.requests.length>=sources.length*2+WESTERN_GROCERY_RESOLVER_ZIPS[state].length&&metadata.requests.length<=GROCERY_EXPANSION_REQUEST_LIMITS[state]
     && metadata.requests.every(row=>row.ok===true&&[200,206].includes(row.status));
 }
 function cacheMatches(cache,state,nowMs){

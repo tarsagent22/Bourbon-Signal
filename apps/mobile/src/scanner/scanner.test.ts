@@ -19,7 +19,17 @@ const catalog = [
   { id: '1792-bib', name: '1792 Bottled in Bond', aliases: ['Bottled in Bond'] },
   { id: 'er25', name: 'Eagle Rare 25Y', aliases: ['Eagle Rare'] },
 ];
+import photoCases from './label-photo-cases.json';
 const index = createLabelIndex(catalog);
+
+test('Android OCR from six reference photos ranks the exact expression and defers conflicting proof', () => {
+  const labels = createLabelIndex(seed);
+  for (const sample of photoCases) {
+    const result = readBottleLabel(labels, sample.ocr);
+    assert.equal(result.matches[0]?.name, sample.expected, sample.file);
+    assert.equal(result.canHold, sample.canHold, sample.file);
+  }
+});
 
 test('a Weller label with conflicting expression or proof keeps reading', () => {
   const weller = createLabelIndex(seed);
