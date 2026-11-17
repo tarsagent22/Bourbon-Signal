@@ -22,6 +22,9 @@ import { personalTasteNote } from '../../src/continuity/taste-discovery';
 import { useBottleWatch } from '../../src/continuity/useBottleWatch';
 import { bottleProfileState } from '../../src/signals/bottle-profile';
 
+import { shelfTagFields } from '../../src/scanner/shelf-tag';
+import { ShelfTagPhoto, canReadShelfPhoto } from '../../src/scanner/ShelfTagPhoto';
+
 const HELP_KEY = 'bottle-check-guidance-v2';
 export default function BottleCheckRoute() {
   const params = useLocalSearchParams<{ returnTo?: string; state?: string; area?: string; price?: string }>();
@@ -43,7 +46,8 @@ function BottleCheckScreen() {
   const { userId } = useAuth();
   const params = useLocalSearchParams<{ state?: string; area?: string; bottleId?: string; bottleName?: string }>();
   const initialRegion = regionContext(params.state, params.area);
-  const [mode, setMode] = useState<'scan' | 'search'>('scan');
+  const [mode, setMode] = useState<'scan' | 'search' | 'tag'>('scan');
+  const [tagSize, setTagSize] = useState<number>();
   const [query, setQuery] = useState(''); const [matches, setMatches] = useState<RadarBottleOption[]>([]);
   const [scanSession, setScanSession] = useState(0);
   const [focused, setFocused] = useState(false); const [help, setHelp] = useState(false);
@@ -69,6 +73,7 @@ function BottleCheckScreen() {
     if (match) { pendingReportBottle.current = ''; setSelected(match); }
   }, [catalog.catalog]);
   const [details, setDetails] = useState<BottleProfile | null>(null); const [reportBatch, setReportBatch] = useState<{ key: string; signals: Signal[] } | null>(null);
+  const [pricePageLimited, setPricePageLimited] = useState(false);
   const assessmentKey = JSON.stringify([selected?.id, scope.state, userId]);
   const [askingPrice, setAskingPrice] = useState(''); const [loading, setLoading] = useState(false);
   const [detailsError, setDetailsError] = useState(''); const [reportError, setReportError] = useState(''); const [retry, setRetry] = useState(0);
@@ -94,13 +99,13 @@ function BottleCheckScreen() {
     return () => { active = false; };
   }, [api, selected?.id, scope.state, retry]);
   useEffect(() => {
-    let active = true; setReportBatch(null); setReportError(''); setLoading(false);
+    let active = true; setReportBatch(null); setReportError(''); setLoading(false); setPricePageLimited(false);
     if (!selected || !scope.state) return;
     setLoading(true);
     void api.listSignals({ view: 'market', bottleId: selected.id, state: scope.state, limit: 100, fresh: true }).then(result => {
       if (!active) return;
       if (result.degraded || result.access?.marketDetailsLocked || result.access?.previewLocked) setReportError('Local price evidence is limited for this lookup.');
-      else setReportBatch({ key: assessmentKey, signals: result.signals });
+      else { setReportBatch({ key: assessmentKey, signals: result.signals }); setPricePageLimited(result.hasMore); }
     }).catch(() => { if (active) setReportError('Local prices couldn’t load. This estimate uses available bottle details.'); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [api, selected?.id, scope.state, retry, assessmentKey]);
@@ -110,7 +115,7 @@ function BottleCheckScreen() {
     return () => { active = false; };
   }, [api, editingRegion, draftState]);
   const bottle: BottleProfile | null = (details?.id === selected?.id ? details : null) || (selected ? { id: selected.id, name: selected.name, producer: selected.producer || null, category: '', proof: selected.proof || null, age: selected.ageStatement || null, msrp: null, rarity: { label: selected.rarity || 'Under review', tier: selected.nationalTier || '', pending: selected.rarityPending !== false && !selected.nationalTier, reviewedAt: null } } : null);
-  const decision = bottle ? buyingScore({ bottle, askingPrice, reports: reportBatch?.key === assessmentKey ? reportBatch.signals : [], scope }) : null;
+  const decision = bottle ? buyingScore({ bottle, askingPrice, confirmedSizeMl: tagSize, reports: reportBatch?.key === assessmentKey ? reportBatch.signals : [], scope }) : null;
   const results = useMemo(() => selected ? [] : mode === 'search' ? query.trim().length >= 2 ? catalog.search(query, 12) : [] : matches, [selected, mode, query, catalog.search, matches]);
   const regionName = COVERAGE_STATES.find(state => state.code === scope.state)?.name;
   const areaOptions = cityOptions;
@@ -148,7 +153,11 @@ function BottleCheckScreen() {
     if (!userId) return;
     router.dismissTo({ pathname: destination === 'post' ? '/(app)/(tabs)/post' : '/(app)/cellar/add', params: bottleHandoffParams({ owner: userId, id: Crypto.randomUUID(), bottleId: item.id, bottleName: item.name, price, ...scope, store: '' }) });
   };
+  const [sizeConflict, setSizeConflict] = useState('');
   const selectBottle = (item: RadarBottleOption) => {
+    const printed = shelfTagFields(item.name).size;
+    if (tagSize && printed && Number(printed) !== tagSize) { setSizeConflict('This listing is ' + printed + ' mL. Choose the expression in ' + tagSize + ' mL or retake the tag.'); return; }
+    setSizeConflict('');
     Keyboard.dismiss();
     pendingReportBottle.current = '';
     setSelected(item); setMatches([]); setShowSources(false);
@@ -158,7 +167,8 @@ function BottleCheckScreen() {
     Keyboard.dismiss(); setSelected(null); setDetails(null); setReportBatch(null); setMatches([]);
     setDetailsError(''); setReportError(''); setShowSources(false); setLoading(false);
     setScanSession(value => value + 1); setEditingRegion(false);
-    if (newLookup) { setQuery(''); setAskingPrice(''); }
+    if (newLookup) setQuery('');
+    setTagSize(undefined); setAskingPrice(''); setSizeConflict('');
     requestAnimationFrame(() => list.current?.scrollToOffset({ offset: 0, animated: false }));
   }, []);
   useEffect(() => {
@@ -194,10 +204,12 @@ function BottleCheckScreen() {
           <View style={s.bottleHeading}><View style={s.bottleArt}><CellarBottleArtwork bottle={{ bottleId: bottle.id, bottleName: bottle.name }} size="showcase" /></View><View style={s.bottleCopy}><Text accessibilityRole="header" style={s.bottleName}>{bottle.name}</Text><Text style={s.note}>{[bottle.proof ? `${bottle.proof} proof` : '', bottle.age?.replace(/^0*(\d+)Y$/i, '$1 years')].filter(Boolean).join(' · ')}</Text>{decision.releaseLabel ? <Text style={s.releaseTag}>{decision.releaseLabel}</Text> : null}</View></View>
           {tasteNote ? <Text style={s.link}>{tasteNote}</Text> : null}
           <View style={s.scoreCard} accessibilityLiveRegion="polite">
-            <View style={s.scoreLine}><View style={s.verdictCopy}><Text style={s.scoreTitle}>Signal Score</Text><Text accessibilityRole="header" style={s.verdict}>{decision.verdict}</Text><Text style={s.note}>{decision.confidence} · {decision.evidenceScope}</Text></View><View style={s.scoreValue}><Text testID="bottle-assessment-score" style={s.score}>{decision.score}</Text><Text style={s.scoreOutOf}>/ 100</Text></View></View>
+            <View style={s.scoreLine}><View style={s.verdictCopy}><Text style={s.scoreTitle}>Signal Score</Text><Text accessibilityRole="header" style={s.verdict}>{tagSize && askingPrice && decision.reference === null && decision.verdict === 'Check the shelf price' ? 'No comparable price for this size' : decision.verdict}</Text><Text style={s.note}>{decision.confidence} · {decision.evidenceScope}</Text></View><View style={s.scoreValue}><Text testID="bottle-assessment-score" style={s.score}>{decision.score}</Text><Text style={s.scoreOutOf}>/ 100</Text></View></View>
           </View>
           <View style={s.priceEntry}><View style={s.priceLabelRow}><Text style={s.inputLabel}>Shelf price · {decision.sizeMl} mL</Text></View><View style={s.priceInput}><Text style={s.currency}>$</Text><TextInput accessibilityLabel="Bottle Check shelf price in US dollars" keyboardType="decimal-pad" value={askingPrice} onChangeText={setAskingPrice} placeholder="Enter price to compare" placeholderTextColor={colors.muted} maxLength={12} style={s.priceText} returnKeyType="done" onSubmitEditing={Keyboard.dismiss} /></View>
             <Text style={s.note}>{decision.priceNote}</Text>
+            {tagSize && decision.referenceDate ? <Text style={s.note}>Price reference dated {decision.referenceDate.slice(0, 10)}</Text> : null}
+            {tagSize && !loading && !reportError && scope.state ? <Text style={s.note}>{decision.local.count} comparable {decision.local.count === 1 ? 'store' : 'stores'} in {scope.area || scope.state} in the past seven days.{decision.local.count > 0 && decision.local.count < 3 && decision.local.low !== null && decision.local.high !== null ? ' Reported ' + (decision.local.low === decision.local.high ? '$' + decision.local.low.toFixed(2) : '$' + decision.local.low.toFixed(2) + '–$' + decision.local.high.toFixed(2)) + '. Three stores are needed for a median.' : ''}{pricePageLimited ? ' Based on the first 100 reports.' : ''}</Text> : null}
           </View>
           {decision.reviewStats.expert != null || decision.reviewStats.consumer != null ? <View style={s.reviews}>
             <Text accessibilityRole="header" style={s.reviewHeading}>Published reviews</Text>
@@ -220,8 +232,9 @@ function BottleCheckScreen() {
             {decision.sources.map((source, index) => <Pressable key={`${source.url}-${index}`} accessibilityRole="link" accessibilityLabel={`Open ${source.label}`} onPress={() => { void Linking.openURL(source.url).catch(() => undefined); }} style={s.textButton}><Text style={s.link}>{source.label}</Text><Text style={s.note}>Checked {source.checkedAt}</Text></Pressable>)}
           </View> : null}
         </> : <>
-          <View accessibilityRole="radiogroup" accessibilityLabel="Bottle lookup method" style={s.modes}>{(['scan', 'search'] as const).map(value => <Pressable key={value} accessibilityRole="radio" accessibilityState={{ checked: mode === value }} onPress={() => { setMode(value); setMatches([]); setScanSession(session => session + 1); }} style={[s.mode, mode === value && s.selected]}><MaterialCommunityIcons name={value === 'scan' ? 'line-scan' : 'magnify'} size={18} color={mode === value ? colors.accent : colors.muted} /><Text style={mode === value ? s.link : s.copy}>{value === 'scan' ? 'Scan a bottle' : 'Search by name'}</Text></Pressable>)}</View>
-          {mode === 'scan' ? <NativeBottleScanner session={scanSession} active={focused && !selected && !editingRegion} catalog={catalog.catalog} onMatches={setMatches} /> : <TextInput accessibilityLabel="Search bottles" value={query} onChangeText={setQuery} autoFocus autoCapitalize="none" autoCorrect={false} placeholder="Bottle, producer, or expression" placeholderTextColor={colors.muted} style={s.input} />}
+          <View accessibilityRole="radiogroup" accessibilityLabel="Bottle lookup method" style={s.modes}>{(['scan', ...(canReadShelfPhoto ? ['tag' as const] : []), 'search'] as const).map(value => <Pressable key={value} accessibilityRole="radio" accessibilityState={{ checked: mode === value }} onPress={() => { setMode(value); setMatches([]); setSizeConflict(''); if (!(tagSize && value === 'search')) { setTagSize(undefined); setAskingPrice(''); } setScanSession(session => session + 1); }} style={[s.mode, mode === value && s.selected]}><MaterialCommunityIcons name={value === 'scan' ? 'line-scan' : 'magnify'} size={18} color={mode === value ? colors.accent : colors.muted} /><Text style={mode === value ? s.link : s.copy}>{value === 'scan' ? 'Scan a bottle' : value === 'tag' ? 'Shelf tag' : 'Search by name'}</Text></Pressable>)}</View>
+          {mode === 'tag' ? <ShelfTagPhoto catalog={catalog.catalog} onConfirm={(price, sizeMl, options) => { setAskingPrice(price); setTagSize(sizeMl); setMatches(options); setQuery(''); setMode(options.length ? 'scan' : 'search'); }} /> : mode === 'scan' && tagSize ? <Text style={s.note}>Check the expression and proof against your label. Confirmed tag price ${askingPrice} for {tagSize} mL.</Text> : mode === 'scan' ? <NativeBottleScanner session={scanSession} active={focused && !selected && !editingRegion} catalog={catalog.catalog} onMatches={setMatches} /> : <TextInput accessibilityLabel="Search bottles" value={query} onChangeText={setQuery} autoFocus autoCapitalize="none" autoCorrect={false} placeholder={tagSize ? 'Confirm the bottle on your tag' : 'Bottle, producer, or expression'} placeholderTextColor={colors.muted} style={s.input} />}
+          {sizeConflict ? <Text accessibilityRole="alert" style={s.note}>{sizeConflict}</Text> : null}
           {catalog.error ? <View><Text style={s.note}>{catalog.error}</Text><Pressable accessibilityRole="button" onPress={catalog.retry} style={s.textButton}><Text style={s.link}>Refresh catalog</Text></Pressable></View> : null}
           {results.length ? <Text accessibilityRole="header" style={s.section}>{mode === 'scan' ? 'Confirm your bottle' : 'Choose your bottle'}</Text> : null}
         </>}

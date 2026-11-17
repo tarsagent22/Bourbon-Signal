@@ -4,11 +4,11 @@ const fs = require('node:fs');
 const app = require('../app.json').expo;
 const pkg = require('../package.json');
 
-test('Native map binaries are isolated from prior OTA runtimes and each other', () => {
-  assert.equal(app.ios.runtimeVersion, '1.1.1-ios-nearby-native-1');
-  assert.equal(app.version, '1.1.1');
+test('Native shelf photo binaries are isolated from prior OTA runtimes and each other', () => {
+  assert.equal(app.ios.runtimeVersion, '1.1.2-ios-shelf-photo-1');
+  assert.equal(app.version, '1.1.2');
   assert.deepEqual(app.runtimeVersion, { policy: 'appVersion' });
-  assert.equal(app.android.runtimeVersion, '1.1.1-android-nearby-native-1');
+  assert.equal(app.android.runtimeVersion, '1.1.2-android-shelf-photo-1');
   assert.equal(app.updates.checkAutomatically, 'ON_LOAD');
 });
 test('release entry cannot use the diagnostic fixture', () => {

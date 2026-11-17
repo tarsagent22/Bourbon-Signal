@@ -10,6 +10,7 @@ import { collectGroceryExpansion } from './collectors/grocery-xapi-expansion.mjs
 
 const args=Object.fromEntries(process.argv.slice(2).map(arg=>{const split=arg.indexOf('=');return[arg.slice(2,split),arg.slice(split+1)];}));
 if(!['WA','CA','NM'].includes(args.state) || !args.output)throw new Error('Use --state=WA|CA|NM --output=<new directory>');
+if (args.cohort && (args.cohort !== 'roswell' || args.state !== 'NM')) throw new Error('Unknown grocery preflight cohort');
 const output=path.resolve(args.output);
 await mkdir(output,{recursive:false});
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -40,12 +41,12 @@ const fetchText=async(url,options)=>{
   return response;
 };
 const startedAt=new Date().toISOString();
-const result=await collectGroceryExpansion({id:args.state},await BourbonBible.load(),{fetchText,
+const result=await collectGroceryExpansion({id:args.state},await BourbonBible.load(),{fetchText,roswellShadow:args.cohort==='roswell',
   cursorDir:path.resolve('out/cache/western-grocery-shadow'),signal:AbortSignal.timeout(600_000)});
 const observations=Buffer.from(JSON.stringify(result,null,2));
 await writeFile(path.join(output,'observations.json'),observations);
 await writeFile(path.join(output,'captures.json'),JSON.stringify(captures,null,2));
-const receipt={schemaVersion:1,kind:'local_shadow_not_production_activation',state:args.state,startedAt,finishedAt:new Date().toISOString(),
+const receipt={schemaVersion:1,kind:'local_shadow_not_production_activation',state:args.state,cohort:args.cohort || 'full',startedAt,finishedAt:new Date().toISOString(),
   sourceCommit,sourceUnchanged:sourceCommit===git('rev-parse','HEAD')&&!git('status','--porcelain','--untracked-files=no'),
   sourceFiles,inputs,complete:result.metadata.complete,requests:captures.length,
   verifiedPremises:result.metadata.verifiedPremises.length,positiveStores:result.metadata.positiveStores.length,

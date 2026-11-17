@@ -5,6 +5,7 @@ import seed from '../cellar/bottle-catalog-seed.json';
 import { compareBottlePrice, type BottleProfile } from '../../../../shared/bottle-profile';
 import { buyingScore, regionalPriceEvidence, type BottleCheckPriceSignal } from '../../../../shared/bottle-check-score';
 import { bottlePriceBenchmarks, BOTTLE_CHECK_STATE_PRICES } from '../../../../shared/bottle-check-prices';
+import { shelfTagFields, confirmedTag } from './shelf-tag';
 import { validApiResponse } from '../api/response-validation';
 
 const catalog = [
@@ -18,7 +19,27 @@ const catalog = [
   { id: '1792-bib', name: '1792 Bottled in Bond', aliases: ['Bottled in Bond'] },
   { id: 'er25', name: 'Eagle Rare 25Y', aliases: ['Eagle Rare'] },
 ];
+import photoCases from './label-photo-cases.json';
 const index = createLabelIndex(catalog);
+
+test('Android OCR from six reference photos ranks the exact expression and defers conflicting proof', () => {
+  const labels = createLabelIndex(seed);
+  for (const sample of photoCases) {
+    const result = readBottleLabel(labels, sample.ocr);
+    assert.equal(result.matches[0]?.name, sample.expected, sample.file);
+    assert.equal(result.canHold, sample.canHold, sample.file);
+  }
+});
+
+test('a Weller label with conflicting expression or proof keeps reading', () => {
+  const weller = createLabelIndex(seed);
+  for (const text of ['Weller Antique 107 Special Reserve', 'Weller Antique 107 90 proof', 'Weller 107 Proof']) {
+    assert.equal(readBottleLabel(weller, text).canHold, false, text);
+  }
+  for (const text of ['Weller Antique 107 107 proof', 'Weller Special Reserve 90 proof']) {
+    assert.equal(readBottleLabel(weller, text).canHold, true, text);
+  }
+});
 
 test('owner front-label examples retrieve the expression without catalog-only suffixes', () => {
   const fullIndex = createLabelIndex(seed);
@@ -192,6 +213,22 @@ const guide: BottleProfile = {
   rarity: { tier: 'allocated', pending: false, label: 'Allocated', reviewedAt: '2026-10-10', sources: [strongSource] },
 };
 const scope = { state: 'NC', area: 'Raleigh' };
+
+test('shelf tag confirmation keeps prices and volumes independent of proof, discounts and reference sizes', () => {
+  assert.deepEqual(shelfTagFields('Antique 107 Proof 750 mL $49.99'), { price: '49.99', size: '750' });
+  assert.deepEqual(shelfTagFields('1.75 L $50.99 member $44.99'), { price: '', size: '1750' });
+  assert.deepEqual(shelfTagFields('750 mL or 1 L'), { price: '', size: '' });
+  assert.equal(confirmedTag('42.999','750'), null);
+  assert.equal(confirmedTag('42','0'), null);
+  assert.deepEqual(confirmedTag('42','1750'), { price: '42.00', sizeMl: 1750 });
+  const reports = [30,32,34].map((price,i) => sample(String(i), price));
+  const otherSize = buyingScore({ bottle: guide, reports, scope, askingPrice: '42', confirmedSizeMl: 1750, now });
+  assert.equal(otherSize.local.count, 0);
+  assert.equal(otherSize.reference, null);
+  const standard = buyingScore({ bottle: guide, reports, scope, askingPrice: '42', confirmedSizeMl: 750, now });
+  assert.equal(standard.local.count, 3);
+  assert.equal(standard.referenceDate, '2026-11-15T12:00:00.000Z');
+});
 const checked = (askingPrice = '', reports: BottleCheckPriceSignal[] = [], bottle = guide, market = scope, at = now) =>
   buyingScore({ bottle, askingPrice, reports, scope: market, now: at });
 const sample = (id: string, price: number, city = 'Raleigh', state = 'NC'): BottleCheckPriceSignal => ({
@@ -274,7 +311,7 @@ test('wrong sizes and releases, boards, stale rows, user posts and duplicate pre
   ];
   const rejected = exclusions.map((change, i) => { const row = sample('bad' + i, 40); change(row); return row; });
   assert.deepEqual(regionalPriceEvidence(guide, [valid, sameAddress, sameId, ...rejected], scope, now),
-    { count: 1, median: null, low: 35, high: 35 });
+    { count: 1, median: null, latestAt: '2026-11-15T12:00:00.000Z', low: 35, high: 35 });
   const conflict = sample('A', 100);
   for (const rows of [[valid, conflict], [conflict, valid]]) assert.equal(regionalPriceEvidence(guide, rows, scope, now).count, 0);
 });

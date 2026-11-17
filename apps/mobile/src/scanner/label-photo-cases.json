@@ -1,0 +1,44 @@
+[
+  {
+    "file": "1792-bottled-in-bond.png",
+    "sourceSha256": "1ce68e57e7c81577604dda5cb417ef0053b25cc474aa6c7a2f119358f67acef2",
+    "ocr": "BOTTLED IN BOND\ni792\nKENTUCKY STRAIGHT BOURBON WHISKEY\n50% ALC/VOL(100 PROOF)",
+    "expected": "1792 Bottled in Bond",
+    "canHold": true
+  },
+  {
+    "file": "1792-full-proof.png",
+    "sourceSha256": "cfeaa402202d0ca29fbdd60b375553c444747f61b2425c65e2e3ac4d2c809131",
+    "ocr": "FULL PROOF\nI792\nKENTUCKY STRAIGHT BOURBON WISKEY\n62.5% ALC/VOL (26 PROOF)",
+    "expected": "1792 Full Proof",
+    "canHold": false
+  },
+  {
+    "file": "weller-12.png",
+    "sourceSha256": "53be796394c96feecf40a70e97db054715f5cce4aa73f2f149a64e5907195e3e",
+    "ocr": "leller\nTHE ORIGINAL\nWHEATED BOURBON\n12\nAGED\nYEARS\nKENTUCKY STRAIGHT BOURBON WHISKEY\n45% ALC BY VOL | 90 PROOF",
+    "expected": "W.L. Weller 12 Year",
+    "canHold": true
+  },
+  {
+    "file": "weller-antique.png",
+    "sourceSha256": "807fb4376b6fcbbe462c7a85c7468fa88c42335bdd6b3bdd71cce3ded5423830",
+    "ocr": "leller\nS THE ORIGINAL\nWHEATED BOURBON\nANTIQUE 107\nAENTUCKY STRAIGHT BOURBONWHSK\nS35% ALC BY VOL I 107 PROO",
+    "expected": "W.L. Weller Antique 107",
+    "canHold": true
+  },
+  {
+    "file": "weller-full-proof.png",
+    "sourceSha256": "7cb7d3201a579d231963702a727b786521f1e23cd993fd8ed236cc5f02ba52d6",
+    "ocr": "eller\nTHE ORIGINAL\nWHEATED BOURBON\nFULL PROOF\nIENTUCIKY STRAIGHT BOURBON WHISKEY\n57% ALC BY VOL I 114 PROOF",
+    "expected": "W.L. Weller Full Proof",
+    "canHold": true
+  },
+  {
+    "file": "weller-special-reserve.png",
+    "sourceSha256": "6188218cc51338b94d0e6308765ef63afd6409719dc23c39be148beba27b8780",
+    "ocr": "111Kisy\ndeller\nTHE ORIGINAL\nWHEATED BOURBON\nSPECIAL RESERVE\nKENTUCKY STRAIGHT BOURBON WHISKY\n456 ALC BY VOL I 90 PROOF",
+    "expected": "W.L. Weller Special Reserve",
+    "canHold": true
+  }
+]

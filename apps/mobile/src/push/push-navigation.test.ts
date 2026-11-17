@@ -26,7 +26,7 @@ test("the authenticated member alert resolves to the exact qualifying Signal", (
     { id: "alert_123", signalId: "trusted_source:signal-9" },
   ], "alert_123"), {
     pathname: "/(app)/signal/[id]",
-    params: { id: "trusted_source:signal-9" },
+    params: { id: "trusted_source:signal-9", alertId: "alert_123" },
   });
   assert.equal(signalRouteForRequestedAlert([{ id: "alert_123" }], "alert_123"), null);
   assert.equal(signalRouteForRequestedAlert([{ id: "alert_other", signalId: "trusted_source:signal-9" }], "alert_123"), null);

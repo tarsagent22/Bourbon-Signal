@@ -1,6 +1,9 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as Crypto from "expo-crypto";
 import { COMMUNITY_TERMS_VERSION } from "../../../../../shared/legal-acceptance";
+import { RadarAlertDetails } from "../../../src/radar/RadarAlertDetails";
+import { memberAlertBottleNames } from "../../../src/radar/radar-preferences";
+import type { MemberAlert } from "../../../src/api/types";
 import { BoardStoreLinks } from "../../../src/components/BoardStoreLinks";
 import { CommunityTermsGate } from "../../../src/components/CommunityTermsGate";
 import { readReportPreview } from "../../../src/signals/report-preview";
@@ -33,7 +36,7 @@ const HUNT_OUTCOMES: ReadonlyArray<{ value: HuntOutcome; label: string }> = [
 ];
 
 export default function SignalDetailScreen() {
-  const { id, fromSightingPin } = useLocalSearchParams<{ id: string; fromSightingPin?: string }>();
+  const { id, alertId, fromSightingPin } = useLocalSearchParams<{ id: string; alertId?: string; fromSightingPin?: string }>();
   const api = useMobileApi();
   const router = useRouter();
   const [signal, setSignal] = useState<Signal | null>(() => readReportPreview(api, id));
@@ -90,18 +93,25 @@ export default function SignalDetailScreen() {
   const [shareTermsAccepted, setShareTermsAccepted] = useState(false);
   const [shareError, setShareError] = useState("");
 
+  const [savedAlert, setSavedAlert] = useState<MemberAlert | null>(null);
   const sequence = useRef(0);
   const [refreshing, setRefreshing] = useState(false);
   const load = useCallback(async (fresh = false) => {
     if (!id) return;
     const request = ++sequence.current;
-    setRefreshing(true);setPhotoFailed(false);
+    setRefreshing(true);setPhotoFailed(false); setSavedAlert(null);
     await Promise.allSettled([
       api.getSignal(id, { fresh }).then(result => {
         if (request === sequence.current) { setSignal(result.signal); setConfirmedDetail(true); setError(""); }
-      }).catch(caught => {
+      }).catch(async caught => {
         if (request === sequence.current) {
           if (caught instanceof MobileApiError && [401, 403, 404].includes(caught.status)) { setSignal(null); setConfirmedDetail(false); }
+          if (caught instanceof MobileApiError && caught.status === 404 && alertId) {
+            const response = await api.getMemberAlerts({ alertId, fresh: true }).catch(() => undefined);
+            if (request !== sequence.current) return;
+            const saved = response?.alerts.find(item => item.id === alertId && item.signalId === id && item.sourceType !== 'community');
+            if (saved) { setSavedAlert(saved); setError(""); return; }
+          }
           setError(caught instanceof MobileApiError ? caught.message : "This Signal is temporarily unavailable.");
         }
       }),
@@ -112,7 +122,7 @@ export default function SignalDetailScreen() {
       }),
     ]);
     if (request === sequence.current) setRefreshing(false);
-  }, [api, id]);
+  }, [api, id, alertId]);
   useEffect(() => { setSignal(readReportPreview(api, id)); setConfirmedDetail(false); setShared(false); setShowShareTerms(false); setShareTermsAccepted(false); setShareError(""); setHuntOutcomeState(null); setHuntFoundAt(""); setHuntOutcomeVisible(false); setError(""); setHidden(false);setSafetyNotice('');setPhotoFailed(false);setFeedbackNotice('');void load(); return () => { sequence.current += 1; }; }, [api, id, load]);
   useScreenRevalidation(load);
 
@@ -234,7 +244,13 @@ export default function SignalDetailScreen() {
 
 
   return <ScrollView contentContainerStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing && Boolean(signal)} onRefresh={() => void load(true)} tintColor={colors.accent} />}>
-    {!signal && !error ? <View style={styles.signalSection}><Text style={styles.disclaimer}>Loading bottle report…</Text><ActivityIndicator color={colors.accent} /></View> : null}
+    {!signal && savedAlert && savedAlert.id === alertId && savedAlert.signalId === id ? <View style={styles.signalSection}>
+      <Text accessibilityRole="header" style={styles.sectionTitle}>Saved Radar alert</Text>
+      <Text style={styles.disclaimer}>{savedAlert.storeLabel}</Text>
+      <Text style={styles.disclaimer}>The live report is unavailable. These are the details recorded when the alert was sent.</Text>
+      <RadarAlertDetails alert={savedAlert} bottles={memberAlertBottleNames(savedAlert, [])} stale />
+    </View> : null}
+    {!signal && !savedAlert && !error ? <View style={styles.signalSection}><Text style={styles.disclaimer}>Loading bottle report…</Text><ActivityIndicator color={colors.accent} /></View> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {safetyNotice ? <Text accessibilityRole="alert" style={styles.disclaimer}>{safetyNotice}</Text> : null}
     {signal && !hidden ? <>

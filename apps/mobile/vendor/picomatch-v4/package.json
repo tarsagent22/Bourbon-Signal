@@ -1,0 +1,11 @@
+{
+  "name": "picomatch",
+  "version": "4.0.7+bs.1",
+  "description": "Bourbon Signal security backport of picomatch 4.0.7",
+  "license": "MIT",
+  "main": "index.js",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=12"
+  }
+}

@@ -2,8 +2,13 @@
 import { useEffect, useRef } from 'react';
 import { View, Text } from 'react-native';
 import type { LabelFrame } from '../../src/scanner/live-label-session';
-declare global { interface Window { scannerText?: string; scannerTexts?: string[]; scannerReads?: number; scannerMounts?: number; scannerRenders?: number; scannerAutoFrames?: boolean; scannerScene?: number[]; scannerLastFrame?: LabelFrame; scannerStaleFrame?: LabelFrame; scannerDeliverFrame?: (frame: LabelFrame) => void } }
-export function requireOptionalNativeModule(name: string) { return name === 'BottleLabelReader' ? { liveFramesVersion: 1 } : {}; }
+declare global { interface Window { shelfPhotoText?: string; scannerText?: string; scannerTexts?: string[]; scannerReads?: number; scannerMounts?: number; scannerRenders?: number; scannerAutoFrames?: boolean; scannerScene?: number[]; scannerLastFrame?: LabelFrame; scannerStaleFrame?: LabelFrame; scannerDeliverFrame?: (frame: LabelFrame) => void } }
+export function requireOptionalNativeModule(name: string) { return name === 'BottleLabelReader' ? { liveFramesVersion: 1, readPhoto: async () => window.shelfPhotoText || 'Weller Antique 107 750 mL $49.99' } : {}; }
+export const SaveFormat = { JPEG: 'jpeg' };
+export async function manipulateAsync() { return { uri: 'file:///fixture-shelf.jpg' }; }
+export const requestCameraPermissionsAsync = async () => ({ granted: true });
+export const launchCameraAsync = async () => ({ canceled: false, assets: [{ uri: 'file:///fixture-camera.jpg', width: 1080, height: 900 }] });
+export class File { delete() {} }
 export function useCameraPermissions() { return [{ granted: true }, async () => ({ granted: true })] as const; }
 export function requireNativeView() { return FixtureCamera; }
 function FixtureCamera({ style, active, scanning, onFrame, onStatus, scanToken }: any) {

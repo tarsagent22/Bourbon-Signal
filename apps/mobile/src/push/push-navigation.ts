@@ -29,7 +29,7 @@ export function signalRouteForRequestedAlert(
   if (!SIGNAL_ID.test(signalId)) return null;
   return {
     pathname: "/(app)/signal/[id]" as const,
-    params: { id: signalId },
+    params: { id: signalId, alertId },
   };
 }
 

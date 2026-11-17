@@ -1,0 +1,102 @@
+{
+  "692": {
+    "store": {
+      "locationId": "692",
+      "domainName": "Albertsons Market",
+      "polarisBannerName": "shopalbertsonsmarket",
+      "address": {
+        "line1": "900 W 2nd St",
+        "city": "Roswell",
+        "state": "NM",
+        "country": "US",
+        "zipcode": "88201"
+      }
+    },
+    "product": {
+      "id": "971237544",
+      "pid": "971237544",
+      "storeId": "692",
+      "name": "Hard Truth Sweet Mash Bourbon - 750ML",
+      "upc": "0085000364992",
+      "price": 49.99,
+      "containsAlcohol": true,
+      "alcoholVolumePct": 45,
+      "dispItemSizeQty": "750.0",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "unitOfMeasure": "ML",
+      "channelEligibility": {
+        "inStore": true
+      },
+      "channelInventory": {
+        "instore": "1"
+      }
+    }
+  },
+  "3690": {
+    "store": {
+      "locationId": "3690",
+      "domainName": "Albertsons Market",
+      "polarisBannerName": "shopalbertsonsmarket",
+      "address": {
+        "line1": "1110 S Main St",
+        "city": "Roswell",
+        "state": "NM",
+        "country": "US",
+        "zipcode": "88203"
+      }
+    },
+    "product": {
+      "id": "971237544",
+      "pid": "971237544",
+      "storeId": "3690",
+      "name": "Hard Truth Sweet Mash Bourbon - 750ML",
+      "upc": "0085000364992",
+      "price": 49.99,
+      "containsAlcohol": true,
+      "alcoholVolumePct": 45,
+      "dispItemSizeQty": "750.0",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "unitOfMeasure": "ML",
+      "channelEligibility": {
+        "inStore": true
+      },
+      "channelInventory": {
+        "instore": "1"
+      }
+    }
+  },
+  "bible": [
+    {
+      "id": "bb_c446121e6e477c0b",
+      "canonical": "Hard Truth Sweet Mash Bourbon",
+      "normalizedKey": "hard truth sweet mash",
+      "aliases": [
+        "Hard Truth Sweet Mash Bourbon",
+        "Hard Truth Sweet Mash Bourbon Whiskey",
+        "Hard Truth Sweet Mash Bourbon Whiskey 750ml"
+      ],
+      "tier": "standard",
+      "producer": "Hard Truth Distilling",
+      "sources": [
+        "state-data-additions",
+        "state:TN"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_c446121e6e477c0b",
+          "canonicalName": "Hard Truth Sweet Mash Bourbon",
+          "aliases": [
+            "Hard Truth Sweet Mash Bourbon",
+            "Hard Truth Sweet Mash Bourbon Whiskey",
+            "Hard Truth Sweet Mash Bourbon Whiskey 750ml"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ]
+}

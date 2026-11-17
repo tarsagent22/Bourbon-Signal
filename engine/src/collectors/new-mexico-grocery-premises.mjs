@@ -290,3 +290,15 @@ export const NEW_MEXICO_GROCERY_SOURCES = Object.freeze([
     "releaseStage": "research_only_requires_state_promotion"
   }
 ].map(source=>Object.freeze(source)));
+
+export const ROSWELL_GROCERY_SOURCES = Object.freeze([
+  ['692', '900 W 2nd St', '88201', 33.39349563266549, -104.53538660793456, '900-w-2nd-st'],
+  ['3690', '1110 S Main St', '88203', 33.38101079507886, -104.524265088221, '1110-s-main-st'],
+].map(([merchantId, street, zip, lat, lng, slug]) => Object.freeze({
+  id: 'shopalbertsonsmarket-nm-' + merchantId, name: 'Albertsons Market #' + merchantId,
+  stateCode: 'NM', banner: 'shopalbertsonsmarket', resolverDomainName: 'Albertsons Market',
+  host: 'www.shopalbertsonsmarket.com', merchantId, storeId: 'shopalbertsonsmarket:' + merchantId,
+  address: street + ', Roswell, NM ' + zip, city: 'Roswell', zip, lat, lng,
+  sourceLabel: 'Albertsons Market New Mexico XAPI store inventory',
+  premiseUrl: 'https://local.albertsonsmarket.com/nm/roswell/' + slug + '.html',
+})));

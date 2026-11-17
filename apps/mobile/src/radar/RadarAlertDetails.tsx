@@ -11,8 +11,9 @@ export function RadarAlertDetails({ alert, bottles, stale, onOpenReport }: {
 }) {
   const [showSource, setShowSource] = useState(false);
   const [directionsError, setDirectionsError] = useState(false);
-  const address = radarStoreAddress(alert.storeLabel);
-  const directionsUrl = radarDirectionsUrl(alert.storeLabel);
+  const board = alert.eventType === 'nc_board_shipment_snapshot';
+  const address = board ? null : radarStoreAddress(alert.storeLabel);
+  const directionsUrl = board || stale ? null : radarDirectionsUrl(alert.storeLabel);
   const observed = new Date(alert.signalAt || alert.createdAt);
   return <View style={s.details}>
     <View style={s.bottleList}>
@@ -25,18 +26,18 @@ export function RadarAlertDetails({ alert, bottles, stale, onOpenReport }: {
         </View>;
       })}
     </View>
-    <View style={s.notice}><MaterialCommunityIcons name={stale ? 'clock-outline' : 'information-outline'} size={17} color={colors.muted} /><Text style={s.noticeText}>{stale ? 'Past report · availability unconfirmed' : 'Availability unconfirmed'}{ '\n' }Check with the store before making a trip.</Text></View>
+    <View style={s.notice}><MaterialCommunityIcons name={stale ? 'clock-outline' : 'information-outline'} size={17} color={colors.muted} /><Text style={s.noticeText}>{board ? 'Board shipment · Receiving stores unconfirmed' : stale ? 'Past report · availability unconfirmed' : 'Availability unconfirmed'}{ '\n' }{board ? 'The shipment was reported at board level.' : 'Check with the store before making a trip.'}</Text></View>
     {address ? <View style={s.addressRow}><MaterialCommunityIcons name="map-marker-outline" size={19} color={colors.muted} /><Text selectable style={s.address}>{address}</Text></View> : null}
     <View style={s.actions}>
       {directionsUrl ? <Pressable accessibilityRole="button" accessibilityLabel={`Get directions to ${alert.storeLabel}`} onPress={() => { setDirectionsError(false); void Linking.openURL(directionsUrl).catch(() => setDirectionsError(true)); }} style={({ pressed }) => [s.primary, pressed && s.pressed]}><MaterialCommunityIcons name="directions" size={19} color={colors.background} /><Text style={s.primaryText}>Directions</Text></Pressable> : null}
-      {onOpenReport ? <Pressable accessibilityRole="button" onPress={onOpenReport} style={({ pressed }) => [s.secondaryButton, pressed && s.pressed]}><Text style={s.secondaryButtonText}>View report</Text><MaterialCommunityIcons name="arrow-top-right" size={17} color={colors.accent} /></Pressable> : null}
+      {onOpenReport ? <Pressable accessibilityRole="button" onPress={onOpenReport} style={({ pressed }) => [s.secondaryButton, pressed && s.pressed]}><Text style={s.secondaryButtonText}>{bottles.length > 1 ? 'View lead bottle report' : 'View report'}</Text><MaterialCommunityIcons name="arrow-top-right" size={17} color={colors.accent} /></Pressable> : null}
     </View>
     {directionsError ? <Text accessibilityRole="alert" style={s.error}>Maps couldn’t open. Try again or copy the address above.</Text> : null}
     <Pressable accessibilityRole="button" accessibilityState={{ expanded: showSource }} onPress={() => setShowSource(value => !value)} style={s.sourceToggle}><Text style={s.secondary}>Report details</Text><MaterialCommunityIcons name={showSource ? 'chevron-up' : 'chevron-down'} size={18} color={colors.muted} /></Pressable>
     {showSource ? <View style={s.source}>
       <Text style={s.secondary}>{alert.sourceLabel || (alert.sourceType === 'community' ? 'Community sighting' : 'Bourbon Signal')}</Text>
       <Text style={s.secondary}>{Number.isFinite(observed.getTime()) ? observed.toLocaleString() : 'Report time unavailable'}</Text>
-      {alert.quantity !== null ? <Text style={s.secondary}>Source-reported quantity: {alert.quantity}</Text> : null}
+      {!board && alert.quantity !== null ? <Text style={s.secondary}>Source-reported quantity: {alert.quantity}</Text> : null}
       <Text style={s.eyebrow}>ORIGINAL LISTING</Text>
       {bottles.map(raw => <Text key={raw} selectable style={s.secondary}>{raw}</Text>)}
     </View> : null}

@@ -1910,6 +1910,7 @@ export function buildAlerts(alerts) {
     const policy = alertChannelPolicy(c);
     return {
     id: c.id,
+    reportDropId: c.reportDropId || null,
     action: c.action,
     score: c.score,
     reliabilityScore: c.reliabilityScore ?? null,
@@ -2163,9 +2164,9 @@ export function bindReportedInventoryAlertsToPublicDrops(candidates, drops, {sho
       && !(drop.quantityIsExact === false && candidate.quantityIsExact !== false)
       && !(Number(drop.quantity || 0) === 0 && candidate.quantityIsExact === true));
     if (!matched) return [];
-    if (!matched.availabilityEpisodeId) return [candidate];
+    if (!matched.availabilityEpisodeId) return [{ ...candidate, reportDropId: matched.id }];
     const eventIdentityKey = `availability-episode:${matched.availabilityEpisodeId}`;
-    return [{ ...candidate,
+    return [{ ...candidate, reportDropId: matched.id,
       availabilityEpisodeId: matched.availabilityEpisodeId,
       availabilityEpisodeStartedAt: matched.availabilityEpisodeStartedAt,
       availabilityEpisodeKind: matched.availabilityEpisodeKind,
@@ -2211,6 +2212,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops, { shopifyPolicy } = 
       const episodeIdentity = drop.availabilityEpisodeId ? `availability-episode:${drop.availabilityEpisodeId}` : null;
       const legacyIdentityParts = ['current_inventory_alert', drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.availabilityStatus || '', drop.quantity || 0];
       return ({
+      reportDropId: drop.id,
       id: episodeIdentity ? stableId(['current_inventory_alert', episodeIdentity]) : stableId(['current_inventory_alert', drop.id || drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.quantity || 0, drop.availabilityStatus || '']),
       action: 'inventory_alert_candidate',
       score: drop.tier === 'unicorn' ? 150 : drop.tier === 'allocated' ? 135 : 112,
@@ -2355,6 +2357,7 @@ export function buildRegionalWatchAlertsFromDrops(drops) {
     .filter((drop) => /shipment|warehouse|limited_release_store_drop/i.test(String(drop.type || drop.eventType || '')))
     .sort(alertDropSort)
     .map((drop) => ({
+      reportDropId: drop.id,
       id: stableId(['regional_watch_alert', drop.id || drop.state, drop.canonicalId || drop.bottleName, drop.locationPrecision, drop.locationName, drop.quantity || 0, drop.warehouseQty || 0]),
       action: 'watch_alert_candidate',
       score: drop.tier === 'unicorn' ? 145 : drop.tier === 'allocated' ? 130 : 108,

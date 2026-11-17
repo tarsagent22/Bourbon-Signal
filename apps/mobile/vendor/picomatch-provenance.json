@@ -1,0 +1,39 @@
+{
+  "advisory": "https://github.com/advisories/GHSA-fc5q-39xc-vjpf",
+  "packages": {
+    "2": {
+      "base": "2.3.2",
+      "integrity": "sha512-V7+vQEJ06Z+c5tSye8S+nHUfI51xoXIXjHQ99cQtKUkQqqO1kO/KCJUfZXuB47h/YBlDhah2H3hdUGXn8ie0oA==",
+      "patch": "https://github.com/micromatch/picomatch/pull/263",
+      "patchHead": "9ca61909ab0ec680953e21bac80a6e825e1ede81",
+      "files": {
+        "LICENSE": "d0cd141b0c322fded5dfad1d4645bb2fedfc05b7321fe1009469638190d59ef9",
+        "index.js": "5695ff5dfcd5a338a40630bd506056f2950bcb08fe1cc068519cbbfe60add480",
+        "lib/constants.js": "980225ab847a88a784f6d315557b8434f7742b2551ce20e354455c61b938c0a5",
+        "lib/parse.js": "4b2d4e9327090567fdcfbd8a2e21490f27c6f9083eee24ba692396ad30d115d0",
+        "lib/picomatch.js": "2cb169cbe17d356036c5f62a377318b85e30817877e59797842aec9d8b15f54b",
+        "lib/scan.js": "227fcc994a477ea95c5a0435d32783566334c6bd0dcc4a103029735ad8c9c535",
+        "lib/utils.js": "809fc29cf35ab0aa76b99cad29182f62c0ae598902481d10f9868eaef71981ee",
+        "package.json": "7f946b25e0f35b04e7991c700963545e54b5ed78c19952594a13a435a4307b92"
+      }
+    },
+    "4": {
+      "base": "4.0.7",
+      "integrity": "sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==",
+      "patch": "https://github.com/micromatch/picomatch/pull/262",
+      "patchHead": "3222059ac27492d9c0147fee5c65f751bbd851ab",
+      "files": {
+        "LICENSE": "d0cd141b0c322fded5dfad1d4645bb2fedfc05b7321fe1009469638190d59ef9",
+        "index.js": "02ae26406508e28f9ba0865be16cf77f0b33de6c4d4d49c212c4176df1d5625a",
+        "lib/constants.js": "c28f952d2758261fe5428a121add485cc25b03e0193633f649de903dc0e5e222",
+        "lib/parse.js": "75619f8cac4e97c68b1751ee7ed255203770ffc7645d57dbf614200ccbda02ad",
+        "lib/picomatch.js": "fdd249d7ffff853f3bb1c77eafc8baa1a437bea85a94c35877b83c6a40d9ca94",
+        "lib/scan.js": "6457a1764e5c2e543cc3a0c00ce12ebb3764097628868198370b64d4e642aaae",
+        "lib/utils.js": "f04604f70cd1a3f6ace80b84766468674ff38b4bb83818d2ef1d81fc6355f935",
+        "package.json": "50770c268b3a81097a6017bed970d2177d07c07514fe5a8f319c380b45cfaf99",
+        "posix.js": "5695ff5dfcd5a338a40630bd506056f2950bcb08fe1cc068519cbbfe60add480"
+      }
+    }
+  },
+  "localChange": "Apply the repeated-wildcard protection even when the caller disables the optional recursion limit."
+}

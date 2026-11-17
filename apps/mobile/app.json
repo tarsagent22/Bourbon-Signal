@@ -2,13 +2,13 @@
   "expo": {
     "name": "Bourbon Signal",
     "slug": "bourbon-signal",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "orientation": "portrait",
     "scheme": "bourbonsignal",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
-      "runtimeVersion": "1.1.1-ios-nearby-native-1",
+      "runtimeVersion": "1.1.2-ios-shelf-photo-1",
       "supportsTablet": false,
       "bundleIdentifier": "com.bourbonsignal.app",
       "config": {
@@ -33,7 +33,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": true,
-      "runtimeVersion": "1.1.1-android-nearby-native-1",
+      "runtimeVersion": "1.1.2-android-shelf-photo-1",
       "googleServicesFile": "./google-services.json"
     },
     "web": {
@@ -56,7 +56,7 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow Bourbon Signal to access only photos you choose as optional sighting evidence that may appear publicly with your Signal.",
-          "cameraPermission": "Allow Bourbon Signal to scan bottle labels and barcodes on your device, or take optional sighting photos you choose to post.",
+          "cameraPermission": "Use the camera to read bottle labels, barcodes and shelf tags on your device, or take a sighting photo you choose to post.",
           "microphonePermission": false
         }
       ],
@@ -75,7 +75,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Bourbon Signal to scan bottle labels and barcodes on your device, or take optional sighting photos you choose to post.",
+          "cameraPermission": "Use the camera to read bottle labels, barcodes and shelf tags on your device, or take a sighting photo you choose to post.",
           "microphonePermission": false,
           "recordAudioAndroid": false,
           "barcodeScannerEnabled": true

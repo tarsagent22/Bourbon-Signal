@@ -93,8 +93,17 @@ function oneEdit(left: string, right: string) {
 }
 
 function normalizeLabel(index: LabelIndex, text: string) {
-  return normalize(text.slice(0, 4000).replace(/(\d)[.,](?=\d)/g, '$1decimal'))
-    .replace(wordAges, (_, words: string) => `${ageWords.get(words)} year`)
+  let label = normalize(text.slice(0, 4000).replace(/(\d)[.,](?=\d)/g, '$1decimal'));
+  // Curved lettering can hide the first W. Require the other printed brand
+  // language before using a partial logo, and preserve any competing family.
+  if (/\bthe original\b/.test(label) && /\bwheated bourbon\b/.test(label)) {
+    label = label.replace(/\b(?:eller|leller|deller)\b/g, 'weller')
+      .replace(/\b(\d{1,2}) aged years?\b/g, '$1 year');
+  }
+  if (/\bkentucky straight bourbon\b/.test(label) && /\b(?:full proof|bottled in bond|small batch)\b/.test(label)) {
+    label = label.replace(/\b[il]792\b/g, '1792');
+  }
+  return label.replace(wordAges, (_, words: string) => `${ageWords.get(words)} year`)
     .replace(/\b[a-z0-9]{5,}\b/g, word => index.compactFamilies.get(word) || word)
     .replace(/\bmc([a-z]{3,}) ([a-z]{3,})\b/g, (original, middle: string, last: string) => {
     // Nested logo lettering can attach a surname prefix to the wrong word
@@ -205,8 +214,17 @@ export function readBottleLabel(index: LabelIndex, text: string) {
   ));
   // A partial family can suggest candidates, but a repaired/partial name
   // alone cannot pause the camera. Confirm an expression using fresh evidence.
+  // A shelf photo can contain words from two neighboring Weller tags.
+  // A brand plus a proof number alone cannot distinguish store selections.
+  const wellerExpressions = ['special reserve', 'antique', 'full proof', 'single barrel', '12 year'];
+  const wellerConflict = family?.identity === 'weller' && wellerExpressions
+    .filter(phrase => normalized.includes(phrase))
+    .some(phrase => !entry?.identity.includes(phrase));
+  const printedProofs = [...text.slice(0, 4000).matchAll(/\b(\d{2,3}(?:\.\d+)?)\s*(?:proof|pf)\b/gi)].map(match => Number(match[1]));
+  const proofConflict = (family?.identity === 'weller' || entry?.numericBrand === '1792') && typeof top?.proof === 'number'
+    && printedProofs.some(proof => Math.abs(proof - top.proof!) > 0.05);
   const familyMatched = !family || (explicitFamily && family.bottles.some(bottle => bottle.id === top?.id));
-  return { matches, family, explicitFamily, conflictingBrands, canHold: matches.length > 0 && !conflictingBrands && familyMatched && (!family || expressionRead), hasText: normalized.length >= 3 };
+  return { matches, family, explicitFamily, conflictingBrands, canHold: matches.length > 0 && !conflictingBrands && !wellerConflict && !proofConflict && familyMatched && (!family || expressionRead), hasText: normalized.length >= 3 };
 }
 
 export function normalizeBarcode(value: string): string | null {
