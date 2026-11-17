@@ -2,13 +2,13 @@
   "expo": {
     "name": "Bourbon Signal",
     "slug": "bourbon-signal",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "orientation": "portrait",
     "scheme": "bourbonsignal",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
-      "runtimeVersion": "1.1.1-ios-shelf-photo-1",
+      "runtimeVersion": "1.1.2-ios-shelf-photo-1",
       "supportsTablet": false,
       "bundleIdentifier": "com.bourbonsignal.app",
       "config": {
@@ -33,7 +33,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": true,
-      "runtimeVersion": "1.1.1-android-shelf-photo-1",
+      "runtimeVersion": "1.1.2-android-shelf-photo-1",
       "googleServicesFile": "./google-services.json"
     },
     "web": {
