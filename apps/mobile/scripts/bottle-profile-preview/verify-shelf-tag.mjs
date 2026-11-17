@@ -39,6 +39,13 @@ try {
     const output = path.resolve(import.meta.dirname,'../../../../out');
     await mkdir(output,{recursive:true});
     await page.screenshot({path:path.join(output,'shelf-check-'+width+'.png')});
+    await page.goto('http://127.0.0.1:' + server.address().port + '/?screen=report&savedAlert=alert_fixture');
+    await page.getByRole('heading', { name: 'Saved Radar alert' }).waitFor();
+    await page.getByText(/Receiving stores unconfirmed/).waitFor();
+    assert.equal(await page.getByRole('button', { name: /Directions/i }).count(), 0);
+    await page.goto('http://127.0.0.1:' + server.address().port + '/?screen=report&savedAlert=unrelated');
+    await page.getByText('Signal not found.').waitFor();
+    assert.equal(await page.getByText('Saved Radar alert').count(), 0);
     await page.close();
   }
   console.log('Shelf-tag capture, conflicting prices, editable volume, bottle confirmation and score passed at 320 and 393 pixels.');

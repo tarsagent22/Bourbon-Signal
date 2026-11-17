@@ -56,7 +56,7 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow Bourbon Signal to access only photos you choose as optional sighting evidence that may appear publicly with your Signal.",
-          "cameraPermission": "Allow Bourbon Signal to scan bottle labels and barcodes on your device, or take optional sighting photos you choose to post.",
+          "cameraPermission": "Use the camera to read bottle labels, barcodes and shelf tags on your device, or take a sighting photo you choose to post.",
           "microphonePermission": false
         }
       ],
@@ -75,7 +75,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Bourbon Signal to scan bottle labels and barcodes on your device, or take optional sighting photos you choose to post.",
+          "cameraPermission": "Use the camera to read bottle labels, barcodes and shelf tags on your device, or take a sighting photo you choose to post.",
           "microphonePermission": false,
           "recordAudioAndroid": false,
           "barcodeScannerEnabled": true

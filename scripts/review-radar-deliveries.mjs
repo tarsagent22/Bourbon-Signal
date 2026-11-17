@@ -35,11 +35,11 @@ if (process.argv[4]) for (const state of ['AZ','IL','NC']) {
   try { snapshot = JSON.parse(await readFile(path.join(process.argv[4], 'site','states',state,'drops.json'),'utf8')); }
   catch (error) { if (error.code === 'ENOENT') continue; throw error; }
   for (const drop of snapshot.drops) {
-    const keys = [drop.id, stableId(['regional_watch_alert',drop.id || drop.state,drop.canonicalId || drop.bottleName,drop.locationName,drop.quantity || 0,drop.warehouseQty || 0]),
+    const keys = [drop.id, stableId(['regional_watch_alert',drop.id || drop.state,drop.canonicalId || drop.bottleName,drop.locationPrecision,drop.locationName,drop.quantity || 0,drop.warehouseQty || 0]),
       stableId(['current_inventory_alert',drop.id || drop.state,drop.canonicalId || drop.bottleName,drop.storeId || drop.locationName,drop.quantity || 0,drop.availabilityStatus || ''])];
     if (drop.availabilityEpisodeId) keys.push(stableId(['current_inventory_alert','availability-episode:'+drop.availabilityEpisodeId]));
     for (const key of keys) archive.set(state + ':' + key, { run: snapshot.runId, rawName: drop.rawName, bottle: drop.canonicalName || drop.bottleName,
-      address:drop.storeAddress, store:drop.storeName, observed:drop.observedAt, id:drop.id, source:drop.sourceUrl });
+      address:drop.storeAddress, store:drop.storeName, board:drop.locationName, observed:drop.observedAt, id:drop.id, source:drop.sourceUrl });
   }
 }
 const checked = [];

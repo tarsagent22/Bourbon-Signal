@@ -27,7 +27,7 @@ test("native capability purposes are explicit, lazy, and limited to real product
 
 test("camera and photo-library copy explains the bounded public-evidence action", () => {
   assert.equal(CAMERA_PERMISSION_MESSAGE,
-    "Allow Bourbon Signal to scan bottle labels and barcodes on your device, or take optional sighting photos you choose to post.");
+    "Use the camera to read bottle labels, barcodes and shelf tags on your device, or take a sighting photo you choose to post.");
   assert.equal(PHOTO_LIBRARY_PERMISSION_MESSAGE,
     "Allow Bourbon Signal to access only photos you choose as optional sighting evidence that may appear publicly with your Signal.");
   assert.equal(nativeCapabilityPolicyFor("capture_bottle_or_shelf_evidence").rationale.ios, CAMERA_PERMISSION_MESSAGE);

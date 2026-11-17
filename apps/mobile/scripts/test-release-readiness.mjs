@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 
-const CAMERA_PERMISSION_MESSAGE = "Allow Bourbon Signal to scan bottle labels and barcodes on your device, or take optional sighting photos you choose to post.";
+const CAMERA_PERMISSION_MESSAGE = "Use the camera to read bottle labels, barcodes and shelf tags on your device, or take a sighting photo you choose to post.";
 const PHOTO_LIBRARY_PERMISSION_MESSAGE = "Allow Bourbon Signal to access only photos you choose as optional sighting evidence that may appear publicly with your Signal.";
 
 const root = resolve(import.meta.dirname, "..");
