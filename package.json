@@ -252,7 +252,8 @@
     "us-atlas": "^3.0.1",
     "zustand": "^5.0.12",
     "minimatch": "file:vendor/minimatch",
-    "minimatch-upstream": "npm:minimatch@11.0.3"
+    "minimatch-upstream": "npm:minimatch@11.0.3",
+    "picomatch": "file:apps/mobile/vendor/picomatch-v4"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
@@ -284,6 +285,10 @@
     },
     "braces": "$braces",
     "minimatch": "$minimatch",
-    "glob@>=9.0.0": "14.0.3"
+    "glob@>=9.0.0": "14.0.3",
+    "picomatch": "$picomatch",
+    "micromatch": {
+      "picomatch": "file:apps/mobile/vendor/picomatch-v2"
+    }
   }
 }

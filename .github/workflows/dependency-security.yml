@@ -32,6 +32,10 @@ jobs:
           else
             node ../../scripts/check-braces-backport-advisories.cjs
           fi
+      - name: Verify installed picomatch backports and current base advisories
+        if: matrix.package != 'engine'
+        working-directory: ${{ matrix.package }}
+        run: node ${{ matrix.package == 'apps/mobile' && '../../' || '' }}scripts/verify-picomatch-backport.cjs
       - name: Verify patched glob consumers
         if: matrix.package != 'engine'
         working-directory: ${{ matrix.package }}
