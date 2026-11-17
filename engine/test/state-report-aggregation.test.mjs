@@ -5,6 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { resolveAggregateStateReports } from '../src/state-report-aggregation.mjs';
 import { markStaleReport } from '../src/state-report-fallback.mjs';
+import { stateReportContinuityStateIds } from '../src/state-report-guard.mjs';
 
 const readJson = async (file, fallback) => {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
@@ -56,6 +57,34 @@ test('rejected worker attempts use cache without being marked as fresh', async (
   } finally {
     await rm(statesOut, { recursive: true, force: true });
   }
+});
+
+test('a state with publication disabled projects cached inventory as stale without updating the source report', async () => {
+  const config = { id: 'GA', label: 'Georgia' };
+  const observedAt = '2026-10-29T20:43:41.108Z';
+  const cached = {
+    state: config.id,
+    finishedAt: observedAt,
+    stale: false,
+    partial: true,
+    status: 'partial_useful_quality_fallback',
+    signals: [{ id: 'cached-ga', observedAt, canAlertAsInventory: true, canAlertAsWatch: true }],
+  };
+  const [result] = await resolveAggregateStateReports({
+    configs: [config],
+    statesOut: os.tmpdir(),
+    readReport: async () => cached,
+    stateControls: new Map([[config.id, { mode: 'disabled', publishCandidate: false }]]),
+  });
+  assert.equal(result.attempted, false);
+  assert.equal(result.wasRun, false);
+  assert.deepEqual(stateReportContinuityStateIds([result.report]), { partialFallbackStateIds: [], fallbackStateIds: ['GA'] });
+  assert.equal(result.report.lastGoodAt, observedAt);
+  assert.equal(result.report.signals[0].observedAt, observedAt);
+  assert.equal(result.report.signals[0].canAlertAsInventory, false);
+  assert.equal(result.report.signals[0].canAlertAsWatch, false);
+  assert.equal(cached.stale, false);
+  assert.equal(cached.signals[0].canAlertAsInventory, true);
 });
 
 test('partial refresh fails closed when any active state lacks a current or cached report', async () => {

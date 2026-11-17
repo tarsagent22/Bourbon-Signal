@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ACTIVE_RUN_STATES } from './lib/engine-monitor-policy.mjs';
+import { automaticRecoveryExcludedStates } from '../engine/src/state-recovery-plan.mjs';
 
 const BASE_RECOVERY_BACKOFF_MS = 15 * 60_000;
 const MAX_RECOVERY_BACKOFF_MS = 2 * 60 * 60_000;
@@ -118,7 +119,7 @@ async function main() {
   if (!watchdogPath || !runsPath || !headSha) throw new Error('Usage: --watchdog <json> --runs <json> --head-sha <sha>');
   const watchdog = JSON.parse(await readFile(path.resolve(watchdogPath), 'utf8'));
   const runs = JSON.parse(await readFile(path.resolve(runsPath), 'utf8'));
-  const excludedStates = String(process.env.BOURBON_SIGNAL_RECOVERY_EXCLUDED_STATES || 'OH').split(',').map(state => state.trim().toUpperCase()).filter(Boolean);
+  const excludedStates = automaticRecoveryExcludedStates();
   process.stdout.write(`${JSON.stringify(planEngineRecovery({ watchdog, runs, headSha, excludedStates }))}\n`);
 }
 

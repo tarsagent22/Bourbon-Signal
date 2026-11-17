@@ -2,7 +2,7 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { BourbonBible } from './core/bible.mjs';
-import { DROP_TIERS, isLibraryDetectionTarget, libraryIdentityKey } from './core/library-catalog.mjs';
+import { DROP_TIERS, engineLibraryRecords, isLibraryDetectionTarget, libraryIdentityKey } from './core/library-catalog.mjs';
 import { cityHiveSafeBottleMatch } from './collectors/safe-bottle-match.mjs';
 import { STATE_LIFECYCLE, CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
 import { libraryDetectionQueries, LIBRARY_SEARCH_LANES } from './library-query-plan.mjs';
@@ -65,7 +65,7 @@ function verifiedStateQueries(report, state, nowMs, maxAgeMs) {
 export function buildLibraryCoverageAudit({ bible, catalog, reports = {}, drops = [], alerts = [], stats = {}, nowMs = Date.now(), maxAgeMs = 2 * 3_600_000 }) {
   if (catalog.digest !== bible.libraryCatalog?.digest) throw new Error('Audit catalog differs from the engine build');
   const matcher = new BourbonBible(bible.records);
-  const targets = catalog.records.filter(isLibraryDetectionTarget);
+  const targets = engineLibraryRecords(catalog.records).filter(isLibraryDetectionTarget);
   const fresh = row => { const age = nowMs - timestamp(row); return Number.isFinite(age) && age >= -60_000 && age <= maxAgeMs && !row.stale && !row.sourceStale && !row.raw?.staleFallback; };
   const inventoryRows = drops.filter(row => fresh(row) && isPublicDropFeedEligible(row));
   const queryPool = new Set(libraryDetectionQueries(matcher).map(libraryIdentityKey));

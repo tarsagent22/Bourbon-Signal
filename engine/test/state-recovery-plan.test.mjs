@@ -45,6 +45,27 @@ test('the deployed planner emits no dispatch for an excluded-only ledger failure
   assert.match(await readFile(output, 'utf8'), /has_recovery=false/);
 });
 
+test('the deployed planner skips disabled and quarantined partitions and still dispatches a healthy sibling retry', async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'bs-state-recovery-controls-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const contractPath = path.join(root, 'state-health.json');
+  const states = ['GA', 'NC', 'SC'];
+  await writeFile(contractPath, JSON.stringify({
+    summary: { retryStateIds: states },
+    recoveryDispatchState: { selectedState: 'GA' },
+    states: states.map((state) => ({ ...contract.states[0], state })),
+  }));
+  const plan = await runStateRecoveryPlanner([`--contract=${contractPath}`], {
+    BOURBON_SIGNAL_DISABLED_STATES: 'ga',
+    BOURBON_SIGNAL_QUARANTINED_STATES: ' sc ',
+  });
+  assert.deepEqual(plan.retryStateIds, ['NC']);
+  assert.deepEqual(plan.skipped, [
+    { state: 'GA', reason: 'excluded_from_automatic_recovery' },
+    { state: 'SC', reason: 'excluded_from_automatic_recovery' },
+  ]);
+});
+
 test('recovery planning isolates one transient degraded state and defers siblings', () => {
   const plan = buildStateRecoveryPlan(contract, { failedStateIds: ['CC', 'AA', 'DD', 'BB'], attempt: 0 });
   assert.deepEqual(plan.retryStateIds, ['AA']);

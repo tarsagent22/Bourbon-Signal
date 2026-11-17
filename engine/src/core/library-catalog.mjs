@@ -6,6 +6,23 @@ import { cityHiveUnsafeBottleMatchReason } from '../collectors/safe-bottle-match
 
 export const DROP_TIERS = new Set(['limited', 'allocated', 'highly_allocated', 'unicorn']);
 export const isLibraryDetectionTarget = bottle => DROP_TIERS.has(bottle.nationalTier) || bottle.stateOverrides.some(override => DROP_TIERS.has(override.tier));
+
+export function engineLibraryRecords(records) {
+  const titleKey = (bottle) => bottle.canonicalName.trim().replace(/\s+/g, ' ').toLowerCase();
+  const establishedTitles = new Map();
+  for (const bottle of records) {
+    if (!bottle.id.startsWith('owner-')) {
+      const key = titleKey(bottle);
+      establishedTitles.set(key, (establishedTitles.get(key) || 0) + 1);
+    }
+  }
+  // An owner-created, non-alerting copy of an existing title must not add a
+  // second inventory identity or contribute its aliases to the established one.
+  return records.filter((bottle) => !bottle.id.startsWith('owner-')
+    || bottle.isAlertEligible !== false
+    || establishedTitles.get(titleKey(bottle)) !== 1);
+}
+
 // Keep expression words, numbers, finishes and proof. The legacy fingerprint
 // deliberately drops several of these and must never index new library entries.
 
@@ -58,7 +75,7 @@ export function integrateLibraryCatalog(legacy, catalog) {
     put(canonicalIndex, libraryIdentityKey(record.canonical), record);
     for (const alias of [record.canonical, ...record.aliases]) put(aliasIndex, libraryIdentityKey(alias), record);
   }
-  for (const bottle of catalog.records) {
+  for (const bottle of engineLibraryRecords(catalog.records)) {
     const key = libraryIdentityKey(bottle.canonicalName);
     // Canonical equality takes precedence over a broad legacy alias. Never use
     // containment or lossy fingerprints to merge distinct library expressions.

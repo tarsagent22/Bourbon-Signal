@@ -21,7 +21,7 @@
     "backup:neon-secure": "node --no-warnings --experimental-strip-types scripts/backup-neon-secure-http.mjs",
     "test:secure-backup": "node --no-warnings --experimental-strip-types scripts/test-secure-backup-export.mjs && tsx --test scripts/test-secure-backup-route.mts",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint src",
     "ops:daily": "node automation/bourbon-signal/daily-reliability.mjs",
     "ops:weekly": "node automation/bourbon-signal/weekly-engine-brief.mjs",
     "ops:searches": "node automation/bourbon-signal/search-events-report.mjs",
@@ -256,6 +256,7 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
+    "@eslint/eslintrc": "^3.3.5",
     "@tailwindcss/postcss": "^4",
     "@types/d3-geo": "^3.1.0",
     "@types/node": "^22",

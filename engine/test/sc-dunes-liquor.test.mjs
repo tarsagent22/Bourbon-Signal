@@ -212,7 +212,9 @@ test('Dunes exact identity survives normalization and blocks cross-state deliver
   assert.deepEqual(buildCurrentInventoryAlertsFromDrops([{ ...crossState, type: crossState.eventType, tier: 'limited' }]), []);
 });
 
-test('Dunes collector uses bounded public routes and isolates sold-out rows', async () => {
+test('Dunes collector uses bounded public routes and isolates sold-out rows', async (t) => {
+  const cursorDir = await mkdtemp(path.join(os.tmpdir(), 'dunes-detail-fixture-'));
+  t.after(() => rm(cursorDir, { recursive: true, force: true }));
   const requests = [];
   const searchByTerm = new Map(searchCapture.searches.map((entry) => [entry.term, entry.response]));
   const detailBySku = new Map(itemCapture.items.map((entry) => [String(entry.searchRow.ID), entry.response]));
@@ -231,6 +233,7 @@ test('Dunes collector uses bounded public routes and isolates sold-out rows', as
     sleepFn: async () => {},
     useCache: false,
     persistCache: false,
+    cursorDir,
     searchTerms: ['1792', 'blanton'],
     maxItems: 4,
     detailConcurrency: 2,

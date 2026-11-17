@@ -14,6 +14,14 @@ function normalizeStateIds(values = []) {
     .filter((value) => /^[A-Z]{2}(?:-[A-Z0-9]+)*$/.test(value)))].sort();
 }
 
+export function automaticRecoveryExcludedStates(env = process.env, explicit = null) {
+  return normalizeStateIds([
+    explicit ?? (env.BOURBON_SIGNAL_RECOVERY_EXCLUDED_STATES || 'OH'),
+    env.BOURBON_SIGNAL_DISABLED_STATES,
+    env.BOURBON_SIGNAL_QUARANTINED_STATES,
+  ]);
+}
+
 function deterministicFailure(record) {
   const evidence = [
     record?.collection?.status,

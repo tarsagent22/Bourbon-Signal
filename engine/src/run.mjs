@@ -680,7 +680,7 @@ async function main() {
   const poolResultsByState = new Map(poolResults.map((result) => [result.task.id, result]));
   const collected = new Map(poolResults.map((result) => [result.task.id, result.status === 'fulfilled' ? result.value : null]));
   let nextMetrics = previousMetrics;
-  const aggregateReports = await resolveAggregateStateReports({ configs: STATE_SOURCES, collected, statesOut: STATES_OUT, readReport: readJson });
+  const aggregateReports = await resolveAggregateStateReports({ configs: STATE_SOURCES, collected, statesOut: STATES_OUT, readReport: readJson, stateControls });
   const freshReports = [];
   for (const entry of aggregateReports) {
     const { config, attempted, wasRun } = entry;

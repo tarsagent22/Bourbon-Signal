@@ -92,7 +92,7 @@ test('snapshot retention reconciles verified crash duplicates and concurrent arc
       recentSnapshots(30, options),
       recentSnapshots(30, options),
     ]);
-    assert.deepEqual(settled.map((result) => result.status), ['fulfilled', 'fulfilled']);
+    for (const result of settled) if (result.status === 'rejected') throw result.reason;
     const files = await readdir(dir);
     assert.equal(files.filter((file) => file.endsWith('.json')).length, 40);
     assert.equal(files.filter((file) => file.endsWith('.json.gz')).length, 2);
