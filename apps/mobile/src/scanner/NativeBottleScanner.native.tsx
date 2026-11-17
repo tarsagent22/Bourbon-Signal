@@ -64,7 +64,9 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
     setTorch(false);
     setFamily(result?.family);
     setPhase('finished');
-    setMessage(matches.length ? 'Choose your bottle below.'
+    setMessage(result?.family?.identity === 'weller' && !result.canHold ? 'Read the expression below Weller and the printed proof. Keep one label in the frame.'
+      : result?.family && !result.canHold ? 'Read the expression, age or finish beneath the brand name.'
+      : matches.length ? 'Choose your bottle below.'
       : result?.hasText ? 'No match yet. Try the front label or search by name.'
       : 'Move closer or tilt the bottle to reduce glare.');
     current.current.onMatches(matches);

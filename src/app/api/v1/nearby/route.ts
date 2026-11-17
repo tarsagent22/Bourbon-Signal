@@ -1,6 +1,6 @@
 import {
-  withNearbyFeedScope,
-  nearbySearchCities,
+  prepareNearbyFeedScope,
+  runNearbyFeedScope,
 } from "@/lib/nearby-feed-scope";
 import { NextRequest, NextResponse } from "next/server";
 import { GET as feed } from "../signals/route";
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       state: (q.get("placeState") || "").toUpperCase(),
       city: q.get("placeCity") || "",
     };
-    const cities = nearbySearchCities(byAddress, origin, radius, place);
+    const selection = prepareNearbyFeedScope(byAddress, origin, radius, place, boardNames);
     const sightingPins = new Map<string, NearbyStore>();
     const includeSightings = q.get("memberPins") === "1";
     let partial = exports.some(
@@ -102,13 +102,9 @@ export async function GET(request: NextRequest) {
         }
         if (view) url.searchParams.set("view", view);
         if (cursor) url.searchParams.set("cursor", cursor);
-        const response = await withNearbyFeedScope(
-          byAddress,
-          origin,
-          radius,
+        const response = await runNearbyFeedScope(
+          selection,
           () => feed(new NextRequest(url, { headers: request.headers })),
-          place,
-          boardNames,
           forPins ? sightingSince : undefined,
         );
         if (!response.ok) return response;
@@ -123,7 +119,7 @@ export async function GET(request: NextRequest) {
           for (const signal of unlocatedNearbySignals(
             data.signals,
             byAddress,
-            cities,
+            selection.cities,
           ))
             unlocated.set(signal.id, signal);
           unmapped += addNearbySignals(

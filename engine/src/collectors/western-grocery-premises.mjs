@@ -1,9 +1,12 @@
 import {ILLINOIS_GROCERY_SOURCES,ILLINOIS_GROCERY_RESOLVER_ZIPS} from './illinois-grocery-premises.mjs';
-import { NEW_MEXICO_GROCERY_SOURCES } from './new-mexico-grocery-premises.mjs';
+import nmManifest from '../../data/state-integration/NM.json' with { type: 'json' };
+import { NEW_MEXICO_GROCERY_SOURCES, ROSWELL_GROCERY_SOURCES } from './new-mexico-grocery-premises.mjs';
 import { CALIFORNIA_GROCERY_SOURCES } from './california-grocery-premises.mjs';
+// The active manifest and immutable cohort hash must agree before production can collect.
+export const roswellCohortActive = nmManifest.collector.reviewedCohort === 'roswell-v1';
 // First-party resolver and local-page geographic captures reviewed 2026-10-28.
 // These candidates remain inactive until their state promotion contract passes.
-export const WESTERN_GROCERY_RESOLVER_ZIPS = Object.freeze({IL:ILLINOIS_GROCERY_RESOLVER_ZIPS,WA:Object.freeze(['98101','99201','98402']),CA:Object.freeze(["94103","90001","92101","95814","95112","94612","95401","94558","94533","95202","95354","93721","93301","93003","93401","93101","92201","92501","92373","92805","92626","92054","95501","96001","95928","95901","96150","95060","93901","95340","93230","93534","91730","92025","94538","94520","94901","94063","92251","92311","96097","96130","96101","95531","95482","95453","95965","95963","96161","95370","93514","92363","92243","93291","93257","93454","93930","95023","95993","90049","90272","90210","91364","91356","91311","91301","91006","91107","91706","91711","90650","90712","90732","90254","90066","92009","92064","92130","92672","92691","92612","92886","90631","91355","93021","94024","94582","94583","94513","95747","95630","95603","95762","94947","92679","92867","95051","94596","94550","94579","95945","91604","92106","91950","92019","92120","92065","92592","94044","94116"]),NM:Object.freeze(['87101','87501','88001'])});
+export const WESTERN_GROCERY_RESOLVER_ZIPS = Object.freeze({IL:ILLINOIS_GROCERY_RESOLVER_ZIPS,WA:Object.freeze(['98101','99201','98402']),CA:Object.freeze(["94103","90001","92101","95814","95112","94612","95401","94558","94533","95202","95354","93721","93301","93003","93401","93101","92201","92501","92373","92805","92626","92054","95501","96001","95928","95901","96150","95060","93901","95340","93230","93534","91730","92025","94538","94520","94901","94063","92251","92311","96097","96130","96101","95531","95482","95453","95965","95963","96161","95370","93514","92363","92243","93291","93257","93454","93930","95023","95993","90049","90272","90210","91364","91356","91311","91301","91006","91107","91706","91711","90650","90712","90732","90254","90066","92009","92064","92130","92672","92691","92612","92886","90631","91355","93021","94024","94582","94583","94513","95747","95630","95603","95762","94947","92679","92867","95051","94596","94550","94579","95945","91604","92106","91950","92019","92120","92065","92592","94044","94116"]),NM:Object.freeze(['87101','87501','88001', ...(roswellCohortActive ? ['88201'] : [])])});
 export const WESTERN_GROCERY_EXPANSION_SOURCES = Object.freeze([
   ...ILLINOIS_GROCERY_SOURCES,
   {
@@ -934,4 +937,4 @@ export const WESTERN_GROCERY_EXPANSION_SOURCES = Object.freeze([
     "sourceLabel": "Safeway Washington XAPI store inventory",
     "premiseUrl": "https://local.safeway.com/safeway/wa/puyallup/708-shaw-rd-e.html"
   }
-].map(source=>Object.freeze(source)).concat(CALIFORNIA_GROCERY_SOURCES,NEW_MEXICO_GROCERY_SOURCES));
+].map(source=>Object.freeze(source)).concat(CALIFORNIA_GROCERY_SOURCES,NEW_MEXICO_GROCERY_SOURCES,roswellCohortActive ? ROSWELL_GROCERY_SOURCES : []));

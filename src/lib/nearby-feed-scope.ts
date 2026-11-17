@@ -6,28 +6,29 @@ import { boardDropName } from "./nearby-boards.ts";
 
 // Server-only, request-local scope. Never supplied by a client header and never
 // changes membership, freshness, visibility, or source policy checks.
-const scope = new AsyncLocalStorage<{
+type NearbySelection = {
   keys: ReadonlySet<string>;
-  mapped: ReadonlySet<string>;
+  mapped: Pick<ReadonlyMap<string, unknown>, "has">;
+  states: ReadonlySet<string>;
   cities: ReadonlySet<string>;
   boards: ReadonlySet<string>;
   sightingSince?: string;
-}>();
+};
+const scope = new AsyncLocalStorage<NearbySelection>();
 export const nearbyCityKey = (state: string, city: string) =>
   sightingStoreAddressKey({
     state: state.trim().toUpperCase(),
     city,
     address: "",
   });
-export function withNearbyFeedScope<T>(
+export function prepareNearbyFeedScope(
   index: ReturnType<typeof nearbyStoreIndex>,
   origin: Point,
   radius: number,
-  work: () => T,
   place?: { state: string; city: string },
   boards: ReadonlySet<string> = new Set(),
-  sightingSince?: string,
-): T {
+): NearbySelection {
+  const states = new Set<string>();
   const keys = new Set<string>();
   const cities = new Set<string>();
   if (
@@ -35,20 +36,29 @@ export function withNearbyFeedScope<T>(
     /^[A-Z]{2}$/.test(place.state) &&
     place.city.trim() &&
     place.city.length <= 100
-  )
+  ) {
     cities.add(nearbyCityKey(place.state, place.city));
+    states.add(place.state);
+  }
   for (const [key, store] of index) {
     if (
       miles(origin, { latitude: store.lat!, longitude: store.lng! }) <= radius
     ) {
+      states.add(store.state.trim().toUpperCase());
       keys.add(key);
       cities.add(nearbyCityKey(store.state, store.city));
     }
   }
-  return scope.run(
-    { keys, mapped: new Set(index.keys()), cities, boards, sightingSince },
-    work,
-  );
+  return { keys, mapped: index, states, cities, boards };
+}
+export function runNearbyFeedScope<T>(selection: NearbySelection, work: () => T, sightingSince?: string) {
+  return scope.run(sightingSince ? { ...selection, sightingSince } : selection, work);
+}
+export function withNearbyFeedScope<T>(
+  index: ReturnType<typeof nearbyStoreIndex>, origin: Point, radius: number, work: () => T,
+  place?: { state: string; city: string }, boards?: ReadonlySet<string>, sightingSince?: string,
+) {
+  return runNearbyFeedScope(prepareNearbyFeedScope(index, origin, radius, place, boards), work, sightingSince);
 }
 export function nearbySightingSince(requested: string | null) {
   const since = scope.getStore()?.sightingSince;
@@ -65,6 +75,7 @@ export function filterNearbyFeedDrops<T extends Record<string, unknown>>(
     const state = String(drop.state ?? drop.state_code ?? drop.region ?? "")
       .trim()
       .toUpperCase();
+    if (!selection.states.has(state)) return false;
     const address = String(drop.store_address ?? drop.storeAddress ?? "");
     const city = String(drop.store_city ?? drop.storeCity ?? drop.city ?? "");
     if (!state || !city) return false;
@@ -91,18 +102,5 @@ export function nearbySearchCities(
   radius: number,
   place?: { state: string; city: string },
 ) {
-  const cities = new Set<string>();
-  if (
-    place &&
-    /^[A-Z]{2}$/.test(place.state) &&
-    place.city.trim() &&
-    place.city.length <= 100
-  )
-    cities.add(nearbyCityKey(place.state, place.city));
-  for (const store of index.values())
-    if (
-      miles(origin, { latitude: store.lat!, longitude: store.lng! }) <= radius
-    )
-      cities.add(nearbyCityKey(store.state, store.city));
-  return cities;
+  return prepareNearbyFeedScope(index, origin, radius, place).cities;
 }

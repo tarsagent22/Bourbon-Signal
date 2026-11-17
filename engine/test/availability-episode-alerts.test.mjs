@@ -209,6 +209,9 @@ test('engine alert projection dedupes mutable metadata by availability episode',
     availabilityEpisodeKind: 'restock',
   }]);
 
+  assert.equal(first.reportDropId, base.id);
+  assert.equal(quantityChange.reportDropId, base.id);
+  assert.notEqual(first.id, first.reportDropId);
   assert.equal(first.eventIdentityKey, 'availability-episode:episode-first');
   assert.equal(quantityChange.eventIdentityKey, first.eventIdentityKey);
   assert.equal(quantityChange.dedupeKey, first.dedupeKey);

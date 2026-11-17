@@ -69,7 +69,8 @@ export function regionalPriceEvidence(bottle: Pick<BottleProfile, 'id'>, reports
   const prices = [...stores.values()].filter(row => !row.conflict).map(row => row.price).sort((a, b) => a - b);
   const middle = Math.floor(prices.length / 2);
   const median = prices.length < 3 ? null : prices.length % 2 ? prices[middle] : (prices[middle - 1] + prices[middle]) / 2;
-  return { count: prices.length, median, low: prices[0] ?? null, high: prices.at(-1) ?? null };
+  const latestAt = [...stores.values()].reduce((latest, row) => row.conflict ? latest : Math.max(latest, row.at), 0);
+  return { count: prices.length, median, latestAt: latestAt ? new Date(latestAt).toISOString() : null, low: prices[0] ?? null, high: prices.at(-1) ?? null };
 }
 
 const releasePoints = new Map([['regular', 45], ['limited', 65], ['allocated', 78], ['highly_allocated', 90], ['unicorn', 95]]);
@@ -87,13 +88,13 @@ function pricePoints(ratio: number) {
 export const SIGNAL_SCORE_VERSION = 2;
 
 /** Fixed weights. Missing dimensions keep a neutral prior, never an invented observation. */
-export function buyingScore({ bottle, askingPrice, reports, scope, now = new Date() }: {
-  bottle: BottleProfile; askingPrice: string; reports: readonly BottleCheckPriceSignal[]; scope: BuyingScope; now?: Date;
+export function buyingScore({ bottle, askingPrice, reports, scope, confirmedSizeMl, now = new Date() }: {
+  bottle: BottleProfile; askingPrice: string; reports: readonly BottleCheckPriceSignal[]; scope: BuyingScope; confirmedSizeMl?: number; now?: Date;
 }) {
   scope = { state: scope.state.trim().toUpperCase(), area: scope.area.trim() };
   const benchmarks = bottlePriceBenchmarks(bottle, scope.state, now);
   const explicit = bottle.name.match(/(?:^|[^\d.])(\d+(?:\.\d+)?|\.\d+)\s*(ml|l)\b/i);
-  const sizeMl = explicit ? Math.round(Number(explicit[1]) * (explicit[2].toLowerCase() === 'l' ? 1000 : 1))
+  const sizeMl = confirmedSizeMl && Number.isSafeInteger(confirmedSizeMl) && confirmedSizeMl >= 50 && confirmedSizeMl <= 6000 ? confirmedSizeMl : explicit ? Math.round(Number(explicit[1]) * (explicit[2].toLowerCase() === 'l' ? 1000 : 1))
     : benchmarks.state?.sizeMl ?? benchmarks.msrp?.sizeMl ?? 750;
   const local = regionalPriceEvidence(bottle, reports, scope, now, sizeMl);
   const statePrices = scope.area ? regionalPriceEvidence(bottle, reports, { ...scope, area: '' }, now, sizeMl) : local;
@@ -165,6 +166,7 @@ export function buyingScore({ bottle, askingPrice, reports, scope, now = new Dat
   ].filter((note): note is string => Boolean(note));
   return { version: SIGNAL_SCORE_VERSION, score, verdict, confidence, evidenceScope, releaseLabel,
     reasons, notes, local, statePrices, stateFallback, price: applied?.amount ?? null, reference: reference?.amount ?? null,
+    referenceDate: reference === median ? observed.latestAt : reference && 'date' in reference && typeof reference.date === 'string' ? reference.date : null,
     referenceLabel: reference?.label ?? null, priceNote, sizeMl, valuePoints, findPoints, qualityPoints, factorsUsed, localClassification: Boolean(localRarity),
     reviewStats: { expert: reviews.expert, consumer: reviews.community == null ? null : reviews.community / 20, count: reviews.ratings.filter(r => r.kind === 'community').reduce((sum, r) => sum + (r.count || 0), 0) },
     adjustment: 'Price 40%, release rarity 30%, published reviews 30%. Missing factors contribute a neutral baseline. This is purchase guidance; it does not confirm stock.',

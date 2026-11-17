@@ -205,8 +205,17 @@ export function readBottleLabel(index: LabelIndex, text: string) {
   ));
   // A partial family can suggest candidates, but a repaired/partial name
   // alone cannot pause the camera. Confirm an expression using fresh evidence.
+  // A shelf photo can contain words from two neighboring Weller tags.
+  // A brand plus a proof number alone cannot distinguish store selections.
+  const wellerExpressions = ['special reserve', 'antique', 'full proof', 'single barrel', '12 year'];
+  const wellerConflict = family?.identity === 'weller' && wellerExpressions
+    .filter(phrase => normalized.includes(phrase))
+    .some(phrase => !entry?.identity.includes(phrase));
+  const printedProofs = [...text.matchAll(/\b(\d{2,3}(?:\.\d+)?)\s*(?:proof|pf)\b/gi)].map(match => Number(match[1]));
+  const proofConflict = family?.identity === 'weller' && typeof top?.proof === 'number'
+    && printedProofs.some(proof => Math.abs(proof - top.proof!) > 0.05);
   const familyMatched = !family || (explicitFamily && family.bottles.some(bottle => bottle.id === top?.id));
-  return { matches, family, explicitFamily, conflictingBrands, canHold: matches.length > 0 && !conflictingBrands && familyMatched && (!family || expressionRead), hasText: normalized.length >= 3 };
+  return { matches, family, explicitFamily, conflictingBrands, canHold: matches.length > 0 && !conflictingBrands && !wellerConflict && !proofConflict && familyMatched && (!family || expressionRead), hasText: normalized.length >= 3 };
 }
 
 export function normalizeBarcode(value: string): string | null {

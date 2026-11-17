@@ -918,7 +918,7 @@ export function candidateToMemberAlert(userId: string, candidate: CandidateAlert
   const candidateId = asString(candidate.id);
   const signalId = asString(candidate.sourceType) === "community"
     ? (candidateId.startsWith("community:") ? `member:${candidateId.slice("community:".length)}` : "")
-    : normalizeDropSignal(candidate).id;
+    : normalizeDropSignal({ ...candidate, id: asString(candidate.reportDropId) || candidateId }).id;
   return {
     id: buildAlertId(userId, dedupeKey, createdAt),
     userId,
