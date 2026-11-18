@@ -753,6 +753,3 @@
     transition: none;
   }
 }
-
-.partnerContact { margin-top: 24px; color: var(--color-text-secondary); }
-.partnerContact a { color: #eac78e; text-decoration: underline; text-underline-offset: 4px; }

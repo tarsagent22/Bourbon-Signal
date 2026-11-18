@@ -15,7 +15,7 @@ export function CoverageSummary({ state }: CoverageSummaryProps) {
     <div className={styles.summary}>
       <span className={styles.strength} data-coverage-strength={state.coverageStrength}>
         <Gauge size={13} aria-hidden="true" />
-        Source breadth · {state.coverageStrengthLabel}
+        {state.coverageStrengthLabel}
       </span>
 
       <dl className={styles.metrics} aria-label="Coverage at a glance">
@@ -27,7 +27,7 @@ export function CoverageSummary({ state }: CoverageSummaryProps) {
       </dl>
 
       {showShipmentCaveat ? (
-        <p className={styles.caveat}>Shipment reports cover board or area deliveries. Receiving stores are unconfirmed.</p>
+        <p className={styles.caveat}>Shipment reports show board or area deliveries—not guaranteed shelf stock.</p>
       ) : null}
     </div>
   );

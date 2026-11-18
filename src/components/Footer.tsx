@@ -1,9 +1,13 @@
-import styles from "./Footer.module.css";
+"use client";
 
-const groups = [
-  { title: "Explore", links: [["Bottle reports", "/#drops"], ["Local coverage", "/coverage"], ["Membership", "/pricing"], ["Get the app", "/#download"]] },
-  { title: "Resources", links: [["FAQ", "/#faq"], ["Gift membership help", "/gift"], ["Retailer login", "/retailers/login"], ["Support", "/support"]] },
-  { title: "Legal", links: [["Privacy policy", "/legal/privacy"], ["Terms of service", "/legal/terms"], ["Data & alcohol disclaimer", "/legal/disclaimer"]] },
+const footerLinks = [
+  { label: "Gift Bourbon Signal", href: "/gift" },
+  { label: "FAQ", href: "/#faq" },
+  { label: "Privacy", href: "/legal/privacy" },
+  { label: "Terms", href: "/legal/terms" },
+  { label: "Disclaimer", href: "/legal/disclaimer" },
+  { label: "Retailer Login", href: "/retailers/login" },
+  { label: "Support", href: "/support" },
 ];
 
 const socialLinks = [
@@ -29,31 +33,123 @@ function InstagramIcon() {
   );
 }
 
+function SocialLinks({ mobile = false }: { mobile?: boolean }) {
+  return (
+    <nav
+      aria-label="Social media"
+      className={`${mobile ? "flex md:hidden" : "hidden md:flex"} items-center justify-center gap-3`}
+    >
+      {socialLinks.map((link) => {
+        const Icon = link.icon;
+        return (
+          <a
+            key={link.label}
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={link.label}
+            title={link.label}
+            className="flex h-11 w-11 items-center justify-center rounded-full border transition-colors duration-300"
+            style={{
+              borderColor: "rgba(245, 237, 214, 0.2)",
+              color: "var(--color-text-secondary)",
+            }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = "var(--color-text-primary)";
+              event.currentTarget.style.borderColor = "rgba(196, 148, 58, 0.7)";
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = "var(--color-text-secondary)";
+              event.currentTarget.style.borderColor = "rgba(245, 237, 214, 0.2)";
+            }}
+          >
+            <Icon />
+          </a>
+        );
+      })}
+    </nav>
+  );
+}
+
 export default function Footer() {
   return (
-    <footer id="site-footer" className={styles.footer}>
-      <div className={styles.inner}>
-        <div className={styles.columns}>
-          <div>
-            <a className={styles.wordmark} href="/">BOURBON SIGNAL<span>.</span></a>
-            <nav className={styles.social} aria-label="Social media">
-              {socialLinks.map(({ label, href, icon: Icon }) => (
-                <a key={label} href={href} aria-label={label} target="_blank" rel="noopener noreferrer"><Icon /></a>
-              ))}
-            </nav>
+    <footer
+      id="site-footer"
+      style={{
+        backgroundColor: "var(--color-bg-primary)",
+      }}
+    >
+      {/* Secondary surface → footer transition */}
+      <div style={{ height: 32, background: "linear-gradient(to bottom, var(--color-bg-secondary) 0%, var(--color-bg-primary) 100%)" }} />
+      <div className="py-6" style={{ paddingLeft: "clamp(30px, 4vw, 60px)", paddingRight: "clamp(30px, 4vw, 60px)" }}>
+        {/* Top row: logo left (matching nav), links + copyright centered */}
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          {/* Mobile social row — centered in the breathing room above the footer mark. */}
+          <SocialLinks mobile />
+
+          {/* Logo — same margin as nav logo */}
+          <div className="flex items-baseline gap-0 md:mr-auto" style={{ paddingLeft: "0" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-playfair)",
+                fontWeight: 700,
+                fontSize: "20px",
+                color: "var(--color-text-primary)",
+              }}
+            >
+              BOURBON SIGNAL
+            </span>
+            <span
+              style={{
+                color: "var(--color-accent-amber)",
+                fontSize: "8px",
+                marginLeft: "2px",
+              }}
+            >
+              ●
+            </span>
           </div>
-          {groups.map(group => <nav key={group.title} aria-label={group.title}>
-            <h2>{group.title}</h2>
-            {group.links.map(([label, href]) => <a className={styles.link} key={href} href={href}>{label}</a>)}
-          </nav>)}
+
+          {/* Center: links */}
+          <nav className="flex w-full items-center justify-center gap-4 md:w-auto md:gap-6" style={{ margin: "0 auto", flexWrap: "wrap" }}>
+            {footerLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                className="transition-colors duration-300"
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "14px",
+                  color: "var(--color-text-secondary)",
+                  textDecoration: "none",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "var(--color-text-primary)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = "var(--color-text-secondary)")
+                }
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+
+          <SocialLinks />
+
+          {/* Right: copyright (mirrors logo width for balance) */}
+          <p
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "13px",
+              color: "var(--color-text-tertiary)",
+              paddingRight: "0",
+            }}
+          >
+            © 2026 Todd Digital Ventures LLC
+          </p>
         </div>
-        <p className={styles.partner}>Retailer or distillery?{" "}
-          <a href="/retailers">Partner with Bourbon Signal <span aria-hidden="true">⟶</span></a>
-        </p>
-        <div className={styles.legal}>
-          <p>© 2026 Todd Digital Ventures LLC</p>
-          <p>For ages 21 and up. Please drink responsibly.</p>
-        </div>
+
       </div>
     </footer>
   );

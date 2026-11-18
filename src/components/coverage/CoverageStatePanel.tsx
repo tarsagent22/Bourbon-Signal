@@ -45,7 +45,6 @@ export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
           <h2 id="coverage-state-heading" tabIndex={-1}>{state.name}</h2>
         </div>
       </div>
-      <p className={styles.currentInventory}>{state.capabilityLabel}</p>
       <CoverageSummary state={state} />
       {observedInventoryStores > 0 || currentInventoryStores > 0 ? (
         <p className={styles.currentInventory}>

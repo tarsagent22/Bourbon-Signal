@@ -1,6 +1,5 @@
 "use client";
 import type { CSSProperties } from "react";
-import { track } from "@vercel/analytics";
 function StoreSymbol({ android = false }: { android?: boolean }) {
   return (
     <svg
@@ -70,7 +69,7 @@ export default function AppDownloadCTA() {
       }}
     >
       {stores.map((store) => (
-        <a key={store.name} href={store.url} style={style} onClick={() => track("public_app_store_clicked", { platform: store.name })}>
+        <a key={store.name} href={store.url} style={style}>
           <StoreSymbol android={store.name === "Android"} />
           <span
             style={{

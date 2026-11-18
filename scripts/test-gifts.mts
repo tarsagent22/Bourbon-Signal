@@ -295,7 +295,7 @@ assert.match(redemptionPage, /no-store/);
 const statusPage = read("src/app/gift/status/page.tsx");
 assert.match(statusPage, /\/api\/gifts\/status/);
 const footer = read("src/components/Footer.tsx");
-assert.ok(footer.includes('["Gift membership help", "/gift"]'));
+assert.match(footer, /label:\s*["']Gift Bourbon Signal["'],\s*href:\s*["']\/gift["']/);
 const pricing = read("src/app/pricing/PricingPageClient.tsx");
 assert.doesNotMatch(pricing, />Gift Bourbon Signal</);
 

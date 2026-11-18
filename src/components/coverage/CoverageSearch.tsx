@@ -104,7 +104,7 @@ export function CoverageSearch({ stateCode, stateName }: CoverageSearchProps) {
           >
             <span>
               <strong>{result.label}</strong>
-              <small>{[result.city === result.label ? undefined : result.city, result.address].filter(Boolean).join(" · ")}</small>
+              <small>{[result.city, result.address].filter(Boolean).join(" · ")}</small>
             </span>
             <span className={styles.resultStatus}>{STATUS_LABELS[result.status]}</span>
             <p>{result.detail}</p>
