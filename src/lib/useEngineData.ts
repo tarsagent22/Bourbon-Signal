@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 const REFETCH_INTERVAL = 5 * 60_000; // 5 minutes
 
@@ -107,35 +107,57 @@ interface StatsResponse {
   };
 }
 
-function useFetch<T>(url: string, fallback: T) {
+function useFetch<T>(url: string, fallback: T, interval = REFETCH_INTERVAL) {
   const [data, setData] = useState<T>(fallback);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      setData(json);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Fetch failed");
-    } finally {
-      setLoading(false);
-    }
-  }, [url]);
-
   useEffect(() => {
-    fetchData();
-    intervalRef.current = setInterval(fetchData, REFETCH_INTERVAL);
+    let active: AbortController | undefined;
+    let disposed = false;
+    async function refresh() {
+      if (active || document.hidden) return;
+      const controller = new AbortController();
+      active = controller;
+      const timeout = window.setTimeout(() => controller.abort(), 30_000);
+      try {
+        const res = await fetch(url, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (!disposed) {
+          setData(json);
+          setError(null);
+        }
+      } catch (err) {
+        if (!disposed) setError(err instanceof Error ? err.message : "Fetch failed");
+      } finally {
+        window.clearTimeout(timeout);
+        active = undefined;
+        if (!disposed) setLoading(false);
+      }
+    }
+    void refresh();
+    const timer = window.setInterval(refresh, interval);
+    document.addEventListener("visibilitychange", refresh);
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      disposed = true;
+      active?.abort();
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
     };
-  }, [fetchData]);
+  }, [url, interval]);
 
   return { data, loading, error };
+}
+
+type TickerStats = Pick<StatsResponse, "historicalSignalCount" | "signalCount" | "engineGeneratedAt" | "generatedAt"> & { storeCount?: number };
+
+export function useTickerStats() {
+  const { data: stats } = useFetch<TickerStats | null>("/api/stats/ticker", null, 60_000);
+  const { data } = useFetch<{ totalMembers: number } | null>("/api/member-count", null, 60_000);
+  return { stats, memberCount: data?.totalMembers };
 }
 
 export function useBottles() {

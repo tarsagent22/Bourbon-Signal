@@ -1,4 +1,5 @@
 "use client";
+import SignalTicker from "./SignalTicker";
 import { FeedRow } from "./DropFeed";
 import { dropFeedStyles } from "./drop-feed-styles";
 import type { GroupedDrop } from "@/lib/drops";
@@ -60,6 +61,7 @@ export default function PublicDropFeed({
         >
           Our system automatically updates the feed throughout the day.
         </p>
+        <SignalTicker />
         <div style={{ display: "grid", gap: 12 }}>
           {drops.map((drop, index) => (
             <FeedRow
