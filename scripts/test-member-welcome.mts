@@ -100,7 +100,7 @@ assert.match(coverageSummarySource, /coverageMonitoringFootprint\(state\)/, "the
 assert.doesNotMatch(coverageSummarySource, /inventoryMonitoredStores|Stores with current inventory signals|current signals/i, "the shared summary omits current state freshness");
 assert.equal((coverageSummarySource.match(/<dt>/g) || []).length, 1, "the shared summary keeps one durable monitoring-library count");
 assert.match(coverageSummaryStyles, /grid-template-columns:\s*minmax\(0, 1fr\)[\s\S]{0,100}max-width:\s*270px/, "the shared summary stays compact");
-assert.match(coverageSummarySource, /Shipment reports cover board or area deliveries\. Receiving stores are unconfirmed\./);
+assert.match(coverageSummarySource, /Shipment reports show board or area deliveries—not guaranteed shelf stock\./);
 assert.match(coveragePanelSource, /<CoverageSummary state=\{state\}/, "the full Coverage page uses the same summary component");
 assert.doesNotMatch(coveragePanelSource, /Update status|healthCopy|stateSummary|quickFacts|tracked shipment data|official local pages|stores listed|stores with current availability/i, "the full panel removes the verbose duplicate facts");
 assert.match(coveragePanelSource, /<CoverageSearch[\s\S]*Request coverage[\s\S]*How we check this area/, "search, requests, and collapsed methodology remain on the full page");

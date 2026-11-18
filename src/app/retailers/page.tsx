@@ -24,7 +24,6 @@ export default function RetailersPage() {
               <a className={styles.primaryButton} href="/retailers/register">Create retailer account</a>
               <a className={styles.secondaryButton} href="/retailers/login">Retailer login</a>
             </div>
-            <p className={styles.partnerContact}>Represent a distillery? <a href="mailto:support@bourbonsignal.com?subject=Distillery%20partnership">Contact us about a partnership →</a></p>
           </div>
         </section>
 

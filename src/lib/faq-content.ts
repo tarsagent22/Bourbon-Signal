@@ -30,6 +30,19 @@ function productFaqItems(): FaqItem[] {
 
   return [
     {
+      question: "Can I use my website membership in the app?",
+      answer: "Yes. Sign in with the same email and sign-in method to keep your membership, shelf, ratings, watches, contributions, and earned or gifted access.",
+    },
+    {
+      question: "Can I manage or cancel my membership in the app?",
+      answer: "Open Membership, then Manage membership. Manage website subscriptions through Stripe, iPhone subscriptions through Apple, and Android subscriptions through Google Play. When you cancel, paid access continues through the current billing period.",
+    },
+    {
+      question: "What is Bourbon Signal?",
+      answer:
+        "Bourbon Signal helps bourbon hunters find actionable bottle availability without digging through dozens of retailer, control-board, warehouse, distillery, and community sources. It combines those signals into one feed, labels their freshness and precision, and alerts members when meaningful activity matches their markets or bottle watchlists.",
+    },
+    {
       question: "Where is Bourbon Signal coverage available?",
       answer:
         `Bourbon Signal currently tracks signals across ${markets.length} states: ${markets.join(", ")}. Coverage is not identical in every state. Some markets support exact-store inventory, while others provide control-board deliveries, warehouse observations, lotteries, distillery releases, verified retailer reports, or broader release-watch signals. Each feed card identifies its location precision and signal type so you can tell whether it points to a specific store or a wider market.`,
@@ -38,12 +51,6 @@ function productFaqItems(): FaqItem[] {
       question: "What do the different feed signals mean—and is availability guaranteed?",
       answer:
         "No signal can guarantee that a bottle will still be available when you arrive. Bourbon inventory can change within minutes. Exact-store inventory and Verified retailer reports are the most actionable. Shipment, warehouse, allocation, and release-watch signals show where activity is developing but may not confirm shelf inventory. Tastings and lotteries are scheduled opportunities rather than bottle availability. Member Sightings are clearly labeled separately from official and verified-retailer sources. Always check the card’s timestamp, location precision, source, and availability note before making a trip.",
-    },
-    { question: "What can I use for free?", answer: "Read six recent reports, check coverage, look up three bottles, and keep ten bottles on My Shelf. Barrel Proof adds bottle and area alerts for $6/month." },
-    {
-      question: "What is Bourbon Signal?",
-      answer:
-        "Bourbon Signal helps bourbon hunters find actionable bottle availability without digging through dozens of retailer, control-board, warehouse, distillery, and community sources. It combines those signals into one feed, labels their freshness and precision, and alerts members when meaningful activity matches their markets or bottle watchlists.",
     },
     {
       question: "How do Bourbon Signal alerts work?",
@@ -79,14 +86,6 @@ function productFaqItems(): FaqItem[] {
       question: "Why doesn’t every state have the same store-level detail?",
       answer:
         "Alcohol inventory systems vary widely by state. Some control boards publish store-level quantities, while others expose only deliveries, warehouse activity, lotteries, release calendars, or no public inventory at all. Bourbon Signal preserves the most precise trustworthy location available instead of presenting broad market activity as exact shelf inventory. Coverage becomes more specific as reliable sources and verified retailers are added.",
-    },
-    {
-      question: "Can I use my website membership in the app?",
-      answer: "Yes. Sign in with the same email and sign-in method to keep your membership, shelf, ratings, watches, contributions, and earned or gifted access.",
-    },
-    {
-      question: "Can I manage or cancel my membership in the app?",
-      answer: "Open Membership, then Manage membership. Manage website subscriptions through Stripe, iPhone subscriptions through Apple, and Android subscriptions through Google Play. When you cancel, paid access continues through the current billing period.",
     },
   ];
 }
