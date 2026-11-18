@@ -20,6 +20,8 @@ export default function SignUpPage() {
   const referralCode = normalizeReferralCode(searchParams.get("ref"));
   const paidIntent = searchParams.get("intent") === "paid";
   const redirectUrl = resolveSignUpRedirect(searchParams.get("redirect_url"), searchParams.get("intent"));
+  const checkoutPlan = new URL(redirectUrl, "https://www.bourbonsignal.com").searchParams.get("plan");
+  const planLabel = checkoutPlan === "bib_lifetime" ? "Founder · $50 once" : checkoutPlan === "barrel_monthly" ? "Barrel Proof · $6/month" : "Free account";
   const signInRedirectUrl = withoutRegistrationMarker(redirectUrl);
   const encodedSignInRedirect = encodeURIComponent(signInRedirectUrl);
   const isCoverageRequestRedirect = searchParams.get("source") === "coverage";
@@ -121,10 +123,10 @@ export default function SignUpPage() {
             }}
           >
             <strong style={{ display: "block", color: "var(--color-text-primary)", fontSize: "17px", marginBottom: "5px" }}>
-              Create your free Bourbon Signal account.
+              {checkoutPlan ? planLabel : "Create your free Bourbon Signal account."}
             </strong>
             <span>
-              {isCoverageRequestRedirect
+              {checkoutPlan ? "Create your account, then review your selection at checkout." : isCoverageRequestRedirect
                 ? "Create your free account to send this coverage request. No payment or card required."
                 : "No card required. Start with the Drop Feed preview, My Shelf, the Coverage Map, and Member Sightings."}
             </span>
@@ -159,7 +161,7 @@ export default function SignUpPage() {
               marginBottom: "12px",
             }}
           >
-            Age confirmation
+            {planLabel} · Age confirmation
           </p>
           <h1
             id="age-confirmation-title"

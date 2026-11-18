@@ -65,7 +65,7 @@ export function isPublicCheckoutPlanId(planId: BillingPlanId): planId is PublicC
 export const MEMBERSHIP_COMPARISON_ROWS = [
   ["Intel feed", "6 recent signals", "Full access"],
   ["My Shelf", "10 bottles", "Unlimited"],
-  ["Bottle lookups", "3", "Unlimited"],
+  ["Bottle lookups", "3 total", "Unlimited"],
   ["Alert areas and watched bottles", "—", "Unlimited"],
   ["Push and Community alerts", "—", "✓"],
   ["Advanced filters and bottle search", "—", "✓"],

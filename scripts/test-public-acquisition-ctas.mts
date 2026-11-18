@@ -10,8 +10,8 @@ const finalCta = read("src/components/sections/FinalCTA.tsx");
 assert.match(hero, /href="\/pricing\?source=homepage-hero-try-free"[\s\S]*Try free/);
 assert.doesNotMatch(hero, /signUp\(|Create Account/i);
 
-assert.match(navigation, /href="\/pricing\?source=site-nav-desktop-try-free"[\s\S]*Try free/);
-assert.match(navigation, /href="\/pricing\?source=site-nav-mobile-try-free"[\s\S]*Try free/);
+assert.match(navigation, /href="\/pricing\?source=site-nav-desktop-plans"[\s\S]*View plans/);
+assert.match(navigation, /href="\/pricing\?source=site-nav-mobile-plans"[\s\S]*View plans/);
 assert.doesNotMatch(navigation, /signUp\(|Create Account/i);
 
 assert.match(dropFeed, /href="\/pricing\?source=homepage-drop-feed-try-free"[\s\S]*Try free →/);

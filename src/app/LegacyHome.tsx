@@ -8,8 +8,6 @@ import Footer from "@/components/Footer";
 
 import HeroSection from "@/components/sections/HeroSection";
 import DropFeed from "@/components/sections/DropFeed";
-import PublicDropFeed from "@/components/sections/PublicDropFeed";
-import type { PublicMarketingDrop } from "@/lib/public-marketing-feed";
 import HowWeHunt from "@/components/sections/HowWeHunt";
 import FAQ from "@/components/sections/FAQ";
 
@@ -51,7 +49,7 @@ function ScrollToTopButton() {
   );
 }
 
-export default function Home({ appFunnel = false, drops = [], unavailable = false }: { appFunnel?: boolean; drops?: PublicMarketingDrop[]; unavailable?: boolean }) {
+export default function Home() {
   return (
     <>
       <Navigation />
@@ -61,7 +59,7 @@ export default function Home({ appFunnel = false, drops = [], unavailable = fals
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        <HeroSection appFunnel={appFunnel} />
+        <HeroSection />
         <div
           style={{
             height: 12,
@@ -74,7 +72,7 @@ export default function Home({ appFunnel = false, drops = [], unavailable = fals
           viewport={{ once: true, amount: 0.14 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
-          {appFunnel ? <PublicDropFeed drops={drops} unavailable={unavailable} /> : <DropFeed />}
+          <DropFeed />
         </motion.div>
         <div style={{ height: 22, background: "var(--color-bg-primary)" }} />
         <HowWeHunt />
