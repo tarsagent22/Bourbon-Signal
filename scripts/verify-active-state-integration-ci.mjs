@@ -11,8 +11,9 @@ import {verifyStateIntegration} from '../engine/src/verify-state-integration.mjs
 
 const execFileAsync=promisify(execFile);
 const DEFAULT_ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const REVIEWED_STATES=new Set(['WA','NM','WI','OK']);
+const REVIEWED_STATES=new Set(['WA','WI','OK']);
 const REVIEWED_SITE='engine/data/canary-site/four-state-20261029';
+const NM_REGIONAL_SITE='engine/data/canary-site/new-mexico-regional-20261120';
 const LA_AK_SITE='engine/data/canary-site/alaska-louisiana-20261114';
 const RI_SITE='engine/data/canary-site/rhode-island-20261114';
 const MN_SITE='engine/data/canary-site/minnesota-20261114';
@@ -27,6 +28,7 @@ const SD_SITE='engine/data/canary-site/sd-active-candidate-20261115';
 const OR_SITE='engine/data/canary-site/oregon-20261115';
 const REVIEWED_SOURCE_SITES=new Map([
   ...[...REVIEWED_STATES].map(state=>[state,REVIEWED_SITE]),
+  ['NM',NM_REGIONAL_SITE],
   ['AK',LA_AK_SITE],
   ['LA',LA_AK_SITE],
   ['RI',RI_SITE],
@@ -70,7 +72,7 @@ export async function verifyActiveStateIntegrationForCi({root=DEFAULT_ROOT,state
     if(reviewedSite&&manifest?.evidence?.production?.status==='pending_release')throw Error(`${state}: pending_release would redirect the production verifier; it is not permitted for this admission`);
     if(reviewedSite&&manifest?.evidence?.production?.status==='awaiting_first_publication'){
       if(manifest.evidence.canary?.siteArtifact!==reviewedSite)throw Error(`${state}: CI artifact must be the exact reviewed canary path`);
-      const requiresPartitionProof=reviewedSite===LA_AK_SITE||reviewedSite===RI_SITE||reviewedSite===MN_SITE
+      const requiresPartitionProof=reviewedSite===NM_REGIONAL_SITE||reviewedSite===LA_AK_SITE||reviewedSite===RI_SITE||reviewedSite===MN_SITE
         ||reviewedSite===KS_SITE||reviewedSite===AR_SITE||reviewedSite===MO_SITE||reviewedSite===MD_SITE||reviewedSite===WY_SITE||reviewedSite===DE_SITE||reviewedSite===ND_SITE||reviewedSite===SD_SITE||reviewedSite===OR_SITE;
       if(requiresPartitionProof){
         const proof=await readJson(path.join(root,reviewedSite,'source-proof.json'),null);

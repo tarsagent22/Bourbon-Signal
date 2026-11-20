@@ -32,12 +32,12 @@ test('New Mexico cannot substitute a same-name retailer, LasCrucesbanner or adja
     {channelInventory:{instore:'0',shipping:'1'}},{price:0}])assert.deepEqual(parse([{...product,...mutation}]),[]);
 });
 
-test('New Mexico research preflight remains bounded43requests and does not claim a complete cohort from one premise',async()=>{
+test('New Mexico research preflight stays within the 64-request regional budget and does not claim a complete cohort from one premise',async()=>{
   const cursorDir=await mkdtemp(path.join(tmpdir(),'nm-grocery-'));
   try{
     const result=await collectGroceryExpansion({id:'NM'},bible,{cursorDir,observedAt:fixture.capturedAt,sleep:async()=>{},fetchText:async url=>({ok:true,status:200,
       text:JSON.stringify(url.includes('storeresolver')?{instore:{stores:[fixture.store]}}:{response:{docs:fixture.products}})})});
-    assert.equal(result.metadata.maxRequestCount,43);assert.equal(result.metadata.requests.length,6);
+    assert.equal(result.metadata.maxRequestCount,64);assert.equal(result.metadata.requests.length,11);
     assert.equal(result.metadata.complete,false);assert.equal(result.signals.length,2);
     assert.ok(result.metadata.requests.filter(r=>r.kind==='inventory').every(r=>new URL(r.url).hostname==='www.shopalbertsonsmarket.com'));
   }finally{await rm(cursorDir,{recursive:true,force:true});}

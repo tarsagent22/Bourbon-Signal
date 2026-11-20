@@ -46,7 +46,7 @@ test('complete cohort cache preserves original clocks, stays on-site only, rejec
   try{
     const opts=options(directory),now=Date.now();let requests=0;
     const result=await collectWesternGroceryProductionSource(config,bible,{...opts,nowMs:now,fetchText:mockedCompleteGroceryFetch('NM',()=>requests++)});
-    assert.equal(result.metadata.complete,true);assert.ok(result.signals.length>0);assert.ok(requests>=35&&requests<=43);
+    assert.equal(result.metadata.complete,true);assert.ok(result.signals.length>0);assert.ok(requests>=56&&requests<=64);
     assert.ok(result.signals.every(row=>row.quantity===0&&row.quantityIsExact===false&&row.eligibleForOnSite
       &&!row.canAlertAsInventory&&!row.canAlertAsWatch&&!row.eligibleForWatch&&!row.eligibleForDelivery&&!row.eligibleForEmail&&!row.eligibleForSms));
     const clock=result.signals[0].observedAt;

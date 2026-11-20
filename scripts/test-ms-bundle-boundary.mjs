@@ -83,7 +83,8 @@ test('actual four-state admission reverses only the exact active list and issued
   for (const [name, entries] of Object.entries(actualAdmission.files)) {
     const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
-    for (const [key, { reviewed, original }] of Object.entries(entries)) {
+    for (const [key, { reviewed: admissionBlock, original }] of Object.entries(entries)) {
+      const reviewed = key === 'NM' ? current.match(/^    "NM": \{[\s\S]+?^    \}/mu)?.[0] : admissionBlock;
       // The admitted AK/LA tail adds two exact entries after the older list.
       // Corrupt the same reviewed WA member in the current literal list.
       const activeList = /"activeStates": \[[\s\S]+?\],/u.exec(current)?.[0];
@@ -410,7 +411,7 @@ test('WA/NM metadata reversal requires every literal inactive registration and b
     const originalHash = evidence.implementationFilesSha256[name];
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), originalHash);
     for (const [key, { reviewed: priorReviewed, original }] of Object.entries(baseline.files[name])) {
-      const reviewed = actualAdmission.files[name]?.[key]?.reviewed || (key === 'budgets' ? priorReviewed.replace('"WA": 720000', '"WA": 360000').replace('"NM": 300000\n', '"NM": 120000,\n') : priorReviewed);
+      const reviewed = (key === 'NM' ? current.match(/^    "NM": \{[\s\S]+?^    \}/mu)?.[0] : actualAdmission.files[name]?.[key]?.reviewed) || (key === 'budgets' ? priorReviewed.replace('"WA": 720000', '"WA": 360000').replace('"NM": 300000\n', '"NM": 120000,\n') : priorReviewed);
       assert.equal(current.split(reviewed).length - 1, 1, `${name}: ${key}`);
       const changed = name.endsWith('.mjs')
         ? reviewed.replace('WESTERN_GROCERY_PRODUCTION_', 'UNREVIEWED_GROCERY_')

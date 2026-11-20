@@ -433,6 +433,11 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   const admission = fourStateAdmissionBaseline.files[name];
   if (admission) {
     assert.equal(fourStateAdmissionBaseline.contractVersion, 'bourbon-signal/four-state-actual-admission-ms-boundary@1');
+    // Reconcile only the reviewed 24-store NM admission against the archived original.
+    const regionalNm = text.match(/^    "NM": \{[\s\S]+?^    \}/mu)?.[0];
+    if (regionalNm && createHash('sha256').update(regionalNm).digest('hex') === '8c7438a5fdb42b035334ba6204eb1432f7b31480dedf53a7d2f5d054742a1324') {
+      text = replaceUnique(text, regionalNm, admission.NM.reviewed, name + ': four-state admission NM regional expansion');
+    }
     for (const [key, entry] of Object.entries(admission)) {
       text = replaceUnique(text, entry.reviewed, entry.original, `${name}: four-state admission ${key}`);
     }
