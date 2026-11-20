@@ -26,13 +26,17 @@ function signalHost(signal) {
   }
 }
 
-function expectedProductPath(platform, value) {
+function expectedProductPath(platform, value, productId) {
   try {
-    const path = new URL(String(value || '')).pathname;
+    const url = new URL(String(value || ''));
+    const path = url.pathname;
     if (platform === 'cityhive') return /\/(?:shop\/)?product\//i.test(path);
     if (platform === 'shopify') return /\/products\//i.test(path);
     if (platform === 'bottlecapps') return /\/s\/1000-1057\/i\//i.test(path);
     if (platform === 'grabbl') return /\/products\//i.test(path);
+    if (url.username || url.password || url.port || url.search || url.hash) return false;
+    if (platform === 'lightspeed') return /^\/[a-z0-9-]+\.html$/i.test(path) && /^\d+$/.test(productId);
+    if (platform === 'galaxy') return /^[a-z0-9_]+$/i.test(productId) && path === `/portfolio/${productId}`;
     return false;
   } catch {
     return false;
@@ -42,6 +46,18 @@ function expectedProductPath(platform, value) {
 export function isAllowedTennesseeBottleFormat(value) {
   const text = String(value || '').trim();
   return Boolean(text) && !FORMAT_DENIAL_RE.test(text);
+}
+
+export function isAllowedTennesseeCityHiveOption(option) {
+  const sizes = [option?.option_params?.size, option?.option_display_data?.size].filter(Boolean);
+  const volumes = sizes.map(({ measure, quantity }) => {
+    const unit = String(measure || '').toLowerCase();
+    if (unit === 'ml') return Number(quantity);
+    if (unit === 'l') return Number(quantity) * 1_000;
+    return NaN;
+  });
+  return !option?.preorder_details && volumes.length > 0 && [700, 750, 1_000, 1_750].includes(volumes[0])
+    && volumes.every((volume) => volume === volumes[0]);
 }
 
 export function normalizeTennesseeCityHiveQuantity(value) {
@@ -63,7 +79,7 @@ export function isTennesseeRetailerSignalIdentity(signal) {
   const store = registeredTennesseeStore(sourceId, merchantId);
   if (!store) return false;
   if (!exact(signal.sourceLabel || signal.source, store.sourceLabel)) return false;
-  if (signalHost(signal) !== store.hostname.toLowerCase() || !expectedProductPath(store.platform, signal.sourceUrl)) return false;
+  if (signalHost(signal) !== store.hostname.toLowerCase() || !expectedProductPath(store.platform, signal.sourceUrl, signal.productId)) return false;
   if (!exact(signal.sourceChain || signal.raw?.chain, store.sourceId)) return false;
   if (!exact(signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id, store.merchantId)) return false;
   if (!exact(signal.storeId, store.storeId)) return false;
@@ -72,6 +88,8 @@ export function isTennesseeRetailerSignalIdentity(signal) {
   if (![store.city, ...store.cityAliases].some((city) => exact(signal.city || signal.storeCity, city))) return false;
   if (!exact(signal.zip || signal.postalCode, store.zip)) return false;
   if (!String(signal.productId || '').trim()) return false;
+  const option = signal.raw?.option;
+  if (store.platform === 'cityhive' && option && !isAllowedTennesseeCityHiveOption(option)) return false;
   return isAllowedTennesseeBottleFormat(signal.rawName || signal.bottleName || signal.canonicalName);
 }
 
@@ -88,7 +106,9 @@ export function isTennesseeRetailerInventory(signal) {
   const binary = signal.inventorySemantics === 'binary_retailer_orderable_no_exact_count'
     || signal.raw?.binaryAvailability === true
     || store.platform === 'shopify'
-    || store.platform === 'grabbl';
+    || store.platform === 'grabbl'
+    || store.platform === 'lightspeed'
+    || store.platform === 'galaxy';
   if (binary) {
     return quantity === 0
       && signal.quantityIsExact === false

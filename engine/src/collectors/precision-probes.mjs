@@ -97,6 +97,7 @@ import {
   registeredTennesseeStore,
   tennesseeStoresForSource,
 } from './tennessee-retailer-surfaces.mjs';
+import { collectKnoxvilleProductPageRetailers } from './tennessee-knoxville-retailers.mjs';
 import {
   hasReviewedTennesseeCityHivePayload,
   mergeTennesseeCityHiveCacheSignals,
@@ -107,6 +108,7 @@ import {
 } from './tennessee-cityhive-policy.mjs';
 import {
   isAllowedTennesseeBottleFormat,
+  isAllowedTennesseeCityHiveOption,
   isTennesseeRetailerInventory,
   normalizeTennesseeCityHiveQuantity,
 } from '../tennessee-retailer-policy.mjs';
@@ -578,7 +580,16 @@ const TN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_MAX_
 const TN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_CACHE_MAX_AGE_MS || 10 * 60 * 60_000);
 const TN_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_PAGE_DELAY_MS || 1_200);
 const TN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_DELAY_MS || 2_000);
-const TN_CITYHIVE_SOURCE_COHORT_SIZE = Math.max(1, Math.min(8, Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_COHORT_SIZE) || 4));
+const TN_CITYHIVE_SOURCE_COHORT_SIZE = Math.max(1, Math.min(8, Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_COHORT_SIZE) || 7));
+const TN_CITYHIVE_KNOXVILLE_SOURCE_IDS = Object.freeze([
+  'hall-of-fame-knoxville',
+  'cristys-liquor-store',
+  'liquor-vault-knoxville',
+  'lakeshore-wine-and-spirits',
+  'northshore-wine-spirits',
+  'campbell-station-wine-spirits',
+  'green-meadow-wine-spirits',
+]);
 const TN_CITYHIVE_RARE_PRIORITY_SOURCE_IDS = Object.freeze([
   'corkdorks',
   'busters-liquors',
@@ -776,6 +787,16 @@ const TN_CITYHIVE_SOURCES = [
     ]
   },
   {
+    id: 'hall-of-fame-knoxville',
+    chainName: 'Hall of Fame Wine & Spirits',
+    sourceLabel: 'Hall of Fame Wine & Spirits CityHive store inventory',
+    baseUrl: 'https://hofknox.com',
+    urls: [
+      'https://hofknox.com/shop/?subtype=bourbon',
+      'https://hofknox.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
     id: 'liquor-vault-knoxville',
     chainName: 'Liquor Vault Knoxville',
     sourceLabel: 'Liquor Vault Knoxville CityHive store inventory',
@@ -839,10 +860,10 @@ const TN_CITYHIVE_SOURCES = [
     id: 'green-meadow-wine-spirits',
     chainName: 'Green Meadow Wine & Spirits',
     sourceLabel: 'Green Meadow Wine & Spirits CityHive store inventory',
-    baseUrl: 'https://greenmea1758acc7.sites.cityhive.app',
+    baseUrl: 'https://greenmeadowtn.com',
     urls: [
-      'https://greenmea1758acc7.sites.cityhive.app/shop/?subtype=bourbon',
-      'https://greenmea1758acc7.sites.cityhive.app/shop/?subtype=whiskey'
+      'https://greenmeadowtn.com/shop/?subtype=bourbon',
+      'https://greenmeadowtn.com/shop/?subtype=whiskey'
     ]
   },
   {
@@ -3712,6 +3733,8 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
     cohortSize: TN_CITYHIVE_SOURCE_COHORT_SIZE,
     forceAll: forceAllSources,
     requestedSourceIds,
+    knoxvilleSourceIds: TN_CITYHIVE_KNOXVILLE_SOURCE_IDS,
+    knoxvilleSlots: Math.min(3, Math.max(0, TN_CITYHIVE_SOURCE_COHORT_SIZE - 4)),
     prioritySourceIds: TN_CITYHIVE_RARE_PRIORITY_SOURCE_IDS,
     prioritySlots: TN_CITYHIVE_RARE_PRIORITY_SLOTS,
   });
@@ -3752,7 +3775,7 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
             error: res.error || `HTTP ${res.status}`,
             nextRoute: 'Retry the first-party CityHive page; never substitute search snippets or unregistered merchant rows.'
           });
-          if (res.status === 429) {
+          if ([403, 429].includes(res.status)) {
             sourceBlocked = true;
           }
           break;
@@ -3831,7 +3854,7 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
                 continue;
               }
               const rawName = option.option_display_data?.name || product.name;
-              if (!isAllowedTennesseeBottleFormat(rawName)) continue;
+              if (!isAllowedTennesseeBottleFormat(rawName) || !isAllowedTennesseeCityHiveOption(option)) continue;
               const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
               if (!record) continue;
               const normalizedQuantity = normalizeTennesseeCityHiveQuantity(option.quantity);
@@ -7655,7 +7678,10 @@ async function collectSouthCarolina(config, bible) {
 async function collectTennessee(config, bible, options = {}) {
   const observedAt = new Date().toISOString();
   const configuredStores = buildTennesseeConfiguredStoreLocationSignals(observedAt);
-  const cityHive = await collectTennesseeCityHive(config, bible, observedAt, options);
+  const [cityHive, knoxville] = await Promise.all([
+    collectTennesseeCityHive(config, bible, observedAt, options),
+    collectKnoxvilleProductPageRetailers(bible, { fetchText: textFetch, sleep: sleepWithSignal, signal: options.signal }),
+  ]);
   options.signal?.throwIfAborted();
   const shopify = await collectTennesseeShopify(config, bible, observedAt, options);
   options.signal?.throwIfAborted();
@@ -7663,8 +7689,8 @@ async function collectTennessee(config, bible, options = {}) {
   options.signal?.throwIfAborted();
   const gatewayGrabbl = await collectTennesseeGatewayGrabbl(config, bible, observedAt, options);
   return {
-    signals: [...configuredStores, ...cityHive.signals, ...shopify.signals, ...coolSprings.signals, ...gatewayGrabbl.signals],
-    roadblocks: [...cityHive.roadblocks, ...shopify.roadblocks, ...coolSprings.roadblocks, ...gatewayGrabbl.roadblocks]
+    signals: [...configuredStores, ...cityHive.signals, ...knoxville.signals, ...shopify.signals, ...coolSprings.signals, ...gatewayGrabbl.signals],
+    roadblocks: [...cityHive.roadblocks, ...knoxville.roadblocks, ...shopify.roadblocks, ...coolSprings.roadblocks, ...gatewayGrabbl.roadblocks]
   };
 }
 

@@ -37,6 +37,24 @@ test('Tennessee source cohort reserves rare-yield slots while preserving oldest-
   assert.equal(new Set(selected.map((source) => source.id)).size, 4);
 });
 
+test('Knoxville rotation preserves statewide exploration and explicit source selection', () => {
+  const ids = ['hall-of-fame', 'cristys', 'northshore', 'corkdorks', 'busters', 'chattanooga', 'crossville'];
+  const sources = ids.map((id) => ({ id }));
+  const options = {
+    cohortSize: 5,
+    knoxvilleSlots: 2,
+    knoxvilleSourceIds: ids.slice(0, 3),
+    prioritySlots: 1,
+    prioritySourceIds: ['corkdorks', 'busters'],
+    cache: { sourceAttemptAt: { 'hall-of-fame': '2026-11-20T14:00:00Z' } },
+  };
+  assert.deepEqual(selectTennesseeCityHiveSourceCohort(sources, options).map(({ id }) => id), [
+    'cristys', 'northshore', 'corkdorks', 'chattanooga', 'crossville',
+  ]);
+  assert.deepEqual(selectTennesseeCityHiveSourceCohort(sources, { ...options, forceAll: true }), sources);
+  assert.deepEqual(selectTennesseeCityHiveSourceCohort(sources, { ...options, requestedSourceIds: ['crossville'] }), [sources.at(-1)]);
+});
+
 test('CityHive quantity 100 is binary availability rather than an exact shelf count', () => {
   assert.deepEqual(normalizeCityHiveReportedQuantity(100), {
     reportedQuantity: 100,

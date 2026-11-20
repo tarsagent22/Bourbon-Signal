@@ -46,6 +46,8 @@ export function selectTennesseeCityHiveSourceCohort(sources = [], {
   cohortSize = 4,
   forceAll = false,
   requestedSourceIds = new Set(),
+  knoxvilleSourceIds = [],
+  knoxvilleSlots = 0,
   prioritySourceIds = [],
   prioritySlots = 0,
 } = {}) {
@@ -58,13 +60,16 @@ export function selectTennesseeCityHiveSourceCohort(sources = [], {
   indexed.sort(oldestFirst);
   const size = Math.max(1, Math.min(sources.length, Number(cohortSize) || 1));
   const priorityIds = new Set((prioritySourceIds || []).map((value) => String(value || '')).filter(Boolean));
-  const exploitSize = Math.max(0, Math.min(size, priorityIds.size, Number(prioritySlots) || 0));
-  const exploited = indexed.filter((entry) => priorityIds.has(entry.source.id)).sort(oldestFirst).slice(0, exploitSize);
-  const exploitedIds = new Set(exploited.map((entry) => entry.source.id));
-  const nonPriority = indexed.filter((entry) => !priorityIds.has(entry.source.id));
-  const remainingPriority = indexed.filter((entry) => priorityIds.has(entry.source.id) && !exploitedIds.has(entry.source.id));
-  const explored = [...nonPriority, ...remainingPriority].slice(0, size - exploited.length);
-  return [...exploited, ...explored].map((entry) => entry.source);
+  const knoxvilleIds = new Set(knoxvilleSourceIds);
+  const knoxville = indexed.filter(({ source }) => knoxvilleIds.has(source.id))
+    .slice(0, Math.max(0, Math.min(size, knoxvilleSlots)));
+  const selectedIds = new Set(knoxville.map(({ source }) => source.id));
+  const rare = indexed.filter(({ source }) => priorityIds.has(source.id) && !selectedIds.has(source.id))
+    .slice(0, Math.max(0, Math.min(size - knoxville.length, prioritySlots)));
+  for (const { source } of rare) selectedIds.add(source.id);
+  const other = indexed.filter(({ source }) => !selectedIds.has(source.id) && !priorityIds.has(source.id) && !knoxvilleIds.has(source.id));
+  const otherPriority = indexed.filter(({ source }) => !selectedIds.has(source.id) && (priorityIds.has(source.id) || knoxvilleIds.has(source.id)));
+  return [...knoxville, ...rare, ...other, ...otherPriority].slice(0, size).map(({ source }) => source);
 }
 
 export function mergeTennesseeCityHiveCacheSignals({

@@ -1558,6 +1558,9 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
       return drop;
     })
     .filter((drop) => isCustomerDropTier(drop))
+    .filter((drop) => drop.state !== 'TN'
+      || !/^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(drop.type)
+      || drop.canAlertAsInventory === true)
     .filter((drop) => {
       const key = [drop.state, drop.type, drop.canonicalId, drop.ncCode, drop.sourceUrl, drop.storeId, drop.locationName, drop.storeAddress, drop.quantity, drop.availabilityStatus, drop.price].join('|');
       if (seenProjectedIds.has(key)) return false;
