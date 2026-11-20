@@ -130,10 +130,9 @@ assert(unsafeCanonicalMatches.length === 0, `Unsafe TN canonical matches found: 
 assert(cacheAgeHours == null || cacheAgeHours <= 12, `TN CityHive cache is too old for customer-facing fast-inventory export: ${cacheAgeHours?.toFixed(1)}h`);
 
 if ((dropsExport.drops || []).length) {
-  const allowedSourceRe = /CityHive|Cool Springs|Frugal|Corkdorks|Buster|Kimbrough|Cristy|Red Dog|Moon Wine|Westside|Gateway|Grabbl|Bottle Shop|Shopify/i;
   const bourbonNameRe = /bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker/i;
   const excludedCategoryRe = /vodka|gin|rum|tequila|liqueur|cordial|wine|beer|seltzer|cocktail|ready to drink|cream|coffee|bitters|margarita|brandy|cognac|mezcal/i;
-  const unsafeSources = inventoryDrops.filter((drop) => !allowedSourceRe.test(String(drop.source || '')));
+  const unsafeSources = inventoryDrops.filter((drop) => !tennesseeSourceForId(drop.sourceChain || drop.raw?.chain));
   const unsafeNames = inventoryDrops.filter((drop) => excludedCategoryRe.test(`${drop.rawName || ''} ${drop.bottleName || ''}`) && !bourbonNameRe.test(`${drop.rawName || ''} ${drop.bottleName || ''}`));
   assert(!unsafeSources.length, `TN exported inventory drops must come from whitelisted public retailers; got ${unsafeSources.map((drop) => drop.source).join(', ')}`);
   assert(!unsafeNames.length, `TN exported inventory drops included non-bourbon categories: ${unsafeNames.map((drop) => drop.rawName || drop.bottleName).join(', ')}`);

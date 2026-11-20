@@ -26,7 +26,7 @@ import {
   GEORGIA_LIGHTSPEED_STORES,
 } from '../src/collectors/georgia-retailer-surfaces.mjs';
 import { buildLocationBible } from '../src/location-bible.mjs';
-import { buildStores } from '../src/export-site-contract.mjs';
+import { bibleLookup, buildDrops, buildStores } from '../src/export-site-contract.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { markSignalStaleNonAlertable } from '../src/stale-signal-policy.mjs';
 import {
@@ -74,6 +74,7 @@ function tennesseeBinarySignal(overrides = {}) {
       sourceAvailabilityVerified: true,
       option: {
         merchant_id: store.merchantId,
+        option_params: { size: { quantity: '750', measure: 'ml' } },
         product_id: 'product-1',
         option_id: 'option-1',
         full_address: store.address,
@@ -428,6 +429,16 @@ test('Tennessee inventory requires exact host, merchant, premises, product, avai
   ]) {
     assert.equal(isTennesseeRetailerInventory(forged), false, JSON.stringify(forged));
   }
+});
+
+test('the Tennessee feed excludes exact-stock rows suppressed by the bottle library', () => {
+  const signal = tennesseeBinarySignal();
+  const record = { id: signal.canonicalBottleId, canonical: signal.canonicalName, tier: 'allocated' };
+  const eligible = buildDrops([signal], bibleLookup([record]), [signal]);
+  assert.equal(eligible.length, 1);
+  assert.equal(eligible[0].canAlertAsInventory, true);
+  const suppressed = buildDrops([signal], bibleLookup([{ ...record, libraryAlertEligible: false }]), [signal]);
+  assert.deepEqual(suppressed, []);
 });
 
 test('confidence policy and source export fail closed for unverified Tennessee rows', () => {
