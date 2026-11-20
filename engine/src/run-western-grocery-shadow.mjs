@@ -7,10 +7,13 @@ import { fileURLToPath } from 'node:url';
 import { fetchWithMeta } from './core/fetcher.mjs';
 import { BourbonBible } from './core/bible.mjs';
 import { collectGroceryExpansion } from './collectors/grocery-xapi-expansion.mjs';
+import { groceryResearchAttempts } from './research-grocery-runtime.mjs';
+import { nmShadowCohort } from './collectors/new-mexico-grocery-premises.mjs';
+import { WESTERN_GROCERY_BUDGETS } from './western-grocery-production-config.mjs';
 
 const args=Object.fromEntries(process.argv.slice(2).map(arg=>{const split=arg.indexOf('=');return[arg.slice(2,split),arg.slice(split+1)];}));
 if(!['WA','CA','NM'].includes(args.state) || !args.output)throw new Error('Use --state=WA|CA|NM --output=<new directory>');
-if (args.cohort && (args.cohort !== 'roswell' || args.state !== 'NM')) throw new Error('Unknown grocery preflight cohort');
+if (args.cohort && (args.state !== 'NM' || !nmShadowCohort(args.cohort))) throw new Error('Unknown grocery preflight cohort');
 const output=path.resolve(args.output);
 await mkdir(output,{recursive:false});
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -19,13 +22,19 @@ const git=(...command)=>execFileSync('git',command,{cwd:root,encoding:'utf8'}).t
 const sourceCommit=git('rev-parse','HEAD');
 const trackedChanges=git('status','--porcelain','--untracked-files=no');
 if(trackedChanges)throw new Error('Commit source changes before producing immutable local shadow evidence');
-const library=JSON.parse(await readFile('out/library-catalog.json','utf8'));
-const age=Date.now()-Date.parse(library.fetchedAt);
-if(!Number.isFinite(age)||age< -60_000||age>3_600_000)throw new Error('Refresh the full app library before shadow collection');
 const inputs={};
 for(const file of ['out/library-catalog.json','out/bourbon-bible.json']){
   const bytes=await readFile(file);await writeFile(path.join(output,path.basename(file)),bytes);inputs[file]=hash(bytes);
 }
+const library=JSON.parse(await readFile(path.join(output, 'library-catalog.json'), 'utf8'));
+const age=Date.now()-Date.parse(library.fetchedAt);
+if(!Number.isFinite(age)||age< -60_000||age>3_600_000)throw new Error('Refresh the full app library before shadow collection');
+const bibleInput=JSON.parse(await readFile(path.join(output, 'bourbon-bible.json'), 'utf8'));
+if (bibleInput.libraryCatalog?.mode !== 'live' || bibleInput.libraryCatalog.digest !== library.digest ||
+    library.digest !== hash(JSON.stringify(library.records)) || bibleInput.libraryCatalog.count !== library.records.length) {
+  throw new Error('Build the bottle bible with BOURBON_SIGNAL_LIBRARY_CATALOG_FILE set to the synced catalog');
+}
+const bible = new BourbonBible(bibleInput.records);
 const sourceFiles={};
 for(const file of ['collectors/grocery-xapi-expansion.mjs','collectors/grocery-xapi-identity.mjs','collectors/western-grocery-premises.mjs','collectors/california-grocery-premises.mjs','collectors/new-mexico-grocery-premises.mjs','collectors/arizona-xapi-matching.mjs','collectors/arizona-xapi-library-identity.mjs','collectors/safe-bottle-match.mjs','library-search-runtime.mjs','library-query-plan.mjs']){
   sourceFiles[file]=hash(await readFile(new URL(file,import.meta.url)));
@@ -41,8 +50,9 @@ const fetchText=async(url,options)=>{
   return response;
 };
 const startedAt=new Date().toISOString();
-const result=await collectGroceryExpansion({id:args.state},await BourbonBible.load(),{fetchText,roswellShadow:args.cohort==='roswell',
-  cursorDir:path.resolve('out/cache/western-grocery-shadow'),signal:AbortSignal.timeout(600_000)});
+const ledger = await groceryResearchAttempts(path.resolve('out/research-source-attempts', `grocery-${args.state}.json`));
+const result=await collectGroceryExpansion({id:args.state},bible,{...ledger,fetchText,shadowCohort:args.cohort,
+  cursorDir:path.resolve('out/cache/western-grocery-shadow'),signal:AbortSignal.timeout(WESTERN_GROCERY_BUDGETS[args.state]?.sourceMs ?? 600_000)});
 const observations=Buffer.from(JSON.stringify(result,null,2));
 await writeFile(path.join(output,'observations.json'),observations);
 await writeFile(path.join(output,'captures.json'),JSON.stringify(captures,null,2));

@@ -4,7 +4,7 @@ import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {BourbonBible} from '../src/core/bible.mjs';
-import {NEW_MEXICO_GROCERY_SOURCES} from '../src/collectors/new-mexico-grocery-premises.mjs';
+import {activeNmCohort} from '../src/collectors/western-grocery-premises.mjs';
 import {groceryResearchSourceForState,collectGroceryResearchReport} from '../src/research-grocery-runtime.mjs';
 import {researchSourceForState,withResearchLifecycle} from '../src/research-state-registry.mjs';
 import {buildShadowEvidence,selectShadowCandidates} from '../src/run-expansion-shadow.mjs';
@@ -31,14 +31,14 @@ test('grocery registration is shadow-only and its lifecycle overlay never activa
 test('registered research produces portable raw receipts and explicit local origin without claiming workflow issuance',async()=>{
   const directory=await mkdtemp(path.join(tmpdir(),'grocery-workflow-shadow-'));
   try{
-    const stores=NEW_MEXICO_GROCERY_SOURCES.map(source=>({locationId:source.merchantId,
+    const stores=activeNmCohort.sources.map(source=>({locationId:source.merchantId,
       polarisBannerName:source.banner,domainName:source.resolverDomainName,
       address:{line1:source.address.split(',')[0],city:source.city,state:'NM',country:'US',zipcode:source.zip}}));
     const report=await collectGroceryResearchReport(config,bible,{env,reportDirectory:directory,
       attemptsFile:path.join(directory,'attempts.json'),cursorDir:path.join(directory,'cursor'),sleep:async()=>{},
       fetchText:async url=>({ok:true,status:200,url,text:JSON.stringify(url.includes('storeresolver')
         ?{instore:{stores}}:{response:{docs:fixture.products.map(product=>({...product,storeId:new URL(url).searchParams.get('storeid')}))}})})});
-    assert.equal(report.metadata.complete,true);assert.ok(report.metadata.receipts.length>=35&&report.metadata.receipts.length<=43);
+    assert.equal(report.metadata.complete,true);assert.ok(report.metadata.receipts.length>=56&&report.metadata.receipts.length<=64);
     assert.equal(report.metadata.origin.kind,'local_shadow_not_workflow_issued');
     assert.equal(report.metadata.productionActivationAllowed,false);
     assert.ok(report.signals.every(row=>row.eligibleForDelivery===false&&row.eligibleForEmail===false&&row.sourceProductBinding.shadowOnly));

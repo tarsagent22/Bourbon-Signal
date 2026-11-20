@@ -1,5 +1,5 @@
 // Current first-party resolver/local-page evidence reviewed2026-10-28.
-// Research only. No production runtime/lifecycle activation is included.
+// Production selection is bound to the New Mexico promotion manifest.
 export const NEW_MEXICO_GROCERY_SOURCES = Object.freeze([
   {
     "id": "shopalbertsonsmarket-nm-3917",
@@ -291,14 +291,49 @@ export const NEW_MEXICO_GROCERY_SOURCES = Object.freeze([
   }
 ].map(source=>Object.freeze(source)));
 
+// Regional premises pair the retailer's exact in-store resolver address with
+// coordinates from that merchant's linked first-party location page.
+function regionalPremise(merchantId, street, city, zip, lat, lng, slug) {
+  return Object.freeze({
+    id: 'shopalbertsonsmarket-nm-' + merchantId, name: 'Albertsons Market #' + merchantId,
+    stateCode: 'NM', banner: 'shopalbertsonsmarket', resolverDomainName: 'Albertsons Market',
+    host: 'www.shopalbertsonsmarket.com', merchantId, storeId: 'shopalbertsonsmarket:' + merchantId,
+    address: street + ', ' + city + ', NM ' + zip, city, zip, lat, lng,
+    sourceLabel: 'Albertsons Market New Mexico XAPI store inventory',
+    premiseUrl: 'https://local.albertsonsmarket.com/nm/' + slug + '.html',
+  });
+}
+
 export const ROSWELL_GROCERY_SOURCES = Object.freeze([
-  ['692', '900 W 2nd St', '88201', 33.39349563266549, -104.53538660793456, '900-w-2nd-st'],
-  ['3690', '1110 S Main St', '88203', 33.38101079507886, -104.524265088221, '1110-s-main-st'],
-].map(([merchantId, street, zip, lat, lng, slug]) => Object.freeze({
-  id: 'shopalbertsonsmarket-nm-' + merchantId, name: 'Albertsons Market #' + merchantId,
-  stateCode: 'NM', banner: 'shopalbertsonsmarket', resolverDomainName: 'Albertsons Market',
-  host: 'www.shopalbertsonsmarket.com', merchantId, storeId: 'shopalbertsonsmarket:' + merchantId,
-  address: street + ', Roswell, NM ' + zip, city: 'Roswell', zip, lat, lng,
-  sourceLabel: 'Albertsons Market New Mexico XAPI store inventory',
-  premiseUrl: 'https://local.albertsonsmarket.com/nm/roswell/' + slug + '.html',
-})));
+  regionalPremise('692', '900 W 2nd St', 'Roswell', '88201', 33.39349563266549, -104.53538660793456, 'roswell/900-w-2nd-st'),
+  regionalPremise('3690', '1110 S Main St', 'Roswell', '88203', 33.38101079507886, -104.524265088221, 'roswell/1110-s-main-st'),
+]);
+
+const REGIONAL_GROCERY_SOURCES = Object.freeze([
+  regionalPremise('1686', '1905 N Prince St', 'Clovis', '88101', 34.416724083995064, -103.19468185026246, 'clovis/1905-n-prince-st'),
+  regionalPremise('665', '202 W Church St', 'Carlsbad', '88220', 32.429181527967025, -104.22701115026244, 'carlsbad/202-w-church-st'),
+  regionalPremise('680', '2402 N Grimes St', 'Hobbs', '88240', 32.72741425533862, -103.14326675252232, 'hobbs/2402-n-grimes-st'),
+  regionalPremise('656', '1415 N Main St', 'Lovington', '88260', 32.962293, -103.34896, 'lovington/1415-n-main-st'),
+  regionalPremise('3681', '1300 E 10th St', 'Alamogordo', '88310', 32.899128517022774, -105.94571383329821, 'alamogordo/1300-e-10th-st'),
+  regionalPremise('682', '721 Mechem Dr', 'Ruidoso', '88345', 33.34744252613107, -105.67615452440805, 'ruidoso/721-mechem-dr'),
+]);
+
+function cohort(additions, extraZips) {
+  const sources = Object.freeze([...NEW_MEXICO_GROCERY_SOURCES, ...additions]);
+  const zips = Object.freeze(['87101', '87501', '88001', ...extraZips]);
+  // Each store gets two broad queries, plus eight rotating library queries statewide.
+  return Object.freeze({ sources, zips, requestLimit: zips.length + sources.length * 2 + 8 });
+}
+
+export const NM_BASE_COHORT = cohort([], []);
+export const NM_REVIEWED_COHORTS = Object.freeze({
+  roswell: cohort(ROSWELL_GROCERY_SOURCES, ['88201']),
+  regional: cohort([...ROSWELL_GROCERY_SOURCES, ...REGIONAL_GROCERY_SOURCES],
+    ['88201', '88220', '88240', '88101', '88345']),
+});
+
+export function nmShadowCohort(name) {
+  if (!name) return null;
+  if (!Object.hasOwn(NM_REVIEWED_COHORTS, name)) throw new Error('Unknown New Mexico grocery cohort');
+  return NM_REVIEWED_COHORTS[name];
+}

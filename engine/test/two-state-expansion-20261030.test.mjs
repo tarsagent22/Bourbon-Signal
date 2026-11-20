@@ -26,7 +26,7 @@ test('California request ceiling contains every resolver, two searches per premi
   assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.CA,1262);
   assert.ok(maximumPlannedRequests<=GROCERY_EXPANSION_REQUEST_LIMITS.CA);
   assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.WA,127);
-  assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.NM,43);
+  assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.NM,64);
   assert.ok(CALIFORNIA_GROCERY_SOURCES.every(s=>s.lat>32&&s.lat<43&&s.lng> -125&&s.lng< -114&&new URL(s.premiseUrl).protocol==='https:'));
 });
 

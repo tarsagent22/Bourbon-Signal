@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {BourbonBible} from '../src/core/bible.mjs';
-import {NEW_MEXICO_GROCERY_SOURCES} from '../src/collectors/new-mexico-grocery-premises.mjs';
+import {activeNmCohort} from '../src/collectors/western-grocery-premises.mjs';
 import {groceryResearchSourceForState,collectGroceryResearchReport} from '../src/research-grocery-runtime.mjs';
 import {prepareGroceryCanary} from '../src/prepare-grocery-canary.mjs';
 import {isGroceryExpansionOnSiteSignal} from '../src/grocery-xapi-policy.mjs';
@@ -20,7 +20,7 @@ test('raw replay preserves source clocks, ignores report rows and rejects stale/
     // Synthetic mocks exercise validation only. They are never workflow receipts.
     const env={BOURBON_SIGNAL_SHADOW_MODE:'1',GITHUB_ACTIONS:'true',GITHUB_RUN_ID:'123',
       GITHUB_SHA:'a'.repeat(40),GITHUB_REPOSITORY:'tarsagent22/Bourbon-Signal'};
-    const stores=NEW_MEXICO_GROCERY_SOURCES.map(source=>({locationId:source.merchantId,
+    const stores=activeNmCohort.sources.map(source=>({locationId:source.merchantId,
       polarisBannerName:source.banner,domainName:source.resolverDomainName,
       address:{line1:source.address.split(',')[0],city:source.city,state:'NM',country:'US',zipcode:source.zip}}));
     const report=await collectGroceryResearchReport(groceryResearchSourceForState('NM'),bible,{env,

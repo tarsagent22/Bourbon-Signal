@@ -8,6 +8,7 @@ engine/test/fixtures/ks-cityhive/hosted-finder-feed.json -diff
 engine/data/canary-site/arkansas-20261114/states/AR/drops.json -text
 engine/data/canary-site/sd-active-candidate-20261115/states/SD/drops.json -text
 engine/data/canary-site/oregon-20261115/states/OR/drops.json text eol=lf
+engine/data/canary-site/new-mexico-regional-20261120/states/NM/drops.json text eol=lf
 
 # Preserve the verified bytes of the vendored parser backports.
 apps/mobile/vendor/picomatch-v*/** text eol=lf
