@@ -77,8 +77,12 @@ for (const phrase of ['/api/sightings', 'voteSighting', 'addSignalReport']) {
 if (!/next\.slice\(0, previewLimit\)/.test(hook)) fail('Sightings must respect any non-null server preview limit.');
 
 const dropFeed = read('src/components/sections/DropFeed.tsx');
-for (const phrase of ['Member sighting', 'sighting.rarityTier', 'lastUpdated', 'Refreshed']) {
+for (const phrase of ['Member sighting', 'sighting.rarityTier', '<SignalTicker', 'feedUpdatedAt={data?.lastUpdated}']) {
   if (!dropFeed.includes(phrase)) fail(`Drop feed should include ${phrase}`);
+}
+const ticker = read('src/components/sections/SignalTicker.tsx');
+if (!ticker.includes('|| feedUpdatedAt') || !ticker.includes('label: "Last refreshed", value: refreshedText')) {
+  fail('The shared feed ticker should show the last refresh time and use the feed timestamp as a fallback.');
 }
 for (const phrase of ['memberSightingToGrouped', 'store_address: sighting.storeAddress', 'locationPrecision: "store_level"', 'exactStore: true', 'displayLocationLabel(sighting.storeName', 'onVoteSighting', 'voteSighting(sightingId, vote)', 'upCount: sighting.upCount']) {
   if (!dropFeed.includes(phrase)) fail(`Drop feed should preserve exact member sighting store details and voting: ${phrase}`);
