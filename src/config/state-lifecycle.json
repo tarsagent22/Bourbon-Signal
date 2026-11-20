@@ -27,7 +27,6 @@
     "MS",
     "WV",
     "WA",
-    "NM",
     "WI",
     "OK",
     "AK",
@@ -2247,91 +2246,6 @@
             "bundleDigest": "e892504b1e76564505d7d7d0b6c7412610582f8c42abb850c9a36fffc58ff2d1",
             "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925317245",
             "artifactName": "state-promotion-provenance-WI-40925317245"
-          }
-        }
-      }
-    },
-    "NM": {
-      "customerLabel": "New Mexico",
-      "sourceLabel": "New Mexico reviewed exact-store grocery inventory",
-      "publicStatus": "active",
-      "shadowEligible": false,
-      "lifecycle": "retailer_store_inventory",
-      "coverageTier": "sparse_live_store_inventory",
-      "refinementLevel": "store",
-      "inventoryAlertable": false,
-      "watchAlertable": false,
-      "customerSummary": "First-party in-store availability at selected reviewed New Mexico grocery stores. Exact shelf counts are not published. On-site inventory only; alerts and delivery are disabled.",
-      "promotionStage": "active",
-      "promotionEvidence": {
-        "shadowRuns": 3,
-        "canaryRuns": 2,
-        "verifiedAt": "2026-10-29T17:56:56.347Z",
-        "shadowArtifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193",
-        "canaryArtifact": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
-        "canaryPreviewUrl": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
-        "verticalSliceManifest": "engine/data/state-integration/NM.json",
-        "fixtureContract": "engine/data/state-fixtures/NM.json",
-        "immutableEvidence": {
-          "schemaVersion": 1,
-          "state": "NM",
-          "generatedAt": "2026-10-29T17:52:24.338Z",
-          "sourceConfigHash": "b81d1c156549c6d9199d60f25858db7f2eff16c777b356261472942e5fafbcf0",
-          "previewUrl": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
-          "shadowRuns": [
-            {
-              "runId": "40922494321",
-              "status": "success",
-              "artifactHash": "7316d55213caf6eb19ce106b5d50f881323631ccac748b13d0d03aece0dd589c",
-              "artifactId": "12919611589",
-              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
-              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40922494321"
-            },
-            {
-              "runId": "40923481819",
-              "status": "success",
-              "artifactHash": "aa5daac315dac0efd6247e95a80cd435c000beee1f63aa605351099ca48050c8",
-              "artifactId": "12920086473",
-              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
-              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40923481819"
-            },
-            {
-              "runId": "40924211193",
-              "status": "success",
-              "artifactHash": "18372633aca1df1fc9a87e32562e418c191c704c04dc53fa10e38d24d4b81e14",
-              "artifactId": "12919851883",
-              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
-              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193"
-            }
-          ],
-          "canaryRuns": [
-            {
-              "runId": "40925049456",
-              "status": "success",
-              "artifactHash": "64c754935a8a48d9b83afcba4da2ec15f5e796dfbaba01ab0ba3ee649a1c2ffa",
-              "artifactId": "12920476292",
-              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
-              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925049456"
-            },
-            {
-              "runId": "40925202262",
-              "status": "success",
-              "artifactHash": "a7127b5e7e399d63dcd30166b0e552fc30d8c25a03dd3e713c4a41358b8a6a51",
-              "artifactId": "12919628558",
-              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
-              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925202262"
-            }
-          ],
-          "provenance": {
-            "status": "success",
-            "repository": "tarsagent22/Bourbon-Signal",
-            "workflowRunId": "40925312923",
-            "artifactId": "12920610558",
-            "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
-            "artifactDigest": "675357ee920b2b8bf293a161802af29f9fb08d9af6643fa04c4bf741ffd6cbb3",
-            "bundleDigest": "140cb2722fce9f8595317f755954b7b935c25464447e082b1cb0836a72616c11",
-            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925312923",
-            "artifactName": "state-promotion-provenance-NM-40925312923"
           }
         }
       }
