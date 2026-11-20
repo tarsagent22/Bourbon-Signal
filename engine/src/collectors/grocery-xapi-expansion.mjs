@@ -92,11 +92,11 @@ export function parseGroceryExpansionInventory(payload, source, bible, {observed
     inventorySemantics:row.inventorySemantics,
     caveat:'First-party in-store availability may change. Verify with the retailer before driving.',
     evidence:`${source.name} reports ${row.title} available at ${source.address}${row.quantity>0?` with quantity ${row.quantity}`:''}.`,
-    sourceProductBinding:{schemaVersion:1,source:'grocery-xapi',merchantId:source.merchantId,storeId:source.storeId,
+    sourceProductBinding:{...(shadowCohort ? {shadowOnly:true} : {}),schemaVersion:1,source:'grocery-xapi',merchantId:source.merchantId,storeId:source.storeId,
       storeAddress:source.address,productId:row.productId,variantId:row.variantId,rawName:row.title,
       canonicalBottleId:row.record.id,price:row.price,observedAt,premisesVerified:true,inStoreChannelVerified:true,
       inventorySemantics:row.inventorySemantics,productSnapshot:groceryProductSnapshot(row.rawProduct)},
-    raw:{chain:source.id,merchantId:source.merchantId,product:groceryProductSnapshot(row.rawProduct),
+    raw:{...(shadowCohort ? {shadowOnly:true} : {}),chain:source.id,merchantId:source.merchantId,product:groceryProductSnapshot(row.rawProduct),
       inventorySemantics:row.inventorySemantics,reportedQuantity:row.reportedQuantity,fulfillmentPolicyVerified:true}
   }));
 }

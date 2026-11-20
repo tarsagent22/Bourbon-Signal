@@ -1,0 +1,407 @@
+{
+  "observedAt": "2026-11-20T04:24:52.080Z",
+  "cases": [
+    {
+      "store": {
+        "locationId": "665",
+        "domainName": "Albertsons Market",
+        "polarisBannerName": "shopalbertsonsmarket",
+        "address": {
+          "line1": "202 W Church St",
+          "city": "Carlsbad",
+          "state": "NM",
+          "country": "US",
+          "zipcode": "88220"
+        },
+        "localPage": "https://local.albertsonsmarket.com/nm/carlsbad/202-w-church-st.html"
+      },
+      "product": {
+        "id": "189031042",
+        "pid": "189031042",
+        "storeId": "665",
+        "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "upc": "0008800402134",
+        "price": 49.99,
+        "containsAlcohol": true,
+        "alcoholVolumePct": 45,
+        "dispItemSizeQty": "750.0",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "inStore": true
+        },
+        "channelInventory": {
+          "instore": "1"
+        }
+      },
+      "expected": "Eagle Rare 10 Year"
+    },
+    {
+      "store": {
+        "locationId": "680",
+        "domainName": "Albertsons Market",
+        "polarisBannerName": "shopalbertsonsmarket",
+        "address": {
+          "line1": "2402 N Grimes St",
+          "city": "Hobbs",
+          "state": "NM",
+          "country": "US",
+          "zipcode": "88240"
+        },
+        "localPage": "https://local.albertsonsmarket.com/nm/hobbs/2402-n-grimes-st.html"
+      },
+      "product": {
+        "id": "971288938",
+        "pid": "971288938",
+        "storeId": "680",
+        "name": "Old Fitzgerald Bourbon Bib 7 Year Whiskey - 700 Ml (limited quantities may be available in store)",
+        "upc": "0009674900579",
+        "price": 69.99,
+        "containsAlcohol": true,
+        "alcoholVolumePct": 50,
+        "dispItemSizeQty": "700.0",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "inStore": true
+        },
+        "channelInventory": {
+          "instore": "1"
+        }
+      },
+      "expected": "Old Fitzgerald 7Y Bottled in Bond"
+    },
+    {
+      "store": {
+        "locationId": "682",
+        "domainName": "Albertsons Market",
+        "polarisBannerName": "shopalbertsonsmarket",
+        "address": {
+          "line1": "721 Mechem Dr",
+          "city": "Ruidoso",
+          "state": "NM",
+          "country": "US",
+          "zipcode": "88345"
+        },
+        "localPage": "https://local.albertsonsmarket.com/nm/ruidoso/721-mechem-dr.html"
+      },
+      "product": {
+        "id": "960293806",
+        "pid": "960293806",
+        "storeId": "682",
+        "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "upc": "0008800400549",
+        "price": 57.99,
+        "containsAlcohol": true,
+        "alcoholVolumePct": 50,
+        "dispItemSizeQty": "750.0",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "inStore": true
+        },
+        "channelInventory": {
+          "instore": "1"
+        }
+      },
+      "expected": "E.H. Taylor Small Batch"
+    },
+    {
+      "store": {
+        "locationId": "656",
+        "domainName": "Albertsons Market",
+        "polarisBannerName": "shopalbertsonsmarket",
+        "address": {
+          "line1": "1415 N Main St",
+          "city": "Lovington",
+          "state": "NM",
+          "country": "US",
+          "zipcode": "88260"
+        },
+        "localPage": "https://local.albertsonsmarket.com/nm/lovington/1415-n-main-st.html"
+      },
+      "product": {
+        "id": "960137024",
+        "pid": "960137024",
+        "storeId": "656",
+        "name": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+        "upc": "0008200000498",
+        "price": 49.99,
+        "containsAlcohol": true,
+        "alcoholVolumePct": 45,
+        "dispItemSizeQty": "750.0",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "inStore": true
+        },
+        "channelInventory": {
+          "instore": "1"
+        }
+      },
+      "expected": "Blade and Bow Bourbon"
+    },
+    {
+      "store": {
+        "locationId": "1686",
+        "domainName": "Albertsons Market",
+        "polarisBannerName": "shopalbertsonsmarket",
+        "address": {
+          "line1": "1905 N Prince St",
+          "city": "Clovis",
+          "state": "NM",
+          "country": "US",
+          "zipcode": "88101"
+        },
+        "localPage": "https://local.albertsonsmarket.com/nm/clovis/1905-n-prince-st.html"
+      },
+      "product": {
+        "id": "971237544",
+        "pid": "971237544",
+        "storeId": "1686",
+        "name": "Hard Truth Sweet Mash Bourbon - 750ML",
+        "upc": "0085000364992",
+        "price": 49.99,
+        "containsAlcohol": true,
+        "alcoholVolumePct": 45,
+        "dispItemSizeQty": "750.0",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "inStore": true
+        },
+        "channelInventory": {
+          "instore": "1"
+        }
+      },
+      "expected": "Hard Truth Sweet Mash Bourbon"
+    },
+    {
+      "store": {
+        "locationId": "3681",
+        "domainName": "Albertsons Market",
+        "polarisBannerName": "shopalbertsonsmarket",
+        "address": {
+          "line1": "1300 E 10th St",
+          "city": "Alamogordo",
+          "state": "NM",
+          "country": "US",
+          "zipcode": "88310"
+        },
+        "localPage": "https://local.albertsonsmarket.com/nm/alamogordo/1300-e-10th-st.html"
+      },
+      "product": {
+        "id": "970111352",
+        "pid": "970111352",
+        "storeId": "3681",
+        "name": "Elijah Craig Straight Rye Whiskey - 750 ML",
+        "upc": "0009674900273",
+        "price": 30.99,
+        "containsAlcohol": true,
+        "alcoholVolumePct": 47,
+        "dispItemSizeQty": "750.0",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "inStore": true
+        },
+        "channelInventory": {
+          "instore": "1"
+        }
+      },
+      "expected": "Elijah Craig Straight Rye Whiskey"
+    }
+  ],
+  "records": [
+    {
+      "id": "bb_8924180d0cc2d853",
+      "canonical": "Blade and Bow Bourbon",
+      "normalizedKey": "blade and bow",
+      "aliases": [
+        "BLADE & BOW",
+        "Blade & Bow",
+        "Blade and Bow Bourbon",
+        "Blade and Bow Kentucky Straight Bourbon",
+        "Blade and Bow Straight Bourbon"
+      ],
+      "tier": "limited",
+      "libraryIdentities": [
+        {
+          "id": "bb_8924180d0cc2d853",
+          "canonicalName": "Blade and Bow Bourbon",
+          "aliases": [
+            "BLADE & BOW",
+            "Blade & Bow",
+            "Blade and Bow Bourbon",
+            "Blade and Bow Kentucky Straight Bourbon",
+            "Blade and Bow Straight Bourbon"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_152c90f782b801f5",
+      "canonical": "E.H. Taylor Small Batch",
+      "normalizedKey": "e h taylor",
+      "aliases": [
+        "Colonel E.H. Taylor Small Batch",
+        "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+        "E H Taylor Single Barrel",
+        "E H Taylor Small Batch",
+        "E.H. Taylor Jr. Small Batch .75L",
+        "E.H. Taylor SiB",
+        "E.H. Taylor Single Barrel",
+        "E.H. Taylor Small Batch",
+        "EH Taylor Single Barrel",
+        "EH Taylor Small Batch"
+      ],
+      "tier": "allocated",
+      "libraryIdentities": [
+        {
+          "id": "eh-taylor-small-batch",
+          "canonicalName": "E.H. Taylor Small Batch",
+          "aliases": [
+            "Colonel E.H. Taylor Small Batch",
+            "Colonel E.H. Taylor Small Batch Bottled in Bond",
+            "Colonel E.H. Taylor Small Batch Bottled in Bond Bourbon",
+            "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+            "E H Taylor Single Barrel",
+            "E H Taylor Small Batch",
+            "E.H. Taylor Bottled in Bond",
+            "E.H. Taylor Jr. Small Batch",
+            "E.H. Taylor Jr. Small Batch .75L",
+            "E.H. Taylor SiB",
+            "E.H. Taylor Single Barrel",
+            "E.H. Taylor Small Batch",
+            "EH Taylor Single Barrel",
+            "EH Taylor Small Batch",
+            "EHT",
+            "colonel taylor",
+            "e.h. taylor small batch",
+            "eh taylor",
+            "eht small batch"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_d0fe561ac45db2d5",
+      "canonical": "Eagle Rare 10 Year",
+      "normalizedKey": "eagle rare 10 year",
+      "aliases": [
+        "EAGLE RARE 10Y",
+        "Eagle Rare",
+        "Eagle Rare 10 Year",
+        "Eagle Rare 10 Year Kentucky Straight Bourbon",
+        "Eagle Rare 10 Yr",
+        "Eagle Rare 10Y"
+      ],
+      "tier": "allocated",
+      "libraryIdentities": [
+        {
+          "id": "eagle-rare-10",
+          "canonicalName": "Eagle Rare 10 Year",
+          "aliases": [
+            "EAGLE RARE 10Y",
+            "Eagle Rare",
+            "Eagle Rare 10 Year",
+            "Eagle Rare 10 Year Kentucky Straight Bourbon",
+            "Eagle Rare 10 Yr",
+            "Eagle Rare 10Y",
+            "eagle rare",
+            "eagle rare 10",
+            "er10"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_babb8d7d3e6be567",
+      "canonical": "Elijah Craig Straight Rye Whiskey",
+      "normalizedKey": "elijah craig rye",
+      "aliases": [
+        "Elijah Craig Ky Strt Rye Whsky",
+        "Elijah Craig Ky Strt Rye Whsky 1.75L",
+        "Elijah Craig Ky Strt Rye Whsky 750ml",
+        "Elijah Craig Straight Rye Whiskey"
+      ],
+      "tier": "standard",
+      "libraryIdentities": [
+        {
+          "id": "bb_babb8d7d3e6be567",
+          "canonicalName": "Elijah Craig Straight Rye Whiskey",
+          "aliases": [
+            "Elijah Craig Ky Strt Rye Whsky",
+            "Elijah Craig Ky Strt Rye Whsky 1.75L",
+            "Elijah Craig Ky Strt Rye Whsky 750ml",
+            "Elijah Craig Straight Rye Whiskey"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_c446121e6e477c0b",
+      "canonical": "Hard Truth Sweet Mash Bourbon",
+      "normalizedKey": "hard truth sweet mash",
+      "aliases": [
+        "Hard Truth Sweet Mash Bourbon",
+        "Hard Truth Sweet Mash Bourbon Whiskey",
+        "Hard Truth Sweet Mash Bourbon Whiskey 750ml"
+      ],
+      "tier": "standard",
+      "libraryIdentities": [
+        {
+          "id": "bb_c446121e6e477c0b",
+          "canonicalName": "Hard Truth Sweet Mash Bourbon",
+          "aliases": [
+            "Hard Truth Sweet Mash Bourbon",
+            "Hard Truth Sweet Mash Bourbon Whiskey",
+            "Hard Truth Sweet Mash Bourbon Whiskey 750ml"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "old-fitzgerald-7y-bottled-in-bond",
+      "canonical": "Old Fitzgerald 7Y Bottled in Bond",
+      "normalizedKey": "library:old-fitzgerald-7y-bottled-in-bond",
+      "aliases": [],
+      "tier": "unicorn",
+      "strictLibraryIdentity": true,
+      "libraryAlertEligible": true,
+      "libraryIdentities": [
+        {
+          "id": "old-fitzgerald-7y-bottled-in-bond",
+          "canonicalName": "Old Fitzgerald 7Y Bottled in Bond",
+          "aliases": [
+            "Old Fitzgerald 7Y Bottled in Bond"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ]
+}

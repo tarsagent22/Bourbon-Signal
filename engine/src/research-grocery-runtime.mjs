@@ -32,17 +32,22 @@ function workflowOrigin(env){
     :{kind:'local_shadow_not_workflow_issued'};
 }
 
-export async function collectGroceryResearchReport(config,bible,{fetchText=fetchWithMeta,env=process.env,
-  attemptsFile=path.resolve('out','research-source-attempts',`grocery-${config?.id}.json`),
-  reportDirectory=process.env.BOURBON_SIGNAL_STATE_OUT_FILE?path.dirname(process.env.BOURBON_SIGNAL_STATE_OUT_FILE):path.resolve('out','research-grocery',config?.id||'unknown'),
-  signal,sleep,cursorDir}={}){
-  if(env.BOURBON_SIGNAL_SHADOW_MODE!=='1'||configs.get(config?.id)!==config)throw new Error('Grocery research requires its registered isolated shadow source');
+export async function groceryResearchAttempts(attemptsFile) {
   let attempts={};try{attempts=JSON.parse(await readFile(attemptsFile,'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
   if(!attempts||typeof attempts!=='object'||Array.isArray(attempts))throw new Error('Invalid grocery research denial ledger');
   const persistAttempts=async value=>{
     mkdirSync(path.dirname(attemptsFile),{recursive:true});const temporary=attemptsFile+'.'+randomUUID()+'.tmp';
     writeFileSync(temporary,JSON.stringify(value,null,2));renameSync(temporary,attemptsFile);
   };
+  return { attempts, persistAttempts };
+}
+
+export async function collectGroceryResearchReport(config,bible,{fetchText=fetchWithMeta,env=process.env,
+  attemptsFile=path.resolve('out','research-source-attempts',`grocery-${config?.id}.json`),
+  reportDirectory=process.env.BOURBON_SIGNAL_STATE_OUT_FILE?path.dirname(process.env.BOURBON_SIGNAL_STATE_OUT_FILE):path.resolve('out','research-grocery',config?.id||'unknown'),
+  signal,sleep,cursorDir}={}){
+  if(env.BOURBON_SIGNAL_SHADOW_MODE!=='1'||configs.get(config?.id)!==config)throw new Error('Grocery research requires its registered isolated shadow source');
+  const {attempts, persistAttempts} = await groceryResearchAttempts(attemptsFile);
   const startedAt=new Date().toISOString(),receipts=[];
   const boundedSignal=signal?AbortSignal.any([signal,AbortSignal.timeout(config.id==='WA'?600_000:180_000)]):AbortSignal.timeout(config.id==='WA'?600_000:180_000);
   const capture=async(url,options)=>{
