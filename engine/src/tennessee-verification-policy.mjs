@@ -45,6 +45,15 @@ export function qualifyingTennesseeInventoryEvidence(rows, {
   });
 }
 
+export function filterPublishableTennesseeInventory(rows, { now } = {}) {
+  const inventory = rows.filter((row) => String(row?.state || row?.stateCode || row?.state_code || '').toUpperCase() === 'TN'
+    && isTennesseeInventoryRow(row));
+  if (!inventory.length) return rows;
+  const eligible = new Set(qualifyingTennesseeInventoryEvidence(inventory, { now }));
+  const rejected = new Set(inventory.filter((row) => !eligible.has(row) && !isSafeStaleTennesseeInventoryRow(row)));
+  return rows.filter((row) => !rejected.has(row));
+}
+
 export function canPublishTennesseePartialEvidenceFallback({
   stateReport,
   drops,

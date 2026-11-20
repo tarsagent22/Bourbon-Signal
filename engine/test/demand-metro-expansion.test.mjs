@@ -29,9 +29,11 @@ import { buildLocationBible } from '../src/location-bible.mjs';
 import { bibleLookup, buildDrops, buildStores } from '../src/export-site-contract.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { markSignalStaleNonAlertable } from '../src/stale-signal-policy.mjs';
+import { mergeHistoricalTimelineDrops } from '../src/partial-refresh-contract.mjs';
 import {
   canPublishTennesseePartialEvidenceFallback,
   evaluateTennesseeSnapshotEvidence,
+  filterPublishableTennesseeInventory,
 } from '../src/tennessee-verification-policy.mjs';
 
 function tennesseeBinarySignal(overrides = {}) {
@@ -439,6 +441,25 @@ test('the Tennessee feed excludes exact-stock rows suppressed by the bottle libr
   assert.equal(eligible[0].canAlertAsInventory, true);
   const suppressed = buildDrops([signal], bibleLookup([{ ...record, libraryAlertEligible: false }]), [signal]);
   assert.deepEqual(suppressed, []);
+});
+
+test('the final Tennessee feed keeps current evidence and reviewed history after the timeline merge', () => {
+  const now = '2026-11-20T22:57:09.000Z';
+  const signal = tennesseeBinarySignal({ id: 'current', observedAt: '2026-11-20T22:54:00.000Z' });
+  const record = { id: signal.canonicalBottleId, canonical: signal.canonicalName, tier: 'allocated' };
+  const [current] = buildDrops([signal], bibleLookup([record]), [signal], [], [], { nowMs: Date.parse(now) });
+  const expired = { ...current, id: 'expired', lastConfirmedAt: '2026-11-20T05:00:00.000Z' };
+  const reviewedHistory = { ...current, id: 'reviewed-history', observedAt: '2026-11-19T22:54:00.000Z', eligibleForDropFeed: true };
+  const unboundHistory = { ...reviewedHistory, id: 'unbound-history', merchantId: null, storeId: null };
+  const otherState = { ...current, id: 'other-state', state: 'KY' };
+  const timeline = mergeHistoricalTimelineDrops({
+    currentDrops: [current, expired, otherState], previousDrops: [reviewedHistory, unboundHistory], now,
+  });
+  assert.equal(timeline.length, 5);
+  const published = filterPublishableTennesseeInventory(timeline, { now });
+  assert.deepEqual(published.map((row) => row.id), ['current', 'other-state', 'reviewed-history']);
+  assert.equal(published.at(-1).canAlertAsInventory, false);
+  assert.equal(published.at(-1).sourceAvailabilityVerified, false);
 });
 
 test('confidence policy and source export fail closed for unverified Tennessee rows', () => {

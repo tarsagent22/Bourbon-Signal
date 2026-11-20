@@ -42,7 +42,7 @@ import { isMetroRetailerInventory, isMetroRetailerSignalIdentity, metroRetailerA
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import { isSouthCarolinaDunesInventory, isSouthCarolinaDunesSignal } from './south-carolina-dunes-policy.mjs';
 import { hasSouthCarolinaPositiveInventoryEvidence, isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaCityHiveInventory, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaDiscountLiquorSignal, isSouthCarolinaLiquorLibraryInventory, isSouthCarolinaLiquorLibrarySignal, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
-import { canPublishTennesseePartialEvidenceFallback } from './tennessee-verification-policy.mjs';
+import { canPublishTennesseePartialEvidenceFallback, filterPublishableTennesseeInventory } from './tennessee-verification-policy.mjs';
 import { registeredDemandMetroStores } from './demand-metro-registry.mjs';
 import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-metro-areas.mjs';
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
@@ -2693,7 +2693,8 @@ async function main({ rejectedQualityStates = [] } = {}) {
   });
   const timelineDrops = mergeHistoricalTimelineDrops({ previousDrops, historyDays: HISTORY_DAYS, currentDrops: historicalBoardDrops })
     .filter((drop) => isActiveCustomerStateRow(drop, activeStateIds));
-  const drops = enforceCustomerDropByteBudget(timelineDrops, {
+  const publishableDrops = filterPublishableTennesseeInventory(timelineDrops, { now: new Date(customerEvidenceAsOf).toISOString() });
+  const drops = enforceCustomerDropByteBudget(publishableDrops, {
     fallbackStateIds: summary.fallbackStateIds || [],
     omittedFallbackStateIds: budgetOmittedFallbackStateIds,
     now: customerEvidenceAsOf,
