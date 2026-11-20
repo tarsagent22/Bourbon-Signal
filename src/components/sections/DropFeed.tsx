@@ -22,7 +22,7 @@ import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useSightings } from "@/hooks/useSightings";
 import InlineSignalComposer from "@/components/signals/InlineSignalComposer";
 import { useStores, type Store } from "@/hooks/useStores";
-import { useStats } from "@/lib/useEngineData";
+import SignalTicker from "./SignalTicker";
 import { recordGrowthMilestone } from "@/lib/growth-client";
 import { makeSightingId, type MemberSighting, type SignalReportKind, type SightingVoteKind } from "@/lib/sightings";
 import { locationLabelsMatch, normalizeStateCodeParam, publicStateCode } from "@/lib/location-normalization";
@@ -122,53 +122,6 @@ function premiumCardBackground(glow: string) {
 function retailerCardAppearance(drop: GroupedDrop) {
   if (!drop.retailerReported || !drop.retailerSignalKind) return null;
   return RETAILER_SIGNAL_CARDS[drop.retailerSignalKind];
-}
-
-const tickerNumberFormatter = new Intl.NumberFormat("en-US");
-
-function formatTickerNumber(value?: number) {
-  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return "—";
-  return tickerNumberFormatter.format(value);
-}
-
-function SignalTicker({
-  observationsProcessed,
-  currentObservations,
-  storesMonitored,
-  memberCount,
-  lastRefreshed,
-  reduceMotion,
-}: {
-  observationsProcessed?: number;
-  currentObservations?: number;
-  storesMonitored?: number;
-  memberCount?: number;
-  lastRefreshed?: string;
-  reduceMotion: boolean;
-}) {
-  const refreshedText = lastRefreshed ? formatRelativeTime(lastRefreshed) : "pending";
-  const items = [
-    { label: "Observations processed", value: formatTickerNumber(observationsProcessed) },
-    { label: "Current observations", value: formatTickerNumber(currentObservations) },
-    { label: "Stores monitored", value: formatTickerNumber(storesMonitored) },
-    { label: "Member Count", value: formatTickerNumber(memberCount) },
-    { label: "Last refreshed", value: refreshedText },
-  ];
-  const tapeItems = [...items, ...items];
-  const visibleItems = reduceMotion ? items : tapeItems;
-
-  return (
-    <div className="signal-ticker" role="status" tabIndex={0} aria-label="Bourbon Signal market tape. Focus to pause.">
-      <div className={`signal-ticker-track ${reduceMotion ? "reduced" : ""}`}>
-        {visibleItems.map((item, index) => (
-          <span className="signal-ticker-item" key={`${item.label}-${index}`} aria-hidden={!reduceMotion && index >= items.length}>
-            <span className="signal-ticker-label">{item.label}</span>
-            <span className="signal-ticker-value">{item.value}</span>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 function memberSightingToGrouped(sighting: MemberSighting, store?: Store): GroupedDrop {
@@ -1467,28 +1420,6 @@ export default function DropFeed() {
   const canReadSightings = entitlements.canReadSightings;
   const { sightings, reportsBySignalId, addSignalReport, addSighting, voteSighting, saving: sightingSaving } = useSightings(isSignedIn && canReadSightings, { feedLimit: 1_000 });
   const { stores } = useStores();
-  const { stats: engineStats } = useStats();
-  const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadMemberCount() {
-      try {
-        const res = await fetch("/api/member-count", { cache: "no-store" });
-        if (!res.ok) return;
-        const payload = (await res.json()) as { totalMembers?: number };
-        if (!cancelled && typeof payload.totalMembers === "number") setMemberCount(payload.totalMembers);
-      } catch {
-        // Keep the market tape usable if the live member counter is temporarily unavailable.
-      }
-    }
-    loadMemberCount();
-    const timer = window.setInterval(loadMemberCount, 60000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, []);
   const areaPrefs = prefs.areaPreferences;
   const isFreeUser = entitlements.tier === "free";
   const [data, setData] = useState<DropsResponse | null>(null);
@@ -1833,7 +1764,6 @@ export default function DropFeed() {
     : [];
   const finalFeed = [...memberSightingRows, ...filteredByArea].sort(compareDropFeedNewestFirst);
   const selectedStateLabel = feedStateParam ? AVAILABLE_STATES.find((state) => state.code === feedStateParam)?.name || feedStateParam : null;
-  const tickerLastRefreshed = engineStats.engineGeneratedAt || engineStats.lastUpdated || engineStats.generatedAt || data?.lastUpdated;
   const isKentuckyFeed = feedStateParam === "KY";
 
   const baseVisibleCount = isFreeUser ? 7 : visibleDropCount;
@@ -2022,84 +1952,7 @@ export default function DropFeed() {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
         }
-        @keyframes signalTape {
-          0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(-50%, 0, 0); }
-        }
-        .signal-ticker {
-          position: relative;
-          width: 100%;
-          margin: 12px 0 0;
-          overflow: hidden;
-          background: linear-gradient(90deg, transparent, rgba(27,18,12,0.72) 48%, transparent);
-        }
         .dropfeed-signal-card { border: 0; }
-        .signal-ticker::before,
-        .signal-ticker::after {
-          content: "";
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          z-index: 2;
-          width: 42px;
-          pointer-events: none;
-        }
-        .signal-ticker::before {
-          left: 0;
-          background: linear-gradient(90deg, rgba(10,7,5,1), transparent);
-        }
-        .signal-ticker::after {
-          right: 0;
-          background: linear-gradient(270deg, rgba(10,7,5,1), transparent);
-        }
-        .signal-ticker-track {
-          display: inline-flex;
-          width: max-content;
-          align-items: center;
-          gap: 0;
-          padding: 8px 0;
-          animation: signalTape 28s linear infinite;
-          will-change: transform;
-        }
-        .signal-ticker:hover .signal-ticker-track { animation-play-state: paused; }
-        .signal-ticker:focus .signal-ticker-track { animation-play-state: paused; }
-
-        .signal-ticker-track.reduced {
-          display: flex;
-          width: 100%;
-          flex-wrap: wrap;
-          justify-content: center;
-          animation: none;
-          transform: none;
-        }
-        .signal-ticker-track.reduced .signal-ticker-item { flex: 1 1 180px; justify-content: center; }
-        .signal-ticker-item {
-          display: inline-flex;
-          align-items: baseline;
-          gap: 8px;
-          padding: 0 18px;
-          white-space: nowrap;
-          border-right: 1px solid rgba(196,148,58,0.2);
-        }
-        .signal-ticker-label {
-          font-family: var(--font-jetbrains);
-          font-size: 9px;
-          font-weight: 900;
-          letter-spacing: 0.11em;
-          text-transform: uppercase;
-          color: rgba(245,237,214,0.46);
-        }
-        .signal-ticker-value {
-          font-family: var(--font-jetbrains);
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 0.03em;
-          color: rgba(232,201,122,0.98);
-          text-shadow: 0 0 18px rgba(196,148,58,0.2);
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .signal-ticker-track { animation: none; transform: none; }
-        }
         .dropfeed-card-stack {
           display: grid;
           grid-template-columns: minmax(0, 1fr);
@@ -2116,7 +1969,6 @@ export default function DropFeed() {
           .dropfeed-shell { padding-left: 18px !important; padding-right: 18px !important; }
           .dropfeed-title { font-size: 34px !important; letter-spacing: -0.03em !important; }
           .dropfeed-subcopy { font-size: 14px !important; line-height: 1.45 !important; max-width: 42ch; }
-          .signal-ticker { margin-top: 18px; margin-bottom: 18px; }
           .dropfeed-nudge { display:none; }
           .dropfeed-filter-row {
             display: grid !important;
@@ -2410,14 +2262,7 @@ export default function DropFeed() {
             </div>
           </motion.div>
 
-          <SignalTicker
-            observationsProcessed={engineStats.historicalSignalCount ?? engineStats.signalCount}
-            currentObservations={data?.total}
-            storesMonitored={engineStats.total_stores}
-            memberCount={memberCount}
-            lastRefreshed={tickerLastRefreshed}
-            reduceMotion={Boolean(shouldReduceMotion)}
-          />
+          <SignalTicker currentObservations={data?.total} feedUpdatedAt={data?.lastUpdated} />
 
           <InlineSignalComposer
             isSignedIn={isSignedIn}

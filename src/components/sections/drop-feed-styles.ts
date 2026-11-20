@@ -7,84 +7,7 @@ export const dropFeedStyles = `
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
         }
-        @keyframes signalTape {
-          0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(-50%, 0, 0); }
-        }
-        .signal-ticker {
-          position: relative;
-          width: 100%;
-          margin: 12px 0 0;
-          overflow: hidden;
-          background: linear-gradient(90deg, transparent, rgba(27,18,12,0.72) 48%, transparent);
-        }
         .dropfeed-signal-card { border: 0; }
-        .signal-ticker::before,
-        .signal-ticker::after {
-          content: "";
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          z-index: 2;
-          width: 42px;
-          pointer-events: none;
-        }
-        .signal-ticker::before {
-          left: 0;
-          background: linear-gradient(90deg, rgba(10,7,5,1), transparent);
-        }
-        .signal-ticker::after {
-          right: 0;
-          background: linear-gradient(270deg, rgba(10,7,5,1), transparent);
-        }
-        .signal-ticker-track {
-          display: inline-flex;
-          width: max-content;
-          align-items: center;
-          gap: 0;
-          padding: 8px 0;
-          animation: signalTape 28s linear infinite;
-          will-change: transform;
-        }
-        .signal-ticker:hover .signal-ticker-track { animation-play-state: paused; }
-        .signal-ticker:focus .signal-ticker-track { animation-play-state: paused; }
-
-        .signal-ticker-track.reduced {
-          display: flex;
-          width: 100%;
-          flex-wrap: wrap;
-          justify-content: center;
-          animation: none;
-          transform: none;
-        }
-        .signal-ticker-track.reduced .signal-ticker-item { flex: 1 1 180px; justify-content: center; }
-        .signal-ticker-item {
-          display: inline-flex;
-          align-items: baseline;
-          gap: 8px;
-          padding: 0 18px;
-          white-space: nowrap;
-          border-right: 1px solid rgba(196,148,58,0.2);
-        }
-        .signal-ticker-label {
-          font-family: var(--font-jetbrains);
-          font-size: 9px;
-          font-weight: 900;
-          letter-spacing: 0.11em;
-          text-transform: uppercase;
-          color: rgba(245,237,214,0.46);
-        }
-        .signal-ticker-value {
-          font-family: var(--font-jetbrains);
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 0.03em;
-          color: rgba(232,201,122,0.98);
-          text-shadow: 0 0 18px rgba(196,148,58,0.2);
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .signal-ticker-track { animation: none; transform: none; }
-        }
         .dropfeed-card-stack {
           display: grid;
           grid-template-columns: minmax(0, 1fr);
@@ -101,7 +24,6 @@ export const dropFeedStyles = `
           .dropfeed-shell { padding-left: 18px !important; padding-right: 18px !important; }
           .dropfeed-title { font-size: 34px !important; letter-spacing: -0.03em !important; }
           .dropfeed-subcopy { font-size: 14px !important; line-height: 1.45 !important; max-width: 42ch; }
-          .signal-ticker { margin-top: 18px; margin-bottom: 18px; }
           .dropfeed-nudge { display:none; }
           .dropfeed-filter-row {
             display: grid !important;

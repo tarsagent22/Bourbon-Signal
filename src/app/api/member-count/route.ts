@@ -3,23 +3,13 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-async function getUserCount() {
-  const client = await clerkClient();
-  const usersApi = client.users as unknown as {
-    getUserList: (params: { limit: number; offset?: number }) => Promise<{ data?: unknown[]; totalCount?: number } | unknown[]>;
-  };
-  const result = await usersApi.getUserList({ limit: 1, offset: 0 });
-  if (!Array.isArray(result) && typeof result.totalCount === "number") return result.totalCount;
-  if (Array.isArray(result)) return result.length;
-  return Array.isArray(result.data) ? result.data.length : 0;
-}
-
 export async function GET() {
   try {
-    const totalMembers = await getUserCount();
+    const client = await clerkClient();
+    const totalMembers = await client.users.getCount();
     return NextResponse.json(
       { ok: true, totalMembers, generatedAt: new Date().toISOString() },
-      { headers: { "cache-control": "no-store, max-age=0" } }
+      { headers: { "Cache-Control": "public, s-maxage=60" } }
     );
   } catch (error) {
     console.error("[api/member-count] Failed to load member count:", error);
