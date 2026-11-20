@@ -4,16 +4,16 @@ import { arizonaXapiLibraryQueryAssignments } from './arizona-xapi.mjs';
 import { stableId } from '../core/text.mjs';
 import { librarySourceSearchPlan } from '../library-search-runtime.mjs';
 import { parseBoundGroceryXapiInventory } from './grocery-xapi-identity.mjs';
-import { ROSWELL_GROCERY_SOURCES } from './new-mexico-grocery-premises.mjs';
-import { roswellCohortActive, WESTERN_GROCERY_EXPANSION_SOURCES, WESTERN_GROCERY_RESOLVER_ZIPS } from './western-grocery-premises.mjs';
+import { nmShadowCohort } from './new-mexico-grocery-premises.mjs';
+import { activeNmCohort, WESTERN_GROCERY_EXPANSION_SOURCES, WESTERN_GROCERY_RESOLVER_ZIPS } from './western-grocery-premises.mjs';
 
 const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const DROP_TIERS = new Set(['limited','allocated','highly_allocated','unicorn']);
 export const GROCERY_EXPANSION_REQUEST_LIMIT = 127;
 export const CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT = 8;
 export const ILLINOIS_GROCERY_TRANSIENT_RETRY_LIMIT = 8;
-export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({IL:2700,WA:127,CA:1254+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT,NM:roswellCohortActive ? 48 : 43});
-const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({IL:182,WA:58,CA:568,NM:roswellCohortActive ? 18 : 16});
+export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({IL:2700,WA:127,CA:1254+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT,NM:activeNmCohort.requestLimit});
+const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({IL:182,WA:58,CA:568,NM:activeNmCohort.sources.length});
 export const ILLINOIS_GROCERY_PRIORITY_TERMS=Object.freeze(['weller','eagle rare','e.h. taylor',"blanton's",'stagg',"michter's","booker's",'old fitzgerald']);
 const publicStoreKey = '7bad9afbb87043b28519c4443106db06';
 export const publicSearchKey = 'e914eec9448c4d5eb672debf5011cf8f';
@@ -54,8 +54,12 @@ export function groceryProductSnapshot(product) {
     ]));
 }
 
-export function isGroceryExpansionEmptySearch(payload,source,term,{start=0}={}){
-  if(!WESTERN_GROCERY_EXPANSION_SOURCES.includes(source)||payload?.appCode!=='GR204'
+function grocerySourceAllowed(source, shadow) {
+  return shadow ? shadow.sources.includes(source) : WESTERN_GROCERY_EXPANSION_SOURCES.includes(source);
+}
+
+export function isGroceryExpansionEmptySearch(payload,source,term,{start=0,shadowCohort}={}){
+  if(!grocerySourceAllowed(source,nmShadowCohort(shadowCohort))||payload?.appCode!=='GR204'
     ||typeof term!=='string'||!term.trim()||!Number.isInteger(start)
     ||![0,...(source.stateCode==='IL'&&['bourbon','whiskey'].includes(term)?[100,200]:[])].includes(start))return false;
   // Captured Illinois responses sometimes omit the entire response object for
@@ -71,8 +75,8 @@ export function isGroceryExpansionEmptySearch(payload,source,term,{start=0}={}){
     &&filter.includes(`(inventory(${source.merchantId},attributes.custom_type_2) = 1)`);
 }
 
-export function parseGroceryExpansionInventory(payload, source, bible, {observedAt, roswellShadow=false}={}) {
-  if(!(WESTERN_GROCERY_EXPANSION_SOURCES.includes(source) || roswellShadow && ROSWELL_GROCERY_SOURCES.includes(source)) || !Number.isFinite(Date.parse(observedAt)))return [];
+export function parseGroceryExpansionInventory(payload, source, bible, {observedAt, roswellShadow=false, shadowCohort=roswellShadow ? 'roswell' : null}={}) {
+  if(!grocerySourceAllowed(source,nmShadowCohort(shadowCohort)) || !Number.isFinite(Date.parse(observedAt)))return [];
   return parseBoundGroceryXapiInventory(payload,source,bible).filter(row=>currentDropTarget(row.record,source.stateCode) && Number.isFinite(row.price) && row.price>0).map(row=>({
     id:stableId([source.stateCode,'grocery-xapi',source.merchantId,row.productId]),state:source.stateCode,stateCode:source.stateCode,
     sourceLabel:source.sourceLabel,sourceUrl:`https://${source.host}/shop/product-details.${row.productId}.html`,
@@ -84,7 +88,7 @@ export function parseGroceryExpansionInventory(payload, source, bible, {observed
     lat:source.lat,lng:source.lng,quantity:row.quantity,quantityIsExact:row.inventorySemantics==='exact_retailer_quantity',
     price:row.price,observedAt,fetchedAt:observedAt,availabilityStatus:'in_stock',
     availabilityLabel:row.quantity>0?`Retailer reports ${row.quantity} available`:'Retailer reports in-store availability',
-    sourceAvailabilityVerified:true,canAlertAsInventory:!roswellShadow,canAlertAsWatch:!roswellShadow,dataLane:'inventory',
+    sourceAvailabilityVerified:true,canAlertAsInventory:!shadowCohort,canAlertAsWatch:!shadowCohort,dataLane:'inventory',
     inventorySemantics:row.inventorySemantics,
     caveat:'First-party in-store availability may change. Verify with the retailer before driving.',
     evidence:`${source.name} reports ${row.title} available at ${source.address}${row.quantity>0?` with quantity ${row.quantity}`:''}.`,
@@ -97,16 +101,15 @@ export function parseGroceryExpansionInventory(payload, source, bible, {observed
   }));
 }
 
-export async function collectGroceryExpansion(config,bible,{fetchText,observedAt=new Date().toISOString(),signal, roswellShadow=false,
+export async function collectGroceryExpansion(config,bible,{fetchText,observedAt=new Date().toISOString(),signal, roswellShadow=false, shadowCohort=roswellShadow ? 'roswell' : null,
   sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),attempts={},nowMs=Date.now(),cursorDir,persistAttempts=async()=>{}}={}) {
   if(typeof fetchText!=='function')throw new Error('Bounded first-party fetchText is required');
-  if (roswellShadow && config.id !== 'NM') throw new Error('Roswell preflight requires New Mexico');
-  const activeSources = WESTERN_GROCERY_EXPANSION_SOURCES.filter(source => source.stateCode === config.id);
-  const proposed = roswellShadow && !roswellCohortActive;
-  const sources = proposed ? [...activeSources, ...ROSWELL_GROCERY_SOURCES] : activeSources;
-  const resolverZips = proposed ? [...WESTERN_GROCERY_RESOLVER_ZIPS.NM, '88201'] : WESTERN_GROCERY_RESOLVER_ZIPS[config.id];
-  const requestLimit = roswellShadow ? 48 : GROCERY_EXPANSION_REQUEST_LIMITS[config.id];
-  const storeLimit = roswellShadow ? 18 : GROCERY_EXPANSION_STORE_LIMITS[config.id];
+  const shadow = nmShadowCohort(shadowCohort);
+  if (shadow && config.id !== 'NM') throw new Error('New Mexico preflight requires New Mexico');
+  const sources = shadow?.sources ?? WESTERN_GROCERY_EXPANSION_SOURCES.filter(source => source.stateCode === config.id);
+  const resolverZips = shadow?.zips ?? WESTERN_GROCERY_RESOLVER_ZIPS[config.id];
+  const requestLimit = shadow?.requestLimit ?? GROCERY_EXPANSION_REQUEST_LIMITS[config.id];
+  const storeLimit = shadow?.sources.length ?? GROCERY_EXPANSION_STORE_LIMITS[config.id];
   if(!sources.length || !requestLimit || sources.length>storeLimit)throw new Error('Grocery expansion exceeds reviewed state/store budget');
   const requests=[],signals=[],roadblocks=[],sourceAttempts={...attempts},blockedHosts=new Set();
   const retryLimit=config.id==='CA'?CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT:config.id==='IL'?ILLINOIS_GROCERY_TRANSIENT_RETRY_LIMIT:0;
@@ -189,7 +192,7 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
     }
   }
   const eligible=sources.filter(source=>groceryExpansionPremiseMatches(source,resolver.get(source.merchantId)?.store));
-  const plan=eligible.length?await librarySourceSearchPlan(bible,{sourceKey:roswellShadow ? 'NM:roswell-shadow' : `${config.id}:grocery-xapi-expansion`,budget:Math.min(deep?48:8,eligible.length),broadTerms:[],cursorDir}):null;
+  const plan=eligible.length?await librarySourceSearchPlan(bible,{sourceKey:shadow ? `NM:${shadowCohort}-shadow` : `${config.id}:grocery-xapi-expansion`,budget:Math.min(deep?48:8,eligible.length),broadTerms:[],cursorDir}):null;
   const extraTerms=new Map();
   if(plan?.terms.length)for(const{storeIndex,term}of arizonaXapiLibraryQueryAssignments(eligible.length,{terms:plan.terms,poolSize:plan.poolSize,invocation:plan.invocation,maximumStores:storeLimit})){
     extraTerms.set(storeIndex,[...(extraTerms.get(storeIndex)||[]),term]);
@@ -206,13 +209,13 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
         if(!response?.ok){sourceComplete=false;break;}
         let payload;try{payload=JSON.parse(response.text);}catch{sourceComplete=false;break;}
         if(!Array.isArray(payload?.response?.docs)){
-          if(isGroceryExpansionEmptySearch(payload,source,term,{start:page*100}))break;
+          if(isGroceryExpansionEmptySearch(payload,source,term,{start:page*100,shadowCohort}))break;
           sourceComplete=false;break;
         }
         if(deep&&(payload.response.start!==page*100||payload.response.miscInfo?.query!==term)){
           sourceComplete=false;break;
         }
-        for(const row of parseGroceryExpansionInventory(payload,source,bible,{observedAt,roswellShadow}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
+        for(const row of parseGroceryExpansionInventory(payload,source,bible,{observedAt,shadowCohort}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
         if(!payload.response.miscInfo?.nextPageToken)break;
       }
       if(!sourceComplete)break;
