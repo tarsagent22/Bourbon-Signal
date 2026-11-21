@@ -9,6 +9,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { stableId } from './core/text.mjs';
 import { BourbonBible } from './core/bible.mjs';
+import { tennesseeOperationalInventoryProof } from './tennessee-retailer-policy.mjs';
 import { metroLibraryTier } from './collectors/arizona-metro-retailer-proof.mjs';
 import { groceryExpansionLibraryTier, isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
 import { centralCityHiveLibraryTier } from './collectors/central-cityhive-expansion.mjs';
@@ -203,6 +204,7 @@ export function canonicalizeSignal(signal, bible) {
       : signal.state === 'MS' && signal.inventorySemantics
         ? signal.inventorySemantics
         : policy.inventorySemantics,
+    ...tennesseeOperationalInventoryProof(signal),
     locationValue: policy.locationValue,
     canAlertAsInventory: ['WA', 'NM'].includes(signal.state) ? false : sourceAlertPolicy.canAlertAsInventory === false ? false : policy.canAlertAsInventory,
     canAlertAsWatch: ['WA', 'NM'].includes(signal.state) ? false : sourceAlertPolicy.canAlertAsWatch === false ? false : policy.canAlertAsWatch,

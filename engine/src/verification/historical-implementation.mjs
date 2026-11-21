@@ -174,6 +174,13 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     bytes = Buffer.from(implementation);
     bytes = Buffer.from(replaceUnique(bytes.toString('utf8'), "    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n", `${name}: exact SC Square proof preservation`));
     let text = bytes.toString('utf8');
+    const tennesseeProofImport = "import { tennesseeOperationalInventoryProof } from './tennessee-retailer-policy.mjs';\n";
+    const tennesseeProofProjection = '    ...tennesseeOperationalInventoryProof(signal),\n';
+    if (text.includes(tennesseeProofImport) || text.includes(tennesseeProofProjection)) {
+      text = replaceUnique(text, tennesseeProofImport, '', `${name}: Tennessee proof import`);
+      text = replaceUnique(text, tennesseeProofProjection, '', `${name}: Tennessee exact-store proof projection`);
+      bytes = Buffer.from(text);
+    }
     const southDakotaImport = "import {isSouthDakotaProductionOnSiteSignal} from './south-dakota-pickup-policy.mjs';\n";
     if (text.includes(southDakotaImport)) {
       text = replaceUnique(text, southDakotaImport, '', `${name}: South Dakota proof import`);

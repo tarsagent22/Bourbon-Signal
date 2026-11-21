@@ -185,6 +185,8 @@ function signalSort(a, b) {
   assert.equal(digest(normalized), originalHash);
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
   assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, '')
+    .replace("import { tennesseeOperationalInventoryProof } from './tennessee-retailer-policy.mjs';\n", '')
+    .replace('    ...tennesseeOperationalInventoryProof(signal),\n', '')
     .replace("import { isOregonDailyProductionEvidence } from './oregon-daily-production-policy.mjs';\n", '')
     .replace(`    ...(isOregonDailyProductionEvidence(signal)?{
       canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
