@@ -1,3 +1,55 @@
+import { normalizeCityHivePremises } from './cityhive-surfaces.mjs';
+import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
+
+const CITYHIVE_DETAIL_PATH = /^\/shop\/product\/[a-z0-9-]+\/([a-f0-9]{24})$/i;
+const ALERT_TIERS = { unicorn: 3, allocated: 2, limited: 1 };
+
+export function tennesseeCityHiveDetailBottleMatch(name, bible) {
+  const result = cityHiveSafeBottleMatch(name, bible);
+  // A legacy Bible alias conflates the two Smoke Wagon releases.
+  if (!ALERT_TIERS[result.record?.tier] || result.record.libraryAlertEligible === false
+    || result.match.method === 'alias-containment'
+    || /\bsmoke wagon uncut the younger\b/i.test(String(name))) return { ...result, record: null };
+  return result;
+}
+
+function detailIdentity(value, hostname) {
+  if (!URL.canParse(value)) return null;
+  const url = new URL(value);
+  const path = url.pathname.match(CITYHIVE_DETAIL_PATH);
+  const optionId = url.searchParams.get('option-id');
+  if (!path || url.origin !== `https://${hostname}` || url.username || url.password || url.hash
+    || !/^[a-f0-9]{64}$/i.test(optionId || '') || [...url.searchParams].length !== 1) return null;
+  return { productId: path[1], optionId };
+}
+
+export function tennesseeCityHiveDetailUrls(paths, store) {
+  const origin = `https://${store.hostname}`;
+  return [...new Set(paths.map((path) => `${origin}${path}`))]
+    .filter((href) => detailIdentity(href, store.hostname)).slice(0, 10);
+}
+
+export function tennesseeCityHiveDetailProducts(blobs, href, store) {
+  const identity = detailIdentity(href, store.hostname);
+  if (!identity) return [];
+  const premises = normalizeCityHivePremises(store.address);
+  const products = [];
+  for (const product of blobs) {
+    if (product?.id !== identity.productId || typeof product.name !== 'string' || !Array.isArray(product.merchants)) continue;
+    for (const merchant of product.merchants) {
+      if (merchant?.merchant_id !== store.merchantId || normalizeCityHivePremises(merchant.full_address) !== premises
+        || !Array.isArray(merchant.offer_types) || !merchant.offer_types.includes('pick_up')
+        || !Array.isArray(merchant.product_options)) continue;
+      const options = merchant.product_options.filter((option) => option?.merchant_id === store.merchantId
+        && option.product_id === identity.productId && option.option_id === identity.optionId
+        && option.product_url === href && normalizeCityHivePremises(option.full_address) === premises
+        && /^\d+$/.test(String(option.quantity)) && Number.isSafeInteger(Number(option.quantity)));
+      if (options.length) products.push({ ...product, merchants: [{ ...merchant, product_options: options }] });
+    }
+  }
+  return products.length === 1 && products[0].merchants[0].product_options.length === 1 ? products : [];
+}
+
 function timestamp(value) {
   const parsed = Date.parse(value || '');
   return Number.isFinite(parsed) ? parsed : null;
@@ -77,6 +129,7 @@ export function mergeTennesseeCityHiveCacheSignals({
   cachedSignals = [],
   selectedSourceIds = new Set(),
   failedSourceIds = new Set(),
+  unavailableIds = new Set(),
   observedAt = new Date().toISOString(),
   maxAgeMs,
   validate = () => true,
@@ -86,7 +139,7 @@ export function mergeTennesseeCityHiveCacheSignals({
   const selected = selectedSourceIds instanceof Set ? selectedSourceIds : new Set(selectedSourceIds || []);
   const failed = failedSourceIds instanceof Set ? failedSourceIds : new Set(failedSourceIds || []);
   const retained = (cachedSignals || []).filter((signal) => {
-    if (!validate(signal)) return false;
+    if (unavailableIds.has(signal?.id) || !validate(signal)) return false;
     const sourceId = tennesseeCityHiveSignalSourceId(signal);
     const observedMs = evidenceTimestamp(signal);
     if (!sourceId || nowMs == null || observedMs == null || observedMs > nowMs + 5 * 60_000 || nowMs - observedMs > ageLimit) return false;

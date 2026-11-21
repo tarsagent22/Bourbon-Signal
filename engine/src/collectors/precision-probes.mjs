@@ -102,10 +102,14 @@ import {
   hasReviewedTennesseeCityHivePayload,
   mergeTennesseeCityHiveCacheSignals,
   selectTennesseeCityHiveSourceCohort,
+  tennesseeCityHiveDetailBottleMatch,
+  tennesseeCityHiveDetailProducts,
+  tennesseeCityHiveDetailUrls,
   tennesseeCityHiveSignalSourceId,
   updateTennesseeCityHiveSourceAttemptAt,
   updateTennesseeCityHiveSourceRefreshAt,
 } from './tennessee-cityhive-policy.mjs';
+import KNOXVILLE_CITYHIVE_PRODUCT_PATHS from '../../data/knoxville-cityhive-product-pages.json' with { type: 'json' };
 import {
   isAllowedTennesseeBottleFormat,
   isAllowedTennesseeCityHiveOption,
@@ -580,6 +584,7 @@ const TN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_MAX_
 const TN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_CACHE_MAX_AGE_MS || 10 * 60 * 60_000);
 const TN_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_PAGE_DELAY_MS || 1_200);
 const TN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_DELAY_MS || 2_000);
+const TN_CITYHIVE_DETAIL_BUDGET_MS = 24_000;
 const TN_CITYHIVE_SOURCE_COHORT_SIZE = Math.max(1, Math.min(8, Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_COHORT_SIZE) || 7));
 const TN_CITYHIVE_KNOXVILLE_SOURCE_IDS = Object.freeze([
   'hall-of-fame-knoxville',
@@ -3719,6 +3724,7 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
 
   const seenProductOptions = new Set();
   const seenPageFirstProducts = new Set();
+  const unavailableIds = new Set();
   const failedSourceIds = new Set();
   const completedSourceIds = new Set();
   const rejectedMerchants = new Set();
@@ -3761,11 +3767,23 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
     let sourceReachable = false;
     let sourcePayloadRecognized = false;
     let reportedUnrecognizedPayload = false;
-    for (const seedUrl of tennesseeCityHiveSeedUrls(source)) {
+    const stores = tennesseeStoresForSource(source.id);
+    const depthStore = stores.length === 1 ? stores[0] : null;
+    const detailUrls = new Set(depthStore ? tennesseeCityHiveDetailUrls(KNOXVILLE_CITYHIVE_PRODUCT_PATHS[source.id] || [], depthStore) : []);
+    let detailDeadline;
+    for (const seedUrl of [...tennesseeCityHiveSeedUrls(source), ...detailUrls]) {
       if (sourceBlocked) break;
-      for (const url of cityHivePageUrls(seedUrl, TN_CITYHIVE_MAX_PAGES)) {
-        const res = await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000, signal: options.signal });
-        if (!res.ok) {
+      const detailPage = detailUrls.has(seedUrl);
+      if (detailPage) detailDeadline ??= Date.now() + TN_CITYHIVE_DETAIL_BUDGET_MS;
+      for (const url of detailPage ? [seedUrl] : cityHivePageUrls(seedUrl, TN_CITYHIVE_MAX_PAGES)) {
+        const timeoutMs = detailPage ? Math.min(5_000, detailDeadline - Date.now()) : 24_000;
+        if (timeoutMs <= 0) break;
+        const res = await textFetch(url, {
+          headers: { accept: 'text/html,*/*' }, timeoutMs,
+          ...(detailPage ? { maxBytes: 768 * 1024, maxRedirects: 0 } : {}), signal: options.signal,
+        });
+        if (!res.ok || (detailPage && res.url !== url)) {
+          if (detailPage && [404, 410].includes(res.status)) break;
           failedSourceIds.add(source.id);
           roadblocks.push({
             state: config.id,
@@ -3783,13 +3801,17 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
         sourceReachable = true;
 
         const blobs = cityHiveJsonBlobs(res.text);
-        const products = cityHiveProducts(blobs);
+        const products = detailPage ? tennesseeCityHiveDetailProducts(blobs, url, depthStore) : cityHiveProducts(blobs);
         const payloadMerchantIds = [
           ...cityHiveMerchantConfigs(blobs).map((config) => (config?.merchant || config)?.id),
           ...products.flatMap((product) => (product?.merchants || []).flatMap((merchant) => (merchant?.product_options || []).map((option) => option?.merchant_id))),
         ].filter(Boolean);
-        const reviewedMerchantIds = tennesseeStoresForSource(source.id).map((store) => store.merchantId);
-        if (!hasReviewedTennesseeCityHivePayload(reviewedMerchantIds, payloadMerchantIds, cityHiveHasProductPayload(blobs))) {
+        const reviewedMerchantIds = stores.map((store) => store.merchantId);
+        if (detailPage && !products.length) {
+          await sleepWithSignal(TN_CITYHIVE_PAGE_DELAY_MS, options.signal);
+          continue;
+        }
+        if (!detailPage && !hasReviewedTennesseeCityHivePayload(reviewedMerchantIds, payloadMerchantIds, cityHiveHasProductPayload(blobs))) {
           failedSourceIds.add(source.id);
           if (!reportedUnrecognizedPayload) {
             reportedUnrecognizedPayload = true;
@@ -3835,7 +3857,7 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
               const store = registeredTennesseeStore(source.id, option.merchant_id);
               if (!store) continue;
               const key = `${source.id}|${option.merchant_id}|${option.product_id}|${option.option_id}`;
-              if (seenProductOptions.has(key)) continue;
+              if (!detailPage && seenProductOptions.has(key)) continue;
               seenProductOptions.add(key);
               const fullAddress = option.full_address || '';
               if (!exactTennesseeAddress(fullAddress, store.address)) {
@@ -3855,14 +3877,23 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
               }
               const rawName = option.option_display_data?.name || product.name;
               if (!isAllowedTennesseeBottleFormat(rawName) || !isAllowedTennesseeCityHiveOption(option)) continue;
-              const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
-              if (!record) continue;
               const normalizedQuantity = normalizeTennesseeCityHiveQuantity(option.quantity);
+              const id = stableId([config.id, 'cityhive-store-inventory', source.id, store.merchantId, option.product_id, option.option_id]);
+              if (detailPage) {
+                // The exact product page supersedes a category row for the same variant.
+                unavailableIds.add(id);
+                const categoryIndex = signals.findIndex((row) => row.id === id);
+                if (categoryIndex !== -1) signals.splice(categoryIndex, 1);
+              }
               if (normalizedQuantity.reportedQuantity <= 0) continue;
+              const { match, record, unsafeReason } = detailPage
+                ? tennesseeCityHiveDetailBottleMatch(rawName, bible)
+                : cityHiveSafeBottleMatch(rawName, bible);
+              if (!record) continue;
               const sourceUrl = option.product_url || '';
               const price = Number(option.price || 0) || null;
               const draft = {
-                id: stableId([config.id, 'cityhive-store-inventory', source.id, store.merchantId, option.product_id, option.option_id]),
+                id,
                 state: config.id,
                 stateCode: 'TN',
                 sourceLabel: store.sourceLabel,
@@ -3953,6 +3984,7 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
     cachedSignals: cache?.signals || [],
     selectedSourceIds,
     failedSourceIds,
+    unavailableIds,
     observedAt,
     maxAgeMs: TN_CITYHIVE_CACHE_MAX_AGE_MS,
     validate: isTennesseeRetailerInventory,
