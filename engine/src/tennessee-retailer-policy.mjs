@@ -1,7 +1,18 @@
 import { registeredTennesseeStore } from './collectors/tennessee-retailer-surfaces.mjs';
+import { cityHiveSafeBottleMatch } from './collectors/safe-bottle-match.mjs';
 
 const FORMAT_DENIAL_RE = /\b\d+\s*(?:-|x|\u00d7)\s*\d+\s*(?:ml|milliliters?)\b|\b(?:50|100|200|250|300|375)\s*(?:ml|milliliters?)\b|\b(?:mini|airplane|sample)\b|\b(?:\d+\s*(?:pack|pk)|pack\s+of\s+\d+|case\s+of\s+\d+|bundle|gift\s*set|sampler)\b|\b(?:candle|tumbler|glassware|ornament|merchandise)\b/i;
 const POSITIVE_STATUS_RE = /^(?:in[_ ]stock|binary_retailer_in_stock|shopify_available|listed[_ ]for[_ ]pickup|available|orderable)$/i;
+const FEED_TIERS = new Set(['unicorn', 'allocated', 'limited']);
+
+export function tennesseeReviewedBottleMatch(name, bible) {
+  const result = cityHiveSafeBottleMatch(name, bible);
+  // A legacy Bible alias conflates the two Smoke Wagon releases.
+  if (!FEED_TIERS.has(result.record?.tier) || result.record.libraryAlertEligible === false
+    || result.match.method === 'alias-containment'
+    || /\bsmoke wagon uncut the younger\b/i.test(String(name))) return { ...result, record: null };
+  return result;
+}
 
 function normalize(value) {
   return String(value || '')

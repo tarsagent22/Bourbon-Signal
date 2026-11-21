@@ -102,7 +102,6 @@ import {
   hasReviewedTennesseeCityHivePayload,
   mergeTennesseeCityHiveCacheSignals,
   selectTennesseeCityHiveSourceCohort,
-  tennesseeCityHiveDetailBottleMatch,
   tennesseeCityHiveDetailProducts,
   tennesseeCityHiveDetailUrls,
   tennesseeCityHiveSignalSourceId,
@@ -110,11 +109,14 @@ import {
   updateTennesseeCityHiveSourceRefreshAt,
 } from './tennessee-cityhive-policy.mjs';
 import KNOXVILLE_CITYHIVE_PRODUCT_PATHS from '../../data/knoxville-cityhive-product-pages.json' with { type: 'json' };
+import TENNESSEE_CITYHIVE_PRODUCT_PATHS from '../../data/tennessee-statewide-cityhive-product-pages.json' with { type: 'json' };
+import { collectTennesseeRegionalGrabbl } from './tennessee-regional-grabbl.mjs';
 import {
   isAllowedTennesseeBottleFormat,
   isAllowedTennesseeCityHiveOption,
   isTennesseeRetailerInventory,
   normalizeTennesseeCityHiveQuantity,
+  tennesseeReviewedBottleMatch,
 } from '../tennessee-retailer-policy.mjs';
 import {
   CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES,
@@ -603,6 +605,12 @@ const TN_CITYHIVE_RARE_PRIORITY_SOURCE_IDS = Object.freeze([
   'happy-ours-wine-and-spirits',
 ]);
 const TN_CITYHIVE_RARE_PRIORITY_SLOTS = 2;
+const TN_CITYHIVE_REGIONAL_SOURCE_GROUPS = [
+  ['five-star-liquor-cordova', 'busters-liquors', 'kimbrough-wines', 'kirby-wines-liquors', 'lake-district-wine-liquor', 'germantown-village-wine-and-liquor'],
+  ['sps-liquor-clinton', 'm-and-j-liquor', 'red-bank-liquor', 'discount-liquor-chattanooga', 'one-stop-wines-johnson-city'],
+  ['franklins-wine-lebanon', 'good-times-crossville', 'four-sixes-liquors-and-wines', 'junction-liquors-smyrna', 'pour-vous-hendersonville',
+    'red-spirits-and-wine', 'red-dog-wine-spirits', 'moon-wine-spirits', 'westside-wine-spirits', 'happy-ours-wine-and-spirits', 'corkdorks', 'frugal-macdoogal'],
+];
 
 
 const TN_COOL_SPRINGS_BASE_URL = 'https://shop.coolspringswine.com/s/1000-1057/';
@@ -910,6 +918,24 @@ const TN_CITYHIVE_SOURCES = [
       'https://campbellstationwine.com/shop/?subtype=bourbon',
       'https://campbellstationwine.com/shop/?subtype=whiskey'
     ]
+  },
+  {
+    id: 'five-star-liquor-cordova',
+    chainName: 'Five Star Liquor & Wine',
+    sourceLabel: 'Five Star Liquor & Wine Cordova CityHive store inventory',
+    urls: ['https://fivestarliquortn.com/shop/?subtype=bourbon', 'https://fivestarliquortn.com/shop/?basic-category=whiskey'],
+  },
+  {
+    id: 'franklins-wine-lebanon',
+    chainName: "Franklin's Wine and Spirit",
+    sourceLabel: "Franklin's Wine and Spirit Lebanon CityHive store inventory",
+    urls: ['https://franklinwineandspiritlebanontn.com/shop/?subtype=bourbon', 'https://franklinwineandspiritlebanontn.com/shop/?subtype=whiskey'],
+  },
+  {
+    id: 'sps-liquor-clinton',
+    chainName: "SP's Liquor Store",
+    sourceLabel: "SP's Liquor Store CityHive store inventory",
+    urls: ['https://spsliquor.com/shop/?subtype=bourbon', 'https://spsliquor.com/shop/?subtype=whiskey'],
   },
   {
     id: 'red-spirits-and-wine',
@@ -3741,6 +3767,7 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
     requestedSourceIds,
     knoxvilleSourceIds: TN_CITYHIVE_KNOXVILLE_SOURCE_IDS,
     knoxvilleSlots: Math.min(3, Math.max(0, TN_CITYHIVE_SOURCE_COHORT_SIZE - 4)),
+    regionalSourceGroups: TN_CITYHIVE_REGIONAL_SOURCE_GROUPS,
     prioritySourceIds: TN_CITYHIVE_RARE_PRIORITY_SOURCE_IDS,
     prioritySlots: TN_CITYHIVE_RARE_PRIORITY_SLOTS,
   });
@@ -3769,7 +3796,8 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
     let reportedUnrecognizedPayload = false;
     const stores = tennesseeStoresForSource(source.id);
     const depthStore = stores.length === 1 ? stores[0] : null;
-    const detailUrls = new Set(depthStore ? tennesseeCityHiveDetailUrls(KNOXVILLE_CITYHIVE_PRODUCT_PATHS[source.id] || [], depthStore) : []);
+    const detailPaths = KNOXVILLE_CITYHIVE_PRODUCT_PATHS[source.id] || TENNESSEE_CITYHIVE_PRODUCT_PATHS[source.id] || [];
+    const detailUrls = new Set(depthStore ? tennesseeCityHiveDetailUrls(detailPaths, depthStore) : []);
     let detailDeadline;
     for (const seedUrl of [...tennesseeCityHiveSeedUrls(source), ...detailUrls]) {
       if (sourceBlocked) break;
@@ -3887,7 +3915,7 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
               }
               if (normalizedQuantity.reportedQuantity <= 0) continue;
               const { match, record, unsafeReason } = detailPage
-                ? tennesseeCityHiveDetailBottleMatch(rawName, bible)
+                ? tennesseeReviewedBottleMatch(rawName, bible)
                 : cityHiveSafeBottleMatch(rawName, bible);
               if (!record) continue;
               const sourceUrl = option.product_url || '';
@@ -7710,9 +7738,10 @@ async function collectSouthCarolina(config, bible) {
 async function collectTennessee(config, bible, options = {}) {
   const observedAt = new Date().toISOString();
   const configuredStores = buildTennesseeConfiguredStoreLocationSignals(observedAt);
-  const [cityHive, knoxville] = await Promise.all([
+  const [cityHive, knoxville, regionalGrabbl] = await Promise.all([
     collectTennesseeCityHive(config, bible, observedAt, options),
     collectKnoxvilleProductPageRetailers(bible, { fetchText: textFetch, sleep: sleepWithSignal, signal: options.signal }),
+    collectTennesseeRegionalGrabbl(bible, { fetchText: textFetch, sleep: sleepWithSignal, signal: options.signal, observedAt }),
   ]);
   options.signal?.throwIfAborted();
   const shopify = await collectTennesseeShopify(config, bible, observedAt, options);
@@ -7721,8 +7750,8 @@ async function collectTennessee(config, bible, options = {}) {
   options.signal?.throwIfAborted();
   const gatewayGrabbl = await collectTennesseeGatewayGrabbl(config, bible, observedAt, options);
   return {
-    signals: [...configuredStores, ...cityHive.signals, ...knoxville.signals, ...shopify.signals, ...coolSprings.signals, ...gatewayGrabbl.signals],
-    roadblocks: [...cityHive.roadblocks, ...knoxville.roadblocks, ...shopify.roadblocks, ...coolSprings.roadblocks, ...gatewayGrabbl.roadblocks]
+    signals: [...configuredStores, ...cityHive.signals, ...knoxville.signals, ...regionalGrabbl.signals, ...shopify.signals, ...coolSprings.signals, ...gatewayGrabbl.signals],
+    roadblocks: [...cityHive.roadblocks, ...knoxville.roadblocks, ...regionalGrabbl.roadblocks, ...shopify.roadblocks, ...coolSprings.roadblocks, ...gatewayGrabbl.roadblocks]
   };
 }
 

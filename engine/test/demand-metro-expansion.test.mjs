@@ -142,7 +142,8 @@ test('Atlanta and Nashville exact-store registries provide stable metro depth wi
     .filter((store) => demandMetroAreaMatchesFields('TN', [store.city, store.address], ['Nashville Metro']));
 
   assert.ok(georgiaStores.length >= 20, `expected >=20 exact Atlanta-metro stores, got ${georgiaStores.length}`);
-  assert.equal(tennesseeStores.length, 13, `expected all 13 exact Nashville-metro stores, got ${tennesseeStores.length}`);
+  assert.equal(tennesseeStores.length, 15, `expected all 15 exact Nashville-metro stores, got ${tennesseeStores.length}`);
+  assert.ok(['liquor-planet-murfreesboro', 'warrior-wine-murfreesboro'].every((id) => tennesseeStores.some((store) => store.sourceId === id)));
   assert.ok(georgiaStores.every((store) => store.address && store.city));
   assert.ok(tennesseeStores.every((store) => store.storeId && store.merchantId && store.address && store.hostname));
 
@@ -150,25 +151,25 @@ test('Atlanta and Nashville exact-store registries provide stable metro depth wi
   const stableGaLocations = locations.filter((row) => row.state === 'GA' && row.area === 'Atlanta Metro');
   const stableTnLocations = locations.filter((row) => row.state === 'TN' && row.area === 'Nashville Metro');
   assert.ok(stableGaLocations.length >= 20);
-  assert.equal(stableTnLocations.length, 13);
+  assert.equal(stableTnLocations.length, 15);
   assert.ok([...stableGaLocations, ...stableTnLocations].every((row) => row.hasSignals === false && row.inventoryCapability === 'exact_store_source_registered'));
 
   const stores = buildStores([]);
   assert.ok(stores.filter((row) => row.state === 'GA' && row.area === 'Atlanta Metro').length >= 20);
-  assert.equal(stores.filter((row) => row.state === 'TN' && row.area === 'Nashville Metro').length, 13);
+  assert.equal(stores.filter((row) => row.state === 'TN' && row.area === 'Nashville Metro').length, 15);
   assert.ok(stores.filter((row) => ['GA', 'TN'].includes(row.state)).every((row) => row.signalCount === 0 && row.sourceAvailabilityVerified === false));
 });
 
-test('all 13 Nashville locator identities stay searchable without becoming inventory', () => {
+test('all 15 Nashville locator identities stay searchable without becoming inventory', () => {
   const nashvilleRegistry = TENNESSEE_RETAILER_STORES
     .filter((store) => demandMetroAreaMatchesFields('TN', [store.city, store.address], ['Nashville Metro']));
   const locatorSignals = buildTennesseeConfiguredStoreLocationSignals('2026-07-27T12:00:00.000Z')
     .filter((signal) => nashvilleRegistry.some((store) => store.storeId === signal.storeId));
-  assert.equal(locatorSignals.length, 13);
+  assert.equal(locatorSignals.length, 15);
 
   const locatorStores = buildStores(locatorSignals)
     .filter((row) => row.state === 'TN' && row.area === 'Nashville Metro');
-  assert.equal(locatorStores.length, 13);
+  assert.equal(locatorStores.length, 15);
   assert.ok(locatorStores.every((row) =>
     row.collectorAttached === true
     && row.hasSignals === false
@@ -178,7 +179,7 @@ test('all 13 Nashville locator identities stay searchable without becoming inven
 
   const locatorLocations = buildLocationBible(locatorSignals, [])
     .filter((row) => row.state === 'TN' && row.area === 'Nashville Metro');
-  assert.equal(locatorLocations.length, 13);
+  assert.equal(locatorLocations.length, 15);
   assert.ok(locatorLocations.every((row) =>
     row.collectorAttached === true
     && row.hasSignals === false

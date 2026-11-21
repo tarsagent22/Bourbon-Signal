@@ -1,17 +1,6 @@
 import { normalizeCityHivePremises } from './cityhive-surfaces.mjs';
-import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 
 const CITYHIVE_DETAIL_PATH = /^\/shop\/product\/[a-z0-9-]+\/([a-f0-9]{24})$/i;
-const ALERT_TIERS = { unicorn: 3, allocated: 2, limited: 1 };
-
-export function tennesseeCityHiveDetailBottleMatch(name, bible) {
-  const result = cityHiveSafeBottleMatch(name, bible);
-  // A legacy Bible alias conflates the two Smoke Wagon releases.
-  if (!ALERT_TIERS[result.record?.tier] || result.record.libraryAlertEligible === false
-    || result.match.method === 'alias-containment'
-    || /\bsmoke wagon uncut the younger\b/i.test(String(name))) return { ...result, record: null };
-  return result;
-}
 
 function detailIdentity(value, hostname) {
   if (!URL.canParse(value)) return null;
@@ -100,6 +89,7 @@ export function selectTennesseeCityHiveSourceCohort(sources = [], {
   requestedSourceIds = new Set(),
   knoxvilleSourceIds = [],
   knoxvilleSlots = 0,
+  regionalSourceGroups = [],
   prioritySourceIds = [],
   prioritySlots = 0,
 } = {}) {
@@ -116,12 +106,20 @@ export function selectTennesseeCityHiveSourceCohort(sources = [], {
   const knoxville = indexed.filter(({ source }) => knoxvilleIds.has(source.id))
     .slice(0, Math.max(0, Math.min(size, knoxvilleSlots)));
   const selectedIds = new Set(knoxville.map(({ source }) => source.id));
+  const regional = [];
+  for (const group of regionalSourceGroups) {
+    if (selectedIds.size >= size) break;
+    const entry = indexed.find(({ source }) => group.includes(source.id) && !selectedIds.has(source.id));
+    if (!entry) continue;
+    regional.push(entry);
+    selectedIds.add(entry.source.id);
+  }
   const rare = indexed.filter(({ source }) => priorityIds.has(source.id) && !selectedIds.has(source.id))
-    .slice(0, Math.max(0, Math.min(size - knoxville.length, prioritySlots)));
+    .slice(0, Math.max(0, Math.min(size - selectedIds.size, prioritySlots)));
   for (const { source } of rare) selectedIds.add(source.id);
   const other = indexed.filter(({ source }) => !selectedIds.has(source.id) && !priorityIds.has(source.id) && !knoxvilleIds.has(source.id));
   const otherPriority = indexed.filter(({ source }) => !selectedIds.has(source.id) && (priorityIds.has(source.id) || knoxvilleIds.has(source.id)));
-  return [...knoxville, ...rare, ...other, ...otherPriority].slice(0, size).map(({ source }) => source);
+  return [...knoxville, ...regional, ...rare, ...other, ...otherPriority].slice(0, size).map(({ source }) => source);
 }
 
 export function mergeTennesseeCityHiveCacheSignals({

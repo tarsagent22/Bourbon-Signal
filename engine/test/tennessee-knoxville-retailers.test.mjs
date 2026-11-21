@@ -11,9 +11,9 @@ import {
 } from '../src/collectors/tennessee-knoxville-retailers.mjs';
 import { tennesseeStoresForSource } from '../src/collectors/tennessee-retailer-surfaces.mjs';
 import {
-  mergeTennesseeCityHiveCacheSignals, tennesseeCityHiveDetailBottleMatch, tennesseeCityHiveDetailProducts, tennesseeCityHiveDetailUrls,
+  mergeTennesseeCityHiveCacheSignals, tennesseeCityHiveDetailProducts, tennesseeCityHiveDetailUrls,
 } from '../src/collectors/tennessee-cityhive-policy.mjs';
-import { isAllowedTennesseeCityHiveOption, isTennesseeRetailerInventory } from '../src/tennessee-retailer-policy.mjs';
+import { isAllowedTennesseeCityHiveOption, isTennesseeRetailerInventory, tennesseeReviewedBottleMatch } from '../src/tennessee-retailer-policy.mjs';
 
 // Minimal excerpts of the two first-party product page shapes observed on November 20.
 const downtownUrl = 'https://www.dtwine.com/makers-mark-46-750-ml.html';
@@ -149,8 +149,8 @@ test('Knoxville detail links require an exact first-party CityHive pickup varian
     : { record: { id: 'other', canonical: value, tier: 'limited' }, method: 'alias-containment' } };
   const path = `${new URL(href).pathname}${new URL(href).search}`;
   assert.deepEqual(tennesseeCityHiveDetailUrls([path, 'https://example.com' + path, `${path}&store=other`, path], store), [href]);
-  assert.equal(tennesseeCityHiveDetailBottleMatch('elijah craig barrel proof', bible).record?.id, 'elijah');
-  assert.equal(tennesseeCityHiveDetailBottleMatch('uncertain name', bible).record, null);
+  assert.equal(tennesseeReviewedBottleMatch('elijah craig barrel proof', bible).record?.id, 'elijah');
+  assert.equal(tennesseeReviewedBottleMatch('uncertain name', bible).record, null);
   assert.deepEqual(tennesseeCityHiveDetailProducts([product], href, store), [product]);
   for (const changedMerchant of [
     { ...merchant, offer_types: ['delivery'] },
