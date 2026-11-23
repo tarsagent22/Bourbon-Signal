@@ -1,7 +1,18 @@
 import { registeredTennesseeStore } from './collectors/tennessee-retailer-surfaces.mjs';
+import { cityHiveSafeBottleMatch } from './collectors/safe-bottle-match.mjs';
 
 const FORMAT_DENIAL_RE = /\b\d+\s*(?:-|x|\u00d7)\s*\d+\s*(?:ml|milliliters?)\b|\b(?:50|100|200|250|300|375)\s*(?:ml|milliliters?)\b|\b(?:mini|airplane|sample)\b|\b(?:\d+\s*(?:pack|pk)|pack\s+of\s+\d+|case\s+of\s+\d+|bundle|gift\s*set|sampler)\b|\b(?:candle|tumbler|glassware|ornament|merchandise)\b/i;
-const POSITIVE_STATUS_RE = /\b(?:in_stock|binary_retailer_in_stock|shopify_available|listed_for_pickup|available|orderable)\b/i;
+const POSITIVE_STATUS_RE = /^(?:in[_ ]stock|binary_retailer_in_stock|shopify_available|listed[_ ]for[_ ]pickup|available|orderable)$/i;
+const FEED_TIERS = new Set(['unicorn', 'allocated', 'limited']);
+
+export function tennesseeReviewedBottleMatch(name, bible) {
+  const result = cityHiveSafeBottleMatch(name, bible);
+  // A legacy Bible alias conflates the two Smoke Wagon releases.
+  if (!FEED_TIERS.has(result.record?.tier) || result.record.libraryAlertEligible === false
+    || result.match.method === 'alias-containment'
+    || /\bsmoke wagon uncut the younger\b/i.test(String(name))) return { ...result, record: null };
+  return result;
+}
 
 function normalize(value) {
   return String(value || '')
@@ -96,7 +107,7 @@ export function isTennesseeRetailerSignalIdentity(signal) {
 export function isTennesseeRetailerInventory(signal) {
   if (!isTennesseeRetailerSignalIdentity(signal)) return false;
   if (signal.sourceAvailabilityVerified !== true) return false;
-  if (!POSITIVE_STATUS_RE.test(String(signal.availabilityStatus || signal.availabilityLabel || ''))) return false;
+  if (!POSITIVE_STATUS_RE.test(String(signal.availabilityStatus || signal.availabilityLabel || '').trim())) return false;
   const store = registeredTennesseeStore(
     String(signal.sourceChain || signal.raw?.chain || ''),
     String(signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || ''),
@@ -112,10 +123,21 @@ export function isTennesseeRetailerInventory(signal) {
   if (binary) {
     return quantity === 0
       && signal.quantityIsExact === false
-      && Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity ?? 100) >= 1;
+      && Number.isSafeInteger(Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity))
+      && Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity) >= 1;
   }
   return Number.isFinite(quantity)
     && quantity > 0
     && signal.quantityIsExact === true
     && Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity ?? quantity) === quantity;
+}
+
+export function tennesseeOperationalInventoryProof(signal) {
+  if (!isTennesseeRetailerInventory(signal)) return {};
+  return {
+    reportedQuantity: Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity ?? signal.quantity),
+    inventorySemantics: signal.quantityIsExact
+      ? 'exact_retailer_reported_quantity'
+      : 'binary_retailer_orderable_no_exact_count',
+  };
 }

@@ -1,12 +1,19 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { BourbonBible } from '../src/core/bible.mjs';
+import { bibleLookup, buildDrops } from '../src/export-site-contract.mjs';
+import { canonicalizeSignal } from '../src/operational-report.mjs';
+import { filterPublishableTennesseeInventory } from '../src/tennessee-verification-policy.mjs';
 import {
   collectKnoxvilleProductPageRetailers,
   KNOXVILLE_PRODUCT_PAGE_SOURCES,
   parseKnoxvilleProductEvidence,
 } from '../src/collectors/tennessee-knoxville-retailers.mjs';
 import { tennesseeStoresForSource } from '../src/collectors/tennessee-retailer-surfaces.mjs';
-import { isAllowedTennesseeCityHiveOption, isTennesseeRetailerInventory } from '../src/tennessee-retailer-policy.mjs';
+import {
+  mergeTennesseeCityHiveCacheSignals, tennesseeCityHiveDetailProducts, tennesseeCityHiveDetailUrls,
+} from '../src/collectors/tennessee-cityhive-policy.mjs';
+import { isAllowedTennesseeCityHiveOption, isTennesseeRetailerInventory, tennesseeReviewedBottleMatch } from '../src/tennessee-retailer-policy.mjs';
 
 // Minimal excerpts of the two first-party product page shapes observed on November 20.
 const downtownUrl = 'https://www.dtwine.com/makers-mark-46-750-ml.html';
@@ -100,7 +107,8 @@ test('a reviewed Galaxy alias requires the exact SKU and expression on discovery
   const catalog = `<a href="${rareBreedUrl}"><article><p>${title}</p></article></a>`;
   const detail = galaxyProduct.replace('upc_088004048150', 'upc_721059000222')
     .replace('Early Times Kentucky Whisky 80 Proof, 750 mL Bottle', title);
-  const bible = { match: (name) => name === canonical ? { record: { id: 'rare-breed', canonical, tier: 'limited' }, confidence: 1 } : null };
+  const record = { id: 'rare-breed', canonical, tier: 'limited', normalizedKey: 'wild turkey rare breed straight bourbon' };
+  const bible = new BourbonBible([record]);
   const collect = async (body, catalogBible = bible) => collectKnoxvilleProductPageRetailers(catalogBible, {
     sleep: async () => {},
     fetchText: async (url) => ({
@@ -108,8 +116,53 @@ test('a reviewed Galaxy alias requires the exact SKU and expression on discovery
       text: url === galaxy.categoryUrl ? catalog : body,
     }),
   });
-  assert.deepEqual((await collect(detail)).signals.map((row) => row.canonicalName), [canonical]);
+  const { signals } = await collect(detail);
+  assert.deepEqual(signals.map((row) => row.canonicalName), [canonical]);
+  const snapshot = signals.map((row) => canonicalizeSignal(row, bible));
+  const drops = filterPublishableTennesseeInventory(buildDrops(snapshot, bibleLookup([record]), snapshot, [], snapshot));
+  assert.equal(drops.length, 1);
+  assert.equal(drops[0].storeName, 'Galaxy Liquor');
+  assert.equal(drops[0].quantity, 0);
+  assert.equal(drops[0].quantityIsExact, false);
+  assert.equal(drops[0].reportedQuantity, 1);
+  assert.equal(drops[0].inventorySemantics, 'binary_retailer_orderable_no_exact_count');
+  assert.equal(isTennesseeRetailerInventory({ ...snapshot[0], reportedQuantity: null }), false);
+  assert.equal(isTennesseeRetailerInventory({ ...snapshot[0], availabilityStatus: 'not available' }), false);
   assert.deepEqual((await collect(detail.replace('Straight Bourbon', 'Straight Rye'))).signals, []);
   const disabledBible = { match: () => ({ record: { canonical, libraryAlertEligible: false }, confidence: 1 }) };
   assert.deepEqual((await collect(detail, disabledBible)).signals, []);
+});
+
+test('Knoxville detail links require an exact first-party CityHive pickup variant and bottle identity', () => {
+  const [store] = tennesseeStoresForSource('liquor-vault-knoxville');
+  const productId = '56c29217756275139dc70300';
+  const optionId = 'a'.repeat(64);
+  const name = 'Elijah Craig Barrel Proof';
+  const href = `https://${store.hostname}/shop/product/elijah-craig-barrel-proof/${productId}?option-id=${optionId}`;
+  const option = { merchant_id: store.merchantId, product_id: productId, option_id: optionId,
+    full_address: store.address, product_url: href, quantity: 2 };
+  const merchant = { merchant_id: store.merchantId, full_address: store.address,
+    offer_types: ['pick_up'], product_options: [option] };
+  const product = { id: productId, name, merchants: [merchant] };
+  const bible = { match: (value) => value === 'elijah craig barrel proof'
+    ? { record: { id: 'elijah', canonical: name, tier: 'allocated' }, method: 'exact-library-identity' }
+    : { record: { id: 'other', canonical: value, tier: 'limited' }, method: 'alias-containment' } };
+  const path = `${new URL(href).pathname}${new URL(href).search}`;
+  assert.deepEqual(tennesseeCityHiveDetailUrls([path, 'https://example.com' + path, `${path}&store=other`, path], store), [href]);
+  assert.equal(tennesseeReviewedBottleMatch('elijah craig barrel proof', bible).record?.id, 'elijah');
+  assert.equal(tennesseeReviewedBottleMatch('uncertain name', bible).record, null);
+  assert.deepEqual(tennesseeCityHiveDetailProducts([product], href, store), [product]);
+  for (const changedMerchant of [
+    { ...merchant, offer_types: ['delivery'] },
+    { ...merchant, full_address: '123 Wrong Address' },
+    { ...merchant, product_options: [{ ...option, option_id: 'b'.repeat(64) }] },
+    { ...merchant, product_options: [{ ...option, quantity: null }] },
+    { ...merchant, product_options: [option, option] },
+  ]) assert.deepEqual(tennesseeCityHiveDetailProducts([{ ...product, merchants: [changedMerchant] }], href, store), []);
+  const soldOut = { ...product, merchants: [{ ...merchant, product_options: [{ ...option, quantity: 0 }] }] };
+  assert.deepEqual(tennesseeCityHiveDetailProducts([soldOut], href, store), [soldOut]);
+  const observedAt = '2026-11-20T23:00:00Z';
+  const stock = { id: 'previous', sourceChain: store.sourceId, observedAt };
+  assert.deepEqual(mergeTennesseeCityHiveCacheSignals({ cachedSignals: [stock], unavailableIds: new Set([stock.id]),
+    selectedSourceIds: new Set([store.sourceId]), failedSourceIds: new Set([store.sourceId]), observedAt, maxAgeMs: 60_000 }), []);
 });
