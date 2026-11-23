@@ -24,6 +24,7 @@ if (siteDirectoryOverride && process.env.GITHUB_ACTIONS === 'true') {
 const SITE_DIR = path.resolve(siteDirectoryOverride || 'out/site');
 const OUT_DIR = path.resolve('out');
 const ROOT_DIR = path.resolve('..');
+const EXPECTED_NASHVILLE_STORE_COUNT = 15;
 
 async function readJson(file, fallback = null) {
   try {
@@ -87,7 +88,7 @@ async function main() {
   const atlantaStores = configuredStores.filter((row) => row.state === 'GA' && row.area === 'Atlanta Metro');
   const nashvilleStores = configuredStores.filter((row) => row.state === 'TN' && row.area === 'Nashville Metro');
   assert(atlantaStores.length >= 20, `Atlanta Metro exact-store registry has ${atlantaStores.length}; expected at least 20.`, failures);
-  assert(nashvilleStores.length === 13, `Nashville Metro exact-store registry has ${nashvilleStores.length}; expected all 13.`, failures);
+  assert(nashvilleStores.length === EXPECTED_NASHVILLE_STORE_COUNT, `Nashville Metro exact-store registry has ${nashvilleStores.length}; expected all ${EXPECTED_NASHVILLE_STORE_COUNT}.`, failures);
   assert(configuredLocations.every((row) => row.inventoryCapability === 'exact_store_source_registered' && row.hasSignals === false), 'Configured metro locations must remain non-inventory locator identities.', failures);
 
   // Build the stable directory projection from the current code instead of
@@ -100,9 +101,9 @@ async function main() {
   const exportedAtlantaLocations = exportLocations.filter((row) => stateOf(row) === 'GA' && row.area === 'Atlanta Metro');
   const exportedNashvilleLocations = exportLocations.filter((row) => stateOf(row) === 'TN' && row.area === 'Nashville Metro');
   assert(exportedAtlantaStores.length >= 20, `Store export exposes ${exportedAtlantaStores.length} Atlanta Metro exact-store identities; expected at least 20.`, failures);
-  assert(exportedNashvilleStores.length === 13, `Store export exposes ${exportedNashvilleStores.length} Nashville Metro exact-store identities; expected all 13.`, failures);
+  assert(exportedNashvilleStores.length === EXPECTED_NASHVILLE_STORE_COUNT, `Store export exposes ${exportedNashvilleStores.length} Nashville Metro exact-store identities; expected all ${EXPECTED_NASHVILLE_STORE_COUNT}.`, failures);
   assert(exportedAtlantaLocations.length >= 20, `Location export exposes ${exportedAtlantaLocations.length} Atlanta Metro identities; expected at least 20.`, failures);
-  assert(exportedNashvilleLocations.length === 13, `Location export exposes ${exportedNashvilleLocations.length} Nashville Metro identities; expected all 13.`, failures);
+  assert(exportedNashvilleLocations.length === EXPECTED_NASHVILLE_STORE_COUNT, `Location export exposes ${exportedNashvilleLocations.length} Nashville Metro identities; expected all ${EXPECTED_NASHVILLE_STORE_COUNT}.`, failures);
   assert([...exportedAtlantaStores, ...exportedNashvilleStores].every((row) =>
     row.sourceAvailabilityVerified === false
     && row.hasSignals === false
