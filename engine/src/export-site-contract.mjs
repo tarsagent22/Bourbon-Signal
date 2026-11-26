@@ -63,6 +63,9 @@ const PREVIOUS_SITE_OUT = process.env.BOURBON_SIGNAL_PREVIOUS_SITE_DIR
 const CONTRACT_VERSION = 'bourbon-signal-site-v0.1';
 const HISTORY_DAYS = Number(process.env.BOURBON_SIGNAL_HISTORY_DAYS || 30);
 const HISTORY_SNAPSHOT_LIMIT = Number(process.env.BOURBON_SIGNAL_HISTORY_SNAPSHOT_LIMIT || 40);
+// JSON snapshots expand into objects and multiple indexes during projection.
+// Bound the raw working set independently of the lossless archive window.
+const HISTORY_WORKING_BYTES = 128 * 1024 * 1024;
 const PA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.PA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
 const FAST_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.FAST_STORE_INVENTORY_MAX_AGE_HOURS || 12);
 // VA uses the official Virginia ABC storeNearby cache during launch because the
@@ -181,14 +184,30 @@ export async function recentSnapshots(days = HISTORY_DAYS, options = {}) {
   const snapshotsPath = options.snapshotsPath || SNAPSHOTS;
   const now = Number.isFinite(options.now) ? options.now : Date.now();
   const limit = Number.isFinite(options.limit) ? options.limit : HISTORY_SNAPSHOT_LIMIT;
+  const maxBytes = options.maxBytes ?? HISTORY_WORKING_BYTES;
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) throw new Error('Invalid history working-set budget');
   const cutoff = now - days * 24 * 60 * 60 * 1000;
   if (!(await exists(snapshotsPath))) return [];
 
   const directoryFiles = await readdir(snapshotsPath);
   const files = directoryFiles.filter((f) => f.endsWith('.json')).sort().reverse();
   const snapshots = [];
+  let loadedBytes = 0;
   for (const file of files) {
     const fullPath = path.join(snapshotsPath, file);
+    let size;
+    try { ({ size } = await stat(fullPath)); } catch (error) {
+      if (error?.code === 'ENOENT') continue;
+      throw error;
+    }
+    const overBudget = (limit > 0 && snapshots.length >= limit) || loadedBytes + size > maxBytes;
+    const filenameTime = snapshotTimeFromFilename(file);
+    if (size > maxBytes || (overBudget && filenameTime !== null && filenameTime >= cutoff)) {
+      // Canonical names carry the timestamp. Archive overflow directly so we
+      // never parse a large file simply to decide to exclude it from this run.
+      await archiveSnapshot(fullPath);
+      continue;
+    }
     let data;
     try {
       data = JSON.parse(await readFile(fullPath, 'utf8'));
@@ -203,8 +222,9 @@ export async function recentSnapshots(days = HISTORY_DAYS, options = {}) {
       await rm(fullPath, { force: true });
       continue;
     }
-    if (limit <= 0 || snapshots.length < limit) {
+    if (!overBudget) {
       snapshots.push(data);
+      loadedBytes += size;
     } else {
       // Only the newest keep set is consumed on every export. Preserve the rest of
       // the configured history window losslessly, but not at full JSON size.
@@ -2581,6 +2601,7 @@ async function exportSiteContractAttempt(rejectedQualityStates) {
   await mkdir(SITE_OUT, { recursive: true });
   const snapshot = await readJson(path.join(OUT, 'current-snapshot.json'), { signals: [] });
   const snapshots = await recentSnapshots();
+  console.log(`Site export loaded ${snapshots.length} historical snapshots within the working-set budget.`);
   const summary = await readJson(path.join(OUT, 'summary.json'), {});
   const rejected = new Set(rejectedQualityStates.map((row) => row.state));
   summary.fallbackStateIds = [...new Set([...(summary.fallbackStateIds || []), ...rejected])];
