@@ -94,6 +94,7 @@ export function mergeHistoricalBoardShipmentDrops({
   bootstrapDrops = [],
   now = new Date().toISOString(),
   historyDays = 30,
+  enforceByteBudget = true,
 } = {}) {
   const currentRows = rowsOf(currentDrops);
   const nowMs = Date.parse(now);
@@ -127,12 +128,13 @@ export function mergeHistoricalBoardShipmentDrops({
       return true;
     })
     .map(historicalBoardShipmentDrop);
+  if (!enforceByteBudget) return [...normalizedCurrent, ...retained];
   const required = new Set(normalizedCurrent);
   return selectFleetDropBudget([...normalizedCurrent, ...retained], { isRequired: row => required.has(row) });
 }
 
 // Retain observed bottle events across refreshes; archived rows never become alerts.
-export function mergeHistoricalTimelineDrops({ currentDrops = [], previousDrops = [], now = new Date().toISOString(), historyDays = 30 } = {}) {
+export function mergeHistoricalTimelineDrops({ currentDrops = [], previousDrops = [], now = new Date().toISOString(), historyDays = 30, enforceByteBudget = true } = {}) {
   const current = rowsOf(currentDrops);
   const currentIds = new Set(current.map(dropIdentity));
   const cutoff = Date.parse(now) - historyDays * 86_400_000;
@@ -146,12 +148,14 @@ export function mergeHistoricalTimelineDrops({ currentDrops = [], previousDrops 
     currentIds.add(id);
     return true;
   }).sort((a,b) => dropEventTime(b) - dropEventTime(a));
-  const required = new Set(current);
-  return selectFleetDropBudget([...current, ...retained.map(drop => ({
+  const history = retained.map(drop => ({
     ...retainedDrop(drop, 'historical_timeline'), historical: true,
     eligibleForDropFeed: true, can_alert_as_inventory: false, can_alert_as_watch: false,
     inventoryCaveat: 'Historical report. Current availability is unconfirmed; check with the store.',
-  }))], { isRequired: row => required.has(row) });
+  }));
+  if (!enforceByteBudget) return [...current, ...history];
+  const required = new Set(current);
+  return selectFleetDropBudget([...current, ...history], { isRequired: row => required.has(row) });
 }
 
 function locationIdentity(location) {
