@@ -96,6 +96,7 @@ export interface SignalMemberProfileResponse {
     displayName: string;
     customDisplayName: string | null;
     homeState?: string | null;
+    shoppingCity?: string | null;
     feedAreas: SignalFeedAreaDirectory;
     membership: {
       tier: "free" | "standard" | "barrel" | "bottled-in-bond";
@@ -130,6 +131,10 @@ export function buildSignalMemberProfile(
       displayName: customDisplayName || "",
       customDisplayName,
       homeState: normalizeMemberProfilePreferences((metadata as Record<string, unknown> | null)?.memberProfile).homeState,
+      shoppingCity: (() => {
+        const profile = (metadata as { memberProfile?: { shoppingCity?: unknown } } | null)?.memberProfile;
+        return typeof profile?.shoppingCity === 'string' ? profile.shoppingCity.slice(0, 72) : null;
+      })(),
       feedAreas: buildSignalFeedAreaDirectory(),
       membership: {
         tier: access.tier,

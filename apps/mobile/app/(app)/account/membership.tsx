@@ -1,3 +1,7 @@
+import { useConversionTracking } from "../../../src/activity/useConversionTracking";
+import { normalizeConversionEntry } from "../../../../../shared/mobile-conversion";
+import { discoveryRegion } from '../../../../../shared/local-discovery';
+import { LocalReportCard, regionLabel, useLocalReport } from '../../../src/onboarding/LocalPreview';
 import { membershipBillingPresentation } from "../../../src/membership/membership-billing";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useHeaderHeight } from 'expo-router/react-navigation';
@@ -18,17 +22,30 @@ import { SignalMotionScreen } from '../../../src/components/SignalMotionBackdrop
 import { routeText } from '../../../src/continuity/bottle-handoff';
 
 const cards = [
-  { tier: "barrel" as const, name: "Barrel Proof", description: "Get alerts when bottles you want show up. Every paid feature is included.", features: ["Full Intel feed & unlimited bottle lookups", "Unlimited areas & watched bottles", "Push alerts & Community sighting alerts", "Advanced filters & bottle search", "Unlimited My Shelf, Bourbon DNA & recommendations", "Redeem Signal Points for rewards"] },
+  { tier: "barrel" as const, name: "Barrel Proof", description: "Watch the bottles and areas you choose. When a matching report comes in, get an alert on your phone.", features: ["Phone alerts for watched bottles and areas", "Full local feed and advanced search", "Unlimited Bottle Checks and shelf space"] },
 ];
 
 export default function MembershipScreen() {
   const api = useMobileApi();
+  const track = useConversionTracking();
   const management = useSubscriptionManagement();
   const router = useRouter();
   const headerHeight = useHeaderHeight();
-  const { welcome, watchBottle: requestedBottle } = useLocalSearchParams<{ welcome?: string; watchBottle?: string }>();
+  const { welcome, watchBottle: requestedBottle, watchBottleId, state, city, entry } = useLocalSearchParams<{
+    welcome?: string; watchBottle?: string; watchBottleId?: string; state?: string; city?: string; entry?: string;
+  }>();
+  const region = discoveryRegion(state, city);
+  const { result } = useLocalReport(region?.state || '', region?.city);
   const pendingBottle = routeText(requestedBottle);
-  const continueMembership = () => pendingBottle ? router.replace({ pathname: '/(app)/(tabs)/radar', params: { section: 'settings', watchBottle: pendingBottle } }) : isWelcome ? router.replace('/(app)/setup') : router.replace("/(app)/(tabs)");
+  const continueMembership = () => {
+    if (pendingBottle && profile?.membership.paid) {
+      router.replace({ pathname: '/(app)/setup', params: { state: region?.state, area: region?.city, bottle: pendingBottle, confirmWatch: '1' } });
+    } else if (pendingBottle) {
+      router.replace({ pathname: '/(app)/(tabs)/radar', params: { section: 'settings', watchBottle: pendingBottle, saveBottleId: routeText(watchBottleId), state: region?.state, city: region?.city } });
+    } else {
+      router.replace(isWelcome ? '/(app)/setup' : '/(app)/(tabs)');
+    }
+  };
   const isWelcome = welcome === "1";
   const purchases = usePurchases();
   const refreshPurchases = purchases.refresh;
@@ -51,6 +68,30 @@ export default function MembershipScreen() {
   }, [api]);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { if (purchases.profile) setProfile(purchases.profile); }, [purchases.profile]);
+  const checkoutStarted = useRef(false);
+  const purchasedHere = useRef(false);
+  const conversionEntry = normalizeConversionEntry(entry);
+  const coverage = result?.report?.alertsAvailable ? 'current' : result && !result.failed ? 'limited' : 'unknown';
+  const free = profile?.membership.tier === 'free';
+  useEffect(() => {
+    if (free && (!region || result)) track('paywall_viewed', { entry: conversionEntry, coverage });
+  }, [free, conversionEntry, coverage, region?.state, result, track]);
+  useEffect(() => {
+    if (!checkoutStarted.current) return;
+    const context = { entry: conversionEntry, coverage } as const;
+    if (purchases.profile?.membership.paid) {
+      track('membership_confirmed', context);
+      checkoutStarted.current = false;
+    } else if (purchases.status === 'pending' || purchases.status === 'cancelled' || purchases.status === 'error') {
+      track(purchases.status === 'pending' ? 'checkout_pending' : purchases.status === 'cancelled' ? 'checkout_canceled' : 'checkout_error', context);
+    }
+  }, [purchases.status, purchases.profile?.membership.paid, conversionEntry, coverage, region?.state, track]);
+  const wentToSetup = useRef(false);
+  useEffect(() => {
+    if (!attempted || !purchases.profile?.membership.paid || (!pendingBottle && !purchasedHere.current) || wentToSetup.current) return;
+    wentToSetup.current = true;
+    router.replace({ pathname: '/(app)/setup', params: { state: region?.state, area: region?.city, ...(pendingBottle ? { bottle: pendingBottle, confirmWatch: '1' } : {}) } });
+  }, [attempted, pendingBottle, purchases.profile?.membership.paid, region?.state, region?.city, router]);
   const currentTier = profile ? profile.membership.tier as MembershipTier : null;
   const billing = membershipBillingPresentation(currentTier, management.provider, Platform.OS);
   const { founder, managementOnly } = billing;
@@ -71,7 +112,14 @@ export default function MembershipScreen() {
     const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, tier) : null;
     if (managementOnly) { await management.manage(); return; }
     if (!management.provider || busy || !productId || action?.kind !== "upgrade" || Platform.OS === "web") return;
+    if (!purchases.products.some(product => product.productId === productId) || !purchases.eligibleProductIds.includes(productId)) {
+      await run(refreshPurchases);
+      return;
+    }
     setAttempted(true);
+    checkoutStarted.current = true;
+    purchasedHere.current = true;
+    track('checkout_started', { entry: conversionEntry, coverage });
     await run(async () => {
       await purchases.purchase(productId);
     });
@@ -92,10 +140,14 @@ export default function MembershipScreen() {
     <Stack.Screen options={{ title: "Bourbon Signal", headerBackTitle: "Account", headerTransparent: true, headerStyle: { backgroundColor: 'transparent' }, ...(isWelcome ? { headerBackVisible: false, gestureEnabled: false } : {}) }} />
     <ScrollView contentInsetAdjustmentBehavior="never" contentContainerStyle={[styles.content, { width: pageWidth, paddingTop: headerHeight + 14 }]}>
       {profile ? <View style={styles.hero}>
-        <Text accessibilityRole="header" style={styles.title}>{founder ? "You’re a founding member." : "Find your next bottle."}</Text>
+        <Text accessibilityRole="header" style={styles.title}>{founder ? "You’re a founding member." : pendingBottle && (profile.membership.paid || coverage === 'current')
+          ? `Get an alert for ${pendingBottle}${region ? ` near ${regionLabel(region)}` : ''}.`
+          : "Find your next bottle."}</Text>
         <Text style={styles.subtitle}>{founder ? "Thank you for being here from the start." : "Get alerts when bottles you love show up in your area. Let Bourbon Signal do the heavy lifting."}</Text>
         {!founder && !isWelcome && currentTier ? <Text style={styles.current}>YOUR MEMBERSHIP · {currentTier === "standard" ? "Barrel Proof" : MEMBERSHIP_PLANS.find(p => p.tier === currentTier)?.name}</Text> : null}
-        {pendingBottle ? <Text style={styles.subtitle}>{profile?.membership.paid ? `Ready to watch ${pendingBottle}. Continue to finish in Radar.` : `Barrel Proof includes bottle alerts. Continue with ${pendingBottle} after choosing your membership.`}</Text> : null}
+        {pendingBottle && profile.membership.paid ? <Text style={styles.subtitle}>Your membership includes alerts. Continue to confirm this watch.</Text> : null}
+        {region && !profile.membership.paid && result?.report ? <LocalReportCard report={result.report} /> : null}
+        {region && !profile.membership.paid && coverage === 'limited' ? <Text style={styles.subtitle}>Recent retailer alert coverage is limited in {regionLabel(region)}.</Text> : null}
       </View> : null}
       {loading && !profile ? <ActivityIndicator accessibilityLabel="Loading membership" color={colors.accent} /> : null}
       {founder ? <View style={styles.track}>
@@ -111,12 +163,15 @@ export default function MembershipScreen() {
           const included = action?.kind === "current" || action?.kind === "included";
           const disabled = founder || busy || management.busy || !management.provider || !profile || (!managementOnly && (included || Platform.OS === "web"));
           const ready = purchases.status === "ready" && Boolean(product && productId && purchases.eligibleProductIds.includes(productId));
-          const label = founder ? "Included for life" : managementOnly ? "Manage membership" : included ? action?.label : busy ? "Please wait…" : Platform.OS !== "web" ? "Upgrade to Barrel Proof" : "Available in the app";
+          const label = founder ? "Included for life" : managementOnly ? "Manage membership" : included ? action?.label : busy ? "Please wait…"
+            : Platform.OS === "web" ? "Available in the app" : ready && product
+              ? `Get Barrel Proof · ${membershipDisplayPrice(product.localizedPrice)}/${product.localizedPeriod}`
+              : "Check store options";
           return <View key={card.tier} style={[styles.card, { width: cardWidth }, styles.premium]}
             >
             <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.cardTitle}>{founder ? "Founder" : card.name}</Text><MembershipTierIcon tier={card.tier} /></View>
             <Text style={styles.cardDescription}>{founder ? "Every Barrel Proof benefit is included with your Founder membership." : card.description}</Text>
-            <View style={styles.priceRow}>{founder ? <Text style={styles.pricePlaceholder}>Lifetime access</Text> : product ? <><Text style={styles.price}>{membershipDisplayPrice(product.localizedPrice)}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <><Text style={styles.price}>$6</Text><Text style={styles.period}>/mo</Text></>}</View>
+            <View style={styles.priceRow}>{founder ? <Text style={styles.pricePlaceholder}>Lifetime access</Text> : product ? <><Text style={styles.price}>{membershipDisplayPrice(product.localizedPrice)}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <Text style={styles.pricePlaceholder}>Monthly membership</Text>}</View>
             <Text style={styles.billing}>{billing.cardBilling}</Text>
             {!founder && profile?.membership.grandfatheredRate ? <Text style={styles.billing}>Your early-member billing rate: {profile.membership.grandfatheredRate}/month. Full access is included. Keep this rate while your subscription continues.</Text> : null}
             <View style={styles.divider} />
@@ -132,7 +187,7 @@ export default function MembershipScreen() {
       </View> : null}
       {!profile && error ? <ErrorState message={error} onRetry={() => void load()} /> : null}
       <View style={styles.footer}>
-        <Pressable accessibilityRole="button" onPress={continueMembership} style={styles.freeButton}><Text style={styles.freeText}>{pendingBottle && profile?.membership.paid ? 'Continue to watch this bottle' : currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Continue with Free"} <Text style={styles.gold}> →</Text></Text></Pressable>
+        <Pressable accessibilityRole="button" onPress={continueMembership} style={styles.freeButton}><Text style={styles.freeText}>{pendingBottle && profile?.membership.paid ? 'Continue to watch this bottle' : currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Keep browsing free"} <Text style={styles.gold}> →</Text></Text></Pressable>
         {!founder && profile ? <Text style={styles.fine}>{billing.disclosure}</Text> : null}
         <View style={styles.links}>
           {!founder && Platform.OS !== "web" ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void restore()} style={styles.link}><Text style={styles.linkText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}

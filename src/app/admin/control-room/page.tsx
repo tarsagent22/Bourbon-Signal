@@ -1,3 +1,4 @@
+import { readMobileConversion } from '@/lib/mobile-conversion-repository';
 import Link from "next/link";
 import { verifiedPrimaryClerkEmail } from "@/lib/owner-auth";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -193,11 +194,13 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
   if (!isCompanyControlRoomOwnerEmail(ownerEmail)) notFound();
   const canAdministerRetailers = isRetailerAdminEmail(ownerEmail);
 
-  const [snapshot, founderShipping, retailerAdministration, huntOutcomes] = await Promise.all([
+  const [snapshot, founderShipping, retailerAdministration, huntOutcomes, nativeConversion] = await Promise.all([
+    /* Keep authenticated native milestones separate from web growth events. */
     getCompanyControlRoomSnapshot({ forceFresh: Boolean(coverageUpdatedId) }),
     listFounderShippingForOwner(),
     canAdministerRetailers ? listRetailerAdministration() : Promise.resolve(null),
     loadPrivateHuntOutcomeMetrics(),
+    readMobileConversion().catch(() => null),
   ]);
   const { memberships, founder, revenue, audience, growth, lifecycle, retention, demand, coverageDemand, retailer, engine, alerts, release, automation } = snapshot;
   const coverageStatusUpdatedConfirmed = Boolean(coverageUpdatedId && coverageUpdatedStatus && coverageDemand.recentRequests.some(
@@ -492,6 +495,27 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
               <p className="cr-note">These private aggregates contain no member or store rankings. Public claim rendering remains disabled while real observations accumulate.</p>
             </details>
           </> : <div className="cr-unavailable" role="alert"><strong>Hunt Outcome metrics are temporarily unavailable.</strong><p>No outcome total or rate is shown when the private aggregate cannot be read.</p></div>}
+          <details className="cr-details">
+            <summary>Native app funnel · last 30 days</summary>
+            {nativeConversion ? <>
+              <p className="cr-note">{nativeConversion.collecting.length ? `Collecting app funnel events on ${nativeConversion.collecting.join(' and ')}.` : 'App funnel collection is awaiting store privacy updates. Billing history remains available.'}</p>
+              <p className="cr-note">Each step counts distinct observed app installations within its platform, entry point, and coverage group. Production billing counts come from Apple and Google membership records.</p>
+              <div className="cr-metrics">
+                <Metric label="Day 7 return" value={nativeConversion.cohort.d7Mature ? `${nativeConversion.cohort.d7Returned}/${nativeConversion.cohort.d7Mature}` : 'Collecting data'} detail="Observed devices active on cohort day 7 (UTC)" />
+                <Metric label="First useful action" value={nativeConversion.cohort.secondsToValue == null ? 'Collecting data' : `${nativeConversion.cohort.secondsToValue}s`} detail="Median among observed first-day actions" />
+                <Metric label="Day 35 paid" value={nativeConversion.cohort.d35Mature ? `${nativeConversion.cohort.d35Paid}/${nativeConversion.cohort.d35Mature}` : 'Collecting data'} detail="Observed native setups with a subsequent production store subscription" />
+              </div>
+              <dl className="cr-list">{nativeConversion.paid.map(row => <div key={row.platform}><dt>{row.platform} · new Barrel Proof accounts</dt><dd>{row.accounts}</dd></div>)}</dl>
+              {nativeConversion.renewals.length ? <>
+                <dl className="cr-list">{nativeConversion.renewals.map(row => <div key={row.platform}><dt>{row.platform} · first observed paid period extended</dt><dd>{row.extended}/{row.mature}</dd></div>)}</dl>
+                <p className="cr-note">Counts monthly subscriptions with a later paid period in provider records. Initial periods ended 15 to 90 days ago.</p>
+              </> : <p className="cr-note">No monthly subscriptions have reached the measurement window for an observed renewal.</p>}
+              <div className="cr-table-wrap"><table className="cr-table"><thead><tr><th>Step</th><th>Platform</th><th>Entry</th><th>Coverage</th><th>Installations</th></tr></thead>
+                <tbody>{nativeConversion.steps.map(row => <tr key={[row.event,row.platform,row.entry,row.coverage].join(':')}><td>{row.event.replaceAll('_', ' ')}</td><td>{row.platform}</td><td>{row.entry.replaceAll('_', ' ')}</td><td>{row.coverage}</td><td>{row.installs}</td></tr>)}</tbody>
+              </table></div>
+              {!nativeConversion.steps.length ? <p className="cr-note">No native funnel events yet.</p> : null}
+            </> : <p className="cr-note">Native funnel measurements are temporarily unavailable.</p>}
+          </details>
           <details className="cr-details">
             <summary>Growth funnel and membership detail</summary>
             <div className="cr-detail-grid">

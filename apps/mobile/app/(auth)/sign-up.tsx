@@ -1,10 +1,12 @@
 import { COMMUNITY_TERMS_VERSION, PRIVACY_URL, TERMS_URL } from '../../../../shared/legal-acceptance';
 import { useAuth, useSignUp } from '@clerk/expo';
-import { Redirect, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, Text, TextInput, View } from 'react-native';
 import { useAccessibleStatus } from '../../src/hooks/useAccessibleStatus';
 import { OnboardingButton, OnboardingFrame, s } from '../../src/onboarding/OnboardingUI';
+import { useConversionTracking } from "../../src/activity/useConversionTracking";
+import { discoveryRegion } from '../../../../shared/local-discovery';
 import { colors } from '../../src/theme';
 
 function clerkMessage(caught: unknown) {
@@ -13,6 +15,14 @@ function clerkMessage(caught: unknown) {
 }
 export default function SignUpScreen() {
   const { isLoaded, isSignedIn } = useAuth(); const { signUp, fetchStatus } = useSignUp(); const router = useRouter();
+  const params = useLocalSearchParams<{ state?: string; city?: string; intent?: string; bottleId?: string; bottle?: string }>();
+  const region = discoveryRegion(params.state, params.city);
+  const pick = params.intent === 'watch' && typeof params.bottleId === 'string' && /^[a-zA-Z0-9._:-]{1,180}$/.test(params.bottleId)
+    ? { bottleId: params.bottleId, bottle: typeof params.bottle === 'string' ? params.bottle.slice(0, 150) : '' }
+    : null;
+  const discovery = region ? { ...region, intent: pick ? 'watch' : params.intent === 'check' ? 'check' : 'browse', ...(pick || {}) } : null;
+  const track = useConversionTracking();
+  const entry = discovery ? 'local_preview' : 'welcome';
   const [stage, setStage] = useState<'account' | 'verification' | 'onboarding'>('account');
   const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [code, setCode] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -32,9 +42,11 @@ export default function SignUpScreen() {
     if (password.length < 8) { setError('Use at least 8 characters for your password.'); return; }
     if (!age21Affirmed) { setError('You must affirm that you are 21 or older.'); return; }
     if (!termsAccepted) { setError('Agree to the Terms of Use before creating your account.'); return; }
+    track('signup_started', { entry });
     await run(async () => {
-      const attempt = await signUp.password({ emailAddress: email.trim(), password, unsafeMetadata: { legalAgreement: { accepted: true, termsVersion: COMMUNITY_TERMS_VERSION } } }); if (attempt.error) throw { errors: [attempt.error] };
+      const attempt = await signUp.password({ emailAddress: email.trim(), password, unsafeMetadata: { legalAgreement: { accepted: true, termsVersion: COMMUNITY_TERMS_VERSION }, mobileAge21Affirmed: age21Affirmed, ...(discovery ? { discovery } : {}) } }); if (attempt.error) throw { errors: [attempt.error] };
       const sent = await signUp.verifications.sendEmailCode(); if (sent.error) throw { errors: [sent.error] };
+      track('verification_sent', { entry });
       setCode(''); setStage('verification');
     });
   }
@@ -43,6 +55,7 @@ export default function SignUpScreen() {
     await run(async () => {
       const result = await signUp.verifications.verifyEmailCode({ code: code.trim() }); if (result.error) throw { errors: [result.error] };
       if (signUp.status !== 'complete') { setError('Email verification is not complete. Check the code and try again.'); return; }
+      track('signup_verified', { entry });
       setStage('onboarding');
       const finalized = await signUp.finalize(); if (finalized.error) { setStage('verification'); throw { errors: [finalized.error] }; }
       router.replace('/');

@@ -1,3 +1,8 @@
+import { withMemberAlertLease } from '@/lib/alert-queue/member-lease';
+import { isAlertPreviewMarket, huntPreviewKey } from '@/lib/one-alert-preview';
+import { discoveryRegion } from '../../../../shared/local-discovery';
+import { claimHuntPreview, loadSavedHunt } from '@/lib/mobile-saved-hunt';
+import { selectLocalReport } from '@/lib/local-discovery';
 import { standardBottleIdentity } from "../../../../shared/standard-bottle-identity";
 import { canonicalBottleId } from "@/data/bottle-identity-redirects";
 import { validSignalBottleId } from "@/lib/signals/signal-feed-filters";
@@ -210,10 +215,18 @@ export async function GET(request: Request) {
   const isPilotReceipt=authorizePilotReceipt(url,pilotHeader,process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || '');
   const isCountVerification = authorizeEngineFeedVerification(url, verificationHeader, process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || "");
   if ((verificationHeader && !isCountVerification) || ((pilotHeader || url.searchParams.has('source_receipt')) && !isPilotReceipt)) return NextResponse.json({ error: "Unauthorized engine verification." }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
+  const wantsLocalPreview = url.searchParams.has('previewState');
+  const alertPreview = url.searchParams.get('previewWatch') === '1';
+  const claimPreview = request.method === 'POST';
+  if (claimPreview && !alertPreview) return NextResponse.json({ error: 'Unsupported request.' }, { status: 405 });
+  const previewHeaders = { 'Cache-Control': 'private, no-store' };
+  const localRegion = wantsLocalPreview ? discoveryRegion(url.searchParams.get('previewState'), url.searchParams.get('previewCity')) : null;
+  if (wantsLocalPreview && !localRegion) return NextResponse.json({ error: 'Choose a valid shopping area.' }, { status: 400 });
   const isEngineVerification=isCountVerification || isPilotReceipt;
   const { userId } = isEngineVerification ? { userId: null } : await auth();
   const isSignedIn = Boolean(userId) || isEngineVerification;
   const user = userId ? await (await clerkClient()).users.getUser(userId) : null;
+  if (alertPreview && !userId) return NextResponse.json({ error: "Sign in to preview an alert." }, { status: 401, headers: previewHeaders });
   const entitlements = isEngineVerification ? getEntitlements("standard") : await getServerEntitlements(user?.publicMetadata || null);
   const isFreeAccess = !isSignedIn || entitlements.tier === "free";
   const bottleId = url.searchParams.get("bottleId");
@@ -302,6 +315,12 @@ export async function GET(request: Request) {
   }) || scopedFilterHistory || canonicalSignalOrder;
 
   try {
+    const hunt = alertPreview && userId && entitlements.tier === 'free' && process.env.MOBILE_ALERT_PREVIEW_MARKETS?.trim()
+      ? await loadSavedHunt(userId) : null;
+    const watchPreview = hunt?.saved;
+    if (alertPreview && (!watchPreview || !isAlertPreviewMarket(watchPreview.state))) {
+      return NextResponse.json({ status: 'unavailable', report: null }, { headers: previewHeaders });
+    }
     const preparationStart = performance.now();
     const measure = async <T,>(read: Promise<T>) => {
       const start = performance.now();
@@ -317,6 +336,30 @@ export async function GET(request: Request) {
     const prepared = base.value;
     const overlay = await runtime.value(prepared.value.normalizedDrops, prepared.value.dropResult.snapshotId);
     const { dropResult, retailerVersion, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates } = preparePublicFeedSnapshot(prepared.value, overlay, retailers.value);
+    if (alertPreview && userId && hunt && watchPreview) {
+      const match = selectLocalReport(eligible, watchPreview, Date.now(), watchPreview);
+      const key = match ? huntPreviewKey(watchPreview, match) : null;
+      if (!match || !key || (hunt.previewKey && hunt.previewKey !== key)) {
+        return NextResponse.json({ status: hunt.previewKey ? 'used' : 'waiting', report: null }, { headers: previewHeaders });
+      }
+      if (hunt.previewKey === key) return NextResponse.json({ status: 'shown', report: match }, { headers: previewHeaders });
+      if (!claimPreview) return NextResponse.json({ status: 'ready', report: null }, { headers: previewHeaders });
+      const client = await clerkClient();
+      const leased = await withMemberAlertLease(userId, async assertHeld => {
+        const latest = await client.users.getUser(userId);
+        if ((await getServerEntitlements(latest.publicMetadata)).tier !== 'free') return { status: 'unavailable', report: null };
+        await assertHeld();
+        if (await claimHuntPreview(userId, watchPreview, key)) return { status: 'shown', report: match };
+        return { status: (await loadSavedHunt(userId)).previewKey ? 'used' : 'unavailable', report: null };
+      }, { requireDurable: true });
+      if (!leased.acquired) return NextResponse.json({ error: 'Your preview couldn’t load. Try again.' }, { status: 503, headers: previewHeaders });
+      return NextResponse.json(leased.result, { headers: previewHeaders });
+    }
+    if (localRegion) {
+      return NextResponse.json({ region: localRegion, report: selectLocalReport(eligible, localRegion, Date.now()) }, {
+        headers: { 'Cache-Control': 'private, no-store' },
+      });
+    }
     const preparationMs = performance.now() - preparationStart;
     const filterStart = performance.now();
     let drops = [...normalizedDrops];
@@ -582,3 +625,5 @@ export async function GET(request: Request) {
     );
   }
 }
+
+export async function POST(request: Parameters<typeof GET>[0]) { return GET(request); }

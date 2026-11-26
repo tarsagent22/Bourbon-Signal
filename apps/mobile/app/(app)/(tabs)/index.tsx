@@ -1,3 +1,5 @@
+import { discoveryStateName } from '../../../../../shared/local-discovery';
+import { LocalReportCard, useLocalReport } from '../../../src/onboarding/LocalPreview';
 import { relativeSignalTime } from "../../../src/api/presentation";
 import { useReportClock } from "../../../src/hooks/useReportClock";
 import { feedCacheScope, homeFeedCache } from "../../../src/signals/home-feed-cache";
@@ -144,6 +146,9 @@ export default function SignalFeedScreen() {
   const tier = profile?.membership.tier ?? (sessionId && startupAccess?.sessionId === sessionId && api.membershipRevision === 0 ? startupAccess.tier : undefined);
   const detailedFilters = canUseDetailedFeedFilters(tier);
   const filtersAllowed = Boolean(profile?.membership.paid);
+  const homeState = profile?.homeState || '';
+  const homeCity = profile?.shoppingCity || '';
+  const { result: localPreview, retry: refreshLocalPreview } = useLocalReport(view === 'market' && profile && !filtersAllowed ? homeState : '', homeCity);
   const filters = useMemo(() => allowedFeedFilters(filtersByView[view], tier), [filtersByView, view, tier]);
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
   const accessScope = JSON.stringify([userId, sessionId, api.membershipRevision, tier]);
@@ -642,7 +647,7 @@ export default function SignalFeedScreen() {
         {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
 
 
-        {!filtersAllowed && profile ? <><Text style={styles.areaOptionNote}>{view === "market" ? "Intel preview · Six recent signals · All states" : "Community sightings · All states"}</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>State filters and bottle alerts · Standard →</Text></Pressable></> : !detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Local area filters and feed search · Barrel Proof →</Text></Pressable> : null}
+        {!filtersAllowed && profile ? <><Text style={styles.areaOptionNote}>{view === "market" ? "National preview · Six recent signals" : "Community sightings · All states"}</Text></> : !detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Local area filters and feed search · Barrel Proof →</Text></Pressable> : null}
         {detailedFilters ? <View style={styles.filterInputShell}>
           <MaterialCommunityIcons color={colors.muted} name="magnify" size={20} />
           <TextInput
@@ -746,7 +751,7 @@ export default function SignalFeedScreen() {
           </Pressable>
         </View>
         : loaded && visibleSignals.length
-          ? view === "market" && tier === "free" ? <View style={styles.footer}><Text style={styles.end}>You’ve reached the end of your Intel preview.</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>Get the full feed and bottle alerts →</Text></Pressable></View> : <View style={styles.footer}>
+          ? view === "market" && tier === "free" ? <View style={styles.footer}><Text style={styles.end}>You’ve reached the end of your Intel preview.</Text>{localPreview?.report?.alertsAvailable ? <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/account/membership', params: { state: homeState, city: homeCity, entry: 'local_feed' } })} style={styles.retryTarget}><Text style={styles.retry}>Get the full feed and bottle alerts →</Text></Pressable> : null}</View> : <View style={styles.footer}>
               <Text style={styles.end}>{filters.area || filters.state || filters.freshness || filters.rarities.length || filters.bottle ? "End of reports for this view" : "You’re caught up."}</Text>
               <Pressable accessibilityRole="button" onPress={widenFeed} style={styles.retryTarget}><Text style={styles.retry}>{emptyFeed.actionLabel}</Text></Pressable>
             </View>
@@ -788,8 +793,24 @@ export default function SignalFeedScreen() {
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} personalNote={personalTasteNote(item.bottle, tastePreferences)} />}
       ItemSeparatorComponent={() => <View style={[styles.separator, view === "community" && styles.communitySeparator]} />}
-      refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); void Promise.all([load(true), loadProfile(true)]).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} colors={[colors.accent]} />}
-      ListHeaderComponent={<>{header}{cacheStatus?.scope === scopeKey ? <Text accessibilityLiveRegion="polite" style={styles.loadingText}>{cacheStatus.updated ? "Updated just now" : "Last updated " + relativeSignalTime(new Date(cacheStatus.savedAt).toISOString(), now)}</Text> : null}<MemberContinuity key={userId || 'signed-out'} paid={Boolean(profile?.membership.paid)} onPreferences={setTastePreferences} /></>}
+      refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); refreshLocalPreview(); void Promise.all([load(true), loadProfile(true)]).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} colors={[colors.accent]} />}
+      ListHeaderComponent={<>{header}{cacheStatus?.scope === scopeKey ? <Text accessibilityLiveRegion="polite" style={styles.loadingText}>{cacheStatus.updated ? "Updated just now" : "Last updated " + relativeSignalTime(new Date(cacheStatus.savedAt).toISOString(), now)}</Text> : null}{
+        view === 'market' && profile && !filtersAllowed && homeState ? <View style={styles.summaryCard}>
+          <Text style={styles.previewTitle}>{homeCity || discoveryStateName(homeState)}</Text>
+          {localPreview?.report ? <LocalReportCard report={localPreview.report} /> : localPreview && !localPreview.failed
+            ? <Text style={styles.previewDetail}>There’s no recent report for this area. Check a bottle or browse Community.</Text> : null}
+          {localPreview && !localPreview.failed && !localPreview.report ? <Pressable accessibilityRole="button" onPress={() => router.push({
+            pathname: '/(app)/account/coverage', params: coverageContext({ state: homeState, area: homeCity }),
+          })} style={styles.retryTarget}><Text style={styles.retry}>Request coverage here →</Text></Pressable> : null}
+          {localPreview?.report?.bottleId ? <Pressable accessibilityRole="button" onPress={() => router.push({
+            pathname: '/(app)/(tabs)/radar', params: { section: 'settings', saveBottleId: localPreview.report?.bottleId || '',
+              watchBottle: localPreview.report?.bottle || '', state: homeState, city: homeCity }
+          })} style={styles.retryTarget}><Text style={styles.retry}>Save this bottle →</Text></Pressable> : null}
+          <Pressable accessibilityRole="button" onPress={() => router.push({
+            pathname: '/(app)/bottle-check', params: { state: homeState, area: homeCity }
+          })} style={styles.retryTarget}><Text style={styles.retry}>Check a bottle →</Text></Pressable>
+        </View> : null
+      }<MemberContinuity key={userId || 'signed-out'} paid={Boolean(profile?.membership.paid)} onPreferences={setTastePreferences} /></>}
       ListEmptyComponent={!loaded && !error
         ? <FeedSkeleton community={view === "community"} />
         : error
@@ -797,14 +818,14 @@ export default function SignalFeedScreen() {
           : marketLocked && !paidAccessMismatch
               ? <View style={styles.message}>
                 <Text style={styles.previewTitle}>Find bottles near you</Text>
-                <Text style={styles.previewDetail}>Free membership includes a market overview. Standard unlocks bottle locations and alerts.</Text>
+                <Text style={styles.previewDetail}>Free membership includes a market overview.</Text>
                 {marketSummaries.slice(0, 7).map((summary) => <View key={`${summary.state}:${summary.areaLabel}`} style={styles.summaryCard}>
                   <Text style={styles.previewTitle}>{summary.areaLabel} · {summary.state}</Text>
                   <Text style={styles.previewDetail}>{summary.signalCount} bottle report{summary.signalCount === 1 ? "" : "s"} this week</Text>
                   <Text style={styles.previewDetail}>{summary.bottleNames.join(" · ")}</Text>
                 </View>)}
                 {!marketSummaries.length ? <Text style={styles.previewDetail}>No recent reports in this view. Try another state or check Community.</Text> : null}
-                <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>View memberships →</Text></Pressable>
+                {localPreview?.report?.alertsAvailable ? <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/account/membership', params: { state: homeState, city: homeCity, entry: 'local_feed' } })} style={styles.retryTarget}><Text style={styles.retry}>View memberships →</Text></Pressable> : null}
                 <Pressable accessibilityRole="button" onPress={() => selectView("community")} style={styles.retryTarget}><Text style={styles.retry}>Browse Community →</Text></Pressable>
               </View>
             : canPage ? <Text style={styles.end}>No matching signals on this page.</Text>

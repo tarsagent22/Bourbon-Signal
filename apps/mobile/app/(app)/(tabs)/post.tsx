@@ -491,6 +491,13 @@ function PostComposer({ userId }: { userId: string }) {
         </View> : null}
         {loadingProfile ? <ActivityIndicator color={colors.accent} /> : null}
         {!loadingProfile && !profile && error ? <ErrorState message={error} onRetry={() => { setError(''); setProfileAttempt(value => value + 1); }} /> : null}
+        {!loadingProfile && profile && canSubmit && !profile.customDisplayName ? <MemberCard>
+          <Text style={styles.blockedTitle}>Choose how your name appears</Text>
+          <Text style={styles.help}>Your sightings can use your member number or a display name.</Text>
+          <Pressable accessibilityRole="button" onPress={() => router.push('/(app)/account/profile')}>
+            <Text style={[styles.help, { color: colors.accent }]}>Set a display name</Text>
+          </Pressable>
+        </MemberCard> : null}
         {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>Account shows the membership attached to this account.</Text></MemberCard> : null}
         {canSubmit ? <View style={styles.composer}>
           {!pendingPhotoAttachment ? <DraftNotice compact hasContent={draft.hasContent} notice={draft.notice} error={draft.error} onDiscard={discardDraft} /> : null}

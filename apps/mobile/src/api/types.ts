@@ -90,6 +90,7 @@ export interface MemberProfile {
     displayName: string;
     customDisplayName: string | null;
     homeState?: string | null;
+    shoppingCity?: string | null;
     feedAreas: {
       states: Array<{
         code: string;
@@ -110,10 +111,11 @@ export interface MemberProfilePatch {
 }
 
 export interface MobileOnboardingRequest {
-  displayName: string;
+  displayName?: string;
+  city?: string;
   age21Affirmed: true;
   homeState: string;
-  action?: "profile" | "complete";
+  action?: "profile" | "complete" | "quick_start";
   draft?: import('../../../../shared/mobile-onboarding').OnboardingDraft;
 }
 
@@ -126,6 +128,10 @@ export interface MobileOnboardingStatusResponse {
   contractVersion: "bourbon-signal/mobile-api@1";
   completed: boolean;
   draft?: import('../../../../shared/mobile-onboarding').OnboardingDraft | null;
+  age21Affirmed?: boolean;
+  discovery?: (import('../../../../shared/local-discovery').DiscoveryRegion & {
+    intent: 'watch' | 'check' | 'browse'; bottleId: string; bottle: string;
+  }) | null;
 }
 export interface OnboardingDiscovery {
   suggestions: Array<{ id: string; name: string; proof?: number; msrp?: number | null; reason: string; description?: string; notes?: string[] }>;

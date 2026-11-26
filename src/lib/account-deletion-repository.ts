@@ -70,6 +70,7 @@ export class PostgresAccountDeletionRepository implements AccountDeletionReposit
       this.database.query("UPDATE google_memberships SET clerk_user_id=$2 WHERE clerk_user_id=$1",[userId,subjectToken]),
     ] : [];
     const muteTable = await this.database.query("SELECT to_regclass('public.member_bottle_mutes') AS mute_table");
+    const conversionTables = await this.database.query("SELECT to_regclass('public.mobile_conversion_events') AS conversion_table, to_regclass('public.mobile_saved_hunts') AS saved_hunt_table");
     await this.database.transaction([
       ...googleCleanup,
       ...(muteTable[0]?.mute_table ? [this.database.query("DELETE FROM member_bottle_mutes WHERE user_id=$1", [userId])] : []),
@@ -110,6 +111,10 @@ export class PostgresAccountDeletionRepository implements AccountDeletionReposit
       this.database.query(`DELETE FROM community_abuse_reports WHERE user_id=$1 OR sighting_id IN (SELECT id FROM community_sightings WHERE reporter_user_id=$1)`, [userId]),
       this.database.query(`DELETE FROM native_render_diagnostics WHERE user_id=$1`, [userId]),
       this.database.query(`DELETE FROM member_mobile_activity WHERE user_id=$1`, [userId]),
+      ...(conversionTables[0]?.saved_hunt_table ? [this.database.query("DELETE FROM mobile_saved_hunts WHERE user_id=$1", [userId])] : []),
+      ...(conversionTables[0]?.conversion_table ? [this.database.query(`DELETE FROM mobile_conversion_events
+        WHERE user_id=$1 OR (user_id IS NULL AND installation_hash IN (
+          SELECT installation_hash FROM mobile_conversion_events WHERE user_id=$1))`, [userId])] : []),
       this.database.query(`DELETE FROM member_feedback WHERE user_id=$1`, [userId]),
       this.database.query(`DELETE FROM community_member_blocks WHERE user_id=$1 OR blocked_user_id=$1`, [userId]),
       this.database.query(`DELETE FROM community_sightings WHERE reporter_user_id=$1`, [userId]),

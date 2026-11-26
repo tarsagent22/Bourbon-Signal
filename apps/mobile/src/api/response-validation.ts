@@ -102,8 +102,9 @@ const checks: Record<string, Check> = {
   '/api/signal-points/redemptions': obj({ ok: one(true), redemptionId: optional(str), status: optional(str), balance: optional(num), membershipMonth:optional(nullable(membershipMonth)) }),
   '/api/user/preferences': preferencesResponse,
   '/api/v1/me/profile': profile,
+  '/api/v1/me/saved-bottle': obj({ saved: nullable(obj({ state: str, city: str, bottleId: str, bottle: str, savedAt: str })) }),
   '/api/v1/me/badges': obj({ok:one(true),featuredBadgeIds:strings}),
-  '/api/v1/me/onboarding': obj({ contractVersion: mobileVersion, completed: bool }),
+  '/api/v1/me/onboarding': obj({ contractVersion: mobileVersion, completed: bool, age21Affirmed: optional(bool) }),
   '/api/v1/me/onboarding/discovery': obj({ suggestions: arr(obj({ id: str, name: str, proof: optional(num), msrp: optional(nullable(num)), reason: str })), signals: arr(signal), signalsUnavailable: bool }),
   '/api/coverage': obj({ contractVersion: one('bourbon-signal/coverage@3'), states: arr(obj({ code: str, coverageStrength: one('strong','moderate','sparse','none'), coverageStrengthLabel: str, coverageStatus: one('available','not-available'), health: one('current','intermittent','temporarily-limited','no-recent-update'), healthLabel: str, summary: str, customerSummary: optional(str), freshness: obj({ observedInventoryStores: nonnegative, currentInventoryStores: nonnegative, currentInventoryCities: nonnegative }) })) }),
   '/api/v1/me/account': obj({ contractVersion: mobileVersion, status: one('cleanup_queued','completed'), requestId: str, accessRevoked: bool, identityDeleted: bool, remainingCleanup: strings }),
@@ -137,6 +138,13 @@ export function validApiResponse(path: string, value: unknown): boolean {
     const store = obj({id:str,name:str,address:str,city:str,state:str,latitude:num,longitude:num,distance:nonnegative,signals:arr(signal)});
     return obj({stores:arr(store),sightingPins:optional(arr(store)),partial:bool,unmapped:nonnegative,previewLocked:bool})(value);
   }
+  if (pathname === '/api/drops') {
+    const report = nullable(obj({ bottle: str, bottleId: nullable(str), location: str, source: str,
+      kind: one('inventory','shipment','release'), reportedAt: str, price: nullable(nonnegative), alertsAvailable: bool }));
+    const params = new URLSearchParams(query);
+    if (params.has('previewState')) return obj({ region: obj({ state: str, city: str }), report })(value);
+    if (params.has('previewWatch')) return obj({ status: one('unavailable','waiting','ready','shown','used'), report })(value);
+  }
   if (pathname === '/api/v1/me/legal') return record(value) && value.termsVersion === COMMUNITY_TERMS_VERSION && (value.acceptance === null || currentLegalAcceptance(value.acceptance) !== null);
   if (pathname === '/api/v1/me/collection-history') return obj({ collectionVersion: nonnegative, value: collectionValue, history: obj({ firstRecordedAt: nullable(str), hasMore: bool, points: arr(obj({ id: str, observedAt: str, collectionVersion: nonnegative, kind: one('inventory','valuation'), value: obj({ currency: one('USD'), reviewedAt: str, ownedCount: nonnegative, sealedCount: nonnegative, openedCount: nonnegative, msrp: obj({ total: nullable(nonnegative), pricedCount: nonnegative }), secondary: obj({ low: nullable(nonnegative), high: nullable(nonnegative), pricedCount: nonnegative }) }) })) }) })(value);
   if (/^\/api\/v1\/bottles\/[^/]+$/.test(pathname)) return obj({ bottle: obj({ id: str, name: str, producer: nullable(str), category: str, proof: nullable(nonnegative), age: nullable(str), msrp: nullable(nonnegative), rarity: obj({ label: str, tier: str, pending: bool, reviewedAt: nullable(str) }), marketRarity: optional(nullable(obj({ state: str, tier: str, label: str, reason: str, reviewedAt: str, sources: arr(obj({ label: str, url: v => typeof v === 'string' && /^https:\/\//.test(v) })) }))) }) })(value);
@@ -144,6 +152,7 @@ export function validApiResponse(path: string, value: unknown): boolean {
   if (pathname === '/api/v1/me/feedback') return obj({ok:one(true),id:str})(value);
   if (pathname === '/api/admin/feedback') return obj({items:arr(obj({id:str,userId:str,kind:one('problem','suggestion'),message:str,steps:str,screen:str,context:obj({platform:one('ios','android','web'),version:str,build:str,runtime:str,update:str}),memberName:str,email:str,status:one('new','reviewed','planned','resolved'),internalNote:str,createdAt:str,updatedAt:str})),nextOffset:nullable(num)})(value)||obj({ok:one(true)})(value);
   if (pathname === '/api/v1/me/diagnostics') return obj({ok:one(true)})(value);
+  if (pathname === '/api/v1/growth') return (query ? obj({enabled:bool}) : obj({ok:one(true)}))(value);
   if (pathname === '/api/v1/me/mobile-activity') return obj({ok:one(true)})(value);
   if (pathname === '/api/user/time-zone') return obj({ok:one(true)})(value);
   if (pathname === '/api/community/safety') return obj({ok:one(true)})(value) || obj({blocks:arr(obj({id:str,label:str,createdAt:str}))})(value);

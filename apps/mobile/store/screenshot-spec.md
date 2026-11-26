@@ -1,89 +1,15 @@
-# App Store screenshot specification — pending capture
+# Public store screenshots
 
-Screenshots have not been captured or approved. They must come from the reviewed TestFlight candidate or a byte-equivalent simulator build after Apple products and representative review data are configured. Do not fabricate screenshots, inventory, purchase states, prices, trial eligibility, private identifiers, or review evidence.
+Use captures from the reviewed iOS and Android builds with representative, verified local data and an account dedicated to captures. Keep the locale, appearance, and status-bar treatment consistent. Capture at the dimensions required by the active store slots.
 
-## Subscription review screenshots (required for the two launch monthly Apple products)
+1. **See what was reported near you.** Show the local preview with actual bottle, source, location, and report time. Label board shipments as leads.
+2. **Follow a bottle you’re looking for.** Show a real saved bottle and chosen area in Radar.
+3. **Get alerts for your bottles.** Show a real Barrel Proof alert in a verified market. Explain the alert source on the linked report, and keep the confirm-before-travel cue.
+4. **Check the shelf price.** Show a real Bottle Check with a supported reference, scope, and confidence.
+5. **Keep track of your collection.** Show the shipped My Shelf screen with representative, non-sensitive bottle data.
 
-These are **App Review-only In-App Purchase assets**, separate from the public App Store listing screenshots below. Capture the real in-app review screen once for each launch product:
+Use short captions and sufficient contrast. Review canonical bottle artwork, text truncation, report provenance, and personal-data redaction before uploading. Keep order, locale and device consistent across each set. Record the candidate build and update identifier with the original, uncropped captures. Verify the active screenshot slots and the publishing state in each store before uploading.
 
-1. Standard monthly — Account → Membership → Standard.
-2. Barrel monthly — Account → Membership → Barrel.
+## Private subscription review capture
 
-Each image must visibly contain the matching tier name, Apple-localized price and monthly billing period, auto-renewal disclosure, and the enabled purchase action. Legacy annual product identifiers remain lifecycle and restore compatibility only; they are not launch purchase options or screenshot targets. The current detail screen intentionally keeps those elements together above the benefits list. Do not upload the overview screen, a disabled `Price unavailable` state, a development mock, or a screenshot whose product differs from the App Store Connect product receiving it.
-
-Apple documents iOS subscription review screenshots as at least 640 × 920 px. A normal portrait capture from the final iPhone candidate is acceptable; do not resize it into the public-listing 6.9-inch slot. Reconfirm the accepted dimensions shown by App Store Connect when uploading.
-
-Trial presentation is disabled in this candidate because product-level offer metadata does not establish the reviewing Apple account’s eligibility. Every product screenshot must show the ordinary paid state with its real localized price.
-
-## Public App Store listing source set
-
-Public listing screenshots have not been captured or approved. They must come from the reviewed TestFlight candidate or a byte-equivalent simulator build after Apple products and representative review data are configured. Do not fabricate screenshots, inventory, purchase states, prices, trial eligibility, private identifiers, or review evidence.
-
-Capture portrait iPhone screenshots at 1320 × 2868 px for Apple’s current 6.9-inch slot, then reconfirm accepted dimensions and required device slots in App Store Connect at submission time. Regenerate from the approved scenes rather than stretching an older capture.
-
-## Planned public listing scenes
-
-1. Fresh Signals, clearly sourced
-   - Home with two or three representative, non-sensitive Signal cards.
-   - No loading/error state or guaranteed-availability language.
-
-2. Exact details when evidence supports them
-   - Signal detail with retailer, observed timing, source context, and price/quantity only where actual review data supports it.
-   - Keep the confirm-before-travel caveat visible.
-
-3. Radar built for the hunt
-   - Saved markets, watched bottles, and alert controls from the review account.
-   - Do not imply Free receives alerts or show an OS permission prompt as the marketing scene.
-
-4. Membership that follows the account
-   - Account → Membership showing Free, Standard, Barrel, and existing Founder language.
-   - Use real StoreKit localized prices from the candidate; never type prices into a composited screenshot.
-   - Capture the ordinary paid state. Trial wording is disabled in this candidate.
-
-5. Shelf, ratings, and notes
-   - Representative owned/tasted data with no personal notes or identifiers.
-   - Avoid any retired membership labels.
-
-6. Optional: Secure member access
-   - Sign-in only if it improves the sequence.
-   - Never show credentials, email addresses, verification codes, private account IDs, or debug information.
-
-## Capture rules
-
-- Use a dedicated least-privilege review account with representative but non-sensitive data.
-- Use the actual candidate and configured products; do not use mocked product pricing or status.
-- Capture only configured StoreKit localized price values returned by the reviewed candidate.
-- Keep status-bar time, carrier, locale, and appearance consistent.
-- Public identity tags are Founder #N or Member #N, never “scout.”
-- Do not imply guaranteed quantity, orderability, nationwide coverage, or alerts for Free members.
-- Do not imply annual or Founder trials.
-- Do not show owner/admin controls, development-client chrome, debug menus, loading states, errors, or permission prompts.
-- Keep captions short and factual, outside interactive UI elements.
-- Inspect all final PNGs together for legibility, cropping, truthful data, canonical names, and visual continuity before upload.
-- Record the candidate build identifier and review-account fixture used for capture without storing credentials in the repository.
-
-## Approval gate
-
-Screenshots remain blocked until:
-
-- Apple and RevenueCat products return the approved localized product set;
-- sandbox purchase, restore, lifecycle, and offer-eligibility behavior is verified;
-- the candidate’s account, legal, support, deletion, and push paths pass device QA; and
-- the exact build used for capture is approved for review preparation.
-
-Real App Review screenshots are intentionally not produced by this Windows implementation pass.
-
-## Simple owner capture handoff
-
-After the final update is verified on your iPhone, send original PNG captures without cropping or captions:
-
-1. Home with useful, real Signals visible.
-2. A Bottle Profile with real retailer/source detail.
-3. Radar with watched bottles and selected areas visible.
-4. My Shelf with representative bottles and ratings.
-5. Account → Membership overview.
-6. Optional: Post composer before submitting, with no private information.
-7. Account → Membership → Standard: real monthly price and purchase button visible.
-8. Account → Membership → Barrel Proof: real monthly price and purchase button visible.
-
-Images 7 and 8 are private subscription-review assets; the others are listing candidates. Use the same phone, appearance and locale. Record the app build/update shown under Account → Privacy & Support → App information. We will check dimensions before selecting the listing slot; send your phone's originals rather than resizing them yourself.
+Capture Account → Membership on the reviewed candidate with the matching Barrel Proof monthly product, localized price and billing period, renewal disclosure, and enabled purchase action. Keep private purchase review assets separate from public listing screenshots. Confirm the store’s private upload dimensions and check purchase, restore, reviewer access, and device notification behavior before submission.
