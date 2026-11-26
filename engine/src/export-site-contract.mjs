@@ -2577,7 +2577,7 @@ function buildSoutheastReadiness(summary, signals) {
   };
 }
 
-async function main({ rejectedQualityStates = [] } = {}) {
+async function exportSiteContractAttempt(rejectedQualityStates) {
   await mkdir(SITE_OUT, { recursive: true });
   const snapshot = await readJson(path.join(OUT, 'current-snapshot.json'), { signals: [] });
   const snapshots = await recentSnapshots();
@@ -2837,9 +2837,9 @@ async function main({ rejectedQualityStates = [] } = {}) {
       throw new Error(`State quality regression blocked site export: no admitted attempted partition. ${stateQualityRegression.failures.join(' ')}`);
     }
     console.warn(`State quality rejected candidate partitions; retaining stale last-good evidence: ${failures.map((row) => row.state).join(', ')}.`);
-    // Nothing has been written yet. Rebuild every customer artifact with the
-    // rejected partitions excluded from fresh rows and all alert candidates.
-    return main({ rejectedQualityStates: [...rejectedQualityStates, ...failures] });
+    // Nothing has been written yet. Return only the rejected states so the
+    // next attempt can rebuild without retaining this attempt's artifacts.
+    return failures;
   }
   const historicalSignalCount = Math.max(historicalSignals.length, Number(previousStats.historicalSignalCount || 0));
   const ncBoardCoverageSummary = buildNcBoardCoverageSummary(locations, ncIntelligenceRaw);
@@ -3006,6 +3006,15 @@ async function main({ rejectedQualityStates = [] } = {}) {
   if (artifactPayloads.ncIntelligence) await writeFile(path.join(SITE_OUT, 'nc-intelligence.json'), JSON.stringify(artifactPayloads.ncIntelligence, null, 2));
 
   console.log(`Site contract export: ${bottles.length} bottles, ${stores.length} stores, ${locations.length} locations, ${drops.length} drops, ${events.length} events, ${publishedAlertCandidates.length} alert candidates -> out/site/`);
+}
+
+async function main() {
+  const rejectedQualityStates = [];
+  for (;;) {
+    const failures = await exportSiteContractAttempt(rejectedQualityStates);
+    if (!failures) return;
+    rejectedQualityStates.push(...failures);
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
