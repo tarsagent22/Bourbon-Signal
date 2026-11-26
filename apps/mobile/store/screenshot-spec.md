@@ -1,6 +1,6 @@
 # Public store screenshots
 
-Use captures from the reviewed iOS and Android builds with representative, verified local data and an account dedicated to captures. Keep the locale, appearance, and status-bar treatment consistent. Capture at the dimensions required by the active store slots.
+Store listing and subscription review captures are pending. Use the reviewed iOS and Android builds with representative, verified local data and an account dedicated to captures. Keep the locale, appearance, and status-bar treatment consistent. Capture at the dimensions required by the active store slots.
 
 1. **See what was reported near you.** Show the local preview with actual bottle, source, location, and report time. Label board shipments as leads.
 2. **Follow a bottle you’re looking for.** Show a real saved bottle and chosen area in Radar.
@@ -12,4 +12,4 @@ Use short captions and sufficient contrast. Review canonical bottle artwork, tex
 
 ## Private subscription review capture
 
-Capture Account → Membership on the reviewed candidate with the matching Barrel Proof monthly product, localized price and billing period, renewal disclosure, and enabled purchase action. Keep private purchase review assets separate from public listing screenshots. Confirm the store’s private upload dimensions and check purchase, restore, reviewer access, and device notification behavior before submission.
+Capture Account → Membership on the reviewed candidate with the configured Barrel Proof monthly product, localized price and billing period, renewal disclosure, and enabled purchase action. Keep private purchase review assets separate from public listing screenshots. Confirm the store’s private upload dimensions and check purchase, restore, reviewer access, and device notification behavior before submission.
