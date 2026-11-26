@@ -101,3 +101,22 @@ test('snapshot retention reconciles verified crash duplicates and concurrent arc
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test('historical projection loads only the snapshots that fit its raw-byte budget and preserves overflow', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'bs-history-budget-'));
+  try {
+    const payloads = [0, 1, 2].map(index => {
+      const snapshot = snapshotAt(index);
+      return { ...snapshot, body: JSON.stringify({ generatedAt: snapshot.generatedAt, signals: [{ id: `snapshot-${index}` }], padding: 'x'.repeat(1000) }) };
+    });
+    for (const { file, body } of payloads) await writeFile(join(dir, file), body);
+    const options = { snapshotsPath: dir, now: Date.parse('2026-08-04T00:00:00.000Z'),
+      limit: 40, maxBytes: 2 * Buffer.byteLength(payloads[0].body) };
+    const retained = await recentSnapshots(30, options);
+    assert.deepEqual(retained.map(snapshot => snapshot.signals[0].id), ['snapshot-2', 'snapshot-1']);
+    assert.equal(gunzipSync(await readFile(join(dir, `${payloads[0].file}.gz`))).toString('utf8'), payloads[0].body);
+    assert.deepEqual((await recentSnapshots(30, options)).map(snapshot => snapshot.signals[0].id), ['snapshot-2', 'snapshot-1']);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
