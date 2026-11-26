@@ -40,7 +40,6 @@ test("authentication and account routing start while fonts load behind the nativ
       "../src/membership/PurchasesProvider": { PurchasesProvider: "PurchasesProvider" },
       "../src/startup/StartupErrorBoundary": { StartupErrorBoundary: "StartupErrorBoundary" },
       "../src/hooks/useMobileApi": { MobileApiProvider: "MobileApiProvider" },
-      "../src/activity/useConversionTracking": { useConversionTracking: () => () => {} },
       "../src/startup/DeviceTimeZoneCapture": { DeviceTimeZoneCapture: "DeviceTimeZoneCapture" },
       "../src/startup/report-render-error": {},
       "../src/push/PushResponseHandler": {},

@@ -58,7 +58,11 @@ test("setup saves bottle intent, preserves an unchanged multi-area selection, an
   assert.equal(screen.action(tree, "Continue").disabled, false);
   screen.action(tree, "Continue").onPress(); tree = screen.render(); assert.equal(screen.pushes(), 0);
   screen.action(tree, "Enable notifications").onPress(); await screen.settle();
-  assert.equal(screen.pushes(), 1); assert.equal(screen.routes.at(-1), "/(app)/(tabs)");
+  assert.equal(screen.pushes(), 1);
+  tree = screen.render();
+  assert.ok(screen.find(tree, node => node.props?.title === 'Your alerts are ready'));
+  screen.action(tree, 'Open Radar').onPress();
+  assert.deepEqual(screen.routes.at(-1), { pathname: '/(app)/(tabs)/radar', params: { section: 'settings' } });
 });
 test("a failed watch or denied notification leaves setup retryable without claiming success", async () => {
   const screen = setup({ failWatch: true }); screen.render(); await screen.settle();
