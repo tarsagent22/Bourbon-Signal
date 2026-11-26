@@ -2690,8 +2690,17 @@ async function main({ rejectedQualityStates = [] } = {}) {
     previousDrops,
     bootstrapDrops,
     historyDays: HISTORY_DAYS,
+    // History enrichment can grow a nearly full payload. Apply the final budget
+    // after both merges, when fresh evidence and whole fallback partitions can
+    // be prioritized over optional history.
+    enforceByteBudget: false,
   });
-  const timelineDrops = mergeHistoricalTimelineDrops({ previousDrops, historyDays: HISTORY_DAYS, currentDrops: historicalBoardDrops })
+  const timelineDrops = mergeHistoricalTimelineDrops({
+    previousDrops,
+    historyDays: HISTORY_DAYS,
+    currentDrops: historicalBoardDrops,
+    enforceByteBudget: false,
+  })
     .filter((drop) => isActiveCustomerStateRow(drop, activeStateIds));
   const publishableDrops = filterPublishableTennesseeInventory(timelineDrops, { now: new Date(customerEvidenceAsOf).toISOString() });
   const drops = enforceCustomerDropByteBudget(publishableDrops, {

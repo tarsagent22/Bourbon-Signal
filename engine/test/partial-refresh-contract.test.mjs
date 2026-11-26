@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergePartialRefreshDrops, mergePartialRefreshLocations, selectFreshRunDrops } from '../src/partial-refresh-contract.mjs';
+import { detectDropCollapseFallbacks, enforceCustomerDropByteBudget, mergeHistoricalBoardShipmentDrops, mergeHistoricalTimelineDrops, mergePartialRefreshDrops, mergePartialRefreshLocations, selectFreshRunDrops } from '../src/partial-refresh-contract.mjs';
 
 test('drop collapse detection marks attempted states for safe publication fallback', () => {
   const previous = { states: [{ state: 'IN', input: { dropCount: 72 } }, { state: 'TN', input: { dropCount: 35 } }] };
@@ -356,4 +356,24 @@ test('historical retention never revives inventory, expired shipments, or duplic
   });
   assert.deepEqual(merged.map((drop) => drop.id), ['dunn-same']);
   assert.equal(merged[0].sourceEventAt, '2026-08-02T12:00:00.000Z');
+});
+
+
+test('publication budgets enriched optional history only after current evidence and complete fallbacks are known', () => {
+  const now = '2026-08-03T12:00:00.000Z';
+  const fresh = { id: 'fresh', state: 'CA', type: 'store_inventory_result', observedAt: '2026-08-03T11:59:00.000Z', canAlertAsInventory: true };
+  const fallback = { id: 'fallback', state: 'VA', sourceStale: true, canAlertAsInventory: false };
+  const largeHistory = {
+    id: 'optional-history', state: 'NC', type: 'nc_board_shipment_snapshot',
+    observedAt: '2026-08-01T12:00:00.000Z', evidence: 'x'.repeat(60 * 1024 * 1024),
+  };
+  const currentDrops = [fresh, fallback, largeHistory];
+  assert.throws(() => mergeHistoricalBoardShipmentDrops({ currentDrops, now }), /no partition was truncated/);
+  const board = mergeHistoricalBoardShipmentDrops({ currentDrops, now, enforceByteBudget: false });
+  const timeline = mergeHistoricalTimelineDrops({ currentDrops: board, now, enforceByteBudget: false });
+  assert.equal(timeline[2].canAlertAsInventory, false);
+  assert.equal(timeline[2].sourceStale, true);
+  const selected = enforceCustomerDropByteBudget(timeline, { now: Date.parse(now), fallbackStateIds: ['VA'] });
+  assert.deepEqual(selected.map(drop => drop.id), ['fresh', 'fallback']);
+  assert.equal(selected[0].observedAt, fresh.observedAt);
 });
