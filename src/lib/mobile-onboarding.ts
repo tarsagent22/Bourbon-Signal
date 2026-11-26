@@ -12,14 +12,16 @@ export interface MobileOnboardingInput {
   displayName?: unknown;
   age21Affirmed?: unknown;
   homeState?: unknown;
+  deferDisplayName?: boolean;
 }
 
 export function prepareMobileOnboarding(input: MobileOnboardingInput, now = new Date().toISOString()) {
   if (input.age21Affirmed !== true) {
     throw new MobileOnboardingValidationError("You must affirm that you are 21 or older.");
   }
-  const displayName = normalizeCommunityDisplayName(input.displayName);
-  if (!displayName.ok) throw new MobileOnboardingValidationError(displayName.error);
+  const displayName = input.deferDisplayName ? null : normalizeCommunityDisplayName(input.displayName);
+  if (displayName && !displayName.ok) throw new MobileOnboardingValidationError(displayName.error);
+  const name = displayName?.value || null;
   let memberProfile;
   try {
     memberProfile = applyMemberProfilePreferencePatch({}, { homeState: input.homeState }, now);
@@ -27,9 +29,9 @@ export function prepareMobileOnboarding(input: MobileOnboardingInput, now = new 
     throw new MobileOnboardingValidationError(error instanceof Error ? error.message : "Choose a valid U.S. state or the District of Columbia.");
   }
   return {
-    displayName: displayName.value,
+    displayName: name,
     publicMetadata: {
-      communityDisplayName: displayName.value,
+      ...(name ? { communityDisplayName: name } : {}),
       memberProfile,
     },
     privateMetadata: {

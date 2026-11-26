@@ -9,6 +9,7 @@ const signIn = read("../../app/(auth)/sign-in.tsx");
 const signUp = read("../../app/(auth)/sign-up.tsx");
 const authLayout = read("../../app/(auth)/_layout.tsx");
 const onboarding = read("../../app/(app)/onboarding.tsx");
+const firstRun = read("../../app/(app)/first-run.tsx");
 
 test("entry routes signed-out members to native auth and keeps the existing sign-in and MFA contracts", () => {
   assert.match(entry, /"\/\(auth\)\/welcome"/);
@@ -25,8 +26,8 @@ test("entry routes signed-out members to native auth and keeps the existing sign
 test("verified accounts must resume server-authoritative onboarding before entering the app", () => {
   assert.match(entry, /getMobileOnboardingStatus/);
   assert.match(entry, /status\.completed/);
-  assert.match(entry, /"\/\(app\)\/onboarding"/);
-  assert.match(onboarding, /status\.completed/);
+  assert.match(entry, /"\/\(app\)\/first-run"/);
+  assert.match(firstRun, /getMobileOnboardingStatus/);
 });
 
 test("native password recovery keeps reset-code verification, MFA and finalized sessions separate",()=>{
@@ -54,12 +55,14 @@ test("sign-up exposes retryable busy and error states without logging credential
   assert.doesNotMatch(signUp, /console\.(?:log|warn|error)/);
 });
 
-test("successful onboarding introduces memberships without changing returning-user routing", () => {
+test("shortened first run reaches free value without an automatic paywall and preserves returning-user routing", () => {
   assert.match(onboarding, /action: 'profile'/);
   assert.match(onboarding, /action: 'complete'/);
   assert.match(onboarding, /Continue without alerts/);
   assert.match(entry, /destination === "app".*Redirect href="\/\(app\)\/\(tabs\)"/);
   const membership = read("../../app/(app)/account/membership.tsx");
-  assert.match(membership, /Continue with Free/);
-  assert.match(membership, /router\.replace\("\/\(app\)\/\(tabs\)"\)/);
+  assert.match(firstRun, /quick_start/);
+  assert.match(firstRun, /Check a bottle/);
+  assert.doesNotMatch(firstRun, /account\/membership/);
+  assert.match(membership, /Keep browsing free/);
 });

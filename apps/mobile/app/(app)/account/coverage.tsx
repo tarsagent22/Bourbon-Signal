@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { Modal, ScrollView, Text, TextInput, View } from 'react-native';
+import { Modal, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { useMobileApi } from '../../../src/hooks/useMobileApi';
 import { useScreenRevalidation } from '../../../src/hooks/useScreenRevalidation';
 import { ErrorState, LoadingState } from '../../../src/components/MemberScreen';
@@ -22,6 +22,7 @@ export default function CoverageRequestsScreen() {
   const [coverageError, setCoverageError] = useState(false);
   const [kind, setKind] = useState<'state' | 'city' | 'county' | 'store'>(initial.kind);
   const [area, setArea] = useState(initial.area);
+  const [notificationEnabled, setNotificationEnabled] = useState(false);
   const [store, setStore] = useState(initial.store);
   const [address, setAddress] = useState(initial.address);
   const [requests, setRequests] = useState<CoverageRequestItem[]>([]);
@@ -61,7 +62,7 @@ export default function CoverageRequestsScreen() {
     if (mutation.current) return;
     mutation.current = true; setBusy(true); setError(''); setMessage('');
     try {
-      await api.submitCoverageRequest({ targetType: kind, stateCode: state, manualCity: kind === 'county' ? '' : area, manualCounty: kind === 'county' ? area : '', manualStoreName: kind === 'store' ? store : '', manualAddress: kind === 'store' ? address : '', notificationEnabled: false });
+      await api.submitCoverageRequest({ targetType: kind, stateCode: state, manualCity: kind === 'county' ? '' : area, manualCounty: kind === 'county' ? area : '', manualStoreName: kind === 'store' ? store : '', manualAddress: kind === 'store' ? address : '', notificationEnabled });
       setMessage('Request received. Follow its progress below.'); await load();
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Request could not be saved.'); }
     finally { mutation.current = false; setBusy(false); }
@@ -94,6 +95,10 @@ export default function CoverageRequestsScreen() {
       <Text style={s.label}>What should we cover?</Text><View style={s.wrap}>{(['city', 'county', 'store', 'state'] as const).map(value => <Action key={value} label={value === 'state' ? 'Entire state' : value[0].toUpperCase() + value.slice(1)} disabled={busy} selected={kind === value} onPress={() => setKind(value)} />)}</View>
       {kind !== 'state' ? <><Text style={s.label}>{kind === 'county' ? 'County' : 'City'}</Text><TextInput accessibilityLabel={kind === 'county' ? 'County' : 'City'} editable={!busy} style={s.input} value={area} onChangeText={value => { touched.current = true; setArea(value); }} maxLength={120} /></> : null}
       {kind === 'store' ? <><Text style={s.label}>Store name</Text><TextInput accessibilityLabel="Store name" editable={!busy} style={s.input} value={store} onChangeText={setStore} maxLength={180} /><Text style={s.label}>Address (optional)</Text><TextInput accessibilityLabel="Store address" editable={!busy} style={s.input} value={address} onChangeText={setAddress} maxLength={220} /></> : null}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <Text style={[s.copy, { flex: 1 }]}>Email me when there’s a verified coverage update for this request.</Text>
+        <Switch accessibilityLabel="Email me about verified coverage updates" value={notificationEnabled} onValueChange={setNotificationEnabled} disabled={busy} />
+      </View>
       <Action label={busy ? 'Submitting…' : 'Submit request'} disabled={busy || !state || (kind !== 'state' && !area.trim()) || (kind === 'store' && !store.trim())} onPress={() => void submit()} />
       <Text style={s.copy}>We’ll show updates here. A request doesn’t guarantee coverage or a launch date.</Text>
     </View>

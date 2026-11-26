@@ -631,6 +631,11 @@ export function isCurrentInventoryEvidence(input: PublicDropEvidenceInput, asOf?
   return Number.isFinite(age) && age >= -FUTURE_CLOCK_SKEW_MS && age <= maxAge;
 }
 
+export function isCurrentExactStoreInventoryEvidence(input: PublicDropEvidenceInput, asOf?: string | number | Date) {
+  const drop = normalizePublicDropEvidenceInput(input);
+  return exactStoreInventoryCandidate(drop) && isCurrentInventoryEvidence(drop, asOf);
+}
+
 /** Project at response time so a cached card cannot keep claiming availability. */
 export function projectInventoryEvidenceFreshness<T extends PublicDropEvidenceInput>(input: T, asOf?: string | number | Date): T {
   const drop = normalizePublicDropEvidenceInput(input);

@@ -33,7 +33,7 @@ test("membership cards keep live pricing and purchase directly through the guard
   assert.match(screen, /useEffect\(\(\) => \{\s*if \(purchases\.profile\) setProfile\(purchases\.profile\);\s*\}, \[purchases\.profile\]\)/);
   assert.match(screen, /localizedPrice/);
   assert.doesNotMatch(screen, /hasIntroductoryOffer|monthlyTrialIsEligible|getMembershipTrialEligibility|trialEligibility|7-day trial|Eligible 7-day/);
-  assert.doesNotMatch(screen, /Standard Proof|Bottled in Bond|Bottle Check/);
+  assert.doesNotMatch(screen, /Standard Proof|Bottled in Bond/);
 });
 
 test("plan review uses native purchases but fails closed until server reconciliation is ready", () => {
@@ -126,9 +126,10 @@ test("existing Stripe memberships do not display Apple prices or assume a monthl
  assert.match(screen,/managementOnly.*management.manage/s);
 });
 
-test("the advertised membership stays six dollars while the legacy rate is a separate billing note", () => {
+test("membership displays provider-confirmed pricing and keeps the legacy rate separate", () => {
  const screen=read("app/(app)/account/membership.tsx");
- assert.match(screen, /style=\{styles.price\}>\$6<\/Text>/);
+ assert.match(screen, /membershipDisplayPrice\(product\.localizedPrice\)/);
+ assert.doesNotMatch(screen, /style=\{styles.price\}>\$6<\/Text>/);
  assert.match(screen, /Your early-member billing rate:/);
  assert.doesNotMatch(screen, /style=\{styles.price\}>\{profile.membership.grandfatheredRate\}/);
 });

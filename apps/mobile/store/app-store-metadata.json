@@ -8,9 +8,9 @@
   "sandboxEvidenceStatus": "owner_reported_purchase_and_access_passed_restore_and_lifecycle_pending",
   "locale": "en-US",
   "name": "Bourbon Signal",
-  "subtitle": "Bottle alerts and collections",
-  "promotionalText": "See timely bourbon availability Signals, manage Radar preferences, and keep your bourbon hunt organized.",
-  "description": "Bourbon Signal gives members a focused, trustworthy view of timely bourbon availability intelligence. Create a free account in the app, then review Signals and manage your membership from one native experience.\n\nUse the native app to:\n• Review recent availability and release Signals\n• Open details including retailer, timing, price, quantity, and source context when evidence supports them\n• Monitor watched bottles, saved markets, and recent alerts in Radar\n• Post a store sighting with optional photo evidence\n• Keep saved bottles, ratings, and notes on Shelf\n• Review membership, Signal Points, rewards, privacy, support, and account controls\n\niOS members can choose eligible Standard or Barrel Proof subscriptions through Apple, restore purchases, and open App Store subscription management. Free is $0 with no renewal. Existing Founder access is honored but is not sold in the app. Introductory trials are not offered in this candidate.\n\nAvailability changes quickly. Confirm with the retailer before travel or purchase.",
+  "subtitle": "Local bottle reports & alerts",
+  "promotionalText": "See what was reported near you, check a bottle before you buy, and follow the bottles you want with Barrel Proof.",
+  "description": "See recent bourbon reports where you shop. Follow the bottles you want and check the price before making a trip.\n\nCreate a free account to browse community sightings, save a bottle in Radar, use Bottle Check, and keep a small My Shelf collection.\n\nBarrel Proof is the optional monthly membership. Set alerts for the bottles and areas you choose, browse the full feed, and unlock unlimited Bottle Checks and shelf space. Existing members can sign in to keep their access.\n\nCoverage varies by market and source. Reports are timestamped and availability changes. Confirm with the retailer before traveling. For adults age 21 and older.\n\nBarrel Proof renews monthly unless canceled. See the current price before buying. Manage your membership and restore purchases in the app. Existing Founder membership is honored.\n\nPrivacy Policy: https://www.bourbonsignal.com/legal/privacy\nTerms of Use: https://www.bourbonsignal.com/legal/terms",
   "keywords": "bourbon,whiskey,availability,retailers,bottles,releases,inventory,rare whiskey",
   "primaryCategory": "FOOD_AND_DRINK",
   "secondaryCategory": "LIFESTYLE",
@@ -29,8 +29,8 @@
     "final_candidate_device_qa_and_owner_disclosures"
   ],
   "pendingSubmissionRequirements": [
-    "Attach the reviewed final candidate build rather than older build 12 currently attached to version 1.1.0",
-    "Add both monthly subscription review screenshots and attach the first subscriptions to the version submission",
+    "Confirm the attached build and App Store Connect agreements before any metadata submission",
+    "Verify the current Barrel Proof monthly subscription review screenshot",
     "Verify restore, cancellation, expiration and interrupted purchase behavior; purchase and correct access were reported successful by the owner in TestFlight",
     "Capture and review real public listing screenshots",
     "Validate the dedicated reviewer account on a fresh device",

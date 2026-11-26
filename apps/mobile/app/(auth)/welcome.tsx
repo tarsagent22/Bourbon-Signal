@@ -6,7 +6,8 @@ export default function WelcomeScreen() {
   const { isSignedIn } = useAuth(); const router = useRouter();
   if (isSignedIn) return <Redirect href="/" />;
   return <OnboardingFrame largeMark title={'Never miss\na drop.'} footer={<Text style={[s.small, { textAlign: 'center', fontSize: 11 }]}>For members 21 and older.</Text>}>
-    <OnboardingButton label="Create account" onPress={() => router.push('/(auth)/sign-up')} />
+    <OnboardingButton label="See what’s near me" onPress={() => router.push('/(auth)/local-preview')} />
+    <OnboardingButton secondary label="Create account" onPress={() => router.push('/(auth)/sign-up')} />
     <Pressable accessibilityRole="button" accessibilityLabel="Already a member? Log in" onPress={() => router.push('/(auth)/sign-in')} style={({ pressed }) => [styles.login, pressed && s.pressed]}>
       <Text style={styles.loginText}>Already a member? <Text style={styles.loginLink}>Log in →</Text></Text>
     </Pressable>

@@ -16,9 +16,15 @@ export const api = {
   async acceptLegalTerms() { if (query.get('legalSave') === 'fail') throw new Error('Synthetic save failure'); return { termsVersion: COMMUNITY_TERMS_VERSION, acceptance: { termsVersion: COMMUNITY_TERMS_VERSION, acceptedAt: new Date().toISOString(), source: 'community' } }; },
   async getMemberProfile() { return profile(); }, async getMemberPreferences() { return structuredClone(prefs); },
   async getCoverageSummary() { return { states: [{ code: 'NC', coverageStrength: query.get('coverage') === 'weak' ? 'sparse' : 'strong', coverageStatus: 'available', health: query.get('coverage') === 'delayed' ? 'temporarily-limited' : 'current', summary: 'Tracking covers selected ABC boards and stores, with coverage varying by area.' }, { code: 'AK', coverageStrength: 'none', coverageStatus: 'not-available', health: 'no-recent-update', summary: 'Tracking coverage is growing here.' }] }; },
-  async getMobileOnboardingStatus() { return { completed, draft: structuredClone(draft) }; },
+  async getLocalDiscovery(region: { state: string; city: string }) {
+    return { region, report: region.state === 'NC' ? { bottle: 'Eagle Rare 10 Year', bottleId: 'eagle-rare-10',
+      location: 'Wake County', source: 'ABC shipment report', kind: 'shipment', reportedAt: '2026-11-25T18:00:00Z',
+      price: null, alertsAvailable: false } : null };
+  },
+  async getMobileOnboardingStatus() { return { completed, draft: query.get('screen') === 'first-run' ? null : structuredClone(draft),
+    age21Affirmed: query.get('age') !== 'unconfirmed', discovery: query.get('region') === 'nc' ? { state: 'NC', city: 'Wake', intent: 'watch', bottleId: 'eagle-rare-10', bottle: 'Eagle Rare 10 Year' } : null }; },
   async saveOnboardingDraft(next: any) { draft = structuredClone(next); return { completed: false, draft }; },
-  async completeMobileOnboarding(body: any) { draft = body.draft; completed = body.action === 'complete'; return { completed }; },
+  async completeMobileOnboarding(body: any) { draft = body.draft; completed = body.action === 'complete' || body.action === 'quick_start'; return { completed }; },
   async listBottleCatalog() { return bottles; },
   async updateMemberPreferences(patch: any) {
     if (patch.monitoringScopes) prefs.monitoringScopes = patch.monitoringScopes;
@@ -40,17 +46,23 @@ export const api = {
   async getPushDeviceStatus() { return { enabled: false, currentDeviceRegistered: false }; },
 };
 export function useMobileApi() { return api; }
-export function useAuth() { return { isLoaded: true, isSignedIn: !['welcome', 'sign-in', 'sign-up'].includes(query.get('screen') || ''), userId: 'preview-user' }; }
+export function useAuth() { return { isLoaded: true, isSignedIn: !['welcome', 'local-preview', 'sign-in', 'sign-up'].includes(query.get('screen') || ''), userId: 'preview-user' }; }
 const signUp = { status: 'complete', async password() { return {}; }, verifications: { async sendEmailCode() { return {}; }, async verifyEmailCode() { return {}; } }, async finalize() { location.href = '?screen=onboarding'; return {}; }, async reset() {} };
 export function useSignUp() { return { signUp, fetchStatus: 'idle' }; }
 const signIn = { status: 'complete', supportedSecondFactors: [], async password() { return {}; }, async finalize() { return {}; }, async reset() {}, mfa: {}, resetPasswordEmailCode: {} };
 export function useSignIn() { return { signIn, fetchStatus: 'idle' }; }
 export function useAccessibleStatus() {}
+export function useConversionTracking() { return () => {}; }
+export function useLocalSearchParams() { return Object.fromEntries(query.entries()); }
+export const MaterialCommunityIcons = () => null;
+export default MaterialCommunityIcons;
 export function useFocusEffect(callback: () => unknown) { useEffect(() => { const clean = callback(); const refocus = () => { callback(); }; window.addEventListener('preview-shelf', refocus); return () => { window.removeEventListener('preview-shelf', refocus); if (typeof clean === 'function') clean(); }; }, [callback]); }
 export function useRouter() { return router; }
 export function Redirect() { return null; }
-const router = { push(route: any) { if (String(route).includes('cellar/add')) { prefs.collectionPreferences.bottles.push({ bottleId: 'makers-mark', bottleName: "Maker's Mark", tastedOnly: false } as any); window.dispatchEvent(new Event('preview-shelf')); } else navigate(route); }, replace: navigate };
-function navigate(route: any) { const value = typeof route === 'string' ? route : route.pathname; if (value.includes('sign-in')) location.href = '?screen=sign-in'; else if (value.includes('sign-up')) location.href = '?screen=sign-up'; else { (window as any).completedRoute = value; window.dispatchEvent(new Event('preview-finished')); } }
+const router = { push(route: any) { if (String(route).includes('cellar/add')) { prefs.collectionPreferences.bottles.push({ bottleId: 'makers-mark', bottleName: "Maker's Mark", tastedOnly: false } as any); window.dispatchEvent(new Event('preview-shelf')); } else navigate(route); }, replace: navigate, back() { location.href = '?screen=welcome'; } };
+function navigate(route: any) { const value = typeof route === 'string' ? route : route.pathname; if (value.includes('local-preview')) location.href = '?screen=local-preview';
+  else if (value.includes('sign-in')) location.href = '?screen=sign-in';
+  else if (value.includes('sign-up')) location.href = '?' + new URLSearchParams({ screen: 'sign-up', ...(route.params || {}) }); else { (window as any).completedRoute = value; window.dispatchEvent(new Event('preview-finished')); } }
 export function useSafeAreaInsets() { return { top: Number(query.get('inset') || 54), bottom: 34, left: 0, right: 0 }; }
 export const SafeAreaView = View;
 const storage = new Map<string, string>();

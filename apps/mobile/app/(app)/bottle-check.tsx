@@ -9,6 +9,7 @@ import { ActivityIndicator, BackHandler, FlatList, Keyboard, Linking, Pressable,
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottleProfile } from '../../../../shared/bottle-profile';
 import { COVERAGE_STATES } from '../../../../shared/coverage-states';
+import { useConversionTracking } from "../../src/activity/useConversionTracking";
 import { useBottleCatalog } from '../../src/hooks/useBottleCatalog';
 import { useMobileApi } from '../../src/hooks/useMobileApi';
 import { NativeBottleScanner } from '../../src/scanner/NativeBottleScanner';
@@ -42,6 +43,7 @@ function FormScannerRedirect({ purpose, state, area, price }: { purpose: 'post' 
 }
 function BottleCheckScreen() {
   const router = useRouter(); const api = useMobileApi(); const catalog = useBottleCatalog();
+  const track = useConversionTracking();
   const [showSources, setShowSources] = useState(false);
   const { userId } = useAuth();
   const params = useLocalSearchParams<{ state?: string; area?: string; bottleId?: string; bottleName?: string }>();
@@ -116,6 +118,10 @@ function BottleCheckScreen() {
   }, [api, editingRegion, draftState]);
   const bottle: BottleProfile | null = (details?.id === selected?.id ? details : null) || (selected ? { id: selected.id, name: selected.name, producer: selected.producer || null, category: '', proof: selected.proof || null, age: selected.ageStatement || null, msrp: null, rarity: { label: selected.rarity || 'Under review', tier: selected.nationalTier || '', pending: selected.rarityPending !== false && !selected.nationalTier, reviewedAt: null } } : null);
   const decision = bottle ? buyingScore({ bottle, askingPrice, confirmedSizeMl: tagSize, reports: reportBatch?.key === assessmentKey ? reportBatch.signals : [], scope }) : null;
+  const hasDecision = Boolean(decision);
+  useEffect(() => {
+    if (hasDecision) track('bottle_check_completed', { entry: 'bottle_check' });
+  }, [hasDecision, scope.state, track]);
   const results = useMemo(() => selected ? [] : mode === 'search' ? query.trim().length >= 2 ? catalog.search(query, 12) : [] : matches, [selected, mode, query, catalog.search, matches]);
   const regionName = COVERAGE_STATES.find(state => state.code === scope.state)?.name;
   const areaOptions = cityOptions;
@@ -218,7 +224,7 @@ function BottleCheckScreen() {
           {loading ? <View style={s.reason}><ActivityIndicator size="small" color={colors.accent} /><Text style={s.note}>Checking prices in your region…</Text></View> : null}
           {detailsError || reportError ? <View><Text style={s.note}>{[detailsError, reportError].filter(Boolean).join(' ')}</Text><Pressable accessibilityRole="button" onPress={() => setRetry(value => value + 1)} style={s.textButton}><Text style={s.link}>Retry lookup</Text></Pressable></View> : null}
           <View style={s.actionRow}>
-            <Pressable accessibilityRole="button" accessibilityLabel={personal?.isWatched ? 'Watching bottle' : 'Watch bottle'} disabled={!preferences || watch.busy || personal?.isWatched} onPress={() => void watch.watch(bottle.name)} style={s.smallAction}><MaterialCommunityIcons name="radar" size={19} color={colors.accent} /><Text style={s.smallActionText}>{personal?.isWatched ? 'Watching' : watch.busy ? 'Saving…' : 'Watch'}</Text></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={personal?.isWatched ? 'Watching bottle' : 'Watch bottle'} disabled={!preferences || watch.busy || personal?.isWatched} onPress={() => void watch.watch(bottle.name, { id: bottle.id, state: scope.state, city: scope.area })} style={s.smallAction}><MaterialCommunityIcons name="radar" size={19} color={colors.accent} /><Text style={s.smallActionText}>{personal?.isWatched ? 'Watching' : watch.busy ? 'Saving…' : preferences?.entitlements?.trackedBottleLimit === 0 ? 'Save bottle' : 'Watch'}</Text></Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel="Post sighting" onPress={() => handoff(bottle, 'post')} style={s.smallAction}><MaterialCommunityIcons name="map-marker-plus-outline" size={19} color={colors.accent} /><Text style={s.smallActionText}>Post sighting</Text></Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel="View bottle details" onPress={() => router.push({ pathname: '/(app)/bottle/[id]', params: { id: bottle.id, name: bottle.name } })} style={s.smallAction}><MaterialCommunityIcons name="bottle-wine-outline" size={19} color={colors.accent} /><Text style={s.smallActionText}>Details</Text></Pressable>
           </View>

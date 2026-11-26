@@ -259,7 +259,7 @@ export function createMobileApi({
     if (options.method && options.method !== "GET") {
       // Telemetry changes neither membership nor screen data. Do not discard
       // useful navigation reads when the foreground activity report completes.
-      if (path === "/api/v1/me/mobile-activity" || path === "/api/v1/me/diagnostics" || path === "/api/user/time-zone") {
+      if (path === "/api/v1/growth" || path === "/api/v1/me/mobile-activity" || path === "/api/v1/me/diagnostics" || path === "/api/user/time-zone") {
         return performRequest<T>(path, options, token);
       }
       // Related screens share these reads: a write can change profile, feed, points or preferences.
@@ -288,6 +288,12 @@ export function createMobileApi({
   }
 
   return {
+    getConversionConfig(platform: 'ios' | 'android') {
+      return request<{ enabled: boolean }>(`/api/v1/growth?platform=${platform}`, { fresh: true });
+    },
+    recordConversion(body: import('../../../../shared/mobile-conversion').ConversionContext & {
+      event: import('../../../../shared/mobile-conversion').MobileConversionEvent; installation: string; platform: 'ios' | 'android';
+    }) { return request<{ ok: true }>('/api/v1/growth', { method: 'POST', body }); },
     reportNativeDiagnostic(packet:import("../../../../shared/native-diagnostics").NativeDiagnostic){return request<{ok:true}>("/api/v1/me/diagnostics",{method:"POST",body:packet});},
     clearReadCache() { recentReads.clear(); currentToken = undefined; },
     readCacheInfo() { pruneReads(); return { size: recentReads.size, keys: [...recentReads.keys()] }; },
@@ -347,6 +353,21 @@ export function createMobileApi({
       const result = await request<{ termsVersion: string; acceptance: import('../../../../shared/legal-acceptance').LegalAcceptance }>('/api/v1/me/legal', { method: 'POST', body: { accepted: true, termsVersion: COMMUNITY_TERMS_VERSION } });
       if (!currentLegalAcceptance(result.acceptance)) throw new MobileApiError('Your agreement could not be confirmed. Try again.', 502, 'INVALID_RESPONSE');
       return result;
+    },
+    getAlertPreview(claim = false) {
+      return request<{ status: 'unavailable' | 'waiting' | 'ready' | 'shown' | 'used'; report: import('../../../../shared/local-discovery').LocalReport | null }>(
+        '/api/drops?previewWatch=1', claim ? { method: 'POST' } : { fresh: true },
+      );
+    },
+    getSavedHuntBottle() {
+      return request<{ saved: import('../../../../shared/local-discovery').SavedBottle | null }>('/api/v1/me/saved-bottle', { fresh: true });
+    },
+    saveHuntBottle(input: { bottleId: string; state: string; city: string } | { remove: true }) {
+      return request<{ saved: import('../../../../shared/local-discovery').SavedBottle | null }>('/api/v1/me/saved-bottle', { method: 'PUT', body: input });
+    },
+    getLocalDiscovery(region: import('../../../../shared/local-discovery').DiscoveryRegion) {
+      const search = new URLSearchParams({ previewState: region.state, previewCity: region.city });
+      return request<import('../../../../shared/local-discovery').LocalDiscovery>(`/api/drops?${search}`, { fresh: true });
     },
     getCoverageSummary() { return request<{ states: MobileCoverageState[] }>('/api/coverage', { fresh: true }); },
     submitCoverageRequest(body: Record<string,unknown>) { return request<{request: import('../../../../shared/coverage-requests').CoverageRequestItem}>('/api/coverage/requests',{method:'POST',body}); },

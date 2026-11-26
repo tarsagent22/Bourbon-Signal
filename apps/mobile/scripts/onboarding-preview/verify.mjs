@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const output = path.resolve('../../.operator/onboarding-qa'); await mkdir(output, { recursive: true });
-const browser = await chromium.launch({ channel: 'msedge', headless: true });
+const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : { channel: 'msedge' }) });
 const checks = []; const errors = [];
 const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
 page.on('pageerror', error => errors.push(error.message));
@@ -16,7 +16,8 @@ async function capture(name) {
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false, `${name}: no horizontal overflow`);
   checks.push(name);
 }
-for (const width of [390, 320]) {
+const conversionOnly = process.argv.includes('--conversion');
+if (!conversionOnly) for (const width of [390, 320]) {
   await page.setViewportSize({ width, height: 844 });
   for (const screen of ['welcome', 'sign-in', 'sign-up']) { await open(`screen=${screen}`); await page.getByRole('button').first().waitFor(); await capture(`${screen}-${width}`); }
   for (const [step, tier, interest] of [[0, 'free', 'starting'], [1, 'free', 'starting'], [2, 'free', 'hunter'], [3, 'free', 'starting'], [4, 'free', 'starting'], [5, 'standard', 'hunter'], [6, 'barrel', 'hunter'], [7, 'barrel', 'hunter'], [8, 'barrel', 'hunter']]) {
@@ -24,6 +25,46 @@ for (const width of [390, 320]) {
   }
 }
 await page.setViewportSize({ width: 390, height: 844 });
+await open('screen=welcome');
+await page.getByRole('button', { name: 'See what’s near me' }).click();
+await page.getByRole('heading', { name: 'See what’s near you.' }).waitFor();
+await page.getByRole('textbox', { name: 'Search states' }).fill('North Carolina');
+await page.getByRole('radio', { name: 'North Carolina' }).click();
+await page.getByRole('textbox', { name: 'City, county, or ZIP' }).fill('Wake');
+assert.equal(await page.getByRole('button', { name: 'See recent reports' }).isDisabled(), true);
+await page.getByRole('button', { name: 'I’m 21 or older' }).click();
+await page.getByRole('button', { name: 'See recent reports' }).click();
+await page.getByText('Receiving stores unconfirmed.').waitFor();
+await capture('guest-local-report');
+await page.getByRole('button', { name: 'Save this bottle' }).click();
+await page.getByRole('heading', { name: 'Create your account.' }).waitFor();
+assert.match(page.url(), /intent=watch/);
+
+await open('screen=first-run&region=nc');
+await page.getByText('Receiving stores unconfirmed.').waitFor();
+await capture('first-run-local-report');
+await page.getByRole('button', { name: 'Check a bottle' }).click();
+await page.getByText('Setup complete · Feed opened').waitFor();
+assert.equal(await page.evaluate(() => window.completedRoute), '/(app)/bottle-check');
+
+await open('screen=first-run&region=nc&age=unconfirmed');
+await page.getByRole('heading', { name: 'Confirm your age' }).waitFor();
+assert.equal(await page.getByText('Receiving stores unconfirmed.').count(), 0);
+await page.getByRole('button', { name: 'I’m 21 or older' }).click();
+await page.getByText('Receiving stores unconfirmed.').waitFor();
+checks.push('signed-in-first-run-age-gate');
+
+async function finish() {
+  assert.deepEqual(errors, []);
+  await writeFile(path.join(output, conversionOnly ? 'conversion-results.json' : 'results.json'), JSON.stringify({ checks, errors }, null, 2));
+  await browser.close();
+  console.log(`${checks.length} browser checks passed. ${output}`);
+}
+if (conversionOnly) {
+  await finish();
+  process.exit(0);
+}
+
 await open('step=2&interest=hunter');
 await page.getByRole('button', { name: 'Add a bottle' }).click(); await page.getByRole('textbox', { name: 'Search shelf bottles' }).fill('Maker'); await page.getByRole('radio', { name: /Maker/ }).click(); await page.getByRole('button', { name: 'Add one bottle' }).click(); await page.getByText("Maker's Mark added to My Shelf.", { exact: true }).waitFor(); await capture('shelf-first-bottle');
 await open('step=0&coverage=weak');
@@ -163,5 +204,4 @@ for (const [state, city] of [['NC', 'Raleigh'], ['TX', 'Houston'], ['VT', 'Burli
   await page.getByText('Eagle Rare 12 Year', { exact: true }).waitFor();
 }
 checks.push('sighting-preview-follows-selected-state');
-assert.deepEqual(errors, []); await writeFile(path.join(output, 'results.json'), JSON.stringify({ checks, errors }, null, 2));
-await browser.close(); console.log(`${checks.length} browser checks passed. ${output}`);
+await finish();

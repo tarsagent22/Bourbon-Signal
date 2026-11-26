@@ -176,7 +176,10 @@ export default function HeroSection({ appFunnel = false }: { appFunnel?: boolean
           </div>
         </ScrollReveal>
 
-        {appFunnel ? <ScrollReveal delay={150}><AppDownloadCTA /></ScrollReveal> : !isSignedIn ? (
+        {appFunnel ? <ScrollReveal delay={150}><div style={{ display: "grid", justifyItems: "center", gap: 12 }}>
+              <AppDownloadCTA />
+              <a href="/coverage" style={{ color: "var(--color-cream, #F5EDD6)", fontSize: 14, textUnderlineOffset: 4 }}>Check coverage near me</a>
+            </div></ScrollReveal> : !isSignedIn ? (
           <ScrollReveal delay={150}>
             <div
               className="flex flex-col sm:flex-row items-center gap-4"

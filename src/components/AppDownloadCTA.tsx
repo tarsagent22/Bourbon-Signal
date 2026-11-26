@@ -1,5 +1,7 @@
 "use client";
 import type { CSSProperties } from "react";
+import { track } from "@vercel/analytics";
+import { normalizeGrowthAttribution } from "@/lib/growth-events";
 function StoreSymbol({ android = false }: { android?: boolean }) {
   return (
     <svg
@@ -69,7 +71,15 @@ export default function AppDownloadCTA() {
       }}
     >
       {stores.map((store) => (
-        <a key={store.name} href={store.url} style={style}>
+        <a key={store.name} href={store.url} style={style} onClick={() => {
+          const query = new URLSearchParams(window.location.search);
+          const { campaign } = normalizeGrowthAttribution({
+            surface: "homepage", utm_source: query.get("utm_source"), utm_medium: query.get("utm_medium"), utm_campaign: query.get("utm_campaign"),
+          });
+          if (["bourbonsignal.com", "www.bourbonsignal.com"].includes(window.location.hostname)) {
+            track("app_store_clicked", { surface: "homepage", platform: store.name === "iOS" ? "ios" : "android", campaign });
+          }
+        }}>
           <StoreSymbol android={store.name === "Android"} />
           <span
             style={{

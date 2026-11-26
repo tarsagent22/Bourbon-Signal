@@ -10,6 +10,6 @@ assert.ok((local.match(/'hunt_outcomes'/g)||[]).length>=2);
 for(const source of [web,mobile]){
   assert.match(source,/canWatchCellarSuggestions/);
   assert.match(source,/trackedBottleLimit/);
-  assert.match(source,/Upgrade to watch|Standard adds Radar watch/);
+  assert.match(source,/Upgrade to watch|Barrel Proof adds Radar alerts|Save bottle/);
 }
 console.log("Review-fix contracts passed.");

@@ -71,6 +71,10 @@ export default function BottleProfileScreen() {
     .sort((left, right) => (left.distance ?? Infinity) - (right.distance ?? Infinity) || Date.parse(right.report.timing.displayAt) - Date.parse(left.report.timing.displayAt));
   async function toggleWatch() {
     if (!identity || !preferences || !personal || saving) return;
+    if (preferences.entitlements?.trackedBottleLimit === 0) {
+      router.push({ pathname: '/(app)/(tabs)/radar', params: { section: 'settings', watchBottle: identity.name, saveBottleId: identity.id } });
+      return;
+    }
     setSaving(true); setMemberError('');
     try { setPreferences(await api.updateMemberPreferences({ watchlistMutation: bottleWatchMutation(identity.name, !personal.isWatched), ...(!personal.isWatched ? { alertMode: 'specific_bottles' as const } : {}) })); }
     catch (caught) { setMemberError(caught instanceof Error ? caught.message : 'Radar couldn’t save.'); }
@@ -82,7 +86,7 @@ export default function BottleProfileScreen() {
     {identity ? <>
       <BottleProfileHero identity={identity} details={bottle} tier={tier} />
       <View style={s.actions}>
-        {bottle ? <Action primary={!personal?.isWatched} label={saving ? 'Saving…' : personal?.isWatched ? 'Remove from Radar' : 'Watch in Radar'} disabled={!preferences || saving} onPress={() => void toggleWatch()} /> : null}
+        {bottle ? <Action primary={!personal?.isWatched} label={saving ? 'Saving…' : personal?.isWatched ? 'Remove from Radar' : preferences?.entitlements?.trackedBottleLimit === 0 ? 'Save bottle in Radar' : 'Watch in Radar'} disabled={!preferences || saving} onPress={() => void toggleWatch()} /> : null}
         <Action label={personal?.inCellar ? 'Edit your shelf' : preferences?.collectionAccess.canAdd === false ? 'Free shelf is full' : 'Add to My Shelf'} disabled={!preferences || (!personal?.inCellar && !preferences.collectionAccess.canAdd)} onPress={() => personal?.inCellar ? router.push({ pathname: '/(app)/(tabs)/cellar', params: { editBottleId: shelfEntry?.bottleId || identity.id } }) : router.push({ pathname: '/(app)/cellar/add', params: { bottleId: identity.id } })} />
         {bottle ? <Action label="Post a Sighting" onPress={() => router.push({ pathname: '/(app)/(tabs)/post', params: { scanBottleId: identity.id } })} /> : null}
       </View>

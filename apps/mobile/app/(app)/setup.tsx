@@ -7,6 +7,7 @@ import type { GeographySearchResponse, MemberPreferences, MemberProfile, Monitor
 import { ErrorState, LoadingState, PageHeading, memberScreenStyles } from "../../src/components/MemberScreen";
 import { CellarBottleArtwork } from '../../src/components/CellarBottleArtwork';
 import { useBottleCatalog } from "../../src/hooks/useBottleCatalog";
+import { useConversionTracking } from "../../src/activity/useConversionTracking";
 import { useMobileApi } from "../../src/hooks/useMobileApi";
 import { useAccessibleStatus } from "../../src/hooks/useAccessibleStatus";
 import { enableRadarPush, radarPushPermission } from "../../src/push/push-registration";
@@ -21,10 +22,12 @@ export default function SetupScreen() {
 
 function MemberSetup() {
   const api = useMobileApi();
+  const track = useConversionTracking();
   const router = useRouter();
   const catalog = useBottleCatalog();
-  const params = useLocalSearchParams<{ state?: string; area?: string; bottle?: string }>();
+  const params = useLocalSearchParams<{ state?: string; area?: string; bottle?: string; confirmWatch?: string }>();
   const requestedRegion = regionContext(params.state, params.area);
+  const contextBottle = params.confirmWatch === '1' ? routeText(params.bottle) : '';
   const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [step, setStep] = useState<0 | 1 | 2>(0);
@@ -44,6 +47,7 @@ function MemberSetup() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [permissionDenied, setPermissionDenied] = useState(false);
+  const [registered, setRegistered] = useState(false);
   const mounted = useRef(true);
   const mutation = useRef(false);
   useAccessibleStatus(error || areaError);
@@ -71,7 +75,7 @@ function MemberSetup() {
     if (!local || !state || step !== 0) return;
     setAreaLoading(true); setAreaError("");
     const timer = setTimeout(() => {
-      void api.searchMonitoringGeography({ state, levels: state === "NC" ? ["board"] : ["city"], query: areaQuery, limit: 20, offset: areaOffset })
+      void api.searchMonitoringGeography({ state, levels: state === "NC" ? ["board", "county", "city"] : ["county", "city"], query: areaQuery, limit: 20, offset: areaOffset })
         .then(page => { if (active) { setAreas(current => areaOffset ? [...new Map([...current, ...page.results].map(row => [row.id, row])).values()] : page.results); setAreaHasMore(page.hasMore); } })
         .catch(() => { if (active) setAreaError("Areas couldn’t load. Try again."); })
         .finally(() => { if (active) setAreaLoading(false); });
@@ -81,12 +85,21 @@ function MemberSetup() {
 
   async function saveArea() {
     if (!preferences || !state || (local && !scope) || mutation.current) return;
-    if (!areaChanged && preferences.monitoringScopes.some(row => row.state === state)) { setStep(1); return; }
+    if (!contextBottle && !areaChanged && preferences.monitoringScopes.some(row => row.state === state)) { setStep(1); return; }
     mutation.current = true; setBusy(true); setError("");
     const chosen: MonitoringScope = local && scope ? scope : { id: `state:${state}`, state, type: "state", label: profile?.profile.feedAreas.states.find(row => row.code === state)?.label || state };
     try {
-      const saved = await api.updateMemberPreferences({ monitoringScopes: [...preferences.monitoringScopes.filter(row => row.state !== state), chosen] });
-      if (mounted.current) { setPreferences(saved); setStep(1); }
+      const currentScopes = preferences.monitoringScopes;
+      const scopes = !areaChanged && currentScopes.some(row => row.state === state) ? currentScopes
+        : [...currentScopes.filter(row => row.id !== chosen.id && (row.state !== state
+          || (Boolean(contextBottle) && chosen.type !== 'state' && row.type !== 'state'))), chosen];
+      const saved = await api.updateMemberPreferences({
+        monitoringScopes: scopes,
+        ...(contextBottle ? { watchlistMutation: bottleWatchMutation(contextBottle, true) } : {}),
+        ...(contextBottle && !watchedBottleCount(preferences) ? { alertMode: 'specific_bottles' as const } : {}),
+      });
+      if (contextBottle) track('watch_ready', { entry: 'setup' });
+      if (mounted.current) { setPreferences(saved); setStep(contextBottle ? 2 : 1); }
     } catch { if (mounted.current) setError("Your area couldn’t be saved. Try again."); }
     finally { mutation.current = false; if (mounted.current) setBusy(false); }
   }
@@ -95,6 +108,7 @@ function MemberSetup() {
     mutation.current = true; setBusy(true); setError("");
     try {
       const saved = await api.updateMemberPreferences({ watchlistMutation: bottleWatchMutation(name, watched), alertMode: "specific_bottles" });
+      if (watched) track('watch_ready', { entry: 'setup' });
       if (mounted.current) setPreferences(saved);
     } catch { if (mounted.current) setError("The bottle couldn’t be saved. Check your membership limit and try again."); }
     finally { mutation.current = false; if (mounted.current) setBusy(false); }
@@ -105,7 +119,10 @@ function MemberSetup() {
     try {
       const status = await enableRadarPush(api);
       if (!mounted.current) return;
-      if (status.enabled && status.currentDeviceRegistered && !status.warning) router.replace("/(app)/(tabs)");
+      if (status.enabled && status.currentDeviceRegistered && !status.warning) {
+        track('push_ready', { entry: 'setup' });
+        setRegistered(true);
+      }
       else setError("Notifications couldn’t finish setting up. Try again or set them up later in Radar.");
     } catch {
       const permission = await radarPushPermission().catch(() => "undetermined");
@@ -122,27 +139,34 @@ function MemberSetup() {
   const count = watchedBottleCount(preferences);
   const limit = preferences.entitlements?.trackedBottleLimit;
   const selectedState = profile.profile.feedAreas.states.find(row => row.code === state);
+  if (registered) return <ScrollView style={s.screen} contentContainerStyle={s.content}>
+    <PageHeading title="Your alerts are ready" description={contextBottle
+      ? `Watching ${contextBottle} in ${scope?.label || selectedState?.label || state}. Notifications are enabled on this phone.`
+      : 'Notifications are enabled on this phone. We’ll let you know when a report matches your Radar settings.'} />
+    <Action label="Open Radar" onPress={() => router.replace({ pathname: '/(app)/(tabs)/radar', params: { section: 'settings' } })} />
+  </ScrollView>;
   return <ScrollView style={s.screen} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
     {!canSetAlerts ? <>
       <PageHeading title="Your account is ready" description="Browse member sightings or add bottles to your shelf." />
       <Action label="Browse Community" onPress={() => router.replace({ pathname: "/(app)/(tabs)", params: { view: "community" } })} />
       <Action label="Add your first bottle" onPress={() => router.replace("/(app)/cellar/add")} secondary />
-      <Text style={s.detail}>Bottle alerts are included with Standard and above.</Text>
+      <Text style={s.detail}>Bottle alerts are included with Barrel Proof.</Text>
       <Action label="View memberships" onPress={() => router.replace({ pathname: "/(app)/account/membership", params: { welcome: "1" } })} secondary />
     </> : <>
-      <Text style={s.detail}>Step {step + 1} of 3</Text>
+      <Text style={s.detail}>Step {contextBottle ? (step === 2 ? 2 : 1) : step + 1} of {contextBottle ? 2 : 3}</Text>
       <PageHeading title={step === 0 ? "Where do you hunt?" : step === 1 ? "Which bottles do you want?" : "Get alerts on your phone"}
         description={step === 0 ? "Choose a state, then your area." : step === 1 ? "Search for bottles and tap Watch. You can change these in Radar." : "We’ll notify you when a report matches your bottles, area, and bottle tiers."} />
-      {requestedRegion.state && step === 0 ? <Text style={s.detail}>From your current region: {[requestedRegion.area, requestedRegion.state].filter(Boolean).join(', ')}. Confirm an area below to update Radar.</Text> : null}
+      {requestedRegion.state && step === 0 ? <Text style={s.detail}>From your current region: {[requestedRegion.area, requestedRegion.state].filter(Boolean).join(', ')}. The area you choose applies to your Radar watches.</Text> : null}
+      {contextBottle ? <Text accessibilityRole="summary" style={s.text}>Watching {contextBottle}{state ? ` · ${scope?.label || selectedState?.label || state}` : ""}</Text> : null}
       {step === 0 ? <>
         <ScrollView horizontal contentContainerStyle={s.states} keyboardShouldPersistTaps="handled">
           {profile.profile.feedAreas.states.map(row => <Pressable key={row.code} accessibilityRole="radio" accessibilityLabel={row.label} accessibilityState={{ checked: state === row.code }} disabled={busy} onPress={() => { setAreaChanged(true); setState(row.code); setScope(null); setAreaOffset(0); setAreas([]); setAreaQuery(""); }} style={[s.choice, state === row.code && s.chosen]}><Text style={s.text}>{row.code}</Text></Pressable>)}
         </ScrollView>
         {selectedState?.engineCoverage === "expanding" ? <Text style={s.detail}>Reports in {selectedState.label} are limited while coverage expands.</Text> : null}
-        {state ? <View style={s.states}><Action label="Entire state" secondary disabled={busy} selected={!local} onPress={() => { setAreaChanged(true); setLocal(false); setScope(null); }} /><Action label={state === "NC" ? "Choose a board" : "Choose a city"} secondary disabled={busy} selected={local} onPress={() => { setAreaChanged(true); setLocal(true); setScope(null); setAreaOffset(0); }} /></View> : null}
+        {state ? <View style={s.states}><Action label="Entire state" secondary disabled={busy} selected={!local} onPress={() => { setAreaChanged(true); setLocal(false); setScope(null); }} /><Action label="Choose a local area" secondary disabled={busy} selected={local} onPress={() => { setAreaChanged(true); setLocal(true); setScope(null); setAreaOffset(0); }} /></View> : null}
         {local && state ? <>
           {scope ? <Text style={s.detail}>Selected area: {scope.label}</Text> : null}
-          <TextInput accessibilityLabel="Search areas" placeholder={state === "NC" ? "Search boards" : "Search cities"} placeholderTextColor={colors.muted} value={areaQuery} onChangeText={value => { setAreaQuery(value); setAreaOffset(0); setAreas([]); }} style={s.input} />
+          <TextInput accessibilityLabel="Search areas" placeholder={state === "NC" ? "Search boards, counties, or cities" : "Search counties or cities"} placeholderTextColor={colors.muted} value={areaQuery} onChangeText={value => { setAreaQuery(value); setAreaOffset(0); setAreas([]); }} style={s.input} />
           {areas.map(row => <Pressable accessibilityRole="radio" accessibilityState={{ checked: scope?.id === row.id }} key={row.id} disabled={busy} onPress={() => { setAreaChanged(true); setScope({ id: row.id, state: row.state, type: row.level, label: row.name }); }} style={[s.row, scope?.id === row.id && s.chosen]}><Text style={s.text}>{row.name}</Text></Pressable>)}
           {areaLoading ? <ActivityIndicator color={colors.accent} /> : areaError ? <ErrorState message={areaError} onRetry={() => setAreaAttempt(value => value + 1)} /> : !areas.length ? <Text style={s.detail}>No areas match. Try another name or choose the entire state.</Text> : null}
           {areaHasMore && !areaLoading ? <Action label="More areas" secondary onPress={() => setAreaOffset(areas.length)} /> : null}
@@ -160,7 +184,7 @@ function MemberSetup() {
       {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}
       {permissionDenied ? <Action label="Open phone settings" secondary onPress={() => { void Linking.openSettings().catch(() => setError("Open your phone Settings and allow notifications for Bourbon Signal.")); }} /> : null}
       <Action label={busy ? "Saving…" : step === 2 ? "Enable notifications" : "Continue"} disabled={busy || (step === 0 && (!state || (local && !scope))) || (step === 1 && !count)} onPress={() => { if (step === 0) void saveArea(); else if (step === 1) setStep(2); else void enableAlerts(); }} />
-      {step > 0 ? <Action label="Back" secondary disabled={busy} onPress={() => { setError(""); setStep(step === 2 ? 1 : 0); if (step === 1) setAreaOffset(0); }} /> : null}
+      {step > 0 ? <Action label="Back" secondary disabled={busy} onPress={() => { setError(""); setStep(step === 2 && !contextBottle ? 1 : 0); if (step === 1) setAreaOffset(0); }} /> : null}
       <Action label="Set up later" secondary disabled={busy} onPress={() => router.replace("/(app)/(tabs)")} />
     </>}
   </ScrollView>;

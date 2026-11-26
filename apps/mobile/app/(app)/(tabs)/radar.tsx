@@ -1,8 +1,11 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useConversionTracking } from "../../../src/activity/useConversionTracking";
+import { discoveryRegion, type SavedBottle } from '../../../../../shared/local-discovery';
+import { LocalReportCard, RegionFields, regionLabel, useLocalReport } from '../../../src/onboarding/LocalPreview';
 import { groupRadarReports } from "../../../src/radar/alert-location";
 import { CellarBottleArtwork } from '../../../src/components/CellarBottleArtwork';
 import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -393,6 +396,98 @@ function BottleWatchlist({ catalog, preferences, query, saving, watchedKeys, wat
   </View>;
 }
 
+function FreeSavedBottle({ catalog, query, onQuery, state, city }: {
+  catalog: RadarBottleOption[]; query: string; onQuery: (value: string) => void; state: string; city: string;
+}) {
+  const api = useMobileApi();
+  const track = useConversionTracking();
+  const router = useRouter();
+  const params = useLocalSearchParams<{ saveBottleId?: string; state?: string; city?: string }>();
+  const [saved, setSaved] = useState<SavedBottle | null>(null);
+  const [preview, setPreview] = useState<Awaited<ReturnType<typeof api.getAlertPreview>> | null>(null);
+  const [previewBusy, setPreviewBusy] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [area, setArea] = useState<{ state: string; city: string } | null>(null);
+  const [editingArea, setEditingArea] = useState(false);
+  const revision = useRef(0);
+  const region = area ? discoveryRegion(area.state, area.city) : discoveryRegion(params.state, params.city)
+    || (saved && discoveryRegion(saved.state, saved.city)) || discoveryRegion(state, city);
+  const pendingId = typeof params.saveBottleId === 'string' ? params.saveBottleId : '';
+  const pendingName = catalog.find(bottle => bottle.id === pendingId)?.name;
+  const regionChanged = Boolean(saved && region && (saved.state !== region.state || saved.city !== region.city));
+  const { result } = useLocalReport(saved?.state || '', saved?.city);
+  useEffect(() => {
+    let active = true;
+    const requestRevision = revision.current;
+    void api.getSavedHuntBottle().then(response => { if (active && requestRevision === revision.current) setSaved(response.saved); })
+      .catch(() => { if (active) setError('Your saved bottle could not load.'); });
+    return () => { active = false; };
+  }, [api]);
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    setPreview(null);
+    if (saved) void api.getAlertPreview().then(response => { if (active) setPreview(response); }).catch(() => {});
+    return () => { active = false; };
+  }, [api, saved]));
+  async function showPreview() {
+    if (previewBusy) return;
+    setPreviewBusy(true); setError('');
+    try {
+      const next = await api.getAlertPreview(true);
+      setPreview(next);
+      if (next.status === 'shown' && next.report) track('preview_report_opened', { entry: 'saved_bottle', coverage: 'current' });
+    } catch { setError('Your preview couldn’t load. Try again.'); }
+    finally { setPreviewBusy(false); }
+  }
+  async function save(id?: string) {
+    if (busy || (id && !region)) return;
+    revision.current++; setBusy(true); setError('');
+    try {
+      const result = await api.saveHuntBottle(id && region ? { ...region, bottleId: id } : { remove: true });
+      setSaved(result.saved);
+      if (result.saved) track('bottle_saved', { entry: pendingId ? 'first_run' : 'radar' });
+      if (pendingId) router.setParams({ saveBottleId: '', state: '', city: '' });
+    } catch (caught) { setError(caught instanceof Error ? caught.message : 'Try again.'); }
+    finally { setBusy(false); }
+  }
+  return <View style={styles.section}>
+    <SectionTitle>Saved bottle</SectionTitle>
+    <Text style={styles.muted}>Keep one bottle handy on Free. You can change it whenever you like.</Text>
+    {saved ? <MemberCard>
+      <Text style={styles.listTitle}>{saved.bottle}</Text>
+      <Text style={styles.muted}>{regionLabel(saved)}</Text>
+      {preview?.status === 'ready' ? <TextAction label="See one matching report free" disabled={previewBusy} onPress={() => void showPreview()} /> : null}
+      {preview?.status === 'shown' && preview.report ? <LocalReportCard report={preview.report} /> : null}
+      {preview?.status === 'waiting' ? <Text style={styles.muted}>Check back for your first matching report preview.</Text> : null}
+      {result?.report?.alertsAvailable ? <TextAction label="Get alerts for this bottle →" onPress={() => router.push({
+        pathname: '/(app)/account/membership',
+        params: { watchBottle: saved.bottle, watchBottleId: saved.bottleId, state: saved.state, city: saved.city, entry: 'saved_bottle' },
+      })} /> : result && !result.failed ? <Text style={styles.muted}>Recent retailer alert coverage is limited in this area.</Text> : null}
+      <TextAction label="Remove saved bottle" quiet disabled={busy || previewBusy} onPress={() => void save()} />
+    </MemberCard> : null}
+    {pendingId && (pendingId !== saved?.bottleId || regionChanged) ? <TextAction disabled={!region || busy || editingArea}
+      label={pendingName ? `${saved && pendingId !== saved.bottleId ? 'Replace with' : 'Save'} ${pendingName}` : saved ? 'Update saved bottle' : 'Save selected bottle'}
+      onPress={() => void save(pendingId)} /> : null}
+    {!pendingId && saved && region && regionChanged && !editingArea ? <TextAction disabled={busy}
+      label={`Use ${regionLabel(region)} for ${saved.bottle}`} onPress={() => void save(saved.bottleId)} /> : null}
+    {editingArea ? <MemberCard>
+      <RegionFields state={area?.state || ''} city={area?.city || ''} onState={code => setArea({ state: code, city: area?.city || '' })}
+        onCity={value => setArea({ state: area?.state || '', city: value })} />
+      <TextAction label="Use this area" disabled={!region} onPress={() => setEditingArea(false)} />
+    </MemberCard> : <TextAction label={region ? `Shopping area · ${regionLabel(region)}` : 'Choose your area'}
+      onPress={() => { setArea(region || { state: '', city: '' }); setEditingArea(true); }} />}
+    <TextInput accessibilityLabel="Search for a bottle to save" placeholder="Search bottles" placeholderTextColor={colors.muted}
+      autoCorrect={false} style={styles.input} value={query} onChangeText={onQuery} />
+    {query.trim() ? catalog.map(bottle => <View key={bottle.id} style={styles.compactRow}>
+      <CellarBottleArtwork bottle={{ bottleId: bottle.id, bottleName: bottle.name }} size="list" />
+      <Text style={[styles.listTitle, styles.flex]}>{bottle.name}</Text>
+      <TextAction disabled={busy || editingArea || !region || (saved?.bottleId === bottle.id && saved.state === region.state && saved.city === region.city)} label={saved?.bottleId === bottle.id && saved.state === region?.state && saved.city === region?.city ? 'Saved' : 'Save'} onPress={() => void save(bottle.id)} />
+    </View>) : null}
+    {error ? <Text accessibilityRole="alert" style={styles.muted}>{error}</Text> : null}
+  </View>;
+}
+
 function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, onLayout, onNotificationsLayout, catalog, preferences, profile, pushBusy, pushError, pushPermission, pushStage, pushStatus, query, saving, watchedKeys, watchedNames, onQuery, onSave, onSetWatching, onTogglePush }: { pushNeedsAttention: boolean; pushRecoveryAction: PushRecoveryAction; onRecoverPush: () => void; onLayout: (y: number) => void; onNotificationsLayout: (y: number) => void; catalog: RadarBottleOption[]; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushError: string; pushPermission: string; pushStage: string; pushStatus: PushDeviceStatus | null; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onQuery: (value: string) => void; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onSetWatching: (name: string, watched: boolean, preserveAlertMode?: boolean) => Promise<MemberPreferences | null>; onTogglePush: (enabled: boolean) => Promise<boolean> }) {
   const router = useRouter();
   const api = useMobileApi();
@@ -463,10 +558,10 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
   const compactStateChoice = Boolean(editorState && scopeMode !== "local");
   const lowCoverage = Boolean(editorState && states.find((state) => state.code === editorState.code)?.engineCoverage !== "active");
 
-  if (preferences.entitlements?.alertAreaLimit === 0) return <MemberCard>
-    <Text style={styles.listTitle}>Want alerts when bottles are found in your area?</Text>
-    <TextAction label="Upgrade your membership →" onPress={() => router.push({ pathname: '/(app)/account/membership', params: { watchBottle: query } })} />
-  </MemberCard>;
+  if (preferences.entitlements?.alertAreaLimit === 0) {
+    return <FreeSavedBottle catalog={catalog} query={query} onQuery={onQuery}
+      state={profile?.profile.homeState || ''} city={profile?.profile.shoppingCity || ''} />;
+  }
 
   return <View onLayout={(event) => onLayout(event.nativeEvent.layout.y)} style={styles.preferences}>
     <View style={styles.section}>

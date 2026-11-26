@@ -52,7 +52,7 @@ export default function EntryScreen() {
   if (!isLoaded) return <Loading />;
   if (!isSignedIn) return <Redirect href="/(auth)/welcome" />;
   if (destination === "app") return <Redirect href="/(app)/(tabs)" />;
-  if (destination === "onboarding") return <Redirect href="/(app)/onboarding" />;
+  if (destination === "onboarding") return <Redirect href="/(app)/first-run" />;
   if (error) return <View style={styles.center}>
     <Text accessibilityRole="alert" style={styles.error}>{error}</Text>
     <Pressable accessibilityRole="button" onPress={() => setAttempt((value) => value + 1)} style={styles.retry}><Text style={styles.retryText}>Try again</Text></Pressable>

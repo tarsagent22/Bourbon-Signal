@@ -306,6 +306,11 @@ export default function SignalDetailScreen() {
             bottleId: bottleDetails.id, bottleName: bottleDetails.name, state: signal.location.store?.state, area: signal.location.store?.city,
           } })} />
         ) : null}
+        {!canWatch && preferences?.entitlements?.trackedBottleLimit === 0 && (signal.bottle.catalogId || signal.bottle.id) ? <ActionButton compact
+          label="Save this bottle in Radar" onPress={() => router.push({ pathname: '/(app)/(tabs)/radar', params: {
+            section: 'settings', watchBottle: signal.bottle.name, saveBottleId: signal.bottle.catalogId || signal.bottle.id || '',
+            state: signal.location.state || '', city: signal.location.store?.city || '',
+          } })} /> : null}
         {canWatch ? <ActionButton compact primary={!isWatched} disabled={!preferences || saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
         {canReadCellar ? <ActionButton quiet disabled={(!inCellar && !canAddToCellar) || saving} label={inCellar ? "Edit your shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => shelfEntry ? router.push({pathname:"/(app)/(tabs)/cellar",params:{editBottleId:shelfEntry.bottleId}}) : signal.bottle.id ? router.push({pathname:"/(app)/cellar/add",params:{bottleId:signal.bottle.id}}) : void addToCellar()} /> : null}
       </View>

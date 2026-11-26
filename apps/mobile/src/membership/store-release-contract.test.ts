@@ -69,7 +69,7 @@ test("store metadata is explicitly a blocked draft for the not-yet-final candida
   assert.match(checklist, /configured StoreKit.*RevenueCat products/i);
   assert.match(checklist, /sandbox.*purchase.*restore/i);
   assert.match(checklist, /final signed build/i);
-  assert.match(screenshots, /not been captured/i);
+  assert.match(screenshots, /captures are pending/i);
   assert.match(screenshots, /configured.*localized price/i);
   assert.doesNotMatch(all, /products are ready|sandbox testing passed|screenshots (?:are )?complete|final build is ready/i);
 });

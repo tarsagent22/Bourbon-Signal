@@ -6,12 +6,13 @@ import { useEffect } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { AppState, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PurchasesProvider } from "../src/membership/PurchasesProvider";
 import { StartupErrorBoundary } from "../src/startup/StartupErrorBoundary";
 import { MobileApiProvider } from "../src/hooks/useMobileApi";
 import { DeviceTimeZoneCapture } from "../src/startup/DeviceTimeZoneCapture";
+import { useConversionTracking } from "../src/activity/useConversionTracking";
 import { useMobileApi } from "../src/hooks/useMobileApi";
 import { reportRenderError } from "../src/startup/report-render-error";
 import { colors, typeScale, fonts } from "../src/theme";
@@ -43,6 +44,15 @@ export default function RootLayout() {
 
 function SessionNavigation() {
   const api=useMobileApi();
+  const track = useConversionTracking();
+  useEffect(() => {
+    track('first_open', { entry: 'welcome' });
+    if (AppState.currentState === 'active') track('app_active', { entry: 'welcome' });
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') track('app_active', { entry: 'welcome' });
+    });
+    return () => subscription.remove();
+  }, [track]);
   const { isLoaded, isSignedIn, userId, sessionId } = useAuth();
   return <StartupErrorBoundary onRenderError={(error,stack)=>{if(isSignedIn)void reportRenderError(error,stack,api.reportNativeDiagnostic).catch(()=>{});}} resetOn={`${userId || ''}:${sessionId || ''}`}>
     <><Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>

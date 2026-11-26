@@ -3,6 +3,7 @@ import * as Notifications from "expo-notifications";
 import { useRootNavigationState, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
+import { useConversionTracking } from "../activity/useConversionTracking";
 import { useMobileApi } from "../hooks/useMobileApi";
 import { beginRadarPushSession, configureRadarNotifications, flushPendingPushRevocation, refreshRadarPushIfEnabled, watchRadarPushToken } from "./push-registration";
 import { createPendingPushNavigation } from "./push-navigation";
@@ -36,6 +37,7 @@ export function PushMaintenance() {
 }
 
 export function PushResponseHandler() {
+  const track = useConversionTracking();
   const router = useRouter();
   const navigationState = useRootNavigationState();
   const { isLoaded, isSignedIn } = useAuth();
@@ -97,7 +99,7 @@ export function PushResponseHandler() {
   useEffect(() => {
     const route = queue.current.take(isLoaded && !!isSignedIn, Boolean(navigationState?.key) && foreground);
     if (!route) return;
-    try { router.push(route); } catch {
+    try { router.push(route); track('alert_opened', { entry: 'radar' }); } catch {
       // Keep the destination pending if the navigator is still mounting.
       if (navigationAttempts.current++ < 3) {
         const retry = setTimeout(() => setRevision(value => value + 1), 250);

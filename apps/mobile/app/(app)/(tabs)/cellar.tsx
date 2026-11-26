@@ -383,7 +383,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   const watchCellarSuggestion = useCallback(async (bottleName: string, canonicalKey: string) => {
     if (!preferences || savingWatchKey) return;
     if (!canWatchCellarSuggestions) {
-      Alert.alert("Radar watch is a Standard feature", "Standard adds Radar watch actions. My Shelf and Hunt next suggestions stay available.");
+      Alert.alert("Radar alerts are included with Barrel Proof", "Barrel Proof adds Radar alerts. My Shelf and Hunt next suggestions stay available.");
       return;
     }
     setSavingWatchKey(canonicalKey);
@@ -446,9 +446,9 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
               ? "Your free shelf is full."
               : `${collectionAccess.remaining} spaces left on your free shelf.`}</Text>
           <Text style={styles.capacityDetail}>{collectionAccess.limit !== null && sourceBottles.length > collectionAccess.limit
-            ? "You can keep viewing, editing, or deleting every bottle. Standard adds room for new bottles."
+            ? "You can keep viewing, editing, or deleting every bottle. Barrel Proof gives you unlimited shelf space."
             : collectionAccess.remaining === 0
-              ? "Keep managing every saved bottle here. Standard adds room for new bottles."
+              ? "Keep managing every saved bottle here. Barrel Proof gives you unlimited shelf space."
               : "Capacity stays out of the way until you are close to full."}</Text>
         </View> : null}
         {preferences ? <>
@@ -471,7 +471,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
           <View style={styles.huntNextHeader}><Text style={styles.huntNextTitle}>Hunt next</Text><Text style={styles.huntNextCount}>{cellarHuntSuggestions.length} suggestion{cellarHuntSuggestions.length === 1 ? "" : "s"}</Text></View>
           {cellarHuntSuggestions.map((suggestion) => <View key={suggestion.canonicalKey} style={styles.huntNextRow}>
             <View style={styles.huntNextCopy}><Text style={styles.huntNextName}>{suggestion.bottleName}</Text><Text style={styles.huntNextReason}>{suggestion.reason}</Text></View>
-            {canWatchCellarSuggestions ? <Pressable accessibilityRole="button" accessibilityState={{ disabled: Boolean(savingWatchKey) }} disabled={Boolean(savingWatchKey)} onPress={() => void watchCellarSuggestion(suggestion.bottleName, suggestion.canonicalKey)} style={styles.huntNextButton}><Text style={styles.huntNextButtonText}>{savingWatchKey === suggestion.canonicalKey ? "Saving…" : "Watch for another"}</Text></Pressable> : <Text style={styles.huntNextReason}>Standard adds Radar watch</Text>}
+            {canWatchCellarSuggestions ? <Pressable accessibilityRole="button" accessibilityState={{ disabled: Boolean(savingWatchKey) }} disabled={Boolean(savingWatchKey)} onPress={() => void watchCellarSuggestion(suggestion.bottleName, suggestion.canonicalKey)} style={styles.huntNextButton}><Text style={styles.huntNextButtonText}>{savingWatchKey === suggestion.canonicalKey ? "Saving…" : "Watch for another"}</Text></Pressable> : <Text style={styles.huntNextReason}>Barrel Proof adds Radar alerts</Text>}
           </View>)}
         </View> : null}
         {canUseRecommendations ? <View style={styles.dnaCard}>
